@@ -1,0 +1,47 @@
+# SOPET Admin CI
+# Triggers on pull request open, update, and reopen.
+# Runs: yarn type-check → yarn test → yarn build → yarn test:e2e
+
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_GRAPHQL_URL: http://localhost:3002/graphql
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Format check
+        run: yarn format:check
+
+      - name: Type check
+        run: yarn type-check
+
+      - name: Unit tests
+        run: yarn test
+
+      - name: Build
+        run: yarn build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: yarn test:e2e

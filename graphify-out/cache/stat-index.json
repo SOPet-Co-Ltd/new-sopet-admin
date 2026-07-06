@@ -1,0 +1,27 @@
+{
+  "/Users/svacmai/Developer/new-sopet/sopet-admin/package.json": {
+    "size": 1221,
+    "mtime_ns": 1782965389595415598,
+    "hash": "7972f2cfcd0b9531b56c402c9edf8b8e2873c496de6e2900f2cd3f75b7084bba"
+  },
+  "/Users/svacmai/Developer/new-sopet/sopet-admin/tsconfig.json": {
+    "size": 670,
+    "mtime_ns": 1782890248132139934,
+    "hash": "9b970091c97632397c54f36044cd1474be3b53104e9c4bd66fe636f0081c0852"
+  },
+  "/Users/svacmai/Developer/new-sopet/sopet-admin/AGENTS.md": {
+    "size": 327,
+    "mtime_ns": 1782890256901887364,
+    "hash": "f56c045273213f32f4acd96e98dfb664cfc7c3f71d6775317d19c60d38439655"
+  },
+  "/Users/svacmai/Developer/new-sopet/sopet-admin/CLAUDE.md": {
+    "size": 11,
+    "mtime_ns": 1782890256901957281,
+    "hash": "1bc407b3dec76c32f03d0e5e2d064ceae04ede1709e79f8ce2383f5b4092e7a6"
+  },
+  "/Users/svacmai/Developer/new-sopet/sopet-admin/README.md": {
+    "size": 1419,
+    "mtime_ns": 1782896981521248912,
+    "hash": "e5854a207b80826822e4c93945089b0edcd2215e011f35d393824ed0848c7c5c"
+  }
+}
