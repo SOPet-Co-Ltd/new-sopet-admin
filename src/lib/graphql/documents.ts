@@ -1398,6 +1398,7 @@ const PLATFORM_BANNER_FIELDS = `
   id
   title
   imageUrl
+  mobileImageUrl
   linkUrl
   sortOrder
   isActive

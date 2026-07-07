@@ -654,6 +654,7 @@ export interface PlatformBanner {
   id: string;
   title: string;
   imageUrl: string;
+  mobileImageUrl?: string | null;
   linkUrl?: string | null;
   sortOrder: number;
   isActive: boolean;
@@ -664,6 +665,7 @@ export interface PlatformBanner {
 export interface CreatePlatformBannerInput {
   title: string;
   imageUrl: string;
+  mobileImageUrl?: string | null;
   linkUrl?: string | null;
   sortOrder?: number;
   isActive?: boolean;
@@ -673,6 +675,7 @@ export interface UpdatePlatformBannerInput {
   id: string;
   title?: string;
   imageUrl?: string;
+  mobileImageUrl?: string | null;
   linkUrl?: string | null;
   sortOrder?: number;
   isActive?: boolean;

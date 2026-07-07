@@ -237,6 +237,7 @@ export type CreatePlatformBannerInput = {
   imageUrl: Scalars['String']['input'];
   isActive?: InputMaybe<Scalars['Boolean']['input']>;
   linkUrl?: InputMaybe<Scalars['String']['input']>;
+  mobileImageUrl?: InputMaybe<Scalars['String']['input']>;
   sortOrder?: InputMaybe<Scalars['Int']['input']>;
   startsAt?: InputMaybe<Scalars['DateTime']['input']>;
   title: Scalars['String']['input'];
@@ -513,6 +514,7 @@ export type Mutation = {
   togglePromotion: PromotionType;
   updateAddress: SavedAddressType;
   updateCartItem: CartType;
+  updateCategory: CategoryType;
   updateCustomerAsAdmin: AdminCustomerType;
   updateOrderStatus: OrderType;
   updatePlatformAd: PlatformAdType;
@@ -901,6 +903,10 @@ export type MutationUpdateCartItemArgs = {
   input: UpdateCartItemInput;
 };
 
+export type MutationUpdateCategoryArgs = {
+  input: UpdateCategoryInput;
+};
+
 export type MutationUpdateCustomerAsAdminArgs = {
   input: UpdateCustomerAsAdminInput;
 };
@@ -1140,6 +1146,7 @@ export type PlatformBannerType = {
   imageUrl: Scalars['String']['output'];
   isActive: Scalars['Boolean']['output'];
   linkUrl?: Maybe<Scalars['String']['output']>;
+  mobileImageUrl?: Maybe<Scalars['String']['output']>;
   sortOrder: Scalars['Int']['output'];
   startsAt?: Maybe<Scalars['DateTime']['output']>;
   title: Scalars['String']['output'];
@@ -1889,6 +1896,11 @@ export type UpdateCartItemInput = {
   sessionId?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateCategoryInput = {
+  categoryId: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+};
+
 export type UpdateCustomerAsAdminInput = {
   dateOfBirth?: InputMaybe<Scalars['String']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
@@ -1918,6 +1930,7 @@ export type UpdatePlatformBannerInput = {
   imageUrl?: InputMaybe<Scalars['String']['input']>;
   isActive?: InputMaybe<Scalars['Boolean']['input']>;
   linkUrl?: InputMaybe<Scalars['String']['input']>;
+  mobileImageUrl?: InputMaybe<Scalars['String']['input']>;
   sortOrder?: InputMaybe<Scalars['Int']['input']>;
   startsAt?: InputMaybe<Scalars['DateTime']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;

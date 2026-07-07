@@ -32,6 +32,7 @@ function mapBanner(raw: PlatformBanner): PlatformBanner {
     id: raw.id,
     title: raw.title,
     imageUrl: raw.imageUrl,
+    mobileImageUrl: raw.mobileImageUrl ?? null,
     linkUrl: raw.linkUrl,
     sortOrder: raw.sortOrder,
     isActive: raw.isActive,

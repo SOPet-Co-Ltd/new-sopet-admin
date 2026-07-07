@@ -187,6 +187,7 @@ export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 export const bannerFormSchema = z.object({
   title: z.string().min(1, 'กรุณากรอกชื่อแบนเนอร์'),
   imageUrl: z.string().min(1, 'กรุณาอัปโหลดรูปภาพ').url('กรุณาอัปโหลดรูปภาพ'),
+  mobileImageUrl: z.union([z.literal(''), z.string().url('กรุณาอัปโหลดรูปภาพ')]).optional(),
   linkUrl: z.union([z.literal(''), z.string().url('กรุณากรอก URL ที่ถูกต้อง')]).optional(),
   isActive: z.boolean().optional(),
 });

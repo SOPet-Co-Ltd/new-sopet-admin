@@ -48,6 +48,7 @@ type Tab = keyof typeof platformSettingsTabLabels;
 const bannerDefaults: BannerFormValues = {
   title: '',
   imageUrl: '',
+  mobileImageUrl: '',
   linkUrl: '',
   isActive: true,
 };
@@ -111,6 +112,7 @@ export default function AdminPlatformSettingsPage() {
       bannerForm.reset({
         title: editingBanner.title,
         imageUrl: editingBanner.imageUrl,
+        mobileImageUrl: editingBanner.mobileImageUrl ?? '',
         linkUrl: editingBanner.linkUrl ?? '',
         isActive: editingBanner.isActive,
       });
@@ -181,6 +183,7 @@ export default function AdminPlatformSettingsPage() {
     const input = {
       title: values.title,
       imageUrl: values.imageUrl,
+      mobileImageUrl: values.mobileImageUrl || null,
       linkUrl: values.linkUrl || null,
       isActive: values.isActive ?? true,
     };
@@ -604,12 +607,26 @@ export default function AdminPlatformSettingsPage() {
               render={({ field }) => (
                 <ImageUploadField
                   id="banner-imageUrl"
-                  label="รูปภาพ"
+                  label="รูปภาพ (เดสก์ท็อป)"
                   required
                   value={field.value}
                   onChange={field.onChange}
                   folder="banners"
                   error={bannerForm.formState.errors.imageUrl?.message}
+                />
+              )}
+            />
+            <Controller
+              name="mobileImageUrl"
+              control={bannerForm.control}
+              render={({ field }) => (
+                <ImageUploadField
+                  id="banner-mobileImageUrl"
+                  label="รูปภาพ (มือถือ)"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  folder="banners"
+                  error={bannerForm.formState.errors.mobileImageUrl?.message}
                 />
               )}
             />
