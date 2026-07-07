@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -194,8 +194,6 @@ export default function AdminPlatformSettingsPage() {
       const nextSortOrder =
         banners.reduce((max, banner) => Math.max(max, banner.sortOrder), -1) + 1;
       await createBanner.mutateAsync({ ...input, sortOrder: nextSortOrder });
-      // Invalidate to refresh banners list
-      createBanner.invalidate();
     }
     setBannerDialogOpen(false);
     setEditingBanner(null);
@@ -216,10 +214,8 @@ export default function AdminPlatformSettingsPage() {
       });
     } else {
       const nextSortOrder =
-        sponsorsRef.current.reduce((max, sponsor) => Math.max(max, sponsor.sortOrder), -1) + 1;
+        sponsors.reduce((max, sponsor) => Math.max(max, sponsor.sortOrder), -1) + 1;
       await createSponsor.mutateAsync({ ...input, sortOrder: nextSortOrder });
-      // Invalidate to refresh sponsors list
-      createSponsor.invalidate();
     }
     setSponsorDialogOpen(false);
     setEditingSponsor(null);
