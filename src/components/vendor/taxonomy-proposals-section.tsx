@@ -24,23 +24,25 @@ import {
 } from '@/hooks/useTaxonomy';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
-import type { TaxonomyItem } from '@/types';
+import type { CreateCategoryInput, TaxonomyItem } from '@/types';
 import type { UseMutationResult } from '@tanstack/react-query';
 
-function ProposeDialog({
+function ProposeDialog<TInput>({
   title,
   description,
   fieldLabel,
   placeholder,
   fieldId,
   mutation,
+  buildInput,
 }: {
   title: string;
   description: string;
   fieldLabel: string;
   placeholder: string;
   fieldId: string;
-  mutation: UseMutationResult<TaxonomyItem, Error, string>;
+  mutation: UseMutationResult<TaxonomyItem, Error, TInput>;
+  buildInput: (values: ProposeTaxonomyFormValues) => TInput;
 }) {
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -52,7 +54,7 @@ function ProposeDialog({
 
   async function onPropose(values: ProposeTaxonomyFormValues) {
     try {
-      const created = await mutation.mutateAsync(values.name);
+      const created = await mutation.mutateAsync(buildInput(values));
       setNotice(`ส่งคำขอ "${created.name}" แล้ว (${labelTaxonomyStatus(created.status)})`);
       setOpen(false);
       form.reset();
@@ -192,6 +194,7 @@ export function TaxonomyProposalsSection() {
               placeholder="ชื่อหมวดหมู่"
               fieldId="propose-category-request"
               mutation={createCategory}
+              buildInput={(values) => ({ name: values.name }) satisfies CreateCategoryInput}
             />
           }
         />
@@ -208,6 +211,7 @@ export function TaxonomyProposalsSection() {
               placeholder="ชื่อแท็ก"
               fieldId="propose-tag-request"
               mutation={createTag}
+              buildInput={(values) => values.name}
             />
           }
         />

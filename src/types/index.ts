@@ -51,8 +51,51 @@ export interface TaxonomyItem {
   name: string;
   slug: string;
   status: TaxonomyStatus | string;
+  imageUrl?: string | null;
   proposedBy?: string;
   createdAt?: string;
+}
+
+export interface CategoryDeleteImpact {
+  productCount: number;
+  products: Array<{ id: string; name: string; slug: string }>;
+}
+
+export interface TagDeleteImpact {
+  productCount: number;
+}
+
+export interface DeleteCategoryResult {
+  success: boolean;
+  deletedCategoryId: string;
+  reassignedProductCount: number;
+  replacementCategoryId?: string | null;
+}
+
+export interface DeleteTagResult {
+  success: boolean;
+  deletedTagId: string;
+  detachedProductCount: number;
+}
+
+export interface CreateCategoryInput {
+  name: string;
+  imageUrl?: string;
+}
+
+export interface SetCategoryImageInput {
+  categoryId: string;
+  imageUrl: string;
+}
+
+export interface UpdateCategoryInput {
+  categoryId: string;
+  name: string;
+}
+
+export interface DeleteCategoryInput {
+  id: string;
+  replacementCategoryId?: string;
 }
 
 export type StoreMemberRole = 'owner' | 'manager' | 'staff';

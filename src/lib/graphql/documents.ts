@@ -494,6 +494,7 @@ export const APPROVED_CATEGORIES_QUERY = gql`
       name
       slug
       approvalStatus
+      imageUrl
       createdBy
       createdAt
     }
@@ -520,6 +521,7 @@ export const PENDING_CATEGORIES_QUERY = gql`
       name
       slug
       approvalStatus
+      imageUrl
       createdBy
       createdAt
     }
@@ -546,6 +548,7 @@ export const MY_CATEGORY_PROPOSALS_QUERY = gql`
       name
       slug
       approvalStatus
+      imageUrl
       createdBy
       createdAt
     }
@@ -572,6 +575,7 @@ export const CREATE_CATEGORY = gql`
       name
       slug
       approvalStatus
+      imageUrl
     }
   }
 `;
@@ -594,6 +598,7 @@ export const APPROVE_CATEGORY = gql`
       name
       slug
       approvalStatus
+      imageUrl
     }
   }
 `;
@@ -605,6 +610,7 @@ export const REJECT_CATEGORY = gql`
       name
       slug
       approvalStatus
+      imageUrl
     }
   }
 `;
@@ -627,6 +633,99 @@ export const REJECT_TAG = gql`
       name
       slug
       approvalStatus
+    }
+  }
+`;
+
+export const CATEGORY_DELETE_IMPACT_QUERY = gql`
+  query CategoryDeleteImpact($categoryId: String!) {
+    categoryDeleteImpact(categoryId: $categoryId) {
+      productCount
+      products {
+        id
+        name
+        slug
+      }
+    }
+  }
+`;
+
+export const TAG_DELETE_IMPACT_QUERY = gql`
+  query TagDeleteImpact($tagId: String!) {
+    tagDeleteImpact(tagId: $tagId) {
+      productCount
+    }
+  }
+`;
+
+export const REJECTED_CATEGORIES_QUERY = gql`
+  query RejectedCategories {
+    rejectedCategories {
+      id
+      name
+      slug
+      approvalStatus
+      imageUrl
+      createdBy
+      createdAt
+    }
+  }
+`;
+
+export const REJECTED_TAGS_QUERY = gql`
+  query RejectedTags {
+    rejectedTags {
+      id
+      name
+      slug
+      approvalStatus
+      createdBy
+      createdAt
+    }
+  }
+`;
+
+export const SET_CATEGORY_IMAGE = gql`
+  mutation SetCategoryImage($input: SetCategoryImageInput!) {
+    setCategoryImage(input: $input) {
+      id
+      name
+      slug
+      approvalStatus
+      imageUrl
+    }
+  }
+`;
+
+export const UPDATE_CATEGORY = gql`
+  mutation UpdateCategory($input: UpdateCategoryInput!) {
+    updateCategory(input: $input) {
+      id
+      name
+      slug
+      approvalStatus
+      imageUrl
+    }
+  }
+`;
+
+export const DELETE_CATEGORY = gql`
+  mutation DeleteCategory($input: DeleteCategoryInput!) {
+    deleteCategory(input: $input) {
+      success
+      deletedCategoryId
+      reassignedProductCount
+      replacementCategoryId
+    }
+  }
+`;
+
+export const DELETE_TAG = gql`
+  mutation DeleteTag($id: String!) {
+    deleteTag(id: $id) {
+      success
+      deletedTagId
+      detachedProductCount
     }
   }
 `;

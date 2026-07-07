@@ -45,6 +45,11 @@ export const queryKeys = {
     pendingTags: () => ['taxonomy', 'pendingTags'] as const,
     myCategoryProposals: () => ['taxonomy', 'myCategoryProposals'] as const,
     myTagProposals: () => ['taxonomy', 'myTagProposals'] as const,
+    rejectedCategories: () => ['taxonomy', 'rejectedCategories'] as const,
+    rejectedTags: () => ['taxonomy', 'rejectedTags'] as const,
+    categoryDeleteImpact: (categoryId: string) =>
+      ['taxonomy', 'categoryDeleteImpact', categoryId] as const,
+    tagDeleteImpact: (tagId: string) => ['taxonomy', 'tagDeleteImpact', tagId] as const,
   },
   team: {
     all: ['team'] as const,

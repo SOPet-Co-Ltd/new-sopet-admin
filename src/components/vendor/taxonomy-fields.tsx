@@ -50,7 +50,7 @@ export function CategoryField({ value, onChange, error }: CategoryFieldProps) {
 
   async function onPropose(values: ProposeTaxonomyFormValues) {
     try {
-      const created = await createMutation.mutateAsync(values.name);
+      const created = await createMutation.mutateAsync({ name: values.name });
       if (created.status === 'approved') {
         onChange(created.id);
       }

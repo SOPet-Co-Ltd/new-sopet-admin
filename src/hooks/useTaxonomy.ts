@@ -2,20 +2,34 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  approveCategory,
+  approveTag,
   createCategory,
   createTag,
+  deleteCategory,
+  deleteTag,
   getApprovedCategories,
   getApprovedTags,
+  getCategoryDeleteImpact,
   getMyCategoryProposals,
   getMyTagProposals,
   getPendingCategories,
   getPendingTags,
-  approveCategory,
+  getRejectedCategories,
+  getRejectedTags,
+  getTagDeleteImpact,
   rejectCategory,
-  approveTag,
   rejectTag,
+  setCategoryImage,
+  updateCategory,
 } from '@/lib/api/taxonomy';
 import { queryKeys } from '@/lib/react-query/keys';
+import type {
+  CreateCategoryInput,
+  DeleteCategoryInput,
+  SetCategoryImageInput,
+  UpdateCategoryInput,
+} from '@/types';
 
 export function useApprovedCategories() {
   return useQuery({
@@ -45,6 +59,20 @@ export function usePendingTags() {
   });
 }
 
+export function useRejectedCategories() {
+  return useQuery({
+    queryKey: queryKeys.taxonomy.rejectedCategories(),
+    queryFn: getRejectedCategories,
+  });
+}
+
+export function useRejectedTags() {
+  return useQuery({
+    queryKey: queryKeys.taxonomy.rejectedTags(),
+    queryFn: getRejectedTags,
+  });
+}
+
 export function useMyCategoryProposals() {
   return useQuery({
     queryKey: queryKeys.taxonomy.myCategoryProposals(),
@@ -59,10 +87,26 @@ export function useMyTagProposals() {
   });
 }
 
+export function useCategoryDeleteImpact(categoryId: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.taxonomy.categoryDeleteImpact(categoryId),
+    queryFn: () => getCategoryDeleteImpact(categoryId),
+    enabled: enabled && !!categoryId,
+  });
+}
+
+export function useTagDeleteImpact(tagId: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.taxonomy.tagDeleteImpact(tagId),
+    queryFn: () => getTagDeleteImpact(tagId),
+    enabled: enabled && !!tagId,
+  });
+}
+
 export function useCreateCategory() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (name: string) => createCategory(name),
+    mutationFn: (input: CreateCategoryInput) => createCategory(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
     },
@@ -73,6 +117,26 @@ export function useCreateTag() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (name: string) => createTag(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+    },
+  });
+}
+
+export function useSetCategoryImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: SetCategoryImageInput) => setCategoryImage(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+    },
+  });
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateCategoryInput) => updateCategory(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
     },
@@ -99,6 +163,16 @@ export function useRejectCategory() {
   });
 }
 
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: DeleteCategoryInput) => deleteCategory(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+    },
+  });
+}
+
 export function useApproveTag() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -113,6 +187,16 @@ export function useRejectTag() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => rejectTag(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+    },
+  });
+}
+
+export function useDeleteTag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteTag(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
     },

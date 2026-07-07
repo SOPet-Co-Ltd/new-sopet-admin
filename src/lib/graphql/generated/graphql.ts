@@ -158,6 +158,7 @@ export type CategoryType = {
   createdAt: Scalars['DateTime']['output'];
   createdBy: Scalars['String']['output'];
   id: Scalars['String']['output'];
+  imageUrl?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   slug: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
@@ -183,6 +184,7 @@ export type CreateAddressInput = {
 };
 
 export type CreateCategoryInput = {
+  imageUrl?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
 };
 
@@ -348,13 +350,33 @@ export type CustomerProfile = {
   phone: Scalars['String']['output'];
 };
 
+export type DisputeImageType = {
+  __typename?: 'DisputeImageType';
+  id: Scalars['String']['output'];
+  imageUrl: Scalars['String']['output'];
+  sortOrder: Scalars['Float']['output'];
+};
+
+export type DisputeMessageType = {
+  __typename?: 'DisputeMessageType';
+  attachments: Array<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+  senderType: Scalars['String']['output'];
+};
+
 export type DisputeType = {
   __typename?: 'DisputeType';
+  createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
+  images: Array<DisputeImageType>;
   issueType: Scalars['String']['output'];
+  messages: Array<DisputeMessageType>;
   orderId: Scalars['String']['output'];
   reason: Scalars['String']['output'];
   status: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
 };
 
 export type FavoriteProductInput = {
@@ -479,6 +501,7 @@ export type Mutation = {
   revokeStoreInvitation: StoreMemberInvitationType;
   sendCustomerOtp: MessagePayload;
   setAdminActive: AdminTeamMemberType;
+  setCategoryImage: CategoryType;
   setCustomerActive: AdminCustomerType;
   setDefaultAddress: SavedAddressType;
   setDefaultPaymentMethod: SavedPaymentMethodType;
@@ -825,6 +848,10 @@ export type MutationSetAdminActiveArgs = {
   userId: Scalars['String']['input'];
 };
 
+export type MutationSetCategoryImageArgs = {
+  input: SetCategoryImageInput;
+};
+
 export type MutationSetCustomerActiveArgs = {
   id: Scalars['String']['input'];
   isActive: Scalars['Boolean']['input'];
@@ -1013,6 +1040,7 @@ export type OrderItemType = {
   storeId: Scalars['String']['output'];
   subtotal: Scalars['Float']['output'];
   unitPrice: Scalars['Float']['output'];
+  variantId: Scalars['String']['output'];
 };
 
 export type OrderShippingAddressType = {
@@ -1027,8 +1055,16 @@ export type OrderShippingAddressType = {
   tumbon?: Maybe<Scalars['String']['output']>;
 };
 
+export type OrderStoreShippingType = {
+  __typename?: 'OrderStoreShippingType';
+  optionName: Scalars['String']['output'];
+  shippingFee: Scalars['Float']['output'];
+  storeId: Scalars['String']['output'];
+};
+
 export type OrderType = {
   __typename?: 'OrderType';
+  createdAt: Scalars['DateTime']['output'];
   discountAmount: Scalars['Float']['output'];
   guestEmail?: Maybe<Scalars['String']['output']>;
   guestName?: Maybe<Scalars['String']['output']>;
@@ -1040,6 +1076,7 @@ export type OrderType = {
   shippingAddress?: Maybe<OrderShippingAddressType>;
   shippingFee: Scalars['Float']['output'];
   status: Scalars['String']['output'];
+  storeShippings: Array<OrderStoreShippingType>;
   subtotal: Scalars['Float']['output'];
   total: Scalars['Float']['output'];
 };
@@ -1192,6 +1229,7 @@ export type ProductVariantType = {
   id: Scalars['String']['output'];
   optionsJson?: Maybe<Scalars['String']['output']>;
   price: Scalars['Float']['output'];
+  product?: Maybe<ProductType>;
   sku: Scalars['String']['output'];
   stockQuantity: Scalars['Int']['output'];
 };
@@ -1264,6 +1302,8 @@ export type Query = {
   openDisputes: Array<DisputeType>;
   order: OrderType;
   orders: Array<OrderType>;
+  payment: PaymentType;
+  paymentByOrderId: PaymentType;
   paymentMethods: Array<SavedPaymentMethodType>;
   pendingAdminInvitations: Array<AdminInvitationType>;
   pendingCategories: Array<CategoryType>;
@@ -1360,6 +1400,14 @@ export type QueryNotificationsArgs = {
 
 export type QueryOrderArgs = {
   id: Scalars['String']['input'];
+};
+
+export type QueryPaymentArgs = {
+  id: Scalars['String']['input'];
+};
+
+export type QueryPaymentByOrderIdArgs = {
+  orderId: Scalars['String']['input'];
 };
 
 export type QueryPlatformAnalyticsArgs = {
@@ -1550,10 +1598,19 @@ export type ResetPasswordInput = {
   token: Scalars['String']['input'];
 };
 
+export type ReviewImageType = {
+  __typename?: 'ReviewImageType';
+  id: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
 export type ReviewType = {
   __typename?: 'ReviewType';
   comment?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  customerName: Scalars['String']['output'];
   id: Scalars['String']['output'];
+  images: Array<ReviewImageType>;
   productId: Scalars['String']['output'];
   rating: Scalars['Int']['output'];
   status: Scalars['String']['output'];
@@ -1601,6 +1658,11 @@ export type SavedPaymentMethodType = {
 
 export type SendCustomerOtpInput = {
   phone: Scalars['String']['input'];
+};
+
+export type SetCategoryImageInput = {
+  categoryId: Scalars['String']['input'];
+  imageUrl: Scalars['String']['input'];
 };
 
 export type ShippingAddressInput = {

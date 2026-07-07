@@ -23,6 +23,7 @@ interface ImageUploadFieldProps {
   className?: string;
   id?: string;
   required?: boolean;
+  showUrl?: boolean;
 }
 
 export function ImageUploadField({
@@ -35,6 +36,7 @@ export function ImageUploadField({
   className,
   id,
   required,
+  showUrl = true,
 }: ImageUploadFieldProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
@@ -124,7 +126,7 @@ export function ImageUploadField({
           >
             {isUploading ? 'กำลังอัปโหลด...' : value ? 'เปลี่ยนรูปภาพ' : 'เลือกรูปภาพ'}
           </Button>
-          {value ? (
+          {showUrl && value ? (
             <p className="truncate text-xs text-muted" title={value}>
               {value}
             </p>

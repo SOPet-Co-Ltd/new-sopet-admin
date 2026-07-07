@@ -3,8 +3,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { ApprovedCategoryRow } from '@/components/admin/taxonomy/approved-category-row';
+import { CategoryCreateCard } from '@/components/admin/taxonomy/category-create-card';
+import { PendingCategoryRow } from '@/components/admin/taxonomy/pending-category-row';
 import { Button } from '@/components/ui/button';
-import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
+import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -12,7 +15,6 @@ import {
   useApproveTag,
   useApprovedCategories,
   useApprovedTags,
-  useCreateCategory,
   useCreateTag,
   usePendingCategories,
   usePendingTags,
@@ -22,6 +24,33 @@ import {
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
 import type { TaxonomyItem } from '@/types';
+
+function ApprovedCategoryList({
+  title,
+  items,
+  disabled,
+}: {
+  title: string;
+  items: TaxonomyItem[];
+  disabled?: boolean;
+}) {
+  return (
+    <Card>
+      <CardBody className="space-y-3">
+        <h2 className="font-display font-medium text-ink">{title}</h2>
+        {items.length === 0 ? (
+          <p className="text-sm text-muted">ไม่มีรายการ</p>
+        ) : (
+          <ul className="space-y-2">
+            {items.map((item) => (
+              <ApprovedCategoryRow key={item.id} item={item} disabled={disabled} />
+            ))}
+          </ul>
+        )}
+      </CardBody>
+    </Card>
+  );
+}
 
 function ApprovedList({ title, items }: { title: string; items: TaxonomyItem[] }) {
   return (
@@ -47,7 +76,7 @@ function ApprovedList({ title, items }: { title: string; items: TaxonomyItem[] }
   );
 }
 
-function PendingList({
+function PendingTagList({
   title,
   items,
   onApprove,
@@ -111,24 +140,24 @@ function PendingList({
 
 export default function AdminTaxonomyPage() {
   const [tab, setTab] = useState<'categories' | 'tags'>('categories');
-  const [categorySuccess, setCategorySuccess] = useState(false);
   const [tagSuccess, setTagSuccess] = useState(false);
-  const { data: categories = [], isLoading: loadingCategories } = usePendingCategories();
+  const {
+    data: categories = [],
+    isLoading: loadingCategories,
+    error: categoriesError,
+  } = usePendingCategories();
   const { data: tags = [], isLoading: loadingTags } = usePendingTags();
-  const { data: approvedCategories = [], isLoading: loadingApprovedCategories } =
-    useApprovedCategories();
+  const {
+    data: approvedCategories = [],
+    isLoading: loadingApprovedCategories,
+    error: approvedCategoriesError,
+  } = useApprovedCategories();
   const { data: approvedTags = [], isLoading: loadingApprovedTags } = useApprovedTags();
   const approveCategory = useApproveCategory();
   const rejectCategory = useRejectCategory();
   const approveTag = useApproveTag();
   const rejectTag = useRejectTag();
-  const createCategory = useCreateCategory();
   const createTag = useCreateTag();
-
-  const categoryForm = useForm<ProposeTaxonomyFormValues>({
-    resolver: zodResolver(proposeTaxonomySchema),
-    defaultValues: { name: '' },
-  });
 
   const tagForm = useForm<ProposeTaxonomyFormValues>({
     resolver: zodResolver(proposeTaxonomySchema),
@@ -141,15 +170,8 @@ export default function AdminTaxonomyPage() {
     approveTag.isPending ||
     rejectTag.isPending;
 
-  async function onCreateCategory(values: ProposeTaxonomyFormValues) {
-    try {
-      await createCategory.mutateAsync(values.name);
-      categoryForm.reset();
-      setCategorySuccess(true);
-      setTimeout(() => setCategorySuccess(false), 3000);
-    } catch {
-      // surfaced via mutation state
-    }
+  function handleDeleteCategory(_item: TaxonomyItem) {
+    // CategoryDeleteDialog wired in Phase 6
   }
 
   async function onCreateTag(values: ProposeTaxonomyFormValues) {
@@ -186,79 +208,61 @@ export default function AdminTaxonomyPage() {
 
       {tab === 'categories' ? (
         <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <h2 className="font-display font-medium text-ink">
-                สร้างหมวดหมู่ (อนุมัติอัตโนมัติ)
-              </h2>
-            </CardHeader>
-            <CardBody>
-              <form
-                onSubmit={categoryForm.handleSubmit(onCreateCategory)}
-                className="flex flex-wrap items-end gap-3"
-              >
-                <div className="min-w-[200px] flex-1">
-                  <Label htmlFor="cat-name" required>
-                    ชื่อหมวดหมู่
-                  </Label>
-                  <Input
-                    id="cat-name"
-                    placeholder="เช่น อาหารสัตว์"
-                    aria-invalid={!!categoryForm.formState.errors.name}
-                    aria-describedby={
-                      categoryForm.formState.errors.name ? 'cat-name-error' : undefined
-                    }
-                    {...categoryForm.register('name')}
-                    className="mt-1.5"
-                  />
-                  {categoryForm.formState.errors.name ? (
-                    <p id="cat-name-error" role="alert" className="mt-1 text-xs text-danger">
-                      {categoryForm.formState.errors.name.message}
-                    </p>
-                  ) : null}
-                </div>
-                <Button
-                  type="submit"
-                  disabled={createCategory.isPending}
-                  aria-busy={createCategory.isPending}
-                >
-                  {createCategory.isPending ? 'กำลังสร้าง...' : 'สร้าง'}
-                </Button>
-              </form>
-              {createCategory.error ? (
-                <p role="alert" className="mt-2 text-sm text-danger">
-                  {createCategory.error instanceof Error
-                    ? createCategory.error.message
-                    : 'สร้างไม่สำเร็จ'}
-                </p>
-              ) : null}
-              {categorySuccess ? <p className="mt-2 text-sm text-brand">สร้างแล้ว</p> : null}
-            </CardBody>
-          </Card>
+          <CategoryCreateCard />
+          {approvedCategoriesError ? (
+            <p role="alert" className="text-sm text-danger">
+              โหลดหมวดหมู่ที่อนุมัติแล้วไม่สำเร็จ:{' '}
+              {approvedCategoriesError instanceof Error
+                ? approvedCategoriesError.message
+                : 'เกิดข้อผิดพลาด'}
+            </p>
+          ) : null}
           {loadingApprovedCategories ? (
             <p className="text-muted">กำลังโหลด...</p>
           ) : (
-            <ApprovedList title="หมวดหมู่ที่อนุมัติแล้ว" items={approvedCategories} />
+            <ApprovedCategoryList
+              title="หมวดหมู่ที่อนุมัติแล้ว"
+              items={approvedCategories}
+              disabled={mutationPending}
+            />
           )}
+          {categoriesError ? (
+            <p role="alert" className="text-sm text-danger">
+              โหลดหมวดหมู่รออนุมัติไม่สำเร็จ:{' '}
+              {categoriesError instanceof Error ? categoriesError.message : 'เกิดข้อผิดพลาด'}
+            </p>
+          ) : null}
           {loadingCategories ? (
             <p className="text-muted">กำลังโหลด...</p>
           ) : (
-            <PendingList
-              title="หมวดหมู่รออนุมัติ"
-              items={categories}
-              isPending={mutationPending}
-              onApprove={(id) => approveCategory.mutate(id)}
-              onReject={(id) => rejectCategory.mutate(id)}
-            />
+            <Card>
+              <CardBody className="space-y-3">
+                <h2 className="font-display font-medium text-ink">หมวดหมู่รออนุมัติ</h2>
+                {categories.length === 0 ? (
+                  <p className="text-sm text-muted">ไม่มีรายการรออนุมัติ</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {categories.map((item) => (
+                      <PendingCategoryRow
+                        key={item.id}
+                        item={item}
+                        disabled={mutationPending}
+                        onApprove={(id) => approveCategory.mutate(id)}
+                        onReject={(id) => rejectCategory.mutate(id)}
+                        onDelete={handleDeleteCategory}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </CardBody>
+            </Card>
           )}
         </div>
       ) : (
         <div className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardBody className="space-y-3">
               <h2 className="font-display font-medium text-ink">สร้างแท็ก (อนุมัติอัตโนมัติ)</h2>
-            </CardHeader>
-            <CardBody>
               <form
                 onSubmit={tagForm.handleSubmit(onCreateTag)}
                 className="flex flex-wrap items-end gap-3"
@@ -305,7 +309,7 @@ export default function AdminTaxonomyPage() {
           {loadingTags ? (
             <p className="text-muted">กำลังโหลด...</p>
           ) : (
-            <PendingList
+            <PendingTagList
               title="แท็กรออนุมัติ"
               items={tags}
               isPending={mutationPending}

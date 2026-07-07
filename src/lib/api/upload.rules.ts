@@ -6,6 +6,7 @@ export const UPLOAD_FOLDERS = [
   'banners',
   'sponsors',
   'ads',
+  'categories',
 ] as const;
 
 export type UploadFolder = (typeof UPLOAD_FOLDERS)[number];
@@ -69,6 +70,7 @@ export const FOLDER_UPLOAD_RULES: Record<UploadFolder, FolderUploadRules> = {
       invalidAspectRatio: 'รูปภาพต้องมีอัตราส่วน 4:5 (แนวตั้ง)',
     },
   },
+  categories: DEFAULT_RULES,
 };
 
 export function getFolderUploadRules(folder: UploadFolder): FolderUploadRules {
