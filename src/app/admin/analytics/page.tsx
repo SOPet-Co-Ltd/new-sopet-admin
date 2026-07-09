@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { BreakdownChart } from '@/components/analytics/breakdown-chart';
-import { SalesOverTimeChart } from '@/components/analytics/sales-over-time-chart';
+import dynamic from 'next/dynamic';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import {
   usePlatformAnalytics,
@@ -13,6 +12,26 @@ import {
   usePlatformTopStores,
 } from '@/hooks/usePlatformAnalytics';
 import { formatCurrency } from '@/lib/utils';
+
+const SalesOverTimeChart = dynamic(
+  () =>
+    import('@/components/analytics/sales-over-time-chart').then((module) => ({
+      default: module.SalesOverTimeChart,
+    })),
+  {
+    loading: () => <p className="text-muted">กำลังโหลดข้อมูล...</p>,
+  },
+);
+
+const DynamicBreakdownChart = dynamic(
+  () =>
+    import('@/components/analytics/breakdown-chart').then((module) => ({
+      default: module.BreakdownChart,
+    })),
+  {
+    loading: () => <p className="text-muted">กำลังโหลดข้อมูล...</p>,
+  },
+);
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
@@ -123,7 +142,7 @@ export default function AdminAnalyticsPage() {
             <h2 className="font-display font-medium text-ink">ยอดขายตามช่องทางชำระเงิน</h2>
           </CardHeader>
           <CardBody>
-            <BreakdownChart data={salesByPayment} />
+            <DynamicBreakdownChart data={salesByPayment} />
           </CardBody>
         </Card>
 
@@ -132,7 +151,7 @@ export default function AdminAnalyticsPage() {
             <h2 className="font-display font-medium text-ink">ยอดขายตามหมวดหมู่</h2>
           </CardHeader>
           <CardBody>
-            <BreakdownChart data={salesByCategory} />
+            <DynamicBreakdownChart data={salesByCategory} />
           </CardBody>
         </Card>
       </div>

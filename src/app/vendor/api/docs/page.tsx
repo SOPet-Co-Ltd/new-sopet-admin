@@ -6,13 +6,12 @@ import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { useIsStoreManager } from '@/hooks/useMembershipRole';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { StoreIdField } from '@/components/vendor/store-id-field';
-import { GRAPHQL_URL } from '@/lib/config';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? GRAPHQL_URL.replace(/\/graphql\/?$/, '');
+import { getApiBaseUrl } from '@/lib/config';
 
 export default function VendorApiDocsPage() {
   const storeId = useVendorStoreId();
   const { isManager, isLoading } = useIsStoreManager();
+  const apiBaseUrl = getApiBaseUrl();
 
   if (isLoading) {
     return <p className="text-muted">กำลังโหลด...</p>;
@@ -41,6 +40,8 @@ export default function VendorApiDocsPage() {
   "expiryDate": "2026-12-31",
   "category": "อาหารแมว",
   "tags": ["ออร์แกนิค", "เกรดพรีเมียม"],
+  "petType": "แมว",
+  "brand": "Royal Canin",
   "variants": [
     { "name": "รสชาติ", "values": ["ไก่", "ปลา"] },
     { "name": "ขนาด", "values": ["2kg"] }
@@ -50,7 +51,7 @@ export default function VendorApiDocsPage() {
     { "sku": "CAT-ORG-2KG-FISH", "stock": 80, "price": 519, "options": { "รสชาติ": "ปลา", "ขนาด": "2kg" } }
   ]
 }`;
-  const curlExample = `curl -X POST "${API_BASE_URL}/api/v1/stores/${exampleStoreId}/products" \\
+  const curlExample = `curl -X POST "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/products" \\
   -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
   -H "Content-Type: application/json" \\
   -d '${jsonExample.replace(/\n/g, '\n  ')}'`;
@@ -94,7 +95,7 @@ export default function VendorApiDocsPage() {
         </CardHeader>
         <CardBody>
           <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-sm text-ink">
-            {API_BASE_URL}
+            {apiBaseUrl}
           </pre>
         </CardBody>
       </Card>
@@ -172,6 +173,25 @@ export default function VendorApiDocsPage() {
                     <td className="px-4 py-2">ไม่</td>
                     <td className="px-4 py-2">
                       รายชื่อแท็ก (ชื่อ ไม่ใช่รหัส) แต่ละรายการต้องมีอยู่และได้รับการอนุมัติแล้ว
+                      จับคู่แบบไม่สนตัวพิมพ์ใหญ่-เล็ก
+                    </td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">petType</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">ไม่</td>
+                    <td className="px-4 py-2">
+                      ชื่อประเภทสัตว์เลี้ยง (ชื่อ ไม่ใช่รหัส) เช่น &quot;แมว&quot; หรือ
+                      &quot;สุนัข&quot; ต้องมีอยู่และได้รับการอนุมัติแล้วในระบบ
+                      จับคู่แบบไม่สนตัวพิมพ์ใหญ่-เล็ก (จำเป็นสำหรับการเผยแพร่สินค้า)
+                    </td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">brand</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">ไม่</td>
+                    <td className="px-4 py-2">
+                      ชื่อแบรนด์ (ชื่อ ไม่ใช่รหัส) ต้องมีอยู่และได้รับการอนุมัติแล้วในระบบ
                       จับคู่แบบไม่สนตัวพิมพ์ใหญ่-เล็ก
                     </td>
                   </tr>
@@ -300,13 +320,18 @@ export default function VendorApiDocsPage() {
                 API นี้ยังไม่สามารถอัปโหลดรูปภาพหรือสื่อได้
               </li>
               <li>
-                <strong className="text-ink">หมวดหมู่และแท็ก:</strong> ใช้ชื่อ (ไม่ใช่รหัส)
-                และต้องมีอยู่ในระบบแล้ว (ได้รับการอนุมัติ) API จะไม่สร้างให้อัตโนมัติ —
-                ชื่อที่ไม่พบจะได้รับข้อผิดพลาด 400
+                <strong className="text-ink">หมวดหมู่ แท็ก ประเภทสัตว์เลี้ยง และแบรนด์:</strong>{' '}
+                ใช้ชื่อ (ไม่ใช่รหัส) และต้องมีอยู่ในระบบแล้ว (ได้รับการอนุมัติ) API
+                จะไม่สร้างให้อัตโนมัติ — ชื่อที่ไม่พบจะได้รับข้อผิดพลาด 400
               </li>
               <li>
-                <strong className="text-ink">การจับคู่ชื่อ:</strong>{' '}
-                หมวดหมู่และแท็กจับคู่แบบไม่สนตัวพิมพ์ใหญ่-เล็กตามชื่อที่ตรงกันทุกตัวอักษร
+                <strong className="text-ink">การจับคู่ชื่อ:</strong> หมวดหมู่ แท็ก ประเภทสัตว์เลี้ยง
+                และแบรนด์ จับคู่แบบไม่สนตัวพิมพ์ใหญ่-เล็กตามชื่อที่ตรงกันทุกตัวอักษร
+              </li>
+              <li>
+                <strong className="text-ink">ประเภทสัตว์เลี้ยง (petType):</strong>{' '}
+                ไม่บังคับตอนสร้างสินค้า แต่จำเป็นสำหรับการเผยแพร่ — ควรระบุตอน import
+                เพื่อให้เผยแพร่ได้โดยไม่ต้องแก้ไขเพิ่ม
               </li>
               <li>
                 <strong className="text-ink">expiryDate:</strong> ต้องเป็นรูปแบบ YYYY-MM-DD
@@ -394,6 +419,20 @@ export default function VendorApiDocsPage() {
                   <td className="px-4 py-2">
                     ไม่พบชื่อแท็กอย่างน้อยหนึ่งรายการ หรือแท็กยังไม่ได้รับการอนุมัติ (response
                     จะระบุชื่อที่ไม่พบ)
+                  </td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <td className="px-4 py-2">400</td>
+                  <td className="px-4 py-2 font-mono text-ink">PET_TYPE_NOT_FOUND</td>
+                  <td className="px-4 py-2">
+                    ไม่พบชื่อประเภทสัตว์เลี้ยงที่ระบุ หรือยังไม่ได้รับการอนุมัติ
+                  </td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <td className="px-4 py-2">400</td>
+                  <td className="px-4 py-2 font-mono text-ink">BRAND_NOT_FOUND</td>
+                  <td className="px-4 py-2">
+                    ไม่พบชื่อแบรนด์ที่ระบุ หรือแบรนด์ยังไม่ได้รับการอนุมัติ
                   </td>
                 </tr>
                 <tr>

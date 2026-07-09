@@ -41,8 +41,12 @@ export const queryKeys = {
     all: ['taxonomy'] as const,
     approvedCategories: () => ['taxonomy', 'approvedCategories'] as const,
     approvedTags: () => ['taxonomy', 'approvedTags'] as const,
+    approvedPetTypes: () => ['taxonomy', 'approvedPetTypes'] as const,
+    approvedBrands: () => ['taxonomy', 'approvedBrands'] as const,
     pendingCategories: () => ['taxonomy', 'pendingCategories'] as const,
     pendingTags: () => ['taxonomy', 'pendingTags'] as const,
+    pendingPetTypes: () => ['taxonomy', 'pendingPetTypes'] as const,
+    pendingBrands: () => ['taxonomy', 'pendingBrands'] as const,
     myCategoryProposals: () => ['taxonomy', 'myCategoryProposals'] as const,
     myTagProposals: () => ['taxonomy', 'myTagProposals'] as const,
     rejectedCategories: () => ['taxonomy', 'rejectedCategories'] as const,
@@ -50,6 +54,9 @@ export const queryKeys = {
     categoryDeleteImpact: (categoryId: string) =>
       ['taxonomy', 'categoryDeleteImpact', categoryId] as const,
     tagDeleteImpact: (tagId: string) => ['taxonomy', 'tagDeleteImpact', tagId] as const,
+    petTypeDeleteImpact: (petTypeId: string) =>
+      ['taxonomy', 'petTypeDeleteImpact', petTypeId] as const,
+    brandDeleteImpact: (brandId: string) => ['taxonomy', 'brandDeleteImpact', brandId] as const,
   },
   team: {
     all: ['team'] as const,

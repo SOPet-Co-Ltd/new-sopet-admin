@@ -1,6 +1,17 @@
 import type { NextConfig } from 'next';
 
+const graphqlBackendOrigin =
+  process.env.GRAPHQL_SSR_URL?.replace(/\/graphql\/?$/, '') ?? 'http://localhost:3002';
+
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/graphql',
+        destination: `${graphqlBackendOrigin}/graphql`,
+      },
+    ];
+  },
   // The browser inspector/automation crawls the React tree on every mousemove,
   // enumerating Next's `params`/`searchParams` Promise props and tripping the
   // dev-only sync-dynamic-apis warning. Those are console.error-level, so the

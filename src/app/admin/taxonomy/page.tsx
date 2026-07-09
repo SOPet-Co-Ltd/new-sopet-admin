@@ -3,9 +3,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { ApprovedCategoryRow } from '@/components/admin/taxonomy/approved-category-row';
+import { ApprovedTaxonomyTable } from '@/components/admin/taxonomy/approved-taxonomy-table';
 import { CategoryCreateCard } from '@/components/admin/taxonomy/category-create-card';
 import { PendingCategoryRow } from '@/components/admin/taxonomy/pending-category-row';
+import { PetTypeCreateCard } from '@/components/admin/taxonomy/pet-type-create-card';
+import { PendingPetTypeRow } from '@/components/admin/taxonomy/pending-pet-type-row';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,78 +15,40 @@ import { Label } from '@/components/ui/label';
 import {
   useApproveCategory,
   useApproveTag,
+  useApprovePetType,
+  useApproveBrand,
   useApprovedCategories,
   useApprovedTags,
+  useApprovedPetTypes,
+  useApprovedBrands,
   useCreateTag,
+  useCreateBrand,
   usePendingCategories,
   usePendingTags,
+  usePendingPetTypes,
+  usePendingBrands,
   useRejectCategory,
   useRejectTag,
+  useRejectPetType,
+  useRejectBrand,
 } from '@/hooks/useTaxonomy';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
+import { TaxonomyDeleteButton } from '@/components/admin/taxonomy/taxonomy-delete-button';
+import type { TaxonomyDeleteKind } from '@/components/admin/taxonomy/taxonomy-delete-dialog';
 import type { TaxonomyItem } from '@/types';
-
-function ApprovedCategoryList({
-  title,
-  items,
-  disabled,
-}: {
-  title: string;
-  items: TaxonomyItem[];
-  disabled?: boolean;
-}) {
-  return (
-    <Card>
-      <CardBody className="space-y-3">
-        <h2 className="font-display font-medium text-ink">{title}</h2>
-        {items.length === 0 ? (
-          <p className="text-sm text-muted">ไม่มีรายการ</p>
-        ) : (
-          <ul className="space-y-2">
-            {items.map((item) => (
-              <ApprovedCategoryRow key={item.id} item={item} disabled={disabled} />
-            ))}
-          </ul>
-        )}
-      </CardBody>
-    </Card>
-  );
-}
-
-function ApprovedList({ title, items }: { title: string; items: TaxonomyItem[] }) {
-  return (
-    <Card>
-      <CardBody className="space-y-3">
-        <h2 className="font-display font-medium text-ink">{title}</h2>
-        {items.length === 0 ? (
-          <p className="text-sm text-muted">ไม่มีรายการ</p>
-        ) : (
-          <ul className="space-y-2">
-            {items.map((item) => (
-              <li key={item.id} className="rounded-lg border border-border bg-surface/50 px-4 py-3">
-                <p className="font-medium text-ink">{item.name}</p>
-                <p className="text-xs text-muted">
-                  {item.slug} · {labelTaxonomyStatus(item.status)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardBody>
-    </Card>
-  );
-}
 
 function PendingTagList({
   title,
   items,
+  kind,
   onApprove,
   onReject,
   isPending,
 }: {
   title: string;
   items: TaxonomyItem[];
+  kind: TaxonomyDeleteKind;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   isPending: boolean;
@@ -128,6 +92,7 @@ function PendingTagList({
                   >
                     ปฏิเสธ
                   </Button>
+                  <TaxonomyDeleteButton item={item} kind={kind} disabled={isPending} />
                 </div>
               </li>
             ))}
@@ -139,27 +104,42 @@ function PendingTagList({
 }
 
 export default function AdminTaxonomyPage() {
-  const [tab, setTab] = useState<'categories' | 'tags'>('categories');
+  const [tab, setTab] = useState<'categories' | 'tags' | 'petTypes' | 'brands'>('categories');
   const [tagSuccess, setTagSuccess] = useState(false);
+  const [brandSuccess, setBrandSuccess] = useState(false);
   const {
     data: categories = [],
     isLoading: loadingCategories,
     error: categoriesError,
   } = usePendingCategories();
   const { data: tags = [], isLoading: loadingTags } = usePendingTags();
+  const { data: petTypes = [], isLoading: loadingPetTypes } = usePendingPetTypes();
+  const { data: brands = [], isLoading: loadingBrands } = usePendingBrands();
   const {
     data: approvedCategories = [],
     isLoading: loadingApprovedCategories,
     error: approvedCategoriesError,
   } = useApprovedCategories();
   const { data: approvedTags = [], isLoading: loadingApprovedTags } = useApprovedTags();
+  const { data: approvedPetTypes = [], isLoading: loadingApprovedPetTypes } = useApprovedPetTypes();
+  const { data: approvedBrands = [], isLoading: loadingApprovedBrands } = useApprovedBrands();
   const approveCategory = useApproveCategory();
   const rejectCategory = useRejectCategory();
   const approveTag = useApproveTag();
   const rejectTag = useRejectTag();
+  const approvePetType = useApprovePetType();
+  const rejectPetType = useRejectPetType();
+  const approveBrand = useApproveBrand();
+  const rejectBrand = useRejectBrand();
   const createTag = useCreateTag();
+  const createBrand = useCreateBrand();
 
   const tagForm = useForm<ProposeTaxonomyFormValues>({
+    resolver: zodResolver(proposeTaxonomySchema),
+    defaultValues: { name: '' },
+  });
+
+  const brandForm = useForm<ProposeTaxonomyFormValues>({
     resolver: zodResolver(proposeTaxonomySchema),
     defaultValues: { name: '' },
   });
@@ -168,11 +148,11 @@ export default function AdminTaxonomyPage() {
     approveCategory.isPending ||
     rejectCategory.isPending ||
     approveTag.isPending ||
-    rejectTag.isPending;
-
-  function handleDeleteCategory(_item: TaxonomyItem) {
-    // CategoryDeleteDialog wired in Phase 6
-  }
+    rejectTag.isPending ||
+    approvePetType.isPending ||
+    rejectPetType.isPending ||
+    approveBrand.isPending ||
+    rejectBrand.isPending;
 
   async function onCreateTag(values: ProposeTaxonomyFormValues) {
     try {
@@ -185,24 +165,52 @@ export default function AdminTaxonomyPage() {
     }
   }
 
+  async function onCreateBrand(values: ProposeTaxonomyFormValues) {
+    try {
+      await createBrand.mutateAsync(values.name);
+      brandForm.reset();
+      setBrandSuccess(true);
+      setTimeout(() => setBrandSuccess(false), 3000);
+    } catch {
+      // surfaced via mutation state
+    }
+  }
+
   return (
     <div>
-      <PageHeader title="หมวดหมู่และแท็ก" description="สร้าง อนุมัติ หรือปฏิเสธหมวดหมู่และแท็ก" />
+      <PageHeader
+        title="หมวดหมู่ แท็ก ประเภทสัตว์เลี้ยง และแบรนด์"
+        description="สร้าง อนุมัติ หรือปฏิเสธรายการ taxonomy"
+      />
 
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex flex-wrap gap-2">
         <Button
           type="button"
           variant={tab === 'categories' ? 'default' : 'outline'}
           onClick={() => setTab('categories')}
         >
-          หมวดหมู่ ({categories.length})
+          หมวดหมู่ · รออนุมัติ ({categories.length})
         </Button>
         <Button
           type="button"
           variant={tab === 'tags' ? 'default' : 'outline'}
           onClick={() => setTab('tags')}
         >
-          แท็ก ({tags.length})
+          แท็ก · รออนุมัติ ({tags.length})
+        </Button>
+        <Button
+          type="button"
+          variant={tab === 'petTypes' ? 'default' : 'outline'}
+          onClick={() => setTab('petTypes')}
+        >
+          ประเภทสัตว์เลี้ยง · รออนุมัติ ({petTypes.length})
+        </Button>
+        <Button
+          type="button"
+          variant={tab === 'brands' ? 'default' : 'outline'}
+          onClick={() => setTab('brands')}
+        >
+          แบรนด์ · รออนุมัติ ({brands.length})
         </Button>
       </div>
 
@@ -220,9 +228,11 @@ export default function AdminTaxonomyPage() {
           {loadingApprovedCategories ? (
             <p className="text-muted">กำลังโหลด...</p>
           ) : (
-            <ApprovedCategoryList
+            <ApprovedTaxonomyTable
               title="หมวดหมู่ที่อนุมัติแล้ว"
               items={approvedCategories}
+              kind="category"
+              showImage
               disabled={mutationPending}
             />
           )}
@@ -249,7 +259,6 @@ export default function AdminTaxonomyPage() {
                         disabled={mutationPending}
                         onApprove={(id) => approveCategory.mutate(id)}
                         onReject={(id) => rejectCategory.mutate(id)}
-                        onDelete={handleDeleteCategory}
                       />
                     ))}
                   </ul>
@@ -258,7 +267,7 @@ export default function AdminTaxonomyPage() {
             </Card>
           )}
         </div>
-      ) : (
+      ) : tab === 'tags' ? (
         <div className="space-y-4">
           <Card>
             <CardBody className="space-y-3">
@@ -304,7 +313,12 @@ export default function AdminTaxonomyPage() {
           {loadingApprovedTags ? (
             <p className="text-muted">กำลังโหลด...</p>
           ) : (
-            <ApprovedList title="แท็กที่อนุมัติแล้ว" items={approvedTags} />
+            <ApprovedTaxonomyTable
+              title="แท็กที่อนุมัติแล้ว"
+              items={approvedTags}
+              kind="tag"
+              disabled={mutationPending}
+            />
           )}
           {loadingTags ? (
             <p className="text-muted">กำลังโหลด...</p>
@@ -312,9 +326,118 @@ export default function AdminTaxonomyPage() {
             <PendingTagList
               title="แท็กรออนุมัติ"
               items={tags}
+              kind="tag"
               isPending={mutationPending}
               onApprove={(id) => approveTag.mutate(id)}
               onReject={(id) => rejectTag.mutate(id)}
+            />
+          )}
+        </div>
+      ) : tab === 'petTypes' ? (
+        <div className="space-y-4">
+          <PetTypeCreateCard />
+          {loadingApprovedPetTypes ? (
+            <p className="text-muted">กำลังโหลด...</p>
+          ) : (
+            <ApprovedTaxonomyTable
+              title="ประเภทสัตว์เลี้ยงที่อนุมัติแล้ว"
+              items={approvedPetTypes}
+              kind="petType"
+              disabled={mutationPending}
+            />
+          )}
+          {loadingPetTypes ? (
+            <p className="text-muted">กำลังโหลด...</p>
+          ) : (
+            <Card>
+              <CardBody className="space-y-3">
+                <h2 className="font-display font-medium text-ink">ประเภทสัตว์เลี้ยงรออนุมัติ</h2>
+                {petTypes.length === 0 ? (
+                  <p className="text-sm text-muted">ไม่มีรายการรออนุมัติ</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {petTypes.map((item) => (
+                      <PendingPetTypeRow
+                        key={item.id}
+                        item={item}
+                        disabled={mutationPending}
+                        onApprove={(id) => approvePetType.mutate(id)}
+                        onReject={(id) => rejectPetType.mutate(id)}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </CardBody>
+            </Card>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <Card>
+            <CardBody className="space-y-3">
+              <h2 className="font-display font-medium text-ink">สร้างแบรนด์ (อนุมัติอัตโนมัติ)</h2>
+              <form
+                onSubmit={brandForm.handleSubmit(onCreateBrand)}
+                className="flex flex-wrap items-end gap-3"
+              >
+                <div className="min-w-[200px] flex-1">
+                  <Label htmlFor="brand-name" required>
+                    ชื่อแบรนด์
+                  </Label>
+                  <Input
+                    id="brand-name"
+                    placeholder="เช่น Royal Canin"
+                    aria-invalid={!!brandForm.formState.errors.name}
+                    aria-describedby={
+                      brandForm.formState.errors.name ? 'brand-name-error' : undefined
+                    }
+                    {...brandForm.register('name')}
+                    className="mt-1.5"
+                  />
+                  {brandForm.formState.errors.name ? (
+                    <p id="brand-name-error" role="alert" className="mt-1 text-xs text-danger">
+                      {brandForm.formState.errors.name.message}
+                    </p>
+                  ) : null}
+                </div>
+                <Button
+                  type="submit"
+                  disabled={createBrand.isPending}
+                  aria-busy={createBrand.isPending}
+                >
+                  {createBrand.isPending ? 'กำลังสร้าง...' : 'สร้าง'}
+                </Button>
+              </form>
+              {createBrand.error ? (
+                <p role="alert" className="mt-2 text-sm text-danger">
+                  {createBrand.error instanceof Error
+                    ? createBrand.error.message
+                    : 'สร้างไม่สำเร็จ'}
+                </p>
+              ) : null}
+              {brandSuccess ? <p className="mt-2 text-sm text-brand">สร้างแล้ว</p> : null}
+            </CardBody>
+          </Card>
+          {loadingApprovedBrands ? (
+            <p className="text-muted">กำลังโหลด...</p>
+          ) : (
+            <ApprovedTaxonomyTable
+              title="แบรนด์ที่อนุมัติแล้ว"
+              items={approvedBrands}
+              kind="brand"
+              disabled={mutationPending}
+            />
+          )}
+          {loadingBrands ? (
+            <p className="text-muted">กำลังโหลด...</p>
+          ) : (
+            <PendingTagList
+              title="แบรนด์รออนุมัติ"
+              items={brands}
+              kind="brand"
+              isPending={mutationPending}
+              onApprove={(id) => approveBrand.mutate(id)}
+              onReject={(id) => rejectBrand.mutate(id)}
             />
           )}
         </div>

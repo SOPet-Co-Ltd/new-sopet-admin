@@ -11,8 +11,11 @@ import {
 } from '@/lib/api/platform-analytics';
 import { queryKeys } from '@/lib/react-query/keys';
 
+const PLATFORM_ANALYTICS_STALE_TIME = 30 * 1000; // Dashboard metrics refresh often
+
 export function usePlatformAnalytics(fromDate?: string, toDate?: string) {
   return useQuery({
+    staleTime: PLATFORM_ANALYTICS_STALE_TIME, // Platform analytics refresh often
     queryKey: queryKeys.analytics.platform(fromDate, toDate),
     queryFn: () => getPlatformAnalytics(fromDate, toDate),
   });
@@ -20,6 +23,7 @@ export function usePlatformAnalytics(fromDate?: string, toDate?: string) {
 
 export function usePlatformSalesOverTime(fromDate?: string, toDate?: string) {
   return useQuery({
+    staleTime: PLATFORM_ANALYTICS_STALE_TIME, // Platform analytics refresh often
     queryKey: queryKeys.analytics.platformSalesOverTime(fromDate, toDate),
     queryFn: () => getPlatformSalesOverTime(fromDate, toDate),
   });
@@ -27,6 +31,7 @@ export function usePlatformSalesOverTime(fromDate?: string, toDate?: string) {
 
 export function usePlatformSalesByPayment(fromDate?: string, toDate?: string) {
   return useQuery({
+    staleTime: PLATFORM_ANALYTICS_STALE_TIME, // Platform analytics refresh often
     queryKey: queryKeys.analytics.platformSalesByPayment(fromDate, toDate),
     queryFn: () => getPlatformSalesByPaymentMethod(fromDate, toDate),
   });
@@ -34,6 +39,7 @@ export function usePlatformSalesByPayment(fromDate?: string, toDate?: string) {
 
 export function usePlatformSalesByCategory(fromDate?: string, toDate?: string, limit = 10) {
   return useQuery({
+    staleTime: PLATFORM_ANALYTICS_STALE_TIME, // Platform analytics refresh often
     queryKey: queryKeys.analytics.platformSalesByCategory(fromDate, toDate, limit),
     queryFn: () => getPlatformSalesByCategory(fromDate, toDate, limit),
   });
@@ -41,6 +47,7 @@ export function usePlatformSalesByCategory(fromDate?: string, toDate?: string, l
 
 export function usePlatformTopProducts(limit = 10) {
   return useQuery({
+    staleTime: PLATFORM_ANALYTICS_STALE_TIME, // Platform analytics refresh often
     queryKey: queryKeys.analytics.platformTopProducts(limit),
     queryFn: () => getPlatformTopProducts(limit),
   });
@@ -48,6 +55,7 @@ export function usePlatformTopProducts(limit = 10) {
 
 export function usePlatformTopStores(limit = 10) {
   return useQuery({
+    staleTime: PLATFORM_ANALYTICS_STALE_TIME, // Platform analytics refresh often
     queryKey: queryKeys.analytics.platformTopStores(limit),
     queryFn: () => getPlatformTopStores(limit),
   });

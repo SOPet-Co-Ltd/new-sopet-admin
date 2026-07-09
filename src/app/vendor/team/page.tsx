@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -166,16 +167,16 @@ export default function VendorTeamPage() {
                           <SelectItem value="staff">พนักงาน</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
+                      <ConfirmDeleteButton
+                        confirmLabel={member.email ?? member.fullName ?? member.id}
+                        title="ลบสมาชิก"
+                        description={`จะลบ ${member.fullName ?? member.email} ออกจากทีมร้านค้า`}
                         disabled={removeMutation.isPending}
-                        aria-busy={removeMutation.isPending}
-                        onClick={() => removeMutation.mutate(member.id)}
-                      >
-                        ลบ
-                      </Button>
+                        isDeleting={removeMutation.isPending}
+                        onConfirm={async () => {
+                          await removeMutation.mutateAsync(member.id);
+                        }}
+                      />
                     </>
                   ) : null}
                 </div>
@@ -208,16 +209,19 @@ export default function VendorTeamPage() {
                   </p>
                 </div>
                 {invitation.status === 'pending' ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
+                  <ConfirmDeleteButton
+                    confirmLabel={invitation.email}
+                    title="ยกเลิกคำเชิญ"
+                    confirmButtonLabel="ยกเลิก"
+                    description={`จะยกเลิกคำเชิญไปยัง ${invitation.email}`}
                     disabled={revokeMutation.isPending}
-                    aria-busy={revokeMutation.isPending}
-                    onClick={() => revokeMutation.mutate(invitation.id)}
+                    isDeleting={revokeMutation.isPending}
+                    onConfirm={async () => {
+                      await revokeMutation.mutateAsync(invitation.id);
+                    }}
                   >
                     ยกเลิกคำเชิญ
-                  </Button>
+                  </ConfirmDeleteButton>
                 ) : null}
               </div>
             ))

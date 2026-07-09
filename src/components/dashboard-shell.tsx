@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState, type ComponentType } from 'react';
 import { HiBars3 } from 'react-icons/hi2';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { useLogout } from '@/hooks/useAuth';
+import { createDashboardNavPrefetchHandlers } from '@/lib/react-query/prefetch-dashboard-nav';
 import { cn } from '@/lib/utils';
 
 export type DashboardNavItem = {
@@ -35,6 +37,7 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const logout = useLogout();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -69,6 +72,7 @@ export function DashboardShell({
                   ? pathname === item.href
                   : pathname === item.href || pathname.startsWith(`${item.href}/`);
                 const Icon = item.icon;
+                const prefetchHandlers = createDashboardNavPrefetchHandlers(queryClient, item.href);
                 return (
                   <Link
                     key={item.href}
@@ -79,6 +83,8 @@ export function DashboardShell({
                         ? 'border-l-[3px] border-brand bg-brand-tint pl-[9px] text-brand'
                         : 'border-l-[3px] border-transparent text-muted hover:bg-surface hover:text-ink',
                     )}
+                    onMouseEnter={prefetchHandlers.onMouseEnter}
+                    onFocus={prefetchHandlers.onFocus}
                   >
                     {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
                     <span>{item.label}</span>

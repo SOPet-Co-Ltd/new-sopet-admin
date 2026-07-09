@@ -1,4 +1,25 @@
-export const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:3002/graphql';
+const DEFAULT_SERVER_GRAPHQL_URL = 'http://localhost:3002/graphql';
+const DEFAULT_API_BASE_URL = 'http://localhost:3002';
+
+/** Browser: same-origin proxy (/graphql). SSR: direct backend URL. */
+export const GRAPHQL_URL =
+  typeof window === 'undefined'
+    ? (process.env.GRAPHQL_SSR_URL ?? DEFAULT_SERVER_GRAPHQL_URL)
+    : (process.env.NEXT_PUBLIC_GRAPHQL_URL ?? '/graphql');
+
+/** Direct REST API base URL (no trailing slash). Vendor public API is not proxied like GraphQL. */
+export function getApiBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
+  }
+
+  if (typeof window === 'undefined') {
+    const ssrGraphqlUrl = process.env.GRAPHQL_SSR_URL ?? DEFAULT_SERVER_GRAPHQL_URL;
+    return ssrGraphqlUrl.replace(/\/graphql\/?$/, '') || DEFAULT_API_BASE_URL;
+  }
+
+  return DEFAULT_API_BASE_URL;
+}
 
 export const ACCESS_TOKEN = 'accessToken';
 export const REFRESH_TOKEN = 'refreshToken';

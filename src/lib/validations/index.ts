@@ -11,6 +11,8 @@ export const productCreateSchema = z.object({
   name: z.string().min(1, 'กรุณากรอกชื่อสินค้า'),
   description: z.string().optional(),
   categoryId: z.string().optional(),
+  petTypeId: z.string().optional(),
+  brandId: z.string().optional(),
   tagIds: z.array(z.string()).optional(),
 });
 
@@ -76,6 +78,8 @@ export const productFormSchema = z.object({
       'รูปแบบวันที่ไม่ถูกต้อง (YYYY-MM-DD)',
     ),
   categoryId: z.string().optional(),
+  petTypeId: z.string().optional(),
+  brandId: z.string().optional(),
   tagIds: z.array(z.string()).optional(),
   status: z.enum(['draft', 'published', 'archived']).optional(),
   images: z.array(productImageFormSchema).optional(),

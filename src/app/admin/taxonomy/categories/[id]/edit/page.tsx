@@ -1,0 +1,167 @@
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { HiArrowLeft } from 'react-icons/hi2';
+import { useForm } from 'react-hook-form';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
+import { Button } from '@/components/ui/button';
+import { Card, CardBody, PageHeader } from '@/components/ui/card';
+import { ImageUploadField } from '@/components/ui/image-upload-field';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  useApprovedCategories,
+  useDeleteCategory,
+  useSetCategoryImage,
+  useUpdateCategory,
+} from '@/hooks/useTaxonomy';
+import { isApiError } from '@/lib/api/errors';
+import { labelTaxonomyStatus } from '@/lib/i18n/th';
+import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
+
+export default function EditCategoryPage() {
+  const params = useParams<{ id: string }>();
+  const categoryId = params.id;
+  const router = useRouter();
+  const { data: categories = [], isLoading, error } = useApprovedCategories();
+  const category = categories.find((item) => item.id === categoryId);
+  const updateCategory = useUpdateCategory();
+  const setCategoryImage = useSetCategoryImage();
+  const deleteCategory = useDeleteCategory();
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const form = useForm<ProposeTaxonomyFormValues>({
+    resolver: zodResolver(proposeTaxonomySchema),
+    defaultValues: { name: '' },
+  });
+
+  useEffect(() => {
+    if (category) {
+      form.reset({ name: category.name });
+    }
+  }, [category, form]);
+
+  const isPending =
+    updateCategory.isPending || setCategoryImage.isPending || deleteCategory.isPending;
+
+  async function onSubmit(values: ProposeTaxonomyFormValues) {
+    if (!category) return;
+    try {
+      if (values.name.trim() !== category.name) {
+        await updateCategory.mutateAsync({ categoryId: category.id, name: values.name.trim() });
+      }
+      router.push('/admin/taxonomy');
+    } catch (err) {
+      form.setError('name', {
+        message: isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ',
+      });
+    }
+  }
+
+  async function handleImageChange(url: string) {
+    if (!category) return;
+    setUploadError(null);
+    try {
+      await setCategoryImage.mutateAsync({ categoryId: category.id, imageUrl: url });
+    } catch (err) {
+      setUploadError(isApiError(err) ? err.message : 'อัปโหลดรูปภาพไม่สำเร็จ');
+    }
+  }
+
+  if (isLoading) {
+    return <p className="text-muted">กำลังโหลด...</p>;
+  }
+
+  if (error || !category) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-danger">
+          {error instanceof Error ? error.message : 'ไม่พบหมวดหมู่'}
+        </p>
+        <Button variant="outline" asChild>
+          <Link href="/admin/taxonomy">กลับ</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl">
+      <PageHeader
+        title="แก้ไขหมวดหมู่"
+        description={`${category.slug} · ${labelTaxonomyStatus(category.status)}`}
+        back={
+          <Link
+            href="/admin/taxonomy"
+            className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-brand"
+          >
+            <HiArrowLeft className="size-4" aria-hidden="true" />
+            กลับ
+          </Link>
+        }
+      />
+
+      <Card>
+        <CardBody>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div>
+              <Label htmlFor="category-name" required>
+                ชื่อหมวดหมู่
+              </Label>
+              <Input
+                id="category-name"
+                placeholder="เช่น อาหารสัตว์"
+                aria-invalid={!!form.formState.errors.name}
+                aria-describedby={form.formState.errors.name ? 'category-name-error' : undefined}
+                {...form.register('name')}
+                className="mt-1.5"
+                disabled={isPending}
+              />
+              {form.formState.errors.name ? (
+                <p id="category-name-error" role="alert" className="mt-1 text-xs text-danger">
+                  {form.formState.errors.name.message}
+                </p>
+              ) : null}
+            </div>
+
+            <ImageUploadField
+              label="รูปภาพหมวดหมู่"
+              value={category.imageUrl ?? ''}
+              onChange={(url) => void handleImageChange(url)}
+              folder="categories"
+              showUrl={false}
+              disabled={isPending}
+              error={uploadError ?? undefined}
+            />
+
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+              <div className="flex gap-3">
+                <Button type="button" variant="outline" asChild disabled={isPending}>
+                  <Link href="/admin/taxonomy">ยกเลิก</Link>
+                </Button>
+                <Button type="submit" disabled={isPending} aria-busy={isPending}>
+                  {updateCategory.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+                </Button>
+              </div>
+              <ConfirmDeleteButton
+                confirmLabel={category.name}
+                title="ลบหมวดหมู่"
+                variant="destructive"
+                size="default"
+                disabled={isPending}
+                isDeleting={deleteCategory.isPending}
+                onConfirm={async () => {
+                  await deleteCategory.mutateAsync({ id: category.id });
+                  router.push('/admin/taxonomy');
+                }}
+              />
+            </div>
+          </form>
+        </CardBody>
+      </Card>
+    </div>
+  );
+}

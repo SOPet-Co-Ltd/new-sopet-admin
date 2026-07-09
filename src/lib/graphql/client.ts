@@ -88,6 +88,10 @@ export function getApolloClient(): ApolloClient {
   return apolloClient;
 }
 
+export function resetApolloClientForTests(): void {
+  apolloClient = null;
+}
+
 function getErrorStatus(error: unknown): number | undefined {
   if (ServerError.is(error) || ServerParseError.is(error)) {
     return error.statusCode;
@@ -102,6 +106,10 @@ function getErrorStatus(error: unknown): number | undefined {
   }
   return undefined;
 }
+
+export type ExecuteQueryOptions = {
+  fetchPolicy?: 'cache-first' | 'cache-and-network' | 'network-only';
+};
 
 async function withAuthRetry<T>(run: () => Promise<T>): Promise<T> {
   try {
@@ -135,20 +143,22 @@ async function withAuthRetry<T>(run: () => Promise<T>): Promise<T> {
 export async function executeQuery<TData, TVariables extends OperationVariables>(
   document: TypedDocumentNode<TData, TVariables>,
   variables: TVariables,
+  options?: ExecuteQueryOptions,
 ): Promise<TData>;
 export async function executeQuery<TData>(
   document: DocumentNode,
   variables?: OperationVariables,
+  options?: ExecuteQueryOptions,
 ): Promise<TData>;
 export async function executeQuery<
   TData,
   TVariables extends OperationVariables = OperationVariables,
->(document: DocumentNode, variables?: TVariables): Promise<TData> {
+>(document: DocumentNode, variables?: TVariables, options?: ExecuteQueryOptions): Promise<TData> {
   return withAuthRetry(async () => {
     const result = await getApolloClient().query({
       query: document,
       ...(variables ? { variables } : {}),
-      fetchPolicy: 'network-only',
+      fetchPolicy: options?.fetchPolicy ?? 'cache-first',
     });
     if (!result.data) {
       throw new ApiError({
@@ -179,6 +189,7 @@ export async function executeMutation<
       });
     }
 
+    getApolloClient().cache.reset();
     return result.data as TData;
   });
 }

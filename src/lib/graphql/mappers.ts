@@ -135,6 +135,8 @@ type GqlProduct = {
   status: string;
   category?: string | null;
   categoryId?: string | null;
+  petTypeId?: string | null;
+  brandId?: string | null;
   tags: string[];
   tagIds?: string[] | null;
   images?: GqlProductImage[] | null;
@@ -170,6 +172,8 @@ export function mapProduct(product: GqlProduct): Product {
     status: product.status,
     category: product.category ?? undefined,
     categoryId: product.categoryId ?? undefined,
+    petTypeId: product.petTypeId ?? undefined,
+    brandId: product.brandId ?? undefined,
     tags: product.tags ?? [],
     tagIds: product.tagIds ?? undefined,
     images: product.images?.map((image) => ({

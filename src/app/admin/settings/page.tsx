@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import {
@@ -243,21 +244,6 @@ export default function AdminPlatformSettingsPage() {
     setEditingAd(null);
   }
 
-  function handleDeleteBanner(banner: PlatformBanner) {
-    if (!window.confirm(`ลบแบนเนอร์ "${banner.title}" ใช่หรือไม่?`)) return;
-    deleteBanner.mutate(banner.id);
-  }
-
-  function handleDeleteSponsor(sponsor: PlatformSponsor) {
-    if (!window.confirm(`ลบสปอนเซอร์ "${sponsor.name}" ใช่หรือไม่?`)) return;
-    deleteSponsor.mutate(sponsor.id);
-  }
-
-  function handleDeleteAd(ad: PlatformAd) {
-    if (!window.confirm(`ลบโฆษณา "${ad.title}" ใช่หรือไม่?`)) return;
-    deleteAd.mutate(ad.id);
-  }
-
   function moveBanner(index: number, direction: -1 | 1) {
     const target = index + direction;
     if (target < 0 || target >= banners.length) return;
@@ -392,16 +378,16 @@ export default function AdminPlatformSettingsPage() {
                     >
                       แก้ไข
                     </Button>
-                    <Button
-                      type="button"
-                      size="sm"
+                    <ConfirmDeleteButton
+                      confirmLabel={banner.title}
+                      title="ลบแบนเนอร์"
                       variant="destructive"
                       disabled={bannerPending}
-                      aria-busy={bannerPending}
-                      onClick={() => handleDeleteBanner(banner)}
-                    >
-                      ลบ
-                    </Button>
+                      isDeleting={deleteBanner.isPending}
+                      onConfirm={async () => {
+                        await deleteBanner.mutateAsync(banner.id);
+                      }}
+                    />
                   </div>
                 </div>
               ))
@@ -481,16 +467,16 @@ export default function AdminPlatformSettingsPage() {
                     >
                       แก้ไข
                     </Button>
-                    <Button
-                      type="button"
-                      size="sm"
+                    <ConfirmDeleteButton
+                      confirmLabel={sponsor.name}
+                      title="ลบสปอนเซอร์"
                       variant="destructive"
                       disabled={sponsorPending}
-                      aria-busy={sponsorPending}
-                      onClick={() => handleDeleteSponsor(sponsor)}
-                    >
-                      ลบ
-                    </Button>
+                      isDeleting={deleteSponsor.isPending}
+                      onConfirm={async () => {
+                        await deleteSponsor.mutateAsync(sponsor.id);
+                      }}
+                    />
                   </div>
                 </div>
               ))
@@ -550,16 +536,16 @@ export default function AdminPlatformSettingsPage() {
                     >
                       แก้ไข
                     </Button>
-                    <Button
-                      type="button"
-                      size="sm"
+                    <ConfirmDeleteButton
+                      confirmLabel={ad.title}
+                      title="ลบโฆษณา"
                       variant="destructive"
                       disabled={adPending}
-                      aria-busy={adPending}
-                      onClick={() => handleDeleteAd(ad)}
-                    >
-                      ลบ
-                    </Button>
+                      isDeleting={deleteAd.isPending}
+                      onConfirm={async () => {
+                        await deleteAd.mutateAsync(ad.id);
+                      }}
+                    />
                   </div>
                 </div>
               ))

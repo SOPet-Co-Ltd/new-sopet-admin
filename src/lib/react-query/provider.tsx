@@ -21,6 +21,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
         }),
         defaultOptions: {
           queries: {
+            // Fallback for hooks without an explicit AD-3 staleTime override.
             staleTime: 60 * 1000,
             retry: 1,
             refetchOnWindowFocus: false,

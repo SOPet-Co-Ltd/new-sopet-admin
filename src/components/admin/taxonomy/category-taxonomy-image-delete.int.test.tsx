@@ -171,7 +171,6 @@ describe('category taxonomy image & delete integration', () => {
         item={pendingCategoryWithoutImage}
         onApprove={vi.fn()}
         onReject={vi.fn()}
-        onDelete={vi.fn()}
       />,
     );
 

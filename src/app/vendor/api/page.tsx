@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import {
@@ -70,11 +71,6 @@ export default function VendorApiPage() {
     if (!secret) return;
     await navigator.clipboard.writeText(secret);
     setCopied(true);
-  }
-
-  function handleRevoke(key: StoreApiKey) {
-    if (!window.confirm('ยกเลิก API Key นี้?')) return;
-    revokeMutation.mutate(key.id);
   }
 
   if (roleLoading) {
@@ -159,15 +155,19 @@ export default function VendorApiPage() {
                         {key.lastUsedAt ? formatDate(key.lastUsedAt) : 'ยังไม่เคยใช้'}
                       </td>
                       <td className="py-3 text-right">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
+                        <ConfirmDeleteButton
+                          confirmLabel={key.name}
+                          title="ยกเลิก API Key"
+                          confirmButtonLabel="ยกเลิก"
+                          description="API Key ที่ยกเลิกแล้วจะใช้งานไม่ได้อีก"
                           disabled={revokeMutation.isPending}
-                          onClick={() => handleRevoke(key)}
+                          isDeleting={revokeMutation.isPending}
+                          onConfirm={async () => {
+                            await revokeMutation.mutateAsync(key.id);
+                          }}
                         >
                           ยกเลิก
-                        </Button>
+                        </ConfirmDeleteButton>
                       </td>
                     </tr>
                   ))}

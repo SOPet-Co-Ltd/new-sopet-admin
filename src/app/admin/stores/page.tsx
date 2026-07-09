@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAdminStores } from '@/hooks/useAdminStores';
+import {
+  createDetailPrefetchHandlers,
+  prefetchAdminStoreDetail,
+} from '@/lib/react-query/prefetch-dashboard-nav';
 import { labelStoreStatus } from '@/lib/i18n/th';
 import type { AdminStore, StoreStatus } from '@/types';
 
@@ -36,6 +41,7 @@ function storeStatusBadgeClass(status: string): string | undefined {
 }
 
 export default function AdminStoresPage() {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StoreStatus | 'all'>('all');
 
@@ -108,13 +114,20 @@ export default function AdminStoresPage() {
         cell: ({ row }) => (
           <div className="flex justify-end">
             <Button size="sm" variant="outline" asChild>
-              <Link href={`/admin/stores/${row.original.id}`}>แก้ไข</Link>
+              <Link
+                href={`/admin/stores/${row.original.id}`}
+                {...createDetailPrefetchHandlers(() =>
+                  prefetchAdminStoreDetail(queryClient, row.original.id),
+                )}
+              >
+                แก้ไข
+              </Link>
             </Button>
           </div>
         ),
       },
     ],
-    [],
+    [queryClient],
   );
 
   return (

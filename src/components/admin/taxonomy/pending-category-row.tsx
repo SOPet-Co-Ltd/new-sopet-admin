@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ImageUploadField } from '@/components/ui/image-upload-field';
+import { TaxonomyDeleteButton } from '@/components/admin/taxonomy/taxonomy-delete-button';
 import { useApproveCategory, useSetCategoryImage } from '@/hooks/useTaxonomy';
 import { isApiError } from '@/lib/api/errors';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
@@ -13,7 +14,6 @@ export interface PendingCategoryRowProps {
   disabled?: boolean;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
-  onDelete: (item: TaxonomyItem) => void;
 }
 
 export function PendingCategoryRow({
@@ -21,7 +21,6 @@ export function PendingCategoryRow({
   disabled = false,
   onApprove,
   onReject,
-  onDelete,
 }: PendingCategoryRowProps) {
   const setCategoryImage = useSetCategoryImage();
   const approveCategory = useApproveCategory();
@@ -111,15 +110,7 @@ export function PendingCategoryRow({
         >
           ปฏิเสธ
         </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={rowPending}
-          onClick={() => onDelete(item)}
-        >
-          ลบ
-        </Button>
+        <TaxonomyDeleteButton item={item} kind="category" disabled={rowPending} />
       </div>
     </li>
   );

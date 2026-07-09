@@ -2,6 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useImageUpload } from '@/hooks/useImageUpload';
@@ -33,6 +34,11 @@ function toImage(img: GqlProductImage): ProductImage {
     sortOrder: img.sortOrder,
     isThumbnail: img.isThumbnail ?? undefined,
   };
+}
+
+function imageConfirmLabel(url: string): string {
+  const segment = url.split('/').filter(Boolean).pop();
+  return segment ?? url;
 }
 
 export function ProductImagesManager({ product }: { product: Product }) {
@@ -119,6 +125,7 @@ export function ProductImagesManager({ product }: { product: Product }) {
       invalidateProducts();
     } catch (err) {
       setMediaError(err instanceof Error ? err.message : 'ลบรูปภาพไม่สำเร็จ');
+      throw err;
     } finally {
       setMediaPending(false);
     }
@@ -199,16 +206,16 @@ export function ProductImagesManager({ product }: { product: Product }) {
                 >
                   {image.isThumbnail ? 'รูปหน้าปก' : 'ตั้งเป็นหน้าปก'}
                 </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
+                <ConfirmDeleteButton
+                  confirmLabel={imageConfirmLabel(image.imageUrl)}
+                  title="ลบรูปภาพ"
+                  description="รูปภาพจะถูกลบออกจากสินค้านี้"
                   disabled={mediaPending}
-                  aria-label={`ลบรูปภาพ ${image.imageUrl}`}
-                  onClick={() => void handleDeleteImage(image.id)}
-                >
-                  ลบ
-                </Button>
+                  isDeleting={mediaPending}
+                  onConfirm={async () => {
+                    await handleDeleteImage(image.id);
+                  }}
+                />
               </div>
             </li>
           ))}

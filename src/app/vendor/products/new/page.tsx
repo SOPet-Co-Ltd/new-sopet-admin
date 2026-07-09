@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2';
 import { VariantOptionGroupsEditor } from '@/components/vendor/variant-option-groups-editor';
+import { BrandField, PetTypeField } from '@/components/vendor/pet-type-brand-fields';
 import { CategoryField, TagsField } from '@/components/vendor/taxonomy-fields';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
@@ -40,7 +41,14 @@ export default function NewProductPage() {
 
   const form = useForm<ProductCreateFormValues>({
     resolver: zodResolver(productCreateSchema),
-    defaultValues: { name: '', description: '', categoryId: '', tagIds: [] },
+    defaultValues: {
+      name: '',
+      description: '',
+      categoryId: '',
+      petTypeId: '',
+      brandId: '',
+      tagIds: [],
+    },
   });
 
   const selectedTagIds = form.watch('tagIds') ?? [];
@@ -69,6 +77,8 @@ export default function NewProductPage() {
         description: values.description || undefined,
         basePrice: 0,
         categoryId: values.categoryId || undefined,
+        petTypeId: values.petTypeId || undefined,
+        brandId: values.brandId || undefined,
         tagIds: values.tagIds?.length ? values.tagIds : undefined,
       });
 
@@ -140,6 +150,14 @@ export default function NewProductPage() {
               <CategoryField
                 value={form.watch('categoryId')}
                 onChange={(categoryId) => form.setValue('categoryId', categoryId)}
+              />
+              <PetTypeField
+                value={form.watch('petTypeId')}
+                onChange={(petTypeId) => form.setValue('petTypeId', petTypeId)}
+              />
+              <BrandField
+                value={form.watch('brandId')}
+                onChange={(brandId) => form.setValue('brandId', brandId)}
               />
               <TagsField
                 value={selectedTagIds}

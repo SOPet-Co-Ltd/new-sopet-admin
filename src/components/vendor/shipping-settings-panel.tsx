@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -95,11 +96,6 @@ export function VendorShippingPanel() {
     }
   }
 
-  function handleDelete(option: StoreShippingOption) {
-    if (!window.confirm(`ลบ "${option.name}" ใช่หรือไม่?`)) return;
-    deleteMutation.mutate(option.id);
-  }
-
   const mutationError = createMutation.error ?? updateMutation.error ?? deleteMutation.error;
   const mutationPending =
     createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
@@ -159,16 +155,16 @@ export function VendorShippingPanel() {
                     >
                       แก้ไข
                     </Button>
-                    <Button
-                      type="button"
-                      size="sm"
+                    <ConfirmDeleteButton
+                      confirmLabel={option.name}
+                      title="ลบตัวเลือกจัดส่ง"
                       variant="destructive"
                       disabled={deleteMutation.isPending}
-                      aria-busy={deleteMutation.isPending}
-                      onClick={() => handleDelete(option)}
-                    >
-                      ลบ
-                    </Button>
+                      isDeleting={deleteMutation.isPending}
+                      onConfirm={async () => {
+                        await deleteMutation.mutateAsync(option.id);
+                      }}
+                    />
                   </div>
                 </li>
               ))}

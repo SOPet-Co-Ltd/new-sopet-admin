@@ -61,26 +61,53 @@ export interface CategoryDeleteImpact {
   products: Array<{ id: string; name: string; slug: string }>;
 }
 
+export type TaxonomyDeleteImpact = CategoryDeleteImpact;
+
 export interface TagDeleteImpact {
   productCount: number;
 }
 
 export interface DeleteCategoryResult {
   success: boolean;
-  deletedCategoryId: string;
-  reassignedProductCount: number;
-  replacementCategoryId?: string | null;
+  deletedId: string;
+  detachedProductCount: number;
+  notifiedStoreCount: number;
 }
 
 export interface DeleteTagResult {
   success: boolean;
-  deletedTagId: string;
+  deletedId: string;
   detachedProductCount: number;
+  notifiedStoreCount: number;
+}
+
+export interface DeletePetTypeResult {
+  success: boolean;
+  deletedId: string;
+  detachedProductCount: number;
+  notifiedStoreCount: number;
+}
+
+export interface DeleteBrandResult {
+  success: boolean;
+  deletedId: string;
+  detachedProductCount: number;
+  notifiedStoreCount: number;
 }
 
 export interface CreateCategoryInput {
   name: string;
   imageUrl?: string;
+}
+
+export interface CreatePetTypeInput {
+  name: string;
+  imageUrl?: string;
+}
+
+export interface SetPetTypeImageInput {
+  petTypeId: string;
+  imageUrl: string;
 }
 
 export interface SetCategoryImageInput {
@@ -93,9 +120,21 @@ export interface UpdateCategoryInput {
   name: string;
 }
 
+export interface UpdatePetTypeInput {
+  petTypeId: string;
+  name: string;
+}
+
 export interface DeleteCategoryInput {
   id: string;
-  replacementCategoryId?: string;
+}
+
+export interface DeletePetTypeInput {
+  id: string;
+}
+
+export interface DeleteBrandInput {
+  id: string;
 }
 
 export type StoreMemberRole = 'owner' | 'manager' | 'staff';
@@ -239,6 +278,8 @@ export interface Product {
   status: ProductStatus | string;
   category?: string;
   categoryId?: string;
+  petTypeId?: string;
+  brandId?: string;
   tags: string[];
   tagIds?: string[];
   images?: ProductImage[];
@@ -271,6 +312,8 @@ export interface CreateProductInput {
   categoryId?: string;
   tags?: string[];
   tagIds?: string[];
+  petTypeId?: string;
+  brandId?: string;
 }
 
 export interface UpdateProductInput {
@@ -284,6 +327,8 @@ export interface UpdateProductInput {
   categoryId?: string;
   tags?: string[];
   tagIds?: string[];
+  petTypeId?: string;
+  brandId?: string;
 }
 
 export interface AddProductImageInput {

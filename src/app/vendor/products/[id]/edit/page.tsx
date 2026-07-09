@@ -7,8 +7,10 @@ import { useEffect } from 'react';
 import { HiArrowLeft } from 'react-icons/hi2';
 import { Controller, useForm } from 'react-hook-form';
 import { ProductPublishChecklistPanel } from '@/components/vendor/product-publish-checklist';
+import { BrandField, PetTypeField } from '@/components/vendor/pet-type-brand-fields';
 import { CategoryField, TagsField } from '@/components/vendor/taxonomy-fields';
 import { ProductImagesManager } from '@/components/vendor/product-images-manager';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
@@ -65,6 +67,8 @@ export default function EditProductPage() {
       warning: '',
       expiryDate: '',
       categoryId: '',
+      petTypeId: '',
+      brandId: '',
       tagIds: [],
       status: 'draft',
       newImageUrl: '',
@@ -80,6 +84,8 @@ export default function EditProductPage() {
       warning: product.warning ?? '',
       expiryDate: toDateInputValue(product.expiryDate),
       categoryId: product.categoryId ?? '',
+      petTypeId: product.petTypeId ?? '',
+      brandId: product.brandId ?? '',
       tagIds: product.tagIds ?? [],
       status: (product.status as ProductFormValues['status']) ?? 'draft',
       newImageUrl: '',
@@ -105,6 +111,8 @@ export default function EditProductPage() {
           warning: values.warning || undefined,
           expiryDate: values.expiryDate || undefined,
           categoryId: values.categoryId || undefined,
+          petTypeId: values.petTypeId || undefined,
+          brandId: values.brandId || undefined,
           tagIds: values.tagIds?.length ? values.tagIds : undefined,
           status,
         },
@@ -120,17 +128,6 @@ export default function EditProductPage() {
     try {
       await publishMutation.mutateAsync(product.id);
       form.setValue('status', 'published');
-    } catch {
-      // surfaced via mutation state
-    }
-  }
-
-  async function handleDelete() {
-    if (!product) return;
-    if (!window.confirm(`ลบ "${product.name}" ใช่หรือไม่?`)) return;
-    try {
-      await deleteMutation.mutateAsync(product.id);
-      router.push('/vendor/products');
     } catch {
       // surfaced via mutation state
     }
@@ -251,6 +248,20 @@ export default function EditProductPage() {
                   form.setValue('categoryId', categoryId);
                 }}
               />
+              <PetTypeField
+                value={form.watch('petTypeId')}
+                onChange={(petTypeId) => {
+                  if (!petTypeId) return;
+                  form.setValue('petTypeId', petTypeId);
+                }}
+              />
+              <BrandField
+                value={form.watch('brandId')}
+                onChange={(brandId) => {
+                  if (!brandId) return;
+                  form.setValue('brandId', brandId);
+                }}
+              />
               {!hasVariants ? (
                 <div>
                   <Label htmlFor="basePrice">ราคาฐาน</Label>
@@ -364,15 +375,19 @@ export default function EditProductPage() {
               {updateMutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
             </Button>
           </div>
-          <Button
-            type="button"
+          <ConfirmDeleteButton
+            confirmLabel={product.name}
+            title="ลบสินค้า"
+            confirmButtonLabel="ลบสินค้า"
             variant="destructive"
+            size="default"
             disabled={isPending}
-            aria-busy={deleteMutation.isPending}
-            onClick={handleDelete}
-          >
-            {deleteMutation.isPending ? 'กำลังลบ...' : 'ลบสินค้า'}
-          </Button>
+            isDeleting={deleteMutation.isPending}
+            onConfirm={async () => {
+              await deleteMutation.mutateAsync(product.id);
+              router.push('/vendor/products');
+            }}
+          />
         </div>
       </form>
     </div>

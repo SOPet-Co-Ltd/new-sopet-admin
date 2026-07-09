@@ -6,6 +6,7 @@ import { queryKeys } from '@/lib/react-query/keys';
 
 export function useVendorOrders() {
   return useQuery({
+    staleTime: 0, // Order status changes frequently
     queryKey: queryKeys.orders.vendor(),
     queryFn: getVendorOrders,
   });

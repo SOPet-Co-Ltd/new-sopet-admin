@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { useDeletePromotion, useStorePromotions, useTogglePromotion } from '@/hooks/usePromotions';
@@ -87,16 +88,16 @@ export default function VendorPromotionsPage() {
                   <Button size="sm" variant="outline" disabled={mutationPending} asChild>
                     <Link href={`/vendor/promotions/${promo.id}/edit`}>แก้ไข</Link>
                   </Button>
-                  <Button
-                    type="button"
-                    size="sm"
+                  <ConfirmDeleteButton
+                    confirmLabel={promo.name}
+                    title="ลบโปรโมชัน"
                     variant="destructive"
                     disabled={mutationPending}
-                    aria-busy={mutationPending}
-                    onClick={() => deleteMutation.mutate(promo.id)}
-                  >
-                    ลบ
-                  </Button>
+                    isDeleting={deleteMutation.isPending}
+                    onConfirm={async () => {
+                      await deleteMutation.mutateAsync(promo.id);
+                    }}
+                  />
                 </div>
               </CardBody>
             </Card>

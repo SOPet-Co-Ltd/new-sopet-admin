@@ -9,6 +9,7 @@ import type { UpdateStoreInput } from '@/types';
 
 export function useMyStore() {
   return useQuery({
+    staleTime: 2 * 60 * 1000, // Store settings change occasionally
     queryKey: queryKeys.stores.detail('current'),
     queryFn: getMyStore,
   });

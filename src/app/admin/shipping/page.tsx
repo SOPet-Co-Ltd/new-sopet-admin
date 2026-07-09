@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -104,11 +105,6 @@ export default function AdminShippingPage() {
     setEditingProvider(null);
   }
 
-  function handleDeleteProvider(provider: ShippingProvider) {
-    if (!window.confirm(`ลบผู้ให้บริการ "${provider.name}" ใช่หรือไม่?`)) return;
-    deleteProvider.mutate(provider.id);
-  }
-
   async function onSubmitOption(values: ShippingOptionFormValues) {
     if (!selectedStoreId) return;
     const input = {
@@ -130,11 +126,6 @@ export default function AdminShippingPage() {
     setEditingOption(null);
     setShowOptionForm(false);
     optionForm.reset();
-  }
-
-  function handleDeleteOption(option: StoreShippingOption) {
-    if (!window.confirm(`ลบ "${option.name}" ใช่หรือไม่?`)) return;
-    deleteStoreOption.mutate({ id: option.id, storeId: selectedStoreId });
   }
 
   const activeProviders = providers.filter((p) => p.isActive);
@@ -250,16 +241,16 @@ export default function AdminShippingPage() {
                           >
                             แก้ไข
                           </Button>
-                          <Button
-                            type="button"
-                            size="sm"
+                          <ConfirmDeleteButton
+                            confirmLabel={provider.name}
+                            title="ลบผู้ให้บริการจัดส่ง"
                             variant="destructive"
                             disabled={deleteProvider.isPending}
-                            aria-busy={deleteProvider.isPending}
-                            onClick={() => handleDeleteProvider(provider)}
-                          >
-                            ลบ
-                          </Button>
+                            isDeleting={deleteProvider.isPending}
+                            onConfirm={async () => {
+                              await deleteProvider.mutateAsync(provider.id);
+                            }}
+                          />
                         </div>
                       </>
                     )}
@@ -339,16 +330,19 @@ export default function AdminShippingPage() {
                           >
                             แก้ไข
                           </Button>
-                          <Button
-                            type="button"
-                            size="sm"
+                          <ConfirmDeleteButton
+                            confirmLabel={option.name}
+                            title="ลบตัวเลือกจัดส่ง"
                             variant="destructive"
                             disabled={deleteStoreOption.isPending}
-                            aria-busy={deleteStoreOption.isPending}
-                            onClick={() => handleDeleteOption(option)}
-                          >
-                            ลบ
-                          </Button>
+                            isDeleting={deleteStoreOption.isPending}
+                            onConfirm={async () => {
+                              await deleteStoreOption.mutateAsync({
+                                id: option.id,
+                                storeId: selectedStoreId,
+                              });
+                            }}
+                          />
                         </div>
                       </li>
                     ))}

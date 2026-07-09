@@ -10,6 +10,7 @@ const CHECKLIST_LABELS: Record<string, string> = {
   name: 'ชื่อสินค้า',
   media: 'รูปภาพสินค้า (อย่างน้อย 1 รูป)',
   category: 'หมวดหมู่',
+  petType: 'ประเภทสัตว์เลี้ยง',
   variants: 'ตัวเลือกสินค้า (อย่างน้อย 1 รายการ)',
   price: 'ราคา',
   stock: 'สต็อก',

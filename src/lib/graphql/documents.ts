@@ -221,6 +221,8 @@ const PRODUCT_LIST_FIELDS = `
   status
   category
   categoryId
+  petTypeId
+  brandId
   tags
   tagIds
   images {
@@ -272,6 +274,8 @@ export const CREATE_PRODUCT = gql`
       status
       category
       categoryId
+      petTypeId
+      brandId
       tags
       tagIds
     }
@@ -292,9 +296,11 @@ export const UPDATE_PRODUCT = gql`
       thumbnailUrl
       status
       category
-      categoryId
-      tags
-      tagIds
+  categoryId
+  petTypeId
+  brandId
+  tags
+  tagIds
       images {
         ${PRODUCT_IMAGE_FIELDS}
       }
@@ -637,6 +643,141 @@ export const REJECT_TAG = gql`
   }
 `;
 
+export const APPROVED_PET_TYPES_QUERY = gql`
+  query ApprovedPetTypes {
+    approvedPetTypes {
+      id
+      name
+      slug
+      approvalStatus
+      imageUrl
+      createdBy
+      createdAt
+    }
+  }
+`;
+
+export const APPROVED_BRANDS_QUERY = gql`
+  query ApprovedBrands {
+    approvedBrands {
+      id
+      name
+      slug
+      approvalStatus
+      createdBy
+      createdAt
+    }
+  }
+`;
+
+export const PENDING_PET_TYPES_QUERY = gql`
+  query PendingPetTypes {
+    pendingPetTypes {
+      id
+      name
+      slug
+      approvalStatus
+      imageUrl
+      createdBy
+      createdAt
+    }
+  }
+`;
+
+export const PENDING_BRANDS_QUERY = gql`
+  query PendingBrands {
+    pendingBrands {
+      id
+      name
+      slug
+      approvalStatus
+      createdBy
+      createdAt
+    }
+  }
+`;
+
+export const CREATE_PET_TYPE = gql`
+  mutation CreatePetType($input: CreatePetTypeInput!) {
+    createPetType(input: $input) {
+      id
+      name
+      slug
+      approvalStatus
+      imageUrl
+    }
+  }
+`;
+
+export const CREATE_BRAND = gql`
+  mutation CreateBrand($input: CreateBrandInput!) {
+    createBrand(input: $input) {
+      id
+      name
+      slug
+      approvalStatus
+    }
+  }
+`;
+
+export const SET_PET_TYPE_IMAGE = gql`
+  mutation SetPetTypeImage($input: SetPetTypeImageInput!) {
+    setPetTypeImage(input: $input) {
+      id
+      name
+      slug
+      approvalStatus
+      imageUrl
+    }
+  }
+`;
+
+export const APPROVE_PET_TYPE = gql`
+  mutation ApprovePetType($id: String!) {
+    approvePetType(id: $id) {
+      id
+      name
+      slug
+      approvalStatus
+      imageUrl
+    }
+  }
+`;
+
+export const REJECT_PET_TYPE = gql`
+  mutation RejectPetType($id: String!) {
+    rejectPetType(id: $id) {
+      id
+      name
+      slug
+      approvalStatus
+      imageUrl
+    }
+  }
+`;
+
+export const APPROVE_BRAND = gql`
+  mutation ApproveBrand($id: String!) {
+    approveBrand(id: $id) {
+      id
+      name
+      slug
+      approvalStatus
+    }
+  }
+`;
+
+export const REJECT_BRAND = gql`
+  mutation RejectBrand($id: String!) {
+    rejectBrand(id: $id) {
+      id
+      name
+      slug
+      approvalStatus
+    }
+  }
+`;
+
 export const CATEGORY_DELETE_IMPACT_QUERY = gql`
   query CategoryDeleteImpact($categoryId: String!) {
     categoryDeleteImpact(categoryId: $categoryId) {
@@ -654,6 +795,37 @@ export const TAG_DELETE_IMPACT_QUERY = gql`
   query TagDeleteImpact($tagId: String!) {
     tagDeleteImpact(tagId: $tagId) {
       productCount
+      products {
+        id
+        name
+        slug
+      }
+    }
+  }
+`;
+
+export const PET_TYPE_DELETE_IMPACT_QUERY = gql`
+  query PetTypeDeleteImpact($petTypeId: String!) {
+    petTypeDeleteImpact(petTypeId: $petTypeId) {
+      productCount
+      products {
+        id
+        name
+        slug
+      }
+    }
+  }
+`;
+
+export const BRAND_DELETE_IMPACT_QUERY = gql`
+  query BrandDeleteImpact($brandId: String!) {
+    brandDeleteImpact(brandId: $brandId) {
+      productCount
+      products {
+        id
+        name
+        slug
+      }
     }
   }
 `;
@@ -709,13 +881,25 @@ export const UPDATE_CATEGORY = gql`
   }
 `;
 
+export const UPDATE_PET_TYPE = gql`
+  mutation UpdatePetType($input: UpdatePetTypeInput!) {
+    updatePetType(input: $input) {
+      id
+      name
+      slug
+      approvalStatus
+      imageUrl
+    }
+  }
+`;
+
 export const DELETE_CATEGORY = gql`
-  mutation DeleteCategory($input: DeleteCategoryInput!) {
+  mutation DeleteCategory($input: DeleteTaxonomyInput!) {
     deleteCategory(input: $input) {
       success
-      deletedCategoryId
-      reassignedProductCount
-      replacementCategoryId
+      deletedId
+      detachedProductCount
+      notifiedStoreCount
     }
   }
 `;
@@ -724,8 +908,31 @@ export const DELETE_TAG = gql`
   mutation DeleteTag($id: String!) {
     deleteTag(id: $id) {
       success
-      deletedTagId
+      deletedId
       detachedProductCount
+      notifiedStoreCount
+    }
+  }
+`;
+
+export const DELETE_PET_TYPE = gql`
+  mutation DeletePetType($input: DeleteTaxonomyInput!) {
+    deletePetType(input: $input) {
+      success
+      deletedId
+      detachedProductCount
+      notifiedStoreCount
+    }
+  }
+`;
+
+export const DELETE_BRAND = gql`
+  mutation DeleteBrand($input: DeleteTaxonomyInput!) {
+    deleteBrand(input: $input) {
+      success
+      deletedId
+      detachedProductCount
+      notifiedStoreCount
     }
   }
 `;

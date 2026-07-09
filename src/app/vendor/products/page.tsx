@@ -2,18 +2,25 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
 import { useDeleteProduct } from '@/hooks/useProductMutations';
 import { useVendorProducts } from '@/hooks/useVendorProducts';
+import {
+  createDetailPrefetchHandlers,
+  prefetchVendorProductDetail,
+} from '@/lib/react-query/prefetch-dashboard-nav';
 import { labelProductStatus } from '@/lib/i18n/th';
 import type { Product } from '@/types';
 
 export default function VendorProductsPage() {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -67,27 +74,30 @@ export default function VendorProductsPage() {
               <Link href={`/vendor/products/${row.original.id}/variants`}>ตัวเลือก</Link>
             </Button>
             <Button variant="secondary" size="sm" asChild>
-              <Link href={`/vendor/products/${row.original.id}/edit`}>แก้ไข</Link>
+              <Link
+                href={`/vendor/products/${row.original.id}/edit`}
+                {...createDetailPrefetchHandlers(() =>
+                  prefetchVendorProductDetail(queryClient, row.original.id),
+                )}
+              >
+                แก้ไข
+              </Link>
             </Button>
-            <Button
-              type="button"
+            <ConfirmDeleteButton
+              confirmLabel={row.original.name}
+              title="ลบสินค้า"
               variant="destructive"
-              size="sm"
               disabled={deleteMutation.isPending}
-              aria-busy={deleteMutation.isPending}
-              onClick={() => {
-                if (window.confirm(`ลบ "${row.original.name}" ใช่หรือไม่?`)) {
-                  deleteMutation.mutate(row.original.id);
-                }
+              isDeleting={deleteMutation.isPending}
+              onConfirm={async () => {
+                await deleteMutation.mutateAsync(row.original.id);
               }}
-            >
-              ลบ
-            </Button>
+            />
           </div>
         ),
       },
     ],
-    [deleteMutation],
+    [deleteMutation, queryClient],
   );
 
   const pagination = data?.pagination;

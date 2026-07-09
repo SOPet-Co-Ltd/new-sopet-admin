@@ -39,11 +39,7 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   }, [hasHydrated, hasToken, isAuthenticated, requiredRole, router, user?.role]);
 
   if (!hasHydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-cream">
-        <p className="text-muted">กำลังโหลด...</p>
-      </div>
-    );
+    return <>{children}</>;
   }
 
   if (!isAuthenticated || !hasToken) {

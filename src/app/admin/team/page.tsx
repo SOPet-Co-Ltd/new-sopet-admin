@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -172,17 +173,19 @@ export default function AdminTeamPage() {
                   </p>
                 </div>
                 {invitation.status === 'pending' ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
+                  <ConfirmDeleteButton
+                    confirmLabel={invitation.email}
+                    title="ยกเลิกคำเชิญ"
+                    confirmButtonLabel="ยกเลิก"
+                    description={`จะยกเลิกคำเชิญไปยัง ${invitation.email}`}
                     disabled={mutationPending}
-                    aria-busy={revokeMutation.isPending}
-                    onClick={() => revokeMutation.mutate(invitation.id)}
-                    aria-label={`ยกเลิกคำเชิญ ${invitation.email}`}
+                    isDeleting={revokeMutation.isPending}
+                    onConfirm={async () => {
+                      await revokeMutation.mutateAsync(invitation.id);
+                    }}
                   >
                     ยกเลิกคำเชิญ
-                  </Button>
+                  </ConfirmDeleteButton>
                 ) : null}
               </div>
             ))
