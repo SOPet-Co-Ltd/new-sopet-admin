@@ -16,7 +16,7 @@ export const orderStatusLabels: Record<string, string> = {
 
 export const paymentMethodLabels: Record<string, string> = {
   promptpay: 'พร้อมเพย์',
-  credit_card: 'บัตรเครdit',
+  credit_card: 'บัตรเครดิต',
   cod: 'เก็บเงินปลายทาง',
 };
 

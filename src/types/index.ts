@@ -638,15 +638,31 @@ export interface InviteVendorInput {
   email: string;
 }
 
+export interface ReviewReply {
+  id: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewImage {
+  id: string;
+  url: string;
+}
+
 export interface ProductReview {
   id: string;
   productId: string;
   productName?: string;
+  productSlug?: string;
+  productImageUrl?: string;
   rating: number;
   comment?: string;
   status: string;
   createdAt?: string;
   customerName?: string;
+  images?: ReviewImage[];
+  reply?: ReviewReply | null;
 }
 
 export interface StoreReviewSummary {

@@ -1,27 +1,61 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
+import { useMemo, useState } from 'react';
+import { Card, CardBody, PageHeader } from '@/components/ui/card';
+import { VendorReviewFilters } from '@/components/vendor/vendor-review-filters';
+import { VendorReviewListItem } from '@/components/vendor/vendor-review-list-item';
+import { VendorReviewListSkeleton } from '@/components/vendor/vendor-review-list-skeleton';
+import { VendorReviewProductBreakdown } from '@/components/vendor/vendor-review-product-breakdown';
+import { VendorReviewSummarySection } from '@/components/vendor/vendor-review-summary-section';
+import { VendorReviewSummarySkeleton } from '@/components/vendor/vendor-review-summary-skeleton';
 import { useStoreProductReviews, useStoreReviewSummary } from '@/hooks/useReviews';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
+import { filterReviews, type RatingFilter, type ReplyFilter } from '@/lib/vendor/review-filters';
 
-function Stars({ rating }: { rating: number }) {
-  return (
-    <span className="text-brand">
-      {'★'.repeat(rating)}
-      <span className="text-muted">{'★'.repeat(5 - rating)}</span>
-    </span>
-  );
+function formatFetchError(error: unknown): string {
+  return error instanceof Error ? error.message : 'โหลดไม่สำเร็จ';
 }
 
 export default function VendorReviewsPage() {
   const storeId = useVendorStoreId();
-  const { data: summary, isLoading: summaryLoading } = useStoreReviewSummary(storeId);
-  const { data: reviews = [], isLoading: reviewsLoading, error } = useStoreProductReviews(storeId);
+  const {
+    data: summary,
+    isLoading: summaryLoading,
+    error: summaryError,
+  } = useStoreReviewSummary(storeId);
+  const {
+    data: reviews = [],
+    isLoading: reviewsLoading,
+    error: reviewsError,
+  } = useStoreProductReviews(storeId);
+
+  const [replyFilter, setReplyFilter] = useState<ReplyFilter>('all');
+  const [ratingFilter, setRatingFilter] = useState<RatingFilter>('all');
+
+  const filteredReviews = useMemo(
+    () => filterReviews(reviews, replyFilter, ratingFilter),
+    [reviews, replyFilter, ratingFilter],
+  );
+
+  const filtersDisabled = !storeId || reviewsLoading;
 
   return (
     <div className="space-y-6">
-      <PageHeader title="รีวิว" description="รีวิวสินค้าจากลูกค้า" />
+      <PageHeader
+        title="รีวิว"
+        description="รีวิวสินค้าจากลูกค้า"
+        action={
+          storeId ? (
+            <VendorReviewFilters
+              replyFilter={replyFilter}
+              ratingFilter={ratingFilter}
+              onReplyFilterChange={setReplyFilter}
+              onRatingFilterChange={setRatingFilter}
+              disabled={filtersDisabled}
+            />
+          ) : undefined
+        }
+      />
 
       {!storeId ? (
         <Card>
@@ -31,72 +65,54 @@ export default function VendorReviewsPage() {
         </Card>
       ) : null}
 
-      {summaryLoading ? <p className="text-muted">กำลังโหลดสรุป...</p> : null}
-      {summary ? (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardBody>
-              <p className="text-sm text-muted">คะแนนเฉลี่ย</p>
-              <p className="mt-2 font-display text-2xl font-semibold text-ink">
-                {summary.averageRating.toFixed(1)}
-              </p>
-              <Stars rating={Math.round(summary.averageRating)} />
-            </CardBody>
-          </Card>
-          <Card>
-            <CardBody>
-              <p className="text-sm text-muted">จำนวนรีวิว</p>
-              <p className="mt-2 font-display text-2xl font-semibold text-ink">
-                {summary.reviewCount}
-              </p>
-            </CardBody>
-          </Card>
-          <Card>
-            <CardBody className="space-y-1 text-sm text-muted">
-              <p>5 ดาว: {summary.rating5Count}</p>
-              <p>4 ดาว: {summary.rating4Count}</p>
-              <p>3 ดาว: {summary.rating3Count}</p>
-              <p>2 ดาว: {summary.rating2Count}</p>
-              <p>1 ดาว: {summary.rating1Count}</p>
-            </CardBody>
-          </Card>
-        </div>
+      {storeId && summaryLoading ? <VendorReviewSummarySkeleton /> : null}
+
+      {storeId && summaryError ? (
+        <p className="text-sm text-danger">{formatFetchError(summaryError)}</p>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <h2 className="font-display font-medium text-ink">รีวิวล่าสุด</h2>
-        </CardHeader>
-        <CardBody className="space-y-3">
-          {reviewsLoading ? (
-            <p className="text-sm text-muted">กำลังโหลด...</p>
-          ) : error ? (
-            <p className="text-sm text-danger">
-              {error instanceof Error ? error.message : 'โหลดไม่สำเร็จ'}
-            </p>
-          ) : reviews.length === 0 ? (
+      {storeId && summary && !summaryLoading && !summaryError ? (
+        <>
+          <VendorReviewSummarySection summary={summary} />
+          {summary.productBreakdown && summary.productBreakdown.length > 0 ? (
+            <VendorReviewProductBreakdown productBreakdown={summary.productBreakdown} />
+          ) : null}
+        </>
+      ) : null}
+
+      {storeId ? (
+        <section className="space-y-4">
+          <div>
+            <h2 className="font-display font-medium text-ink">รีวิวล่าสุด</h2>
+            <p className="text-sm text-muted">รีวิวจากลูกค้าทั้งหมดในร้านของคุณ</p>
+          </div>
+
+          {reviewsLoading ? <VendorReviewListSkeleton /> : null}
+
+          {reviewsError ? (
+            <p className="text-sm text-danger">{formatFetchError(reviewsError)}</p>
+          ) : null}
+
+          {!reviewsLoading && !reviewsError && reviews.length === 0 ? (
             <p className="text-sm text-muted">ยังไม่มีรีวิว</p>
-          ) : (
-            reviews.map((review) => (
-              <div key={review.id} className="rounded-lg border border-border px-4 py-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-medium text-ink">{review.productName ?? review.productId}</p>
-                    {review.customerName ? (
-                      <p className="text-sm text-muted">{review.customerName}</p>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Stars rating={review.rating} />
-                    <Badge>{review.status}</Badge>
-                  </div>
-                </div>
-                {review.comment ? <p className="mt-2 text-sm text-ink">{review.comment}</p> : null}
-              </div>
-            ))
-          )}
-        </CardBody>
-      </Card>
+          ) : null}
+
+          {!reviewsLoading &&
+          !reviewsError &&
+          reviews.length > 0 &&
+          filteredReviews.length === 0 ? (
+            <p className="text-sm text-muted">ไม่พบรีวิวที่ตรงกับตัวกรอง</p>
+          ) : null}
+
+          {!reviewsLoading && !reviewsError && filteredReviews.length > 0 ? (
+            <div className="space-y-4">
+              {filteredReviews.map((review) => (
+                <VendorReviewListItem key={review.id} review={review} storeId={storeId} />
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }

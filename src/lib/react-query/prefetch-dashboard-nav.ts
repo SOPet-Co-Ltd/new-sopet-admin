@@ -3,7 +3,6 @@ import { getAdminCustomers } from '@/lib/api/admin-customers';
 import { getAdminStore, getAdminStores } from '@/lib/api/admin-stores';
 import { getAdminVendors } from '@/lib/api/admin-vendors';
 import { getProduct, getVendorProducts } from '@/lib/api/products';
-import { getVendorOrders } from '@/lib/api/orders';
 import { getMyStores } from '@/lib/api/stores';
 import { getPlatformAnalytics, getPlatformSalesOverTime } from '@/lib/api/platform-analytics';
 import { getPendingCategories } from '@/lib/api/taxonomy';
@@ -56,10 +55,6 @@ const NAV_PREFETCH_TARGETS: Record<string, NavPrefetchTarget> = {
   '/vendor/stores': {
     queryKey: queryKeys.stores.myStores(),
     queryFn: getMyStores,
-  },
-  '/vendor/orders': {
-    queryKey: queryKeys.orders.vendor(),
-    queryFn: getVendorOrders,
   },
   '/vendor/products': {
     queryKey: queryKeys.products.list(DEFAULT_VENDOR_PRODUCT_PARAMS),

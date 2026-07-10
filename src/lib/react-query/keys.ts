@@ -15,7 +15,8 @@ export const queryKeys = {
   },
   orders: {
     all: ['orders'] as const,
-    vendor: () => ['orders', 'vendor'] as const,
+    vendorRoot: () => ['orders', 'vendor'] as const,
+    vendor: (storeId: string) => ['orders', 'vendor', storeId] as const,
   },
   products: {
     all: ['products'] as const,

@@ -12,7 +12,7 @@ export function useUpdateOrderStatus() {
     meta: { toastError: true },
     mutationFn: (input: UpdateOrderStatusInput) => updateOrderStatus(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendor() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendorRoot() });
     },
   });
 }

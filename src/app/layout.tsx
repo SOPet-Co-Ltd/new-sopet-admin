@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Noto_Sans_Thai, Noto_Serif_Thai } from 'next/font/google';
-import { ThemeScript } from '@/components/theme-script';
+import Script from 'next/script';
 import { AppProviders } from '@/lib/providers';
+import { getThemeInitScript } from '@/lib/theme';
 import './globals.css';
 
 const notoSansThai = Noto_Sans_Thai({
@@ -33,7 +34,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
-        <ThemeScript />
+        <Script id="theme-init" strategy="beforeInteractive">
+          {getThemeInitScript()}
+        </Script>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

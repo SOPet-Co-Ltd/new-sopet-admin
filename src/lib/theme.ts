@@ -22,3 +22,21 @@ export function applyTheme(theme: Theme): void {
   if (typeof document === 'undefined') return;
   document.documentElement.classList.toggle('dark', theme === 'dark');
 }
+
+export function getThemeInitScript(): string {
+  return `
+(function() {
+  try {
+    var stored = localStorage.getItem('${THEME_STORAGE_KEY}');
+    var theme = stored === 'dark' || stored === 'light'
+      ? stored
+      : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  } catch (e) {}
+})();
+`.trim();
+}

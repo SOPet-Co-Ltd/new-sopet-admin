@@ -25,7 +25,7 @@ import type { Order } from '@/types';
 export default function VendorOrdersPage() {
   const searchParams = useSearchParams();
   const storeId = useVendorStoreId();
-  const { data: orders = [], isLoading, error } = useVendorOrders();
+  const { data: orders = [], isLoading, error } = useVendorOrders(storeId);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 

@@ -129,8 +129,8 @@ export const REJECT_STORE = gql`
 `;
 
 export const VENDOR_ORDERS_QUERY = gql`
-  query VendorOrders {
-    vendorOrders {
+  query VendorOrders($storeId: String!) {
+    vendorOrders(storeId: $storeId) {
       id
       orderNumber
       status
@@ -1509,10 +1509,44 @@ export const STORE_PRODUCT_REVIEWS_QUERY = gql`
       id
       productId
       productName
+      productSlug
+      productImageUrl
       rating
       comment
       createdAt
       customerName
+      reply {
+        id
+        body
+        createdAt
+        updatedAt
+      }
+      images {
+        id
+        url
+      }
+    }
+  }
+`;
+
+export const CREATE_REVIEW_REPLY_MUTATION = gql`
+  mutation CreateReviewReply($input: CreateReviewReplyInput!) {
+    createReviewReply(input: $input) {
+      id
+      body
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_REVIEW_REPLY_MUTATION = gql`
+  mutation UpdateReviewReply($input: UpdateReviewReplyInput!) {
+    updateReviewReply(input: $input) {
+      id
+      body
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -1522,6 +1556,11 @@ export const STORE_REVIEW_SUMMARY_QUERY = gql`
     storeReviewSummary(storeId: $storeId) {
       averageRating
       totalCount
+      rating5Count
+      rating4Count
+      rating3Count
+      rating2Count
+      rating1Count
       productBreakdown {
         productId
         productName

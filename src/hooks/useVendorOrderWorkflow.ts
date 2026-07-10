@@ -16,7 +16,7 @@ export function useMarkVendorOrderPaid() {
     meta: { toastError: true },
     mutationFn: (orderId: string) => markVendorOrderPaid(orderId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendor() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendorRoot() });
     },
   });
 }
@@ -27,7 +27,7 @@ export function useAcknowledgeVendorOrder() {
     meta: { toastError: true },
     mutationFn: (orderId: string) => acknowledgeVendorOrder(orderId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendor() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendorRoot() });
     },
   });
 }
@@ -38,7 +38,7 @@ export function useShipVendorOrder() {
     meta: { toastError: true },
     mutationFn: (input: ShipVendorOrderInput) => shipVendorOrder(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendor() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendorRoot() });
     },
   });
 }
@@ -49,7 +49,7 @@ export function useCancelVendorOrder() {
     meta: { toastError: true },
     mutationFn: (orderId: string) => cancelVendorOrder(orderId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendor() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendorRoot() });
     },
   });
 }

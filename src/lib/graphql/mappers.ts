@@ -503,33 +503,71 @@ export function mapVendorInvitation(invitation: GqlVendorInvitation): VendorInvi
   };
 }
 
+type GqlReviewReply = {
+  id: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type GqlReviewImage = {
+  id: string;
+  url: string;
+};
+
 type GqlProductReview = {
   id: string;
   productId: string;
   productName?: string | null;
+  productSlug?: string | null;
+  productImageUrl?: string | null;
   rating: number;
   comment?: string | null;
   status: string;
   createdAt?: string | null;
   customerName?: string | null;
+  images?: GqlReviewImage[] | null;
+  reply?: GqlReviewReply | null;
 };
+
+function mapReviewReply(reply: GqlReviewReply): import('@/types').ReviewReply {
+  return {
+    id: reply.id,
+    body: reply.body,
+    createdAt: reply.createdAt,
+    updatedAt: reply.updatedAt,
+  };
+}
 
 export function mapProductReview(review: GqlProductReview): ProductReview {
   return {
     id: review.id,
     productId: review.productId,
     productName: review.productName ?? undefined,
+    productSlug: review.productSlug ?? undefined,
+    productImageUrl: review.productImageUrl ?? undefined,
     rating: review.rating,
     comment: review.comment ?? undefined,
     status: review.status,
     createdAt: review.createdAt ?? undefined,
     customerName: review.customerName ?? undefined,
+    images: (review.images ?? []).map((image) => ({ id: image.id, url: image.url })),
+    reply: review.reply ? mapReviewReply(review.reply) : null,
   };
+}
+
+export function mapReviewReplyType(reply: GqlReviewReply): import('@/types').ReviewReply {
+  return mapReviewReply(reply);
 }
 
 type GqlStoreReviewSummary = {
   averageRating: number;
   totalCount: number;
+  rating5Count: number;
+  rating4Count: number;
+  rating3Count: number;
+  rating2Count: number;
+  rating1Count: number;
   productBreakdown: Array<{
     productId: string;
     productName: string;
@@ -542,11 +580,11 @@ export function mapStoreReviewSummary(summary: GqlStoreReviewSummary): StoreRevi
   return {
     averageRating: summary.averageRating,
     reviewCount: summary.totalCount,
-    rating5Count: 0,
-    rating4Count: 0,
-    rating3Count: 0,
-    rating2Count: 0,
-    rating1Count: 0,
+    rating5Count: summary.rating5Count,
+    rating4Count: summary.rating4Count,
+    rating3Count: summary.rating3Count,
+    rating2Count: summary.rating2Count,
+    rating1Count: summary.rating1Count,
     productBreakdown: summary.productBreakdown,
   };
 }
