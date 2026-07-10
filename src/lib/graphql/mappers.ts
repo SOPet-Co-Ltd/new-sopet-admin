@@ -43,12 +43,33 @@ type GqlOrderItem = {
   quantity: number;
   subtotal: number;
   fulfillmentStatus: string;
+  trackingNumber?: string | null;
+  fulfillmentProvider?: string | null;
+  trackingUrl?: string | null;
+};
+
+type GqlOrderShippingAddress = {
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  tumbon?: string | null;
+  amphoe: string;
+  province: string;
+  postalCode: string;
+};
+
+type GqlOrderStoreShipping = {
+  storeId: string;
+  optionName: string;
+  shippingFee: number;
 };
 
 type GqlOrder = {
   id: string;
   orderNumber: string;
   status: string;
+  createdAt: string;
   subtotal: number;
   shippingFee: number;
   discountAmount: number;
@@ -57,6 +78,8 @@ type GqlOrder = {
   guestPhone?: string | null;
   guestName?: string | null;
   guestEmail?: string | null;
+  shippingAddress?: GqlOrderShippingAddress | null;
+  storeShippings?: GqlOrderStoreShipping[];
   items: GqlOrderItem[];
 };
 
@@ -87,6 +110,7 @@ export function mapOrder(order: GqlOrder): Order {
     id: order.id,
     orderNumber: order.orderNumber,
     status: order.status,
+    createdAt: order.createdAt,
     subtotal: order.subtotal,
     shippingFee: order.shippingFee,
     discountAmount: order.discountAmount,
@@ -95,6 +119,24 @@ export function mapOrder(order: GqlOrder): Order {
     guestPhone: order.guestPhone ?? undefined,
     guestName: order.guestName ?? undefined,
     guestEmail: order.guestEmail ?? undefined,
+    shippingAddress: order.shippingAddress
+      ? {
+          fullName: order.shippingAddress.fullName,
+          phone: order.shippingAddress.phone,
+          addressLine1: order.shippingAddress.addressLine1,
+          addressLine2: order.shippingAddress.addressLine2 ?? undefined,
+          tumbon: order.shippingAddress.tumbon ?? undefined,
+          amphoe: order.shippingAddress.amphoe,
+          province: order.shippingAddress.province,
+          postalCode: order.shippingAddress.postalCode,
+        }
+      : undefined,
+    storeShippings:
+      order.storeShippings?.map((shipping) => ({
+        storeId: shipping.storeId,
+        optionName: shipping.optionName,
+        shippingFee: shipping.shippingFee,
+      })) ?? [],
     items: order.items.map((item) => ({
       id: item.id,
       storeId: item.storeId,
@@ -103,6 +145,9 @@ export function mapOrder(order: GqlOrder): Order {
       quantity: item.quantity,
       subtotal: item.subtotal,
       fulfillmentStatus: item.fulfillmentStatus,
+      trackingNumber: item.trackingNumber ?? undefined,
+      fulfillmentProvider: item.fulfillmentProvider ?? undefined,
+      trackingUrl: item.trackingUrl ?? undefined,
     })),
   };
 }

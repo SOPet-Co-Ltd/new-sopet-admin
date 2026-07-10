@@ -15,6 +15,7 @@ export type DashboardNavItem = {
   href: string;
   label: string;
   exact?: boolean;
+  disabled?: boolean;
   icon?: ComponentType<{ className?: string }>;
 };
 
@@ -73,16 +74,29 @@ export function DashboardShell({
                   : pathname === item.href || pathname.startsWith(`${item.href}/`);
                 const Icon = item.icon;
                 const prefetchHandlers = createDashboardNavPrefetchHandlers(queryClient, item.href);
+                const className = cn(
+                  'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                  item.disabled
+                    ? 'cursor-not-allowed border-l-[3px] border-transparent text-muted/60'
+                    : active
+                      ? 'border-l-[3px] border-brand bg-brand-tint pl-[9px] text-brand'
+                      : 'border-l-[3px] border-transparent text-muted hover:bg-surface hover:text-ink',
+                );
+
+                if (item.disabled) {
+                  return (
+                    <span key={item.href} className={className} aria-disabled="true">
+                      {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
+                      <span>{item.label}</span>
+                    </span>
+                  );
+                }
+
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={cn(
-                      'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-                      active
-                        ? 'border-l-[3px] border-brand bg-brand-tint pl-[9px] text-brand'
-                        : 'border-l-[3px] border-transparent text-muted hover:bg-surface hover:text-ink',
-                    )}
+                    className={className}
                     onMouseEnter={prefetchHandlers.onMouseEnter}
                     onFocus={prefetchHandlers.onFocus}
                   >

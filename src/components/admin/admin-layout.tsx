@@ -8,6 +8,7 @@ import {
   HiCog6Tooth,
   HiInboxArrowDown,
   HiShieldCheck,
+  HiMagnifyingGlass,
   HiTag,
   HiTicket,
   HiTruck,
@@ -44,6 +45,14 @@ const navSections: DashboardNavSection[] = [
       { href: '/admin/promotions', label: 'โปรโมชัน', icon: HiTicket },
       { href: '/admin/taxonomy', label: 'หมวดหมู่และแท็ก', icon: HiTag },
       { href: '/admin/shipping', label: 'การจัดส่ง', icon: HiTruck },
+    ],
+  },
+  {
+    title: 'การค้นหา',
+    items: [
+      { href: '/admin/search/synonyms', label: 'คำพ้องความหมาย', icon: HiMagnifyingGlass },
+      { href: '/admin/search/tuning', label: 'ปรับการจัดอันดับ', icon: HiMagnifyingGlass },
+      { href: '/admin/search/analytics', label: 'วิเคราะห์การค้นหา', icon: HiMagnifyingGlass },
     ],
   },
   {

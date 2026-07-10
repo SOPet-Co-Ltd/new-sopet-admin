@@ -11,3 +11,10 @@ export function formatCurrency(value: number): string {
     currency: 'THB',
   }).format(value);
 }
+
+export function formatDateTime(value: string | Date): string {
+  return new Intl.DateTimeFormat('th-TH', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(typeof value === 'string' ? new Date(value) : value);
+}

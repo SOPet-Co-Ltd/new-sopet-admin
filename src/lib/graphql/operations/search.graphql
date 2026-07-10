@@ -1,0 +1,61 @@
+query SearchRankingWeights {
+  searchRankingWeights {
+    text
+    prefixBoost
+    soldCount
+    averageRating
+    reviewCount
+    personalizationCap
+    trigramFallbackThreshold
+    trigramMinSimilarity
+    rrfK
+  }
+}
+
+mutation UpdateSearchRankingWeights($input: UpdateSearchRankingWeightsInput!) {
+  updateSearchRankingWeights(input: $input) {
+    text
+    prefixBoost
+    soldCount
+    averageRating
+    reviewCount
+    personalizationCap
+    trigramFallbackThreshold
+    trigramMinSimilarity
+    rrfK
+  }
+}
+
+query SearchSynonyms {
+  searchSynonyms {
+    id
+    terms
+    expansion
+    isActive
+    updatedAt
+  }
+}
+
+mutation CreateSearchSynonym($input: CreateSearchSynonymInput!) {
+  createSearchSynonym(input: $input) {
+    id
+    terms
+    expansion
+    isActive
+    updatedAt
+  }
+}
+
+mutation UpdateSearchSynonym($id: String!, $input: UpdateSearchSynonymInput!) {
+  updateSearchSynonym(id: $id, input: $input) {
+    id
+    terms
+    expansion
+    isActive
+    updatedAt
+  }
+}
+
+mutation DeleteSearchSynonym($id: String!) {
+  deleteSearchSynonym(id: $id)
+}

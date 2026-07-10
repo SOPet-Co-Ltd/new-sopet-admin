@@ -185,6 +185,11 @@ export type ChangePasswordInput = {
   newPassword: Scalars['String']['input'];
 };
 
+export type ConfirmOrderDeliveredInput = {
+  guestPhone?: InputMaybe<Scalars['String']['input']>;
+  orderId: Scalars['String']['input'];
+};
+
 export type CreateAddressInput = {
   addressLine1: Scalars['String']['input'];
   addressLine2?: InputMaybe<Scalars['String']['input']>;
@@ -328,6 +333,12 @@ export type CreateReviewInput = {
   rating: Scalars['Int']['input'];
 };
 
+export type CreateSearchSynonymInput = {
+  expansion: Scalars['String']['input'];
+  isActive?: InputMaybe<Scalars['Boolean']['input']>;
+  terms: Array<Scalars['String']['input']>;
+};
+
 export type CreateShippingOptionInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   isActive?: InputMaybe<Scalars['Boolean']['input']>;
@@ -465,6 +476,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   acceptStoreInvitation: StoreMemberType;
   acceptVendorInvitation: VendorAuthPayload;
+  acknowledgeVendorOrder: OrderType;
   addFavorite: FavoriteType;
   addPaymentMethod: SavedPaymentMethodType;
   addProductImage: ProductImageType;
@@ -483,6 +495,8 @@ export type Mutation = {
   approveTag: TagType;
   changeCustomerPhone: CustomerAuthPayload;
   changePassword: MessagePayload;
+  confirmGuestOrderDelivered: OrderType;
+  confirmOrderDelivered: OrderType;
   createAddress: SavedAddressType;
   createBrand: BrandType;
   createCategory: CategoryType;
@@ -498,6 +512,7 @@ export type Mutation = {
   createProductVariant: ProductVariantType;
   createPromotion: PromotionType;
   createReview: ReviewType;
+  createSearchSynonym: SearchSynonymType;
   createShippingOption: StoreShippingOptionType;
   createShippingProvider: ShippingProviderType;
   createStoreApiKey: CreateStoreApiKeyPayload;
@@ -516,6 +531,7 @@ export type Mutation = {
   deleteProductImage: Scalars['Boolean']['output'];
   deleteProductVariant: Scalars['Boolean']['output'];
   deletePromotion: Scalars['Boolean']['output'];
+  deleteSearchSynonym: Scalars['Boolean']['output'];
   deleteShippingOption: Scalars['Boolean']['output'];
   deleteShippingProvider: Scalars['Boolean']['output'];
   deleteTag: DeleteTaxonomyResultType;
@@ -524,6 +540,7 @@ export type Mutation = {
   inviteVendor: VendorInvitationType;
   markAllNotificationsRead: Scalars['Boolean']['output'];
   markNotificationRead: Scalars['Boolean']['output'];
+  markVendorOrderPaid: OrderType;
   mergeCart: CartType;
   publishProduct: ProductType;
   reactivateAccount: CustomerAuthPayload;
@@ -558,6 +575,7 @@ export type Mutation = {
   setDefaultPaymentMethod: SavedPaymentMethodType;
   setPetTypeImage: PetTypeType;
   setProductThumbnail: ProductImageType;
+  shipVendorOrder: OrderType;
   submitStoreReactivationRequest: StoreReactivationRequestType;
   submitStoreRequest: StoreRequestType;
   switchStore: VendorAuthPayload;
@@ -577,6 +595,8 @@ export type Mutation = {
   updateProductVariant: ProductVariantType;
   updateProfile: CustomerProfile;
   updatePromotion: PromotionType;
+  updateSearchRankingWeights: SearchRankingWeightsType;
+  updateSearchSynonym: SearchSynonymType;
   updateShippingOption: StoreShippingOptionType;
   updateShippingProvider: ShippingProviderType;
   updateStore: MyStoreType;
@@ -596,6 +616,10 @@ export type MutationAcceptStoreInvitationArgs = {
 
 export type MutationAcceptVendorInvitationArgs = {
   input: AcceptVendorInvitationInput;
+};
+
+export type MutationAcknowledgeVendorOrderArgs = {
+  orderId: Scalars['String']['input'];
 };
 
 export type MutationAddFavoriteArgs = {
@@ -673,6 +697,14 @@ export type MutationChangePasswordArgs = {
   input: ChangePasswordInput;
 };
 
+export type MutationConfirmGuestOrderDeliveredArgs = {
+  input: ConfirmOrderDeliveredInput;
+};
+
+export type MutationConfirmOrderDeliveredArgs = {
+  input: ConfirmOrderDeliveredInput;
+};
+
 export type MutationCreateAddressArgs = {
   input: CreateAddressInput;
 };
@@ -732,6 +764,10 @@ export type MutationCreatePromotionArgs = {
 
 export type MutationCreateReviewArgs = {
   input: CreateReviewInput;
+};
+
+export type MutationCreateSearchSynonymArgs = {
+  input: CreateSearchSynonymInput;
 };
 
 export type MutationCreateShippingOptionArgs = {
@@ -807,6 +843,10 @@ export type MutationDeletePromotionArgs = {
   id: Scalars['String']['input'];
 };
 
+export type MutationDeleteSearchSynonymArgs = {
+  id: Scalars['String']['input'];
+};
+
 export type MutationDeleteShippingOptionArgs = {
   id: Scalars['String']['input'];
 };
@@ -833,6 +873,10 @@ export type MutationInviteVendorArgs = {
 
 export type MutationMarkNotificationReadArgs = {
   id: Scalars['String']['input'];
+};
+
+export type MutationMarkVendorOrderPaidArgs = {
+  orderId: Scalars['String']['input'];
 };
 
 export type MutationMergeCartArgs = {
@@ -972,6 +1016,10 @@ export type MutationSetProductThumbnailArgs = {
   productId: Scalars['String']['input'];
 };
 
+export type MutationShipVendorOrderArgs = {
+  input: ShipVendorOrderInput;
+};
+
 export type MutationSubmitStoreReactivationRequestArgs = {
   input: SubmitStoreReactivationRequestInput;
 };
@@ -1053,6 +1101,15 @@ export type MutationUpdateProfileArgs = {
 export type MutationUpdatePromotionArgs = {
   id: Scalars['String']['input'];
   input: UpdatePromotionInput;
+};
+
+export type MutationUpdateSearchRankingWeightsArgs = {
+  input: UpdateSearchRankingWeightsInput;
+};
+
+export type MutationUpdateSearchSynonymArgs = {
+  id: Scalars['String']['input'];
+  input: UpdateSearchSynonymInput;
 };
 
 export type MutationUpdateShippingOptionArgs = {
@@ -1149,6 +1206,7 @@ export type OrderItemType = {
   quantity: Scalars['Int']['output'];
   storeId: Scalars['String']['output'];
   subtotal: Scalars['Float']['output'];
+  trackingUrl?: Maybe<Scalars['String']['output']>;
   unitPrice: Scalars['Float']['output'];
   variantId: Scalars['String']['output'];
 };
@@ -1415,6 +1473,7 @@ export type Query = {
   brandDeleteImpact: TaxonomyDeleteImpactType;
   cart: CartType;
   categoryDeleteImpact: TaxonomyDeleteImpactType;
+  exportSearchAnalyticsCsv: Scalars['String']['output'];
   favorites: Array<FavoriteType>;
   guestOrders: Array<OrderType>;
   /** GraphQL API health check */
@@ -1464,6 +1523,14 @@ export type Query = {
   productReviews: Array<ReviewType>;
   products: ProductConnection;
   recommendedProducts: Array<ProductType>;
+  searchAnalyticsSuggestionCtr: Array<SearchSuggestionCtrRowType>;
+  searchAnalyticsSummary: SearchAnalyticsSummaryType;
+  searchAnalyticsTopQueries: Array<SearchAnalyticsQueryRowType>;
+  searchAnalyticsZeroResultQueries: Array<SearchAnalyticsQueryRowType>;
+  searchRankingWeights: SearchRankingWeightsType;
+  searchRecoverySuggestions: Array<Scalars['String']['output']>;
+  searchSuggestions: SearchSuggestionsPayloadType;
+  searchSynonyms: Array<SearchSynonymType>;
   shippingProviders: Array<ShippingProviderType>;
   store: StoreType;
   storeAnalytics: StoreAnalyticsType;
@@ -1533,6 +1600,11 @@ export type QueryCartArgs = {
 
 export type QueryCategoryDeleteImpactArgs = {
   categoryId: Scalars['String']['input'];
+};
+
+export type QueryExportSearchAnalyticsCsvArgs = {
+  fromDate?: InputMaybe<Scalars['DateTime']['input']>;
+  toDate?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
 export type QueryGuestOrdersArgs = {
@@ -1610,10 +1682,16 @@ export type QueryProductReviewsArgs = {
 };
 
 export type QueryProductsArgs = {
+  brandIds?: InputMaybe<Array<Scalars['String']['input']>>;
   category?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  maxPrice?: InputMaybe<Scalars['Int']['input']>;
+  minPrice?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
+  petTypeIds?: InputMaybe<Array<Scalars['String']['input']>>;
   search?: InputMaybe<Scalars['String']['input']>;
+  searchContext?: InputMaybe<SearchContextInput>;
+  sessionId?: InputMaybe<Scalars['String']['input']>;
   sortBy?: InputMaybe<Scalars['String']['input']>;
   sortOrder?: InputMaybe<Scalars['String']['input']>;
   storeId?: InputMaybe<Scalars['String']['input']>;
@@ -1622,6 +1700,38 @@ export type QueryProductsArgs = {
 
 export type QueryRecommendedProductsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type QuerySearchAnalyticsSuggestionCtrArgs = {
+  fromDate?: InputMaybe<Scalars['DateTime']['input']>;
+  toDate?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type QuerySearchAnalyticsSummaryArgs = {
+  fromDate?: InputMaybe<Scalars['DateTime']['input']>;
+  toDate?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type QuerySearchAnalyticsTopQueriesArgs = {
+  fromDate?: InputMaybe<Scalars['DateTime']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  toDate?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type QuerySearchAnalyticsZeroResultQueriesArgs = {
+  fromDate?: InputMaybe<Scalars['DateTime']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  toDate?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type QuerySearchRecoverySuggestionsArgs = {
+  query: Scalars['String']['input'];
+};
+
+export type QuerySearchSuggestionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  query: Scalars['String']['input'];
+  sessionId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QueryShippingProvidersArgs = {
@@ -1815,6 +1925,76 @@ export type SavedPaymentMethodType = {
   type: Scalars['String']['output'];
 };
 
+export type SearchAnalyticsQueryRowType = {
+  __typename?: 'SearchAnalyticsQueryRowType';
+  avgResultCount: Scalars['Float']['output'];
+  query: Scalars['String']['output'];
+  searchCount: Scalars['Int']['output'];
+};
+
+export type SearchAnalyticsSummaryType = {
+  __typename?: 'SearchAnalyticsSummaryType';
+  avgLatencyMs: Scalars['Float']['output'];
+  avgResultsPerQuery: Scalars['Float']['output'];
+  totalSearches: Scalars['Int']['output'];
+  uniqueQueries: Scalars['Int']['output'];
+  zeroResultRate: Scalars['Float']['output'];
+};
+
+export type SearchContextInput = {
+  recentProductIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  recentQueries?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type SearchProductSuggestionType = {
+  __typename?: 'SearchProductSuggestionType';
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  slug: Scalars['String']['output'];
+  thumbnailUrl?: Maybe<Scalars['String']['output']>;
+};
+
+export type SearchQuerySuggestionType = {
+  __typename?: 'SearchQuerySuggestionType';
+  query: Scalars['String']['output'];
+};
+
+export type SearchRankingWeightsType = {
+  __typename?: 'SearchRankingWeightsType';
+  averageRating: Scalars['Float']['output'];
+  personalizationCap: Scalars['Float']['output'];
+  prefixBoost: Scalars['Float']['output'];
+  reviewCount: Scalars['Float']['output'];
+  rrfK: Scalars['Int']['output'];
+  soldCount: Scalars['Float']['output'];
+  text: Scalars['Float']['output'];
+  trigramFallbackThreshold: Scalars['Int']['output'];
+  trigramMinSimilarity: Scalars['Float']['output'];
+};
+
+export type SearchSuggestionCtrRowType = {
+  __typename?: 'SearchSuggestionCtrRowType';
+  clicks: Scalars['Int']['output'];
+  ctr: Scalars['Float']['output'];
+  impressions: Scalars['Int']['output'];
+  prefixBucket: Scalars['String']['output'];
+};
+
+export type SearchSuggestionsPayloadType = {
+  __typename?: 'SearchSuggestionsPayloadType';
+  products: Array<SearchProductSuggestionType>;
+  queries: Array<SearchQuerySuggestionType>;
+};
+
+export type SearchSynonymType = {
+  __typename?: 'SearchSynonymType';
+  expansion: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  isActive: Scalars['Boolean']['output'];
+  terms: Array<Scalars['String']['output']>;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type SendCustomerOtpInput = {
   phone: Scalars['String']['input'];
 };
@@ -1827,6 +2007,11 @@ export type SetCategoryImageInput = {
 export type SetPetTypeImageInput = {
   imageUrl: Scalars['String']['input'];
   petTypeId: Scalars['String']['input'];
+};
+
+export type ShipVendorOrderInput = {
+  orderId: Scalars['String']['input'];
+  trackingUrl: Scalars['String']['input'];
 };
 
 export type ShippingAddressInput = {
@@ -1991,6 +2176,16 @@ export type SubmitStoreRequestInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   logoUrl?: InputMaybe<Scalars['String']['input']>;
   storeName: Scalars['String']['input'];
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  paymentStatusUpdated: PaymentType;
+};
+
+export type SubscriptionPaymentStatusUpdatedArgs = {
+  orderId?: InputMaybe<Scalars['String']['input']>;
+  paymentId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type SwitchStoreInput = {
@@ -2176,6 +2371,24 @@ export type UpdatePromotionInput = {
   usagePerCustomer?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type UpdateSearchRankingWeightsInput = {
+  averageRating?: InputMaybe<Scalars['Float']['input']>;
+  personalizationCap?: InputMaybe<Scalars['Float']['input']>;
+  prefixBoost?: InputMaybe<Scalars['Float']['input']>;
+  reviewCount?: InputMaybe<Scalars['Float']['input']>;
+  rrfK?: InputMaybe<Scalars['Int']['input']>;
+  soldCount?: InputMaybe<Scalars['Float']['input']>;
+  text?: InputMaybe<Scalars['Float']['input']>;
+  trigramFallbackThreshold?: InputMaybe<Scalars['Int']['input']>;
+  trigramMinSimilarity?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export type UpdateSearchSynonymInput = {
+  expansion?: InputMaybe<Scalars['String']['input']>;
+  isActive?: InputMaybe<Scalars['Boolean']['input']>;
+  terms?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
 export type UpdateShippingOptionInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   isActive?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2307,6 +2520,18 @@ export type VerifyCustomerOtpInput = {
   sessionId?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreateSearchSynonymInput = {
+  expansion: string;
+  isActive?: boolean | null | undefined;
+  terms: Array<string>;
+};
+
+export type UpdateSearchSynonymInput = {
+  expansion?: string | null | undefined;
+  isActive?: boolean | null | undefined;
+  terms?: Array<string> | null | undefined;
+};
+
 export type NotificationsQueryVariables = Exact<{
   unreadOnly?: boolean | null | undefined;
 }>;
@@ -2388,6 +2613,87 @@ export type StorePromotionsQuery = {
     createdAt: string;
   }>;
 };
+
+export type SearchRankingWeightsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type SearchRankingWeightsQuery = {
+  searchRankingWeights: {
+    text: number;
+    prefixBoost: number;
+    soldCount: number;
+    averageRating: number;
+    reviewCount: number;
+    personalizationCap: number;
+    trigramFallbackThreshold: number;
+    trigramMinSimilarity: number;
+    rrfK: number;
+  };
+};
+
+export type UpdateSearchRankingWeightsMutationVariables = Exact<{
+  input: UpdateSearchRankingWeightsInput;
+}>;
+
+export type UpdateSearchRankingWeightsMutation = {
+  updateSearchRankingWeights: {
+    text: number;
+    prefixBoost: number;
+    soldCount: number;
+    averageRating: number;
+    reviewCount: number;
+    personalizationCap: number;
+    trigramFallbackThreshold: number;
+    trigramMinSimilarity: number;
+    rrfK: number;
+  };
+};
+
+export type SearchSynonymsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type SearchSynonymsQuery = {
+  searchSynonyms: Array<{
+    id: string;
+    terms: Array<string>;
+    expansion: string;
+    isActive: boolean;
+    updatedAt: string;
+  }>;
+};
+
+export type CreateSearchSynonymMutationVariables = Exact<{
+  input: CreateSearchSynonymInput;
+}>;
+
+export type CreateSearchSynonymMutation = {
+  createSearchSynonym: {
+    id: string;
+    terms: Array<string>;
+    expansion: string;
+    isActive: boolean;
+    updatedAt: string;
+  };
+};
+
+export type UpdateSearchSynonymMutationVariables = Exact<{
+  id: string;
+  input: UpdateSearchSynonymInput;
+}>;
+
+export type UpdateSearchSynonymMutation = {
+  updateSearchSynonym: {
+    id: string;
+    terms: Array<string>;
+    expansion: string;
+    isActive: boolean;
+    updatedAt: string;
+  };
+};
+
+export type DeleteSearchSynonymMutationVariables = Exact<{
+  id: string;
+}>;
+
+export type DeleteSearchSynonymMutation = { deleteSearchSynonym: boolean };
 
 export const PromotionFieldsFragmentDoc = {
   kind: 'Document',
@@ -2608,3 +2914,262 @@ export const StorePromotionsDocument = {
     },
   ],
 } as unknown as DocumentNode<StorePromotionsQuery, StorePromotionsQueryVariables>;
+export const SearchRankingWeightsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'SearchRankingWeights' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'searchRankingWeights' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'text' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'prefixBoost' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'soldCount' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'averageRating' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'reviewCount' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'personalizationCap' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'trigramFallbackThreshold' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'trigramMinSimilarity' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'rrfK' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SearchRankingWeightsQuery, SearchRankingWeightsQueryVariables>;
+export const UpdateSearchRankingWeightsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateSearchRankingWeights' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'UpdateSearchRankingWeightsInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'updateSearchRankingWeights' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'text' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'prefixBoost' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'soldCount' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'averageRating' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'reviewCount' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'personalizationCap' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'trigramFallbackThreshold' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'trigramMinSimilarity' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'rrfK' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateSearchRankingWeightsMutation,
+  UpdateSearchRankingWeightsMutationVariables
+>;
+export const SearchSynonymsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'SearchSynonyms' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'searchSynonyms' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'terms' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'expansion' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SearchSynonymsQuery, SearchSynonymsQueryVariables>;
+export const CreateSearchSynonymDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'CreateSearchSynonym' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'CreateSearchSynonymInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'createSearchSynonym' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'terms' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'expansion' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<CreateSearchSynonymMutation, CreateSearchSynonymMutationVariables>;
+export const UpdateSearchSynonymDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateSearchSynonym' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'UpdateSearchSynonymInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'updateSearchSynonym' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'terms' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'expansion' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateSearchSynonymMutation, UpdateSearchSynonymMutationVariables>;
+export const DeleteSearchSynonymDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteSearchSynonym' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'deleteSearchSynonym' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteSearchSynonymMutation, DeleteSearchSynonymMutationVariables>;

@@ -61,6 +61,7 @@ describe('mapOrder', () => {
       id: 'o1',
       orderNumber: 'ORD-001',
       status: 'pending',
+      createdAt: '2026-01-01T00:00:00.000Z',
       subtotal: 100,
       shippingFee: 50,
       discountAmount: 10,
@@ -69,6 +70,7 @@ describe('mapOrder', () => {
       guestPhone: null,
       guestName: 'Guest',
       guestEmail: null,
+      storeShippings: [],
       items: [
         {
           id: 'i1',

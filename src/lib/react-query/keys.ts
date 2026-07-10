@@ -149,4 +149,17 @@ export const queryKeys = {
         : (['notifications', 'list'] as const),
     unreadCount: () => ['notifications', 'unreadCount'] as const,
   },
+  search: {
+    all: ['search'] as const,
+    rankingWeights: () => ['search', 'rankingWeights'] as const,
+    synonyms: () => ['search', 'synonyms'] as const,
+    analyticsSummary: (fromDate?: string, toDate?: string) =>
+      ['search', 'analyticsSummary', fromDate, toDate] as const,
+    analyticsTopQueries: (fromDate?: string, toDate?: string, limit?: number) =>
+      ['search', 'analyticsTopQueries', fromDate, toDate, limit] as const,
+    analyticsZeroResultQueries: (fromDate?: string, toDate?: string, limit?: number) =>
+      ['search', 'analyticsZeroResultQueries', fromDate, toDate, limit] as const,
+    analyticsSuggestionCtr: (fromDate?: string, toDate?: string) =>
+      ['search', 'analyticsSuggestionCtr', fromDate, toDate] as const,
+  },
 } as const;

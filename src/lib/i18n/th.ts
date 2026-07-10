@@ -14,6 +14,20 @@ export const orderStatusLabels: Record<string, string> = {
   refunded: 'คืนเงินแล้ว',
 };
 
+export const paymentMethodLabels: Record<string, string> = {
+  promptpay: 'พร้อมเพย์',
+  credit_card: 'บัตรเครdit',
+  cod: 'เก็บเงินปลายทาง',
+};
+
+export const fulfillmentStatusLabels: Record<string, string> = {
+  pending: 'รอดำเนินการ',
+  processing: 'กำลังเตรียม',
+  shipped: 'จัดส่งแล้ว',
+  delivered: 'ส่งถึงแล้ว',
+  cancelled: 'ยกเลิก',
+};
+
 export const membershipRoleLabels: Record<string, string> = {
   owner: 'เจ้าของ',
   manager: 'ผู้จัดการ',
@@ -85,6 +99,14 @@ export function labelProductStatus(status: string): string {
 
 export function labelOrderStatus(status: string): string {
   return orderStatusLabels[status] ?? status;
+}
+
+export function labelPaymentMethod(method: string): string {
+  return paymentMethodLabels[method] ?? method;
+}
+
+export function labelFulfillmentStatus(status: string): string {
+  return fulfillmentStatusLabels[status] ?? status;
 }
 
 export function labelMembershipRole(role: string): string {

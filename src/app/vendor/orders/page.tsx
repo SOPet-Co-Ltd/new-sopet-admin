@@ -1,8 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
+import { VendorOrderDetailDialog } from '@/components/vendor/vendor-order-detail-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import {
@@ -12,45 +15,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useUpdateOrderStatus } from '@/hooks/useUpdateOrderStatus';
 import { useVendorOrders } from '@/hooks/useVendorOrders';
+import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { ORDER_STATUSES } from '@/lib/config';
 import { labelOrderStatus } from '@/lib/i18n/th';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Order } from '@/types';
 
 export default function VendorOrdersPage() {
+  const searchParams = useSearchParams();
+  const storeId = useVendorStoreId();
   const { data: orders = [], isLoading, error } = useVendorOrders();
-  const statusMutation = useUpdateOrderStatus();
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  const orderIdFromUrl = searchParams.get('orderId');
+
+  useEffect(() => {
+    if (orderIdFromUrl) {
+      setSelectedOrderId(orderIdFromUrl);
+    }
+  }, [orderIdFromUrl]);
 
   const filteredOrders = useMemo(() => {
     if (statusFilter === 'all') return orders;
     return orders.filter((order) => order.status === statusFilter);
   }, [orders, statusFilter]);
 
+  const selectedOrder = useMemo(
+    () => orders.find((order) => order.id === selectedOrderId) ?? null,
+    [orders, selectedOrderId],
+  );
+
   const columns = useMemo<ColumnDef<Order>[]>(
     () => [
       {
-        id: 'customer',
-        header: 'ลูกค้า',
-        cell: ({ row }) => {
-          const order = row.original;
-          if (order.guestPhone) {
-            return (
-              <div className="text-sm">
-                <p className="font-medium text-ink">{order.guestName ?? 'ลูกค้าทั่วไป'}</p>
-                <p className="text-muted">{order.guestPhone}</p>
-              </div>
-            );
-          }
-          return <span className="text-muted">สมาชิก</span>;
-        },
-      },
-      {
         accessorKey: 'orderNumber',
         header: ({ column }) => <SortableHeader column={column}>คำสั่งซื้อ</SortableHeader>,
-        cell: ({ row }) => <span className="font-medium text-ink">{row.original.orderNumber}</span>,
+        cell: ({ row }) => (
+          <div>
+            <p className="font-medium text-ink">{row.original.orderNumber}</p>
+            <p className="text-xs text-muted">{formatDateTime(row.original.createdAt)}</p>
+          </div>
+        ),
       },
       {
         accessorKey: 'status',
@@ -63,49 +70,28 @@ export default function VendorOrdersPage() {
         accessorKey: 'total',
         header: ({ column }) => <SortableHeader column={column}>ยอดรวม</SortableHeader>,
         cell: ({ row }) => formatCurrency(row.original.total),
-      },
-      {
-        accessorKey: 'paymentMethod',
-        header: 'ชำระเงิน',
-        meta: { className: 'hidden md:table-cell' },
-      },
-      {
-        id: 'items',
-        header: 'รายการ',
-        cell: ({ row }) => row.original.items.length,
-        meta: { className: 'hidden md:table-cell' },
+        meta: { className: 'hidden sm:table-cell' },
       },
       {
         id: 'actions',
-        header: 'อัปเดตสถานะ',
+        header: '',
         cell: ({ row }) => (
-          <Select
-            value={row.original.status}
-            disabled={statusMutation.isPending}
-            onValueChange={(status) => statusMutation.mutate({ orderId: row.original.id, status })}
-          >
-            <SelectTrigger className="w-[180px]" aria-label="อัปเดตสถานะคำสั่งซื้อ">
-              <SelectValue placeholder="เลือกสถานะ" />
-            </SelectTrigger>
-            <SelectContent>
-              {ORDER_STATUSES.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {labelOrderStatus(status)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex justify-end">
+            <Button size="sm" variant="outline" onClick={() => setSelectedOrderId(row.original.id)}>
+              ดูรายละเอียด
+            </Button>
+          </div>
         ),
       },
     ],
-    [statusMutation],
+    [],
   );
 
   return (
     <div>
       <PageHeader
         title="คำสั่งซื้อ"
-        description="จัดการและดำเนินการคำสั่งซื้อจากลูกค้า"
+        description="ดูและดำเนินการคำสั่งซื้อจากลูกค้า"
         action={
           <div className="w-48">
             <label
@@ -141,6 +127,15 @@ export default function VendorOrdersPage() {
       {!isLoading ? (
         <DataTable columns={columns} data={filteredOrders} emptyMessage="ไม่พบคำสั่งซื้อ" />
       ) : null}
+
+      <VendorOrderDetailDialog
+        order={selectedOrder}
+        storeId={storeId}
+        open={selectedOrderId !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedOrderId(null);
+        }}
+      />
     </div>
   );
 }

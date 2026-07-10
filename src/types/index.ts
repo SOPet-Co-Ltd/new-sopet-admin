@@ -194,12 +194,33 @@ export interface OrderItem {
   quantity: number;
   subtotal: number;
   fulfillmentStatus: string;
+  trackingNumber?: string | null;
+  fulfillmentProvider?: string | null;
+  trackingUrl?: string | null;
+}
+
+export interface OrderShippingAddress {
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  tumbon?: string | null;
+  amphoe: string;
+  province: string;
+  postalCode: string;
+}
+
+export interface OrderStoreShipping {
+  storeId: string;
+  optionName: string;
+  shippingFee: number;
 }
 
 export interface Order {
   id: string;
   orderNumber: string;
   status: string;
+  createdAt: string;
   subtotal: number;
   shippingFee: number;
   discountAmount: number;
@@ -208,6 +229,8 @@ export interface Order {
   guestPhone?: string | null;
   guestName?: string | null;
   guestEmail?: string | null;
+  shippingAddress?: OrderShippingAddress | null;
+  storeShippings: OrderStoreShipping[];
   items: OrderItem[];
 }
 

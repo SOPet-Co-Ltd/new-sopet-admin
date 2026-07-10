@@ -134,6 +134,7 @@ export const VENDOR_ORDERS_QUERY = gql`
       id
       orderNumber
       status
+      createdAt
       subtotal
       shippingFee
       discountAmount
@@ -150,11 +151,21 @@ export const VENDOR_ORDERS_QUERY = gql`
         quantity
         subtotal
         fulfillmentStatus
+        trackingNumber
+        fulfillmentProvider
+        trackingUrl
+      }
+      storeShippings {
+        storeId
+        optionName
+        shippingFee
       }
       shippingAddress {
         fullName
         phone
         addressLine1
+        addressLine2
+        tumbon
         amphoe
         province
         postalCode
@@ -169,6 +180,52 @@ export const UPDATE_ORDER_STATUS = gql`
       id
       orderNumber
       status
+    }
+  }
+`;
+
+const VENDOR_ORDER_WORKFLOW_FIELDS = `
+  id
+  orderNumber
+  status
+  items {
+    id
+    storeId
+    fulfillmentStatus
+    trackingNumber
+    fulfillmentProvider
+    trackingUrl
+  }
+`;
+
+export const MARK_VENDOR_ORDER_PAID = gql`
+  mutation MarkVendorOrderPaid($orderId: String!) {
+    markVendorOrderPaid(orderId: $orderId) {
+      ${VENDOR_ORDER_WORKFLOW_FIELDS}
+    }
+  }
+`;
+
+export const ACKNOWLEDGE_VENDOR_ORDER = gql`
+  mutation AcknowledgeVendorOrder($orderId: String!) {
+    acknowledgeVendorOrder(orderId: $orderId) {
+      ${VENDOR_ORDER_WORKFLOW_FIELDS}
+    }
+  }
+`;
+
+export const SHIP_VENDOR_ORDER = gql`
+  mutation ShipVendorOrder($input: ShipVendorOrderInput!) {
+    shipVendorOrder(input: $input) {
+      ${VENDOR_ORDER_WORKFLOW_FIELDS}
+    }
+  }
+`;
+
+export const CANCEL_VENDOR_ORDER = gql`
+  mutation CancelVendorOrder($orderId: String!) {
+    cancelVendorOrder(orderId: $orderId) {
+      ${VENDOR_ORDER_WORKFLOW_FIELDS}
     }
   }
 `;
@@ -1972,5 +2029,128 @@ export const MARK_NOTIFICATION_READ = gql`
 export const MARK_ALL_NOTIFICATIONS_READ = gql`
   mutation MarkAllNotificationsRead {
     markAllNotificationsRead
+  }
+`;
+
+export const SEARCH_RANKING_WEIGHTS_QUERY = gql`
+  query SearchRankingWeights {
+    searchRankingWeights {
+      text
+      prefixBoost
+      soldCount
+      averageRating
+      reviewCount
+      personalizationCap
+      trigramFallbackThreshold
+      trigramMinSimilarity
+      rrfK
+    }
+  }
+`;
+
+export const UPDATE_SEARCH_RANKING_WEIGHTS = gql`
+  mutation UpdateSearchRankingWeights($input: UpdateSearchRankingWeightsInput!) {
+    updateSearchRankingWeights(input: $input) {
+      text
+      prefixBoost
+      soldCount
+      averageRating
+      reviewCount
+      personalizationCap
+      trigramFallbackThreshold
+      trigramMinSimilarity
+      rrfK
+    }
+  }
+`;
+
+export const SEARCH_SYNONYMS_QUERY = gql`
+  query SearchSynonyms {
+    searchSynonyms {
+      id
+      terms
+      expansion
+      isActive
+      updatedAt
+    }
+  }
+`;
+
+export const CREATE_SEARCH_SYNONYM = gql`
+  mutation CreateSearchSynonym($input: CreateSearchSynonymInput!) {
+    createSearchSynonym(input: $input) {
+      id
+      terms
+      expansion
+      isActive
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_SEARCH_SYNONYM = gql`
+  mutation UpdateSearchSynonym($id: String!, $input: UpdateSearchSynonymInput!) {
+    updateSearchSynonym(id: $id, input: $input) {
+      id
+      terms
+      expansion
+      isActive
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_SEARCH_SYNONYM = gql`
+  mutation DeleteSearchSynonym($id: String!) {
+    deleteSearchSynonym(id: $id)
+  }
+`;
+
+export const SEARCH_ANALYTICS_SUMMARY_QUERY = gql`
+  query SearchAnalyticsSummary($fromDate: DateTime, $toDate: DateTime) {
+    searchAnalyticsSummary(fromDate: $fromDate, toDate: $toDate) {
+      totalSearches
+      uniqueQueries
+      zeroResultRate
+      avgResultsPerQuery
+      avgLatencyMs
+    }
+  }
+`;
+
+export const SEARCH_ANALYTICS_TOP_QUERIES_QUERY = gql`
+  query SearchAnalyticsTopQueries($fromDate: DateTime, $toDate: DateTime, $limit: Int) {
+    searchAnalyticsTopQueries(fromDate: $fromDate, toDate: $toDate, limit: $limit) {
+      query
+      searchCount
+      avgResultCount
+    }
+  }
+`;
+
+export const SEARCH_ANALYTICS_ZERO_RESULT_QUERIES_QUERY = gql`
+  query SearchAnalyticsZeroResultQueries($fromDate: DateTime, $toDate: DateTime, $limit: Int) {
+    searchAnalyticsZeroResultQueries(fromDate: $fromDate, toDate: $toDate, limit: $limit) {
+      query
+      searchCount
+      avgResultCount
+    }
+  }
+`;
+
+export const SEARCH_ANALYTICS_SUGGESTION_CTR_QUERY = gql`
+  query SearchAnalyticsSuggestionCtr($fromDate: DateTime, $toDate: DateTime) {
+    searchAnalyticsSuggestionCtr(fromDate: $fromDate, toDate: $toDate) {
+      prefixBucket
+      impressions
+      clicks
+      ctr
+    }
+  }
+`;
+
+export const EXPORT_SEARCH_ANALYTICS_CSV_QUERY = gql`
+  query ExportSearchAnalyticsCsv($fromDate: DateTime, $toDate: DateTime) {
+    exportSearchAnalyticsCsv(fromDate: $fromDate, toDate: $toDate)
   }
 `;
