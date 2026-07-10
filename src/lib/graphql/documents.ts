@@ -1504,26 +1504,46 @@ export const ACCEPT_VENDOR_INVITATION = gql`
 `;
 
 export const STORE_PRODUCT_REVIEWS_QUERY = gql`
-  query StoreProductReviews($storeId: String!) {
-    storeProductReviews(storeId: $storeId) {
-      id
-      productId
-      productName
-      productSlug
-      productImageUrl
-      rating
-      comment
-      createdAt
-      customerName
-      reply {
+  query StoreProductReviews(
+    $storeId: String!
+    $page: Int
+    $limit: Int
+    $replyFilter: String
+    $ratingFilter: String
+  ) {
+    storeProductReviews(
+      storeId: $storeId
+      page: $page
+      limit: $limit
+      replyFilter: $replyFilter
+      ratingFilter: $ratingFilter
+    ) {
+      items {
         id
-        body
+        productId
+        productName
+        productSlug
+        productImageUrl
+        rating
+        comment
         createdAt
-        updatedAt
+        customerName
+        reply {
+          id
+          body
+          createdAt
+          updatedAt
+        }
+        images {
+          id
+          url
+        }
       }
-      images {
-        id
-        url
+      pagination {
+        page
+        limit
+        total
+        totalPages
       }
     }
   }

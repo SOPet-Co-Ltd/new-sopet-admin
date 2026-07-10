@@ -8,11 +8,12 @@ import {
   updateReviewReply,
 } from '@/lib/api/reviews';
 import { queryKeys } from '@/lib/react-query/keys';
+import type { StoreProductReviewsParams } from '@/types';
 
-export function useStoreProductReviews(storeId?: string) {
+export function useStoreProductReviews(storeId?: string, params: StoreProductReviewsParams = {}) {
   return useQuery({
-    queryKey: queryKeys.reviews.store(storeId ?? ''),
-    queryFn: () => getStoreProductReviews(storeId!),
+    queryKey: queryKeys.reviews.store(storeId ?? '', params),
+    queryFn: () => getStoreProductReviews(storeId!, params),
     enabled: !!storeId,
   });
 }
@@ -31,7 +32,7 @@ export function useCreateReviewReply(storeId: string) {
     meta: { toastError: false },
     mutationFn: (input: { reviewId: string; body: string }) => createReviewReply(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.reviews.store(storeId) });
+      queryClient.invalidateQueries({ queryKey: ['reviews', 'store', storeId] });
     },
   });
 }
@@ -42,7 +43,7 @@ export function useUpdateReviewReply(storeId: string) {
     meta: { toastError: false },
     mutationFn: (input: { replyId: string; body: string }) => updateReviewReply(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.reviews.store(storeId) });
+      queryClient.invalidateQueries({ queryKey: ['reviews', 'store', storeId] });
     },
   });
 }

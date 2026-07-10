@@ -625,6 +625,16 @@ export interface CustomersQueryParams {
   search?: string;
 }
 
+export type StoreProductReviewReplyFilter = 'all' | 'unreplied' | 'replied';
+export type StoreProductReviewRatingFilter = 'all' | '1' | '2' | '3' | '4' | '5';
+
+export interface StoreProductReviewsParams {
+  page?: number;
+  limit?: number;
+  replyFilter?: StoreProductReviewReplyFilter;
+  ratingFilter?: StoreProductReviewRatingFilter;
+}
+
 export interface VendorInvitation {
   id: string;
   email: string;

@@ -1608,7 +1608,7 @@ export type Query = {
   storeInvitations: Array<StoreMemberInvitationType>;
   storeMembers: Array<StoreMemberType>;
   storePayouts: Array<PayoutType>;
-  storeProductReviews: Array<StoreProductReviewType>;
+  storeProductReviews: StoreProductReviewConnection;
   storePromotions: Array<PromotionType>;
   storeReactivationRequests: Array<StoreReactivationRequestType>;
   storeReviewSummary: StoreReviewSummaryType;
@@ -1838,6 +1838,10 @@ export type QueryStoreBySlugArgs = {
 };
 
 export type QueryStoreProductReviewsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  ratingFilter?: InputMaybe<Scalars['String']['input']>;
+  replyFilter?: InputMaybe<Scalars['String']['input']>;
   storeId: Scalars['String']['input'];
 };
 
@@ -2172,6 +2176,12 @@ export type StoreMemberType = {
   role: Scalars['String']['output'];
   storeId: Scalars['String']['output'];
   userId: Scalars['String']['output'];
+};
+
+export type StoreProductReviewConnection = {
+  __typename?: 'StoreProductReviewConnection';
+  items: Array<StoreProductReviewType>;
+  pagination: PaginationMeta;
 };
 
 export type StoreProductReviewType = {

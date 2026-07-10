@@ -1,4 +1,4 @@
-import type { ProductsQueryParams } from '@/types';
+import type { ProductsQueryParams, StoreProductReviewsParams } from '@/types';
 
 export const queryKeys = {
   auth: {
@@ -109,7 +109,8 @@ export const queryKeys = {
   },
   reviews: {
     all: ['reviews'] as const,
-    store: (storeId: string) => ['reviews', 'store', storeId] as const,
+    store: (storeId: string, params?: StoreProductReviewsParams) =>
+      ['reviews', 'store', storeId, params] as const,
     summary: (storeId: string) => ['reviews', 'summary', storeId] as const,
   },
   topProducts: {
