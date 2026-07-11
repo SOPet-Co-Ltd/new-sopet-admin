@@ -15,6 +15,7 @@ export interface User {
   fullName: string;
   role: UserRole | string;
   storeId?: string;
+  profilePhotoUrl?: string | null;
 }
 
 export type StoreStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
@@ -166,8 +167,8 @@ export interface InviteStoreMemberInput {
 export interface UpdateStoreInput {
   name?: string;
   description?: string;
-  logoUrl?: string;
-  bannerUrl?: string;
+  logoUrl?: string | null;
+  bannerUrl?: string | null;
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
@@ -500,6 +501,7 @@ export interface SubmitStoreRequestInput {
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
+  logoUrl?: string;
 }
 
 export type StoreReactivationRequestStatus = 'pending' | 'approved' | 'rejected';

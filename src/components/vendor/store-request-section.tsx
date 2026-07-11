@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +27,7 @@ export function StoreRequestSection() {
       contactPhone: '',
       contactEmail: '',
       address: '',
+      logoUrl: '',
     },
   });
 
@@ -34,6 +36,7 @@ export function StoreRequestSection() {
       await submitMutation.mutateAsync({
         ...values,
         contactEmail: values.contactEmail || undefined,
+        logoUrl: values.logoUrl || undefined,
       });
       form.reset();
       setOpen(false);
@@ -78,6 +81,16 @@ export function StoreRequestSection() {
                     {form.formState.errors.storeName.message}
                   </p>
                 ) : null}
+              </div>
+              <div className="sm:col-span-2">
+                <ImageUploadField
+                  label="โลโก้ร้านค้า"
+                  value={form.watch('logoUrl') ?? ''}
+                  onChange={(url) => form.setValue('logoUrl', url, { shouldDirty: true })}
+                  folder="stores"
+                  showUrl={false}
+                  disabled={submitMutation.isPending}
+                />
               </div>
               <div className="sm:col-span-2">
                 <Label htmlFor="req-desc">รายละเอียด</Label>

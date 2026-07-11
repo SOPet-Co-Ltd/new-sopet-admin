@@ -31,6 +31,8 @@ export const storeInfoFormSchema = z.object({
   contactPhone: z.string().optional(),
   contactEmail: z.union([z.literal(''), z.email('กรุณากรอกอีเมลที่ถูกต้อง')]).optional(),
   address: z.string().optional(),
+  logoUrl: z.string().optional(),
+  bannerUrl: z.string().optional(),
 });
 
 export type StoreInfoFormValues = z.infer<typeof storeInfoFormSchema>;
@@ -104,6 +106,7 @@ export const storeRequestSchema = z.object({
   contactPhone: z.string().optional(),
   contactEmail: z.union([z.literal(''), z.email('กรุณากรอกอีเมลที่ถูกต้อง')]).optional(),
   address: z.string().optional(),
+  logoUrl: z.string().optional(),
 });
 
 export type StoreRequestFormValues = z.infer<typeof storeRequestSchema>;

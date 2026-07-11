@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { VendorShippingPanel } from '@/components/vendor/shipping-settings-panel';
+import { VendorStoreSettingsPanel } from '@/components/vendor/vendor-store-settings-panel';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { THAI_BANKS } from '@/lib/constants/thai-banks';
 import { useCurrentUser } from '@/hooks/useAuth';
 import { useIsStoreOwner } from '@/hooks/useMembershipRole';
@@ -80,6 +80,8 @@ export default function VendorSettingsPage() {
       contactPhone: '',
       contactEmail: '',
       address: '',
+      logoUrl: '',
+      bannerUrl: '',
     },
   });
 
@@ -110,6 +112,8 @@ export default function VendorSettingsPage() {
         contactPhone: store.contactPhone ?? '',
         contactEmail: store.contactEmail ?? '',
         address: store.address ?? '',
+        logoUrl: store.logoUrl ?? '',
+        bannerUrl: store.bannerUrl ?? '',
       });
       const resolvedBankCode =
         store.bankCode ?? THAI_BANKS.find((bank) => bank.name === store.bankName)?.code ?? '';
@@ -132,6 +136,8 @@ export default function VendorSettingsPage() {
       contactPhone: values.contactPhone || undefined,
       contactEmail: values.contactEmail || undefined,
       address: values.address || undefined,
+      logoUrl: values.logoUrl?.trim() ? values.logoUrl.trim() : null,
+      bannerUrl: values.bannerUrl?.trim() ? values.bannerUrl.trim() : null,
     });
   }
 
@@ -332,92 +338,12 @@ export default function VendorSettingsPage() {
       ) : null}
 
       {tab === 'store' && isOwner ? (
-        <Card className="max-w-2xl">
-          <CardHeader>
-            <h2 className="font-display font-medium text-ink">ข้อมูลร้านค้า</h2>
-          </CardHeader>
-          <CardBody>
-            {storeLoading ? (
-              <p className="text-muted">กำลังโหลด...</p>
-            ) : (
-              <form onSubmit={storeForm.handleSubmit(onStoreSubmit)} className="space-y-4">
-                <div>
-                  <Label htmlFor="store-name" required>
-                    ชื่อร้านค้า
-                  </Label>
-                  <Input
-                    id="store-name"
-                    placeholder="ชื่อร้านของคุณ"
-                    aria-invalid={!!storeForm.formState.errors.name}
-                    aria-describedby={
-                      storeForm.formState.errors.name ? 'store-name-error' : undefined
-                    }
-                    {...storeForm.register('name')}
-                    className="mt-1.5"
-                  />
-                  {storeForm.formState.errors.name ? (
-                    <p id="store-name-error" className="mt-1 text-xs text-danger" role="alert">
-                      {storeForm.formState.errors.name.message}
-                    </p>
-                  ) : null}
-                </div>
-                <div>
-                  <Label htmlFor="store-description">คำอธิบาย</Label>
-                  <Textarea
-                    id="store-description"
-                    placeholder="อธิบายร้านค้า..."
-                    {...storeForm.register('description')}
-                    className="mt-1.5"
-                  />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="contactPhone">เบอร์โทร</Label>
-                    <Input
-                      id="contactPhone"
-                      type="tel"
-                      autoComplete="tel"
-                      placeholder="0812345678"
-                      {...storeForm.register('contactPhone')}
-                      className="mt-1.5"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="contactEmail">อีเมลติดต่อ</Label>
-                    <Input
-                      id="contactEmail"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="contact@example.com"
-                      aria-invalid={!!storeForm.formState.errors.contactEmail}
-                      aria-describedby={
-                        storeForm.formState.errors.contactEmail ? 'contactEmail-error' : undefined
-                      }
-                      {...storeForm.register('contactEmail')}
-                      className="mt-1.5"
-                    />
-                    {storeForm.formState.errors.contactEmail ? (
-                      <p id="contactEmail-error" className="mt-1 text-xs text-danger" role="alert">
-                        {storeForm.formState.errors.contactEmail.message}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="address">ที่อยู่</Label>
-                  <Textarea id="address" {...storeForm.register('address')} className="mt-1.5" />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={updateStore.isPending}
-                  aria-busy={updateStore.isPending}
-                >
-                  {updateStore.isPending ? 'กำลังบันทึก...' : 'บันทึกข้อมูลร้าน'}
-                </Button>
-              </form>
-            )}
-          </CardBody>
-        </Card>
+        <VendorStoreSettingsPanel
+          form={storeForm}
+          loading={storeLoading}
+          saving={updateStore.isPending}
+          onSubmit={onStoreSubmit}
+        />
       ) : null}
 
       {tab === 'payout' && isOwner ? (

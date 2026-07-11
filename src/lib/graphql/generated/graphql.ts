@@ -393,10 +393,12 @@ export enum CustomerOrderListFilter {
 
 export type CustomerProfile = {
   __typename?: 'CustomerProfile';
+  dateOfBirth?: Maybe<Scalars['String']['output']>;
   email?: Maybe<Scalars['String']['output']>;
   fullName?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   phone: Scalars['String']['output'];
+  profilePhotoUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type CustomerReviewType = {
@@ -1781,7 +1783,11 @@ export type QueryProductsArgs = {
 };
 
 export type QueryRecommendedProductsArgs = {
+  excludeProductIds?: InputMaybe<Array<Scalars['String']['input']>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
+  searchContext?: InputMaybe<SearchContextInput>;
+  sessionId?: InputMaybe<Scalars['String']['input']>;
+  shuffleSeed?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QuerySearchAnalyticsSuggestionCtrArgs = {
@@ -2473,8 +2479,10 @@ export type UpdateProductVariantInput = {
 };
 
 export type UpdateProfileInput = {
+  dateOfBirth?: InputMaybe<Scalars['String']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
   fullName?: InputMaybe<Scalars['String']['input']>;
+  profilePhotoUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdatePromotionInput = {
@@ -2570,6 +2578,7 @@ export type UpdateStoreSettingsInput = {
 
 export type UpdateUserProfileInput = {
   fullName?: InputMaybe<Scalars['String']['input']>;
+  profilePhotoUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateVendorAsAdminInput = {
@@ -2590,6 +2599,7 @@ export type UserProfile = {
   email: Scalars['String']['output'];
   fullName: Scalars['String']['output'];
   id: Scalars['String']['output'];
+  profilePhotoUrl?: Maybe<Scalars['String']['output']>;
   role: Scalars['String']['output'];
   storeId?: Maybe<Scalars['String']['output']>;
 };

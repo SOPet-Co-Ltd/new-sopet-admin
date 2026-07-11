@@ -23,6 +23,7 @@ type GqlUser = {
   email: string;
   fullName: string;
   role: string;
+  profilePhotoUrl?: string | null;
 };
 
 type GqlStore = {
@@ -90,6 +91,7 @@ export function mapUser(user: GqlUser, storeId?: string): User {
     fullName: user.fullName,
     role: user.role,
     storeId,
+    profilePhotoUrl: user.profilePhotoUrl ?? null,
   };
 }
 

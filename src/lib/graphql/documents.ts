@@ -9,6 +9,7 @@ export const ME_QUERY = gql`
         fullName
         role
         storeId
+        profilePhotoUrl
       }
     }
   }
@@ -713,6 +714,7 @@ export const UPDATE_USER_PROFILE = gql`
       fullName
       role
       storeId
+      profilePhotoUrl
     }
   }
 `;
