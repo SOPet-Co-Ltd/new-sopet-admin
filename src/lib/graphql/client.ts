@@ -230,10 +230,18 @@ export async function executeQuery<
   });
 }
 
+export type ExecuteMutationOptions = {
+  skipCacheReset?: boolean;
+};
+
 export async function executeMutation<
   TData,
   TVariables extends OperationVariables = OperationVariables,
->(document: DocumentNode, variables?: TVariables): Promise<TData> {
+>(
+  document: DocumentNode,
+  variables?: TVariables,
+  options?: ExecuteMutationOptions,
+): Promise<TData> {
   return withAuthRetry(async () => {
     const result = await getApolloClient().mutate({
       mutation: document,
@@ -248,7 +256,9 @@ export async function executeMutation<
       });
     }
 
-    getApolloClient().cache.reset();
+    if (!options?.skipCacheReset) {
+      getApolloClient().cache.reset();
+    }
     return result.data as TData;
   });
 }

@@ -9,9 +9,15 @@ import { useForm } from 'react-hook-form';
 import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
+import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useApprovedPetTypes, useDeletePetType, useUpdatePetType } from '@/hooks/useTaxonomy';
+import {
+  useApprovedPetTypes,
+  useDeletePetType,
+  useSetPetTypeImage,
+  useUpdatePetType,
+} from '@/hooks/useTaxonomy';
 import { isApiError } from '@/lib/api/errors';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
@@ -24,6 +30,7 @@ export default function EditPetTypePage() {
   const petType = petTypes.find((item) => item.id === petTypeId);
   const updatePetType = useUpdatePetType();
   const deletePetType = useDeletePetType();
+  const setPetTypeImage = useSetPetTypeImage();
 
   const form = useForm<ProposeTaxonomyFormValues>({
     resolver: zodResolver(proposeTaxonomySchema),
@@ -36,7 +43,7 @@ export default function EditPetTypePage() {
     }
   }, [petType, form]);
 
-  const isPending = updatePetType.isPending || deletePetType.isPending;
+  const isPending = updatePetType.isPending || deletePetType.isPending || setPetTypeImage.isPending;
 
   async function onSubmit(values: ProposeTaxonomyFormValues) {
     if (!petType) return;
@@ -105,6 +112,20 @@ export default function EditPetTypePage() {
                 </p>
               ) : null}
             </div>
+
+            <ImageUploadField
+              label="รูปภาพประเภทสัตว์เลี้ยง"
+              value={petType.imageUrl ?? ''}
+              onChange={(url) =>
+                void setPetTypeImage.mutateAsync({ petTypeId: petType.id, imageUrl: url })
+              }
+              folder="pet-types"
+              showUrl={false}
+              disabled={isPending}
+              error={
+                setPetTypeImage.error instanceof Error ? setPetTypeImage.error.message : undefined
+              }
+            />
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
               <div className="flex gap-3">

@@ -15,6 +15,15 @@ export const approvedCategories = [
     createdBy: 'admin-e2e-1',
     createdAt: '2026-01-01T00:00:00.000Z',
   },
+  {
+    id: 'cat-approved-2',
+    name: 'ของเล่นสัตว์',
+    slug: 'pet-toys-approved',
+    approvalStatus: 'approved',
+    imageUrl: 'https://cdn.example.com/categories/pet-toys.webp',
+    createdBy: 'admin-e2e-1',
+    createdAt: '2026-01-01T12:00:00.000Z',
+  },
 ];
 
 export const pendingCategories = [
@@ -85,7 +94,7 @@ export const categoryDeleteImpact = {
 
 export const deleteCategoryResult = {
   success: true,
-  deletedCategoryId: 'cat-delete-target',
-  reassignedProductCount: 3,
-  replacementCategoryId: 'cat-approved-1',
+  deletedId: 'cat-delete-target',
+  detachedProductCount: 3,
+  notifiedStoreCount: 0,
 };

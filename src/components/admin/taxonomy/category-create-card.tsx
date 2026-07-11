@@ -43,7 +43,7 @@ export function CategoryCreateCard() {
       <CardHeader>
         <h2 className="font-display font-medium text-ink">สร้างหมวดหมู่</h2>
         <p className="mt-1 text-sm text-muted">
-          หมวดหมู่จะอยู่สถานะรออนุมัติจนกว่าจะอัปโหลดรูปและอนุมัติ
+          หมวดหมู่ที่สร้างโดยผู้ดูแลจะได้รับการอนุมัติทันที รูปภาพจำเป็นสำหรับการแสดงบนหน้าร้าน
         </p>
       </CardHeader>
       <CardBody>
@@ -93,7 +93,7 @@ export function CategoryCreateCard() {
               : 'สร้างไม่สำเร็จ'}
           </p>
         ) : null}
-        {success ? <p className="mt-2 text-sm text-brand">สร้างแล้ว (รออนุมัติ)</p> : null}
+        {success ? <p className="mt-2 text-sm text-brand">สร้างแล้ว</p> : null}
       </CardBody>
     </Card>
   );

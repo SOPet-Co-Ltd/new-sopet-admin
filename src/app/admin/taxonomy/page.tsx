@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { ApprovedTaxonomyTable } from '@/components/admin/taxonomy/approved-taxonomy-table';
 import { CategoryCreateCard } from '@/components/admin/taxonomy/category-create-card';
 import { PendingCategoryRow } from '@/components/admin/taxonomy/pending-category-row';
+import { RejectedTaxonomySection } from '@/components/admin/taxonomy/rejected-taxonomy-section';
 import { PetTypeCreateCard } from '@/components/admin/taxonomy/pet-type-create-card';
 import { PendingPetTypeRow } from '@/components/admin/taxonomy/pending-pet-type-row';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,8 @@ import {
   useRejectTag,
   useRejectPetType,
   useRejectBrand,
+  useRejectedCategories,
+  useRejectedTags,
 } from '@/hooks/useTaxonomy';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
@@ -115,6 +118,16 @@ export default function AdminTaxonomyPage() {
   const { data: tags = [], isLoading: loadingTags } = usePendingTags();
   const { data: petTypes = [], isLoading: loadingPetTypes } = usePendingPetTypes();
   const { data: brands = [], isLoading: loadingBrands } = usePendingBrands();
+  const {
+    data: rejectedCategories = [],
+    isLoading: loadingRejectedCategories,
+    error: rejectedCategoriesError,
+  } = useRejectedCategories();
+  const {
+    data: rejectedTags = [],
+    isLoading: loadingRejectedTags,
+    error: rejectedTagsError,
+  } = useRejectedTags();
   const {
     data: approvedCategories = [],
     isLoading: loadingApprovedCategories,
@@ -266,6 +279,13 @@ export default function AdminTaxonomyPage() {
               </CardBody>
             </Card>
           )}
+          <RejectedTaxonomySection
+            kind="category"
+            items={rejectedCategories}
+            isLoading={loadingRejectedCategories}
+            error={rejectedCategoriesError}
+            disabled={mutationPending}
+          />
         </div>
       ) : tab === 'tags' ? (
         <div className="space-y-4">
@@ -332,6 +352,13 @@ export default function AdminTaxonomyPage() {
               onReject={(id) => rejectTag.mutate(id)}
             />
           )}
+          <RejectedTaxonomySection
+            kind="tag"
+            items={rejectedTags}
+            isLoading={loadingRejectedTags}
+            error={rejectedTagsError}
+            disabled={mutationPending}
+          />
         </div>
       ) : tab === 'petTypes' ? (
         <div className="space-y-4">

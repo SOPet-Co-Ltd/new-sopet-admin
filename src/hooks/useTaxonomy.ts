@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import {
   approveCategory,
   approveTag,
@@ -53,6 +53,14 @@ import type {
 } from '@/types';
 
 const TAXONOMY_STALE_TIME = 5 * 60 * 1000; // Taxonomy rarely changes
+
+type QueryKeyFactory = () => readonly unknown[];
+
+function invalidateTaxonomyKeys(queryClient: QueryClient, keys: QueryKeyFactory[]) {
+  for (const keyFactory of keys) {
+    void queryClient.invalidateQueries({ queryKey: keyFactory() });
+  }
+}
 
 export function useApprovedCategories() {
   return useQuery({
@@ -191,7 +199,11 @@ export function useCreateCategory() {
   return useMutation({
     mutationFn: (input: CreateCategoryInput) => createCategory(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedCategories,
+        queryKeys.taxonomy.pendingCategories,
+        queryKeys.taxonomy.myCategoryProposals,
+      ]);
     },
   });
 }
@@ -201,7 +213,11 @@ export function useCreateTag() {
   return useMutation({
     mutationFn: (name: string) => createTag(name),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedTags,
+        queryKeys.taxonomy.pendingTags,
+        queryKeys.taxonomy.myTagProposals,
+      ]);
     },
   });
 }
@@ -211,7 +227,10 @@ export function useCreatePetType() {
   return useMutation({
     mutationFn: (input: CreatePetTypeInput) => createPetType(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedPetTypes,
+        queryKeys.taxonomy.pendingPetTypes,
+      ]);
     },
   });
 }
@@ -221,7 +240,10 @@ export function useCreateBrand() {
   return useMutation({
     mutationFn: (name: string) => createBrand(name),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedBrands,
+        queryKeys.taxonomy.pendingBrands,
+      ]);
     },
   });
 }
@@ -231,7 +253,10 @@ export function useSetCategoryImage() {
   return useMutation({
     mutationFn: (input: SetCategoryImageInput) => setCategoryImage(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedCategories,
+        queryKeys.taxonomy.pendingCategories,
+      ]);
     },
   });
 }
@@ -241,7 +266,10 @@ export function useSetPetTypeImage() {
   return useMutation({
     mutationFn: (input: SetPetTypeImageInput) => setPetTypeImage(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedPetTypes,
+        queryKeys.taxonomy.pendingPetTypes,
+      ]);
     },
   });
 }
@@ -251,7 +279,10 @@ export function useUpdateCategory() {
   return useMutation({
     mutationFn: (input: UpdateCategoryInput) => updateCategory(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedCategories,
+        queryKeys.taxonomy.pendingCategories,
+      ]);
     },
   });
 }
@@ -261,7 +292,10 @@ export function useUpdatePetType() {
   return useMutation({
     mutationFn: (input: UpdatePetTypeInput) => updatePetType(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedPetTypes,
+        queryKeys.taxonomy.pendingPetTypes,
+      ]);
     },
   });
 }
@@ -271,7 +305,11 @@ export function useApproveCategory() {
   return useMutation({
     mutationFn: (id: string) => approveCategory(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedCategories,
+        queryKeys.taxonomy.pendingCategories,
+        queryKeys.taxonomy.rejectedCategories,
+      ]);
     },
   });
 }
@@ -281,7 +319,10 @@ export function useRejectCategory() {
   return useMutation({
     mutationFn: (id: string) => rejectCategory(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.pendingCategories,
+        queryKeys.taxonomy.rejectedCategories,
+      ]);
     },
   });
 }
@@ -290,8 +331,13 @@ export function useDeleteCategory() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: DeleteCategoryInput) => deleteCategory(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+    onSuccess: (_data, variables) => {
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedCategories,
+        queryKeys.taxonomy.pendingCategories,
+        queryKeys.taxonomy.rejectedCategories,
+        () => queryKeys.taxonomy.categoryDeleteImpact(variables.id),
+      ]);
     },
   });
 }
@@ -301,7 +347,11 @@ export function useApproveTag() {
   return useMutation({
     mutationFn: (id: string) => approveTag(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedTags,
+        queryKeys.taxonomy.pendingTags,
+        queryKeys.taxonomy.rejectedTags,
+      ]);
     },
   });
 }
@@ -311,7 +361,10 @@ export function useRejectTag() {
   return useMutation({
     mutationFn: (id: string) => rejectTag(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.pendingTags,
+        queryKeys.taxonomy.rejectedTags,
+      ]);
     },
   });
 }
@@ -320,8 +373,13 @@ export function useDeleteTag() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteTag(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+    onSuccess: (_data, id) => {
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedTags,
+        queryKeys.taxonomy.pendingTags,
+        queryKeys.taxonomy.rejectedTags,
+        () => queryKeys.taxonomy.tagDeleteImpact(id),
+      ]);
     },
   });
 }
@@ -330,8 +388,12 @@ export function useDeletePetType() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: DeletePetTypeInput) => deletePetType(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+    onSuccess: (_data, variables) => {
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedPetTypes,
+        queryKeys.taxonomy.pendingPetTypes,
+        () => queryKeys.taxonomy.petTypeDeleteImpact(variables.id),
+      ]);
     },
   });
 }
@@ -340,8 +402,12 @@ export function useDeleteBrand() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: DeleteBrandInput) => deleteBrand(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+    onSuccess: (_data, variables) => {
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedBrands,
+        queryKeys.taxonomy.pendingBrands,
+        () => queryKeys.taxonomy.brandDeleteImpact(variables.id),
+      ]);
     },
   });
 }
@@ -351,7 +417,10 @@ export function useApprovePetType() {
   return useMutation({
     mutationFn: (id: string) => approvePetType(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedPetTypes,
+        queryKeys.taxonomy.pendingPetTypes,
+      ]);
     },
   });
 }
@@ -361,7 +430,7 @@ export function useRejectPetType() {
   return useMutation({
     mutationFn: (id: string) => rejectPetType(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [queryKeys.taxonomy.pendingPetTypes]);
     },
   });
 }
@@ -371,7 +440,10 @@ export function useApproveBrand() {
   return useMutation({
     mutationFn: (id: string) => approveBrand(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedBrands,
+        queryKeys.taxonomy.pendingBrands,
+      ]);
     },
   });
 }
@@ -381,7 +453,7 @@ export function useRejectBrand() {
   return useMutation({
     mutationFn: (id: string) => rejectBrand(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.taxonomy.all });
+      invalidateTaxonomyKeys(queryClient, [queryKeys.taxonomy.pendingBrands]);
     },
   });
 }

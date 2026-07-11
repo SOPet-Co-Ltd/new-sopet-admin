@@ -33,7 +33,9 @@ function graphqlResponse<T>(data: T) {
   };
 }
 
-function resolveTaxonomyOperation(operation: string | undefined): Record<string, unknown> | null {
+export function resolveTaxonomyOperation(
+  operation: string | undefined,
+): Record<string, unknown> | null {
   switch (operation) {
     case 'ApprovedCategories':
       return { approvedCategories };

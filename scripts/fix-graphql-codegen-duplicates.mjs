@@ -17,6 +17,13 @@ const schemaBlocks = [
 
 let content = readFileSync(filePath, 'utf8');
 
+const taxonomyOperationsDuplicateBlock =
+  /\nexport type CreateBrandInput = \{\n  name: string;\n\};\n\nexport type CreateCategoryInput[\s\S]*?export type UpdateSearchSynonymInput = \{\n  expansion\?: string \| null \| undefined;\n  isActive\?: boolean \| null \| undefined;\n  terms\?: Array<string> \| null \| undefined;\n\};\n/;
+
+if (taxonomyOperationsDuplicateBlock.test(content)) {
+  content = content.replace(taxonomyOperationsDuplicateBlock, '\n');
+}
+
 for (let index = 0; index < duplicateBlocks.length; index += 1) {
   const duplicateBlock = duplicateBlocks[index];
   const schemaBlock = schemaBlocks[index];

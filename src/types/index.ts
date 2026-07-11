@@ -127,6 +127,7 @@ export interface UpdatePetTypeInput {
 
 export interface DeleteCategoryInput {
   id: string;
+  replacementCategoryId?: string;
 }
 
 export interface DeletePetTypeInput {

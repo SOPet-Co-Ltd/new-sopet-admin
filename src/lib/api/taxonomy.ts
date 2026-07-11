@@ -1,52 +1,88 @@
 import { executeMutation, executeQuery } from '@/lib/graphql/client';
 import {
-  APPROVED_CATEGORIES_QUERY,
-  APPROVED_TAGS_QUERY,
-  APPROVED_PET_TYPES_QUERY,
-  APPROVED_BRANDS_QUERY,
-  APPROVE_CATEGORY,
-  APPROVE_TAG,
-  APPROVE_PET_TYPE,
-  APPROVE_BRAND,
-  CATEGORY_DELETE_IMPACT_QUERY,
-  CREATE_CATEGORY,
-  CREATE_TAG,
-  CREATE_PET_TYPE,
-  CREATE_BRAND,
-  DELETE_CATEGORY,
-  DELETE_TAG,
-  DELETE_PET_TYPE,
-  DELETE_BRAND,
-  MY_CATEGORY_PROPOSALS_QUERY,
-  MY_TAG_PROPOSALS_QUERY,
-  PENDING_CATEGORIES_QUERY,
-  PENDING_TAGS_QUERY,
-  PENDING_PET_TYPES_QUERY,
-  PENDING_BRANDS_QUERY,
-  PET_TYPE_DELETE_IMPACT_QUERY,
-  BRAND_DELETE_IMPACT_QUERY,
-  REJECTED_CATEGORIES_QUERY,
-  REJECTED_TAGS_QUERY,
-  REJECT_CATEGORY,
-  REJECT_TAG,
-  REJECT_PET_TYPE,
-  REJECT_BRAND,
-  SET_CATEGORY_IMAGE,
-  SET_PET_TYPE_IMAGE,
-  TAG_DELETE_IMPACT_QUERY,
-  UPDATE_CATEGORY,
-  UPDATE_PET_TYPE,
-} from '@/lib/graphql/documents';
+  ApprovedBrandsDocument,
+  ApprovedCategoriesDocument,
+  ApprovedPetTypesDocument,
+  ApprovedTagsDocument,
+  ApproveBrandDocument,
+  ApproveCategoryDocument,
+  ApprovePetTypeDocument,
+  ApproveTagDocument,
+  BrandDeleteImpactDocument,
+  CategoryDeleteImpactDocument,
+  CreateBrandDocument,
+  CreateCategoryDocument,
+  CreatePetTypeDocument,
+  CreateTagDocument,
+  DeleteBrandDocument,
+  DeleteCategoryDocument,
+  DeletePetTypeDocument,
+  DeleteTagDocument,
+  MyCategoryProposalsDocument,
+  MyTagProposalsDocument,
+  PendingBrandsDocument,
+  PendingCategoriesDocument,
+  PendingPetTypesDocument,
+  PendingTagsDocument,
+  PetTypeDeleteImpactDocument,
+  RejectCategoryDocument,
+  RejectTagDocument,
+  RejectedCategoriesDocument,
+  RejectedTagsDocument,
+  RejectBrandDocument,
+  RejectPetTypeDocument,
+  SetCategoryImageDocument,
+  SetPetTypeImageDocument,
+  TagDeleteImpactDocument,
+  UpdateCategoryDocument,
+  UpdatePetTypeDocument,
+  type ApprovedBrandsQuery,
+  type ApprovedCategoriesQuery,
+  type ApprovedPetTypesQuery,
+  type ApprovedTagsQuery,
+  type ApproveBrandMutation,
+  type ApproveCategoryMutation,
+  type ApprovePetTypeMutation,
+  type ApproveTagMutation,
+  type BrandDeleteImpactQuery,
+  type CategoryDeleteImpactQuery,
+  type CreateBrandMutation,
+  type CreateCategoryMutation,
+  type CreatePetTypeMutation,
+  type CreateTagMutation,
+  type DeleteBrandMutation,
+  type DeleteCategoryMutation,
+  type DeletePetTypeMutation,
+  type DeleteTagMutation,
+  type MyCategoryProposalsQuery,
+  type MyTagProposalsQuery,
+  type PendingBrandsQuery,
+  type PendingCategoriesQuery,
+  type PendingPetTypesQuery,
+  type PendingTagsQuery,
+  type PetTypeDeleteImpactQuery,
+  type RejectCategoryMutation,
+  type RejectTagMutation,
+  type RejectedCategoriesQuery,
+  type RejectedTagsQuery,
+  type RejectBrandMutation,
+  type RejectPetTypeMutation,
+  type SetCategoryImageMutation,
+  type SetPetTypeImageMutation,
+  type TagDeleteImpactQuery,
+  type UpdateCategoryMutation,
+  type UpdatePetTypeMutation,
+} from '@/lib/graphql/generated/graphql';
 import type {
   CategoryDeleteImpact,
   CreateCategoryInput,
   CreatePetTypeInput,
-  DeleteCategoryInput,
-  DeletePetTypeInput,
   DeleteBrandInput,
+  DeleteCategoryInput,
   DeleteCategoryResult,
-  DeleteTagResult,
+  DeletePetTypeInput,
   DeletePetTypeResult,
+  DeleteTagResult,
   DeleteBrandResult,
   SetCategoryImageInput,
   SetPetTypeImageInput,
@@ -66,6 +102,8 @@ type GqlTaxonomyItem = {
   createdAt?: string | null;
 };
 
+const TAXONOMY_MUTATION_OPTIONS = { skipCacheReset: true } as const;
+
 function mapTaxonomyItem(item: GqlTaxonomyItem): TaxonomyItem {
   return {
     id: item.id,
@@ -79,220 +117,257 @@ function mapTaxonomyItem(item: GqlTaxonomyItem): TaxonomyItem {
 }
 
 export function getApprovedCategories(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ approvedCategories: GqlTaxonomyItem[] }>(APPROVED_CATEGORIES_QUERY).then(
-    (data) => data.approvedCategories.map(mapTaxonomyItem),
+  return executeQuery<ApprovedCategoriesQuery>(ApprovedCategoriesDocument).then((data) =>
+    data.approvedCategories.map(mapTaxonomyItem),
   );
 }
 
 export function getApprovedTags(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ approvedTags: GqlTaxonomyItem[] }>(APPROVED_TAGS_QUERY).then((data) =>
+  return executeQuery<ApprovedTagsQuery>(ApprovedTagsDocument).then((data) =>
     data.approvedTags.map(mapTaxonomyItem),
   );
 }
 
 export function getPendingCategories(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ pendingCategories: GqlTaxonomyItem[] }>(PENDING_CATEGORIES_QUERY).then(
-    (data) => data.pendingCategories.map(mapTaxonomyItem),
+  return executeQuery<PendingCategoriesQuery>(PendingCategoriesDocument).then((data) =>
+    data.pendingCategories.map(mapTaxonomyItem),
   );
 }
 
 export function getPendingTags(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ pendingTags: GqlTaxonomyItem[] }>(PENDING_TAGS_QUERY).then((data) =>
+  return executeQuery<PendingTagsQuery>(PendingTagsDocument).then((data) =>
     data.pendingTags.map(mapTaxonomyItem),
   );
 }
 
 export function getRejectedCategories(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ rejectedCategories: GqlTaxonomyItem[] }>(REJECTED_CATEGORIES_QUERY).then(
-    (data) => data.rejectedCategories.map(mapTaxonomyItem),
+  return executeQuery<RejectedCategoriesQuery>(RejectedCategoriesDocument).then((data) =>
+    data.rejectedCategories.map(mapTaxonomyItem),
   );
 }
 
 export function getRejectedTags(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ rejectedTags: GqlTaxonomyItem[] }>(REJECTED_TAGS_QUERY).then((data) =>
+  return executeQuery<RejectedTagsQuery>(RejectedTagsDocument).then((data) =>
     data.rejectedTags.map(mapTaxonomyItem),
   );
 }
 
 export function getMyCategoryProposals(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ myCategoryProposals: GqlTaxonomyItem[] }>(MY_CATEGORY_PROPOSALS_QUERY).then(
-    (data) => data.myCategoryProposals.map(mapTaxonomyItem),
+  return executeQuery<MyCategoryProposalsQuery>(MyCategoryProposalsDocument).then((data) =>
+    data.myCategoryProposals.map(mapTaxonomyItem),
   );
 }
 
 export function getMyTagProposals(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ myTagProposals: GqlTaxonomyItem[] }>(MY_TAG_PROPOSALS_QUERY).then((data) =>
+  return executeQuery<MyTagProposalsQuery>(MyTagProposalsDocument).then((data) =>
     data.myTagProposals.map(mapTaxonomyItem),
   );
 }
 
 export function getCategoryDeleteImpact(categoryId: string): Promise<CategoryDeleteImpact> {
-  return executeQuery<{ categoryDeleteImpact: CategoryDeleteImpact }>(
-    CATEGORY_DELETE_IMPACT_QUERY,
-    {
-      categoryId,
-    },
-  ).then((data) => data.categoryDeleteImpact);
+  return executeQuery<CategoryDeleteImpactQuery>(CategoryDeleteImpactDocument, {
+    categoryId,
+  }).then((data) => data.categoryDeleteImpact);
 }
 
 export function getTagDeleteImpact(tagId: string): Promise<TaxonomyDeleteImpact> {
-  return executeQuery<{ tagDeleteImpact: TaxonomyDeleteImpact }>(TAG_DELETE_IMPACT_QUERY, {
-    tagId,
-  }).then((data) => data.tagDeleteImpact);
+  return executeQuery<TagDeleteImpactQuery>(TagDeleteImpactDocument, { tagId }).then(
+    (data) => data.tagDeleteImpact,
+  );
 }
 
 export function getPetTypeDeleteImpact(petTypeId: string): Promise<TaxonomyDeleteImpact> {
-  return executeQuery<{ petTypeDeleteImpact: TaxonomyDeleteImpact }>(PET_TYPE_DELETE_IMPACT_QUERY, {
+  return executeQuery<PetTypeDeleteImpactQuery>(PetTypeDeleteImpactDocument, {
     petTypeId,
   }).then((data) => data.petTypeDeleteImpact);
 }
 
 export function getBrandDeleteImpact(brandId: string): Promise<TaxonomyDeleteImpact> {
-  return executeQuery<{ brandDeleteImpact: TaxonomyDeleteImpact }>(BRAND_DELETE_IMPACT_QUERY, {
-    brandId,
-  }).then((data) => data.brandDeleteImpact);
+  return executeQuery<BrandDeleteImpactQuery>(BrandDeleteImpactDocument, { brandId }).then(
+    (data) => data.brandDeleteImpact,
+  );
 }
 
 export function createCategory(input: CreateCategoryInput): Promise<TaxonomyItem> {
-  return executeMutation<{ createCategory: GqlTaxonomyItem }>(CREATE_CATEGORY, {
-    input,
-  }).then((data) => mapTaxonomyItem(data.createCategory));
+  return executeMutation<CreateCategoryMutation>(
+    CreateCategoryDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.createCategory));
 }
 
 export function createTag(name: string): Promise<TaxonomyItem> {
-  return executeMutation<{ createTag: GqlTaxonomyItem }>(CREATE_TAG, {
-    input: { name },
-  }).then((data) => mapTaxonomyItem(data.createTag));
+  return executeMutation<CreateTagMutation>(
+    CreateTagDocument,
+    { input: { name } },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.createTag));
 }
 
 export function setCategoryImage(input: SetCategoryImageInput): Promise<TaxonomyItem> {
-  return executeMutation<{ setCategoryImage: GqlTaxonomyItem }>(SET_CATEGORY_IMAGE, {
-    input,
-  }).then((data) => mapTaxonomyItem(data.setCategoryImage));
+  return executeMutation<SetCategoryImageMutation>(
+    SetCategoryImageDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.setCategoryImage));
 }
 
 export function updateCategory(input: UpdateCategoryInput): Promise<TaxonomyItem> {
-  return executeMutation<{ updateCategory: GqlTaxonomyItem }>(UPDATE_CATEGORY, {
-    input,
-  }).then((data) => mapTaxonomyItem(data.updateCategory));
+  return executeMutation<UpdateCategoryMutation>(
+    UpdateCategoryDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.updateCategory));
 }
 
 export function updatePetType(input: UpdatePetTypeInput): Promise<TaxonomyItem> {
-  return executeMutation<{ updatePetType: GqlTaxonomyItem }>(UPDATE_PET_TYPE, {
-    input,
-  }).then((data) => mapTaxonomyItem(data.updatePetType));
+  return executeMutation<UpdatePetTypeMutation>(
+    UpdatePetTypeDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.updatePetType));
 }
 
 export function approveCategory(id: string): Promise<TaxonomyItem> {
-  return executeMutation<{ approveCategory: GqlTaxonomyItem }>(APPROVE_CATEGORY, {
-    id,
-  }).then((data) => mapTaxonomyItem(data.approveCategory));
+  return executeMutation<ApproveCategoryMutation>(
+    ApproveCategoryDocument,
+    { id },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.approveCategory));
 }
 
 export function rejectCategory(id: string): Promise<TaxonomyItem> {
-  return executeMutation<{ rejectCategory: GqlTaxonomyItem }>(REJECT_CATEGORY, {
-    id,
-  }).then((data) => mapTaxonomyItem(data.rejectCategory));
+  return executeMutation<RejectCategoryMutation>(
+    RejectCategoryDocument,
+    { id },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.rejectCategory));
 }
 
 export function deleteCategory(input: DeleteCategoryInput): Promise<DeleteCategoryResult> {
-  return executeMutation<{ deleteCategory: DeleteCategoryResult }>(DELETE_CATEGORY, {
-    input,
-  }).then((data) => data.deleteCategory);
+  return executeMutation<DeleteCategoryMutation>(
+    DeleteCategoryDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => data.deleteCategory);
 }
 
 export function approveTag(id: string): Promise<TaxonomyItem> {
-  return executeMutation<{ approveTag: GqlTaxonomyItem }>(APPROVE_TAG, {
-    id,
-  }).then((data) => mapTaxonomyItem(data.approveTag));
+  return executeMutation<ApproveTagMutation>(
+    ApproveTagDocument,
+    { id },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.approveTag));
 }
 
 export function rejectTag(id: string): Promise<TaxonomyItem> {
-  return executeMutation<{ rejectTag: GqlTaxonomyItem }>(REJECT_TAG, {
-    id,
-  }).then((data) => mapTaxonomyItem(data.rejectTag));
+  return executeMutation<RejectTagMutation>(
+    RejectTagDocument,
+    { id },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.rejectTag));
 }
 
 export function deleteTag(id: string): Promise<DeleteTagResult> {
-  return executeMutation<{ deleteTag: DeleteTagResult }>(DELETE_TAG, {
-    id,
-  }).then((data) => data.deleteTag);
+  return executeMutation<DeleteTagMutation>(
+    DeleteTagDocument,
+    { id },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => data.deleteTag);
 }
 
 export function getApprovedPetTypes(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ approvedPetTypes: GqlTaxonomyItem[] }>(APPROVED_PET_TYPES_QUERY).then(
-    (data) => data.approvedPetTypes.map(mapTaxonomyItem),
+  return executeQuery<ApprovedPetTypesQuery>(ApprovedPetTypesDocument).then((data) =>
+    data.approvedPetTypes.map(mapTaxonomyItem),
   );
 }
 
 export function getApprovedBrands(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ approvedBrands: GqlTaxonomyItem[] }>(APPROVED_BRANDS_QUERY).then((data) =>
+  return executeQuery<ApprovedBrandsQuery>(ApprovedBrandsDocument).then((data) =>
     data.approvedBrands.map(mapTaxonomyItem),
   );
 }
 
 export function getPendingPetTypes(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ pendingPetTypes: GqlTaxonomyItem[] }>(PENDING_PET_TYPES_QUERY).then(
-    (data) => data.pendingPetTypes.map(mapTaxonomyItem),
+  return executeQuery<PendingPetTypesQuery>(PendingPetTypesDocument).then((data) =>
+    data.pendingPetTypes.map(mapTaxonomyItem),
   );
 }
 
 export function getPendingBrands(): Promise<TaxonomyItem[]> {
-  return executeQuery<{ pendingBrands: GqlTaxonomyItem[] }>(PENDING_BRANDS_QUERY).then((data) =>
+  return executeQuery<PendingBrandsQuery>(PendingBrandsDocument).then((data) =>
     data.pendingBrands.map(mapTaxonomyItem),
   );
 }
 
 export function createPetType(input: CreatePetTypeInput): Promise<TaxonomyItem> {
-  return executeMutation<{ createPetType: GqlTaxonomyItem }>(CREATE_PET_TYPE, {
-    input,
-  }).then((data) => mapTaxonomyItem(data.createPetType));
+  return executeMutation<CreatePetTypeMutation>(
+    CreatePetTypeDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.createPetType));
 }
 
 export function createBrand(name: string): Promise<TaxonomyItem> {
-  return executeMutation<{ createBrand: GqlTaxonomyItem }>(CREATE_BRAND, {
-    input: { name },
-  }).then((data) => mapTaxonomyItem(data.createBrand));
+  return executeMutation<CreateBrandMutation>(
+    CreateBrandDocument,
+    { input: { name } },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.createBrand));
 }
 
 export function setPetTypeImage(input: SetPetTypeImageInput): Promise<TaxonomyItem> {
-  return executeMutation<{ setPetTypeImage: GqlTaxonomyItem }>(SET_PET_TYPE_IMAGE, {
-    input,
-  }).then((data) => mapTaxonomyItem(data.setPetTypeImage));
+  return executeMutation<SetPetTypeImageMutation>(
+    SetPetTypeImageDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.setPetTypeImage));
 }
 
 export function approvePetType(id: string): Promise<TaxonomyItem> {
-  return executeMutation<{ approvePetType: GqlTaxonomyItem }>(APPROVE_PET_TYPE, {
-    id,
-  }).then((data) => mapTaxonomyItem(data.approvePetType));
+  return executeMutation<ApprovePetTypeMutation>(
+    ApprovePetTypeDocument,
+    { id },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.approvePetType));
 }
 
 export function rejectPetType(id: string): Promise<TaxonomyItem> {
-  return executeMutation<{ rejectPetType: GqlTaxonomyItem }>(REJECT_PET_TYPE, {
-    id,
-  }).then((data) => mapTaxonomyItem(data.rejectPetType));
+  return executeMutation<RejectPetTypeMutation>(
+    RejectPetTypeDocument,
+    { id },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.rejectPetType));
 }
 
 export function approveBrand(id: string): Promise<TaxonomyItem> {
-  return executeMutation<{ approveBrand: GqlTaxonomyItem }>(APPROVE_BRAND, {
-    id,
-  }).then((data) => mapTaxonomyItem(data.approveBrand));
+  return executeMutation<ApproveBrandMutation>(
+    ApproveBrandDocument,
+    { id },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.approveBrand));
 }
 
 export function rejectBrand(id: string): Promise<TaxonomyItem> {
-  return executeMutation<{ rejectBrand: GqlTaxonomyItem }>(REJECT_BRAND, {
-    id,
-  }).then((data) => mapTaxonomyItem(data.rejectBrand));
+  return executeMutation<RejectBrandMutation>(
+    RejectBrandDocument,
+    { id },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.rejectBrand));
 }
 
 export function deletePetType(input: DeletePetTypeInput): Promise<DeletePetTypeResult> {
-  return executeMutation<{ deletePetType: DeletePetTypeResult }>(DELETE_PET_TYPE, {
-    input,
-  }).then((data) => data.deletePetType);
+  return executeMutation<DeletePetTypeMutation>(
+    DeletePetTypeDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => data.deletePetType);
 }
 
 export function deleteBrand(input: DeleteBrandInput): Promise<DeleteBrandResult> {
-  return executeMutation<{ deleteBrand: DeleteBrandResult }>(DELETE_BRAND, {
-    input,
-  }).then((data) => data.deleteBrand);
+  return executeMutation<DeleteBrandMutation>(
+    DeleteBrandDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => data.deleteBrand);
 }

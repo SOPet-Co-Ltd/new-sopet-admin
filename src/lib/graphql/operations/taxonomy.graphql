@@ -1,0 +1,373 @@
+query ApprovedCategories {
+  approvedCategories {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+    createdBy
+    createdAt
+  }
+}
+
+query ApprovedTags {
+  approvedTags {
+    id
+    name
+    slug
+    approvalStatus
+    createdBy
+    createdAt
+  }
+}
+
+query PendingCategories {
+  pendingCategories {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+    createdBy
+    createdAt
+  }
+}
+
+query PendingTags {
+  pendingTags {
+    id
+    name
+    slug
+    approvalStatus
+    createdBy
+    createdAt
+  }
+}
+
+query MyCategoryProposals {
+  myCategoryProposals {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+    createdBy
+    createdAt
+  }
+}
+
+query MyTagProposals {
+  myTagProposals {
+    id
+    name
+    slug
+    approvalStatus
+    createdBy
+    createdAt
+  }
+}
+
+mutation CreateCategory($input: CreateCategoryInput!) {
+  createCategory(input: $input) {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+  }
+}
+
+mutation CreateTag($input: CreateTagInput!) {
+  createTag(input: $input) {
+    id
+    name
+    slug
+    approvalStatus
+  }
+}
+
+mutation ApproveCategory($id: String!) {
+  approveCategory(id: $id) {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+  }
+}
+
+mutation RejectCategory($id: String!) {
+  rejectCategory(id: $id) {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+  }
+}
+
+mutation ApproveTag($id: String!) {
+  approveTag(id: $id) {
+    id
+    name
+    slug
+    approvalStatus
+  }
+}
+
+mutation RejectTag($id: String!) {
+  rejectTag(id: $id) {
+    id
+    name
+    slug
+    approvalStatus
+  }
+}
+
+query ApprovedPetTypes {
+  approvedPetTypes {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+    createdBy
+    createdAt
+  }
+}
+
+query ApprovedBrands {
+  approvedBrands {
+    id
+    name
+    slug
+    approvalStatus
+    createdBy
+    createdAt
+  }
+}
+
+query PendingPetTypes {
+  pendingPetTypes {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+    createdBy
+    createdAt
+  }
+}
+
+query PendingBrands {
+  pendingBrands {
+    id
+    name
+    slug
+    approvalStatus
+    createdBy
+    createdAt
+  }
+}
+
+mutation CreatePetType($input: CreatePetTypeInput!) {
+  createPetType(input: $input) {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+  }
+}
+
+mutation CreateBrand($input: CreateBrandInput!) {
+  createBrand(input: $input) {
+    id
+    name
+    slug
+    approvalStatus
+  }
+}
+
+mutation SetPetTypeImage($input: SetPetTypeImageInput!) {
+  setPetTypeImage(input: $input) {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+  }
+}
+
+mutation ApprovePetType($id: String!) {
+  approvePetType(id: $id) {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+  }
+}
+
+mutation RejectPetType($id: String!) {
+  rejectPetType(id: $id) {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+  }
+}
+
+mutation ApproveBrand($id: String!) {
+  approveBrand(id: $id) {
+    id
+    name
+    slug
+    approvalStatus
+  }
+}
+
+mutation RejectBrand($id: String!) {
+  rejectBrand(id: $id) {
+    id
+    name
+    slug
+    approvalStatus
+  }
+}
+
+query CategoryDeleteImpact($categoryId: String!) {
+  categoryDeleteImpact(categoryId: $categoryId) {
+    productCount
+    products {
+      id
+      name
+      slug
+    }
+  }
+}
+
+query TagDeleteImpact($tagId: String!) {
+  tagDeleteImpact(tagId: $tagId) {
+    productCount
+    products {
+      id
+      name
+      slug
+    }
+  }
+}
+
+query PetTypeDeleteImpact($petTypeId: String!) {
+  petTypeDeleteImpact(petTypeId: $petTypeId) {
+    productCount
+    products {
+      id
+      name
+      slug
+    }
+  }
+}
+
+query BrandDeleteImpact($brandId: String!) {
+  brandDeleteImpact(brandId: $brandId) {
+    productCount
+    products {
+      id
+      name
+      slug
+    }
+  }
+}
+
+query RejectedCategories {
+  rejectedCategories {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+    createdBy
+    createdAt
+  }
+}
+
+query RejectedTags {
+  rejectedTags {
+    id
+    name
+    slug
+    approvalStatus
+    createdBy
+    createdAt
+  }
+}
+
+mutation SetCategoryImage($input: SetCategoryImageInput!) {
+  setCategoryImage(input: $input) {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+  }
+}
+
+mutation UpdateCategory($input: UpdateCategoryInput!) {
+  updateCategory(input: $input) {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+  }
+}
+
+mutation UpdatePetType($input: UpdatePetTypeInput!) {
+  updatePetType(input: $input) {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+  }
+}
+
+mutation DeleteCategory($input: DeleteTaxonomyInput!) {
+  deleteCategory(input: $input) {
+    success
+    deletedId
+    detachedProductCount
+    notifiedStoreCount
+    reassignedProductCount
+    replacementCategoryId
+  }
+}
+
+mutation DeleteTag($id: String!) {
+  deleteTag(id: $id) {
+    success
+    deletedId
+    detachedProductCount
+    notifiedStoreCount
+  }
+}
+
+mutation DeletePetType($input: DeleteTaxonomyInput!) {
+  deletePetType(input: $input) {
+    success
+    deletedId
+    detachedProductCount
+    notifiedStoreCount
+  }
+}
+
+mutation DeleteBrand($input: DeleteTaxonomyInput!) {
+  deleteBrand(input: $input) {
+    success
+    deletedId
+    detachedProductCount
+    notifiedStoreCount
+  }
+}

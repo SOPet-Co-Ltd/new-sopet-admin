@@ -31,3 +31,17 @@ function installLocalStorageMock() {
 }
 
 installLocalStorageMock();
+
+if (!HTMLElement.prototype.hasPointerCapture) {
+  HTMLElement.prototype.hasPointerCapture = function hasPointerCapture() {
+    return false;
+  };
+}
+
+if (!HTMLElement.prototype.setPointerCapture) {
+  HTMLElement.prototype.setPointerCapture = function setPointerCapture() {};
+}
+
+if (!HTMLElement.prototype.releasePointerCapture) {
+  HTMLElement.prototype.releasePointerCapture = function releasePointerCapture() {};
+}

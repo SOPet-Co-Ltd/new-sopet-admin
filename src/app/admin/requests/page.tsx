@@ -1,10 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
+import { PendingCategoryRow } from '@/components/admin/taxonomy/pending-category-row';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
@@ -208,48 +208,28 @@ function AdminRequestsPageContent() {
 
       {tab === 'taxonomy' ? (
         <div className="space-y-4">
-          <p className="text-sm text-muted">
-            จัดการหมวดหมู่และแท็กรออนุมัติได้ที่{' '}
-            <Link href="/admin/taxonomy" className="text-brand hover:underline">
-              หน้าหมวดหมู่และแท็ก
-            </Link>
-          </p>
           <Card>
             <CardBody className="space-y-4">
               <div>
                 <h3 className="font-medium text-ink">หมวดหมู่ ({categories.length})</h3>
                 <ul className="mt-2 space-y-2">
-                  {categories.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex items-center justify-between gap-4 rounded-lg border border-border px-3 py-2"
-                    >
-                      <span className="text-sm">
-                        {item.name} · {labelTaxonomyStatus(item.status)}
-                      </span>
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          disabled={approveCategory.isPending}
-                          aria-busy={approveCategory.isPending}
-                          onClick={() => approveCategory.mutate(item.id)}
-                        >
-                          อนุมัติ
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="destructive"
-                          disabled={rejectCategory.isPending}
-                          aria-busy={rejectCategory.isPending}
-                          onClick={() => rejectCategory.mutate(item.id)}
-                        >
-                          ปฏิเสธ
-                        </Button>
-                      </div>
-                    </li>
-                  ))}
+                  {categories.length === 0 ? (
+                    <li className="text-sm text-muted">ไม่มีรายการรออนุมัติ</li>
+                  ) : (
+                    categories.map((item) => (
+                      <PendingCategoryRow
+                        key={item.id}
+                        item={item}
+                        disabled={
+                          approveCategory.isPending ||
+                          rejectCategory.isPending ||
+                          rejectTag.isPending
+                        }
+                        onApprove={(id) => approveCategory.mutate(id)}
+                        onReject={(id) => rejectCategory.mutate(id)}
+                      />
+                    ))
+                  )}
                 </ul>
               </div>
               <div>

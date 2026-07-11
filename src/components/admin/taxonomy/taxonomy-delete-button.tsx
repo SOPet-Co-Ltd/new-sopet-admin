@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { CategoryDeleteDialog } from '@/components/admin/taxonomy/category-delete-dialog';
 import {
   TaxonomyDeleteDialog,
   type TaxonomyDeleteKind,
 } from '@/components/admin/taxonomy/taxonomy-delete-dialog';
 import { Button } from '@/components/ui/button';
 import {
+  useApprovedCategories,
   useBrandDeleteImpact,
   useCategoryDeleteImpact,
   useDeleteBrand,
@@ -34,6 +36,9 @@ export function TaxonomyDeleteButton({
   variant = 'outline',
 }: TaxonomyDeleteButtonProps) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const { data: approvedCategories = [] } = useApprovedCategories();
 
   const categoryImpact = useCategoryDeleteImpact(item.id, open && kind === 'category');
   const tagImpact = useTagDeleteImpact(item.id, open && kind === 'tag');
@@ -61,10 +66,6 @@ export function TaxonomyDeleteButton({
     deleteBrand.isPending;
 
   async function handleConfirm() {
-    if (kind === 'category') {
-      await deleteCategory.mutateAsync({ id: item.id });
-      return;
-    }
     if (kind === 'tag') {
       await deleteTag.mutateAsync(item.id);
       return;
@@ -73,12 +74,15 @@ export function TaxonomyDeleteButton({
       await deletePetType.mutateAsync({ id: item.id });
       return;
     }
-    await deleteBrand.mutateAsync({ id: item.id });
+    if (kind === 'brand') {
+      await deleteBrand.mutateAsync({ id: item.id });
+    }
   }
 
   return (
     <>
       <Button
+        ref={triggerRef}
         type="button"
         size={size}
         variant={variant}
@@ -87,16 +91,26 @@ export function TaxonomyDeleteButton({
       >
         ลบ
       </Button>
-      <TaxonomyDeleteDialog
-        open={open}
-        onOpenChange={setOpen}
-        item={item}
-        kind={kind}
-        productCount={impact.data?.productCount ?? 0}
-        isLoadingImpact={impact.isLoading}
-        isDeleting={isDeleting}
-        onConfirm={handleConfirm}
-      />
+      {kind === 'category' ? (
+        <CategoryDeleteDialog
+          open={open}
+          onOpenChange={setOpen}
+          category={item}
+          approvedCategories={approvedCategories}
+          triggerRef={triggerRef}
+        />
+      ) : (
+        <TaxonomyDeleteDialog
+          open={open}
+          onOpenChange={setOpen}
+          item={item}
+          kind={kind}
+          productCount={impact.data?.productCount ?? 0}
+          isLoadingImpact={impact.isLoading}
+          isDeleting={isDeleting}
+          onConfirm={handleConfirm}
+        />
+      )}
     </>
   );
 }

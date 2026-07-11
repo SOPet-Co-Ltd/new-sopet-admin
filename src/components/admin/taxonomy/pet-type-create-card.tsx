@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCreatePetType } from '@/hooks/useTaxonomy';
@@ -12,6 +13,7 @@ import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/val
 
 export function PetTypeCreateCard() {
   const [success, setSuccess] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
   const createPetType = useCreatePetType();
 
   const form = useForm<ProposeTaxonomyFormValues>({
@@ -21,8 +23,12 @@ export function PetTypeCreateCard() {
 
   async function onSubmit(values: ProposeTaxonomyFormValues) {
     try {
-      await createPetType.mutateAsync({ name: values.name });
+      await createPetType.mutateAsync({
+        name: values.name,
+        ...(imageUrl.trim() ? { imageUrl: imageUrl.trim() } : {}),
+      });
       form.reset();
+      setImageUrl('');
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch {
@@ -35,7 +41,7 @@ export function PetTypeCreateCard() {
       <CardHeader>
         <h2 className="font-display font-medium text-ink">สร้างประเภทสัตว์เลี้ยง</h2>
         <p className="mt-1 text-sm text-muted">
-          ประเภทสัตว์เลี้ยงจะอยู่สถานะรออนุมัติจนกว่าผู้ดูแลจะอนุมัติ
+          อัปโหลดรูปภาพก่อนอนุมัติประเภทสัตว์เลี้ยงที่รอดำเนินการ
         </p>
       </CardHeader>
       <CardBody>
@@ -58,6 +64,14 @@ export function PetTypeCreateCard() {
               </p>
             ) : null}
           </div>
+          <ImageUploadField
+            label="รูปภาพประเภทสัตว์เลี้ยง (ไม่บังคับ)"
+            value={imageUrl}
+            onChange={(url) => setImageUrl(url)}
+            folder="pet-types"
+            showUrl={false}
+            disabled={createPetType.isPending}
+          />
           <Button
             type="submit"
             disabled={createPetType.isPending}
@@ -71,7 +85,7 @@ export function PetTypeCreateCard() {
             {createPetType.error instanceof Error ? createPetType.error.message : 'สร้างไม่สำเร็จ'}
           </p>
         ) : null}
-        {success ? <p className="mt-2 text-sm text-brand">สร้างแล้ว (รออนุมัติ)</p> : null}
+        {success ? <p className="mt-2 text-sm text-brand">สร้างแล้ว</p> : null}
       </CardBody>
     </Card>
   );

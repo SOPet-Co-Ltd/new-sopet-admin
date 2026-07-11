@@ -24,6 +24,12 @@ vi.mock('@/hooks/useTaxonomy', () => ({
   useCategoryDeleteImpact: vi.fn(),
   useDeleteCategory: vi.fn(),
   useApprovedCategories: vi.fn(),
+  useTagDeleteImpact: vi.fn(),
+  usePetTypeDeleteImpact: vi.fn(),
+  useBrandDeleteImpact: vi.fn(),
+  useDeleteTag: vi.fn(),
+  useDeletePetType: vi.fn(),
+  useDeleteBrand: vi.fn(),
 }));
 
 vi.mock('@/components/ui/image-upload-field', () => ({
@@ -59,15 +65,29 @@ vi.mock('@/components/ui/image-upload-field', () => ({
 
 import {
   useApproveCategory,
+  useApprovedCategories,
+  useBrandDeleteImpact,
   useCategoryDeleteImpact,
+  useDeleteBrand,
   useDeleteCategory,
+  useDeletePetType,
+  useDeleteTag,
+  usePetTypeDeleteImpact,
   useSetCategoryImage,
+  useTagDeleteImpact,
 } from '@/hooks/useTaxonomy';
 
 const mockedUseSetCategoryImage = vi.mocked(useSetCategoryImage);
 const mockedUseApproveCategory = vi.mocked(useApproveCategory);
 const mockedUseCategoryDeleteImpact = vi.mocked(useCategoryDeleteImpact);
 const mockedUseDeleteCategory = vi.mocked(useDeleteCategory);
+const mockedUseApprovedCategories = vi.mocked(useApprovedCategories);
+const mockedUseTagDeleteImpact = vi.mocked(useTagDeleteImpact);
+const mockedUsePetTypeDeleteImpact = vi.mocked(usePetTypeDeleteImpact);
+const mockedUseBrandDeleteImpact = vi.mocked(useBrandDeleteImpact);
+const mockedUseDeleteTag = vi.mocked(useDeleteTag);
+const mockedUseDeletePetType = vi.mocked(useDeletePetType);
+const mockedUseDeleteBrand = vi.mocked(useDeleteBrand);
 
 const CATEGORY_IMAGE_REQUIRED_MESSAGE = 'ต้องอัปโหลดรูปภาพหมวดหมู่ก่อนอนุมัติ';
 
@@ -133,6 +153,30 @@ function createMutationMock<TInput, TResult>(
 describe('category taxonomy image & delete integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedUseApprovedCategories.mockReturnValue({ data: [] } as never);
+    mockedUseTagDeleteImpact.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    } as never);
+    mockedUsePetTypeDeleteImpact.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    } as never);
+    mockedUseBrandDeleteImpact.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    } as never);
+    mockedUseDeleteCategory.mockReturnValue(createMutationMock() as never);
+    mockedUseDeleteTag.mockReturnValue(createMutationMock() as never);
+    mockedUseDeletePetType.mockReturnValue(createMutationMock() as never);
+    mockedUseDeleteBrand.mockReturnValue(createMutationMock() as never);
+    mockedUseCategoryDeleteImpact.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    } as never);
   });
 
   afterEach(() => {
@@ -275,7 +319,7 @@ describe('category taxonomy image & delete integration', () => {
    * @complexity: high
    * ROI: 80
    */
-  it.skip('runs delete wizard with product overflow, replacement gate, and confirm payload', async () => {
+  it('runs delete wizard with product overflow, replacement gate, and confirm payload', async () => {
     const user = userEvent.setup();
     const impact = createImpactWithOverflow();
     const onOpenChange = vi.fn();
@@ -318,11 +362,10 @@ describe('category taxonomy image & delete integration', () => {
     const replacementStepNext = within(dialog).getByRole('button', { name: 'ถัดไป' });
     expect(replacementStepNext).toBeDisabled();
 
-    fireEvent.click(replacementStepNext);
-    expect(within(dialog).getByRole('alert')).toHaveTextContent('เลือกหมวดหมู่ทดแทน');
-
-    await user.click(within(dialog).getByRole('combobox', { name: /หมวดหมู่ทดแทน/ }));
-    await user.click(await screen.findByRole('option', { name: replacementCategory.name }));
+    await user.selectOptions(
+      within(dialog).getByRole('combobox', { name: 'หมวดหมู่ทดแทน' }),
+      replacementCategory.id,
+    );
 
     expect(replacementStepNext).toBeEnabled();
     await user.click(replacementStepNext);
