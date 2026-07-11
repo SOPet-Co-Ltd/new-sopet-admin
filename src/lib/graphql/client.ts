@@ -2,13 +2,17 @@ import {
   ApolloClient,
   HttpLink,
   InMemoryCache,
+  split,
   type DocumentNode,
   type OperationVariables,
   type TypedDocumentNode,
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { getMainDefinition } from '@apollo/client/utilities';
 import { CombinedGraphQLErrors, ServerError, ServerParseError } from '@apollo/client/errors';
-import { GRAPHQL_URL } from '@/lib/config';
+import { createClient } from 'graphql-ws';
+import { getGraphqlWsUrl, GRAPHQL_URL } from '@/lib/config';
 import { ApiError } from '@/lib/api/errors-core';
 import { normalizeError } from '@/lib/api/errors';
 import { ERROR_MESSAGES } from '@/lib/api/error-messages';
@@ -22,6 +26,45 @@ import {
 
 let refreshPromise: Promise<string> | null = null;
 let apolloClient: ApolloClient | null = null;
+
+type WsReconnectListener = () => void;
+const wsReconnectListeners = new Set<WsReconnectListener>();
+
+export function subscribeWsReconnect(listener: WsReconnectListener): () => void {
+  wsReconnectListeners.add(listener);
+  return () => {
+    wsReconnectListeners.delete(listener);
+  };
+}
+
+function notifyWsReconnect(): void {
+  wsReconnectListeners.forEach((listener) => {
+    listener();
+  });
+}
+
+function createWsLink(): GraphQLWsLink | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return new GraphQLWsLink(
+    createClient({
+      url: getGraphqlWsUrl(),
+      connectionParams: () => {
+        const token = getAccessToken();
+        return token ? { authorization: `Bearer ${token}` } : {};
+      },
+      on: {
+        connected: (_socket, _payload, wasReconnect) => {
+          if (wasReconnect) {
+            notifyWsReconnect();
+          }
+        },
+      },
+    }),
+  );
+}
 
 async function refreshAccessToken(): Promise<string> {
   const refreshToken = getRefreshToken();
@@ -75,8 +118,24 @@ function createApolloClient(): ApolloClient {
     };
   });
 
+  const authenticatedHttpLink = authLink.concat(httpLink);
+  const wsLink = createWsLink();
+
+  const link = wsLink
+    ? split(
+        ({ query }) => {
+          const definition = getMainDefinition(query);
+          return (
+            definition.kind === 'OperationDefinition' && definition.operation === 'subscription'
+          );
+        },
+        wsLink,
+        authenticatedHttpLink,
+      )
+    : authenticatedHttpLink;
+
   return new ApolloClient({
-    link: authLink.concat(httpLink),
+    link,
     cache: new InMemoryCache(),
   });
 }
@@ -108,7 +167,7 @@ function getErrorStatus(error: unknown): number | undefined {
 }
 
 export type ExecuteQueryOptions = {
-  fetchPolicy?: 'cache-first' | 'cache-and-network' | 'network-only';
+  fetchPolicy?: 'cache-first' | 'network-only';
 };
 
 async function withAuthRetry<T>(run: () => Promise<T>): Promise<T> {

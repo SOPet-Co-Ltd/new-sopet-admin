@@ -117,7 +117,9 @@ export default function AdminSearchSynonymsPage() {
                     variant="destructive"
                     disabled={deleteMutation.isPending}
                     isDeleting={deleteMutation.isPending}
-                    onConfirm={() => deleteMutation.mutate(synonym.id)}
+                    onConfirm={async () => {
+                      await deleteMutation.mutateAsync(synonym.id);
+                    }}
                   />
                 </div>
               </CardBody>

@@ -388,7 +388,6 @@ export interface PlatformAnalytics {
   totalStores: number;
   pendingStores: number;
   totalCustomers: number;
-  openDisputes: number;
 }
 
 export interface SalesTimePoint {

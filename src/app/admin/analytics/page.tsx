@@ -120,10 +120,6 @@ export default function AdminAnalyticsPage() {
             label="ร้านค้ารออนุมัติ"
             value={summary.pendingStores.toLocaleString('th-TH')}
           />
-          <StatCard
-            label="ข้อพิพาทที่เปิดอยู่"
-            value={summary.openDisputes.toLocaleString('th-TH')}
-          />
         </div>
       ) : null}
 

@@ -493,7 +493,6 @@ export const PLATFORM_ANALYTICS_QUERY = gql`
       totalStores
       pendingStores
       totalCustomers
-      openDisputes
     }
   }
 `;

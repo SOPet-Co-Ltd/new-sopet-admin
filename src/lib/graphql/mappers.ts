@@ -263,7 +263,6 @@ type GqlPlatformAnalytics = {
   totalStores: number;
   pendingStores: number;
   totalCustomers: number;
-  openDisputes: number;
 };
 
 export function mapPlatformAnalytics(analytics: GqlPlatformAnalytics): PlatformAnalytics {
@@ -274,7 +273,6 @@ export function mapPlatformAnalytics(analytics: GqlPlatformAnalytics): PlatformA
     totalStores: analytics.totalStores,
     pendingStores: analytics.pendingStores,
     totalCustomers: analytics.totalCustomers,
-    openDisputes: analytics.openDisputes,
   };
 }
 

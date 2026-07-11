@@ -13,7 +13,9 @@ function formatShortDate(dateStr: string): string {
 }
 
 export function SalesOverTimeChart({ data }: SalesOverTimeChartProps) {
-  if (data.length === 0) {
+  const totalRevenue = data.reduce((sum, point) => sum + point.revenue, 0);
+
+  if (data.length === 0 || totalRevenue === 0) {
     return <p className="text-sm text-muted">ยังไม่มีข้อมูลในช่วงเวลานี้</p>;
   }
 
@@ -22,13 +24,13 @@ export function SalesOverTimeChart({ data }: SalesOverTimeChartProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex h-48 items-end gap-1 sm:gap-2">
+      <div className="flex h-48 items-stretch gap-1 sm:gap-2">
         {data.map((point) => {
           const height = Math.max((point.revenue / maxRevenue) * 100, point.revenue > 0 ? 4 : 0);
           return (
             <div
               key={point.date}
-              className="group relative flex flex-1 flex-col items-center justify-end"
+              className="group relative flex h-full flex-1 flex-col justify-end"
               title={`${formatShortDate(point.date)}: ${formatCurrency(point.revenue)} (${point.orderCount} คำสั่งซื้อ)`}
             >
               <div

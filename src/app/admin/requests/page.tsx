@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,7 +35,7 @@ function parseTab(value: string | null): Tab {
   return 'stores';
 }
 
-export default function AdminRequestsPage() {
+function AdminRequestsPageContent() {
   const searchParams = useSearchParams();
   const highlightRequestId = searchParams.get('requestId');
   const [tab, setTab] = useState<Tab>(() => parseTab(searchParams.get('tab')));
@@ -362,5 +362,13 @@ export default function AdminRequestsPage() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+export default function AdminRequestsPage() {
+  return (
+    <Suspense fallback={<p className="text-muted">กำลังโหลด...</p>}>
+      <AdminRequestsPageContent />
+    </Suspense>
   );
 }

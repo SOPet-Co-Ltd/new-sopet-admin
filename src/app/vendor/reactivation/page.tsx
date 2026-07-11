@@ -1,12 +1,12 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { StoreReactivationSection } from '@/components/vendor/store-reactivation-section';
 import { useMyStores } from '@/hooks/useMyStores';
 
-export default function VendorReactivationPage() {
+function VendorReactivationPageContent() {
   const searchParams = useSearchParams();
   const requestedStoreId = searchParams.get('storeId') ?? undefined;
   const { data: myStores = [], isLoading, error } = useMyStores();
@@ -79,5 +79,13 @@ export default function VendorReactivationPage() {
         </Card>
       ) : null}
     </div>
+  );
+}
+
+export default function VendorReactivationPage() {
+  return (
+    <Suspense fallback={<p className="text-muted">กำลังโหลด...</p>}>
+      <VendorReactivationPageContent />
+    </Suspense>
   );
 }

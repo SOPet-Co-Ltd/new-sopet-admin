@@ -213,12 +213,6 @@ export type CreateCategoryInput = {
   name: Scalars['String']['input'];
 };
 
-export type CreateDisputeInput = {
-  issueType: Scalars['String']['input'];
-  orderId: Scalars['String']['input'];
-  reason: Scalars['String']['input'];
-};
-
 export type CreateOrderInput = {
   cartItemIds?: InputMaybe<Array<Scalars['String']['input']>>;
   guestEmail?: InputMaybe<Scalars['String']['input']>;
@@ -410,6 +404,7 @@ export type CustomerReviewType = {
   comment?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
+  images: Array<ReviewImageType>;
   orderId: Scalars['String']['output'];
   productId: Scalars['String']['output'];
   productImageUrl?: Maybe<Scalars['String']['output']>;
@@ -442,35 +437,6 @@ export type DeleteTaxonomyResultType = {
   detachedProductCount: Scalars['Int']['output'];
   notifiedStoreCount: Scalars['Int']['output'];
   success: Scalars['Boolean']['output'];
-};
-
-export type DisputeImageType = {
-  __typename?: 'DisputeImageType';
-  id: Scalars['String']['output'];
-  imageUrl: Scalars['String']['output'];
-  sortOrder: Scalars['Float']['output'];
-};
-
-export type DisputeMessageType = {
-  __typename?: 'DisputeMessageType';
-  attachments: Array<Scalars['String']['output']>;
-  createdAt: Scalars['DateTime']['output'];
-  id: Scalars['String']['output'];
-  message: Scalars['String']['output'];
-  senderType: Scalars['String']['output'];
-};
-
-export type DisputeType = {
-  __typename?: 'DisputeType';
-  createdAt: Scalars['DateTime']['output'];
-  id: Scalars['String']['output'];
-  images: Array<DisputeImageType>;
-  issueType: Scalars['String']['output'];
-  messages: Array<DisputeMessageType>;
-  orderId: Scalars['String']['output'];
-  reason: Scalars['String']['output'];
-  status: Scalars['String']['output'];
-  updatedAt: Scalars['DateTime']['output'];
 };
 
 export type FavoriteProductInput = {
@@ -544,7 +510,6 @@ export type Mutation = {
   createAddress: SavedAddressType;
   createBrand: BrandType;
   createCategory: CategoryType;
-  createDispute: DisputeType;
   createOrder: OrderType;
   createPayment: PaymentType;
   createPayout: PayoutType;
@@ -590,7 +555,6 @@ export type Mutation = {
   publishProduct: ProductType;
   reactivateAccount: CustomerAuthPayload;
   refreshToken: AuthTokens;
-  refundPayment: PaymentType;
   registerStore: VendorAuthPayload;
   registerVendor: VendorAuthPayload;
   rejectBrand: BrandType;
@@ -765,10 +729,6 @@ export type MutationCreateBrandArgs = {
 
 export type MutationCreateCategoryArgs = {
   input: CreateCategoryInput;
-};
-
-export type MutationCreateDisputeArgs = {
-  input: CreateDisputeInput;
 };
 
 export type MutationCreateOrderArgs = {
@@ -947,10 +907,6 @@ export type MutationReactivateAccountArgs = {
 
 export type MutationRefreshTokenArgs = {
   input: RefreshTokenInput;
-};
-
-export type MutationRefundPaymentArgs = {
-  paymentId: Scalars['String']['input'];
 };
 
 export type MutationRegisterStoreArgs = {
@@ -1267,6 +1223,8 @@ export type OrderItemType = {
   fulfillmentProvider?: Maybe<Scalars['String']['output']>;
   fulfillmentStatus: Scalars['String']['output'];
   id: Scalars['String']['output'];
+  productId?: Maybe<Scalars['String']['output']>;
+  productImageUrl?: Maybe<Scalars['String']['output']>;
   productName: Scalars['String']['output'];
   quantity: Scalars['Int']['output'];
   storeId: Scalars['String']['output'];
@@ -1372,7 +1330,6 @@ export type PlatformAdType = {
 export type PlatformAnalyticsType = {
   __typename?: 'PlatformAnalyticsType';
   averageOrderValue: Scalars['Float']['output'];
-  openDisputes: Scalars['Int']['output'];
   pendingStores: Scalars['Int']['output'];
   totalCustomers: Scalars['Int']['output'];
   totalOrders: Scalars['Int']['output'];
@@ -1551,7 +1508,6 @@ export type Query = {
   me: MeResult;
   myBrandProposals: Array<BrandType>;
   myCategoryProposals: Array<CategoryType>;
-  myDisputes: Array<DisputeType>;
   myPetTypeProposals: Array<PetTypeType>;
   myReviews: Array<CustomerReviewType>;
   myStore: MyStoreType;
@@ -1560,7 +1516,6 @@ export type Query = {
   myStores: Array<VendorStoreType>;
   myTagProposals: Array<TagType>;
   notifications: Array<NotificationType>;
-  openDisputes: Array<DisputeType>;
   order: OrderType;
   orders: OrderConnection;
   payment: PaymentType;
@@ -2644,18 +2599,6 @@ export type VerifyCustomerOtpInput = {
   sessionId?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type CreateSearchSynonymInput = {
-  expansion: string;
-  isActive?: boolean | null | undefined;
-  terms: Array<string>;
-};
-
-export type UpdateSearchSynonymInput = {
-  expansion?: string | null | undefined;
-  isActive?: boolean | null | undefined;
-  terms?: Array<string> | null | undefined;
-};
-
 export type NotificationsQueryVariables = Exact<{
   unreadOnly?: boolean | null | undefined;
 }>;
@@ -2818,6 +2761,66 @@ export type DeleteSearchSynonymMutationVariables = Exact<{
 }>;
 
 export type DeleteSearchSynonymMutation = { deleteSearchSynonym: boolean };
+
+export type SearchAnalyticsSummaryQueryVariables = Exact<{
+  fromDate?: string | null | undefined;
+  toDate?: string | null | undefined;
+}>;
+
+export type SearchAnalyticsSummaryQuery = {
+  searchAnalyticsSummary: {
+    totalSearches: number;
+    uniqueQueries: number;
+    zeroResultRate: number;
+    avgResultsPerQuery: number;
+    avgLatencyMs: number;
+  };
+};
+
+export type SearchAnalyticsTopQueriesQueryVariables = Exact<{
+  fromDate?: string | null | undefined;
+  toDate?: string | null | undefined;
+  limit?: number | null | undefined;
+}>;
+
+export type SearchAnalyticsTopQueriesQuery = {
+  searchAnalyticsTopQueries: Array<{ query: string; searchCount: number; avgResultCount: number }>;
+};
+
+export type SearchAnalyticsZeroResultQueriesQueryVariables = Exact<{
+  fromDate?: string | null | undefined;
+  toDate?: string | null | undefined;
+  limit?: number | null | undefined;
+}>;
+
+export type SearchAnalyticsZeroResultQueriesQuery = {
+  searchAnalyticsZeroResultQueries: Array<{
+    query: string;
+    searchCount: number;
+    avgResultCount: number;
+  }>;
+};
+
+export type SearchAnalyticsSuggestionCtrQueryVariables = Exact<{
+  fromDate?: string | null | undefined;
+  toDate?: string | null | undefined;
+}>;
+
+export type SearchAnalyticsSuggestionCtrQuery = {
+  searchAnalyticsSuggestionCtr: Array<{
+    prefixBucket: string;
+    impressions: number;
+    clicks: number;
+    ctr: number;
+  }>;
+};
+
+export type ExportSearchAnalyticsCsvQueryVariables = Exact<{
+  fromDate?: string | null | undefined;
+  toDate?: string | null | undefined;
+}>;
+
+export type ExportSearchAnalyticsCsvQuery = { exportSearchAnalyticsCsv: string };
 
 export const PromotionFieldsFragmentDoc = {
   kind: 'Document',
@@ -3297,3 +3300,282 @@ export const DeleteSearchSynonymDocument = {
     },
   ],
 } as unknown as DocumentNode<DeleteSearchSynonymMutation, DeleteSearchSynonymMutationVariables>;
+export const SearchAnalyticsSummaryDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'SearchAnalyticsSummary' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'fromDate' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'DateTime' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'toDate' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'DateTime' } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'searchAnalyticsSummary' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'fromDate' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'fromDate' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'toDate' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'toDate' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'totalSearches' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'uniqueQueries' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'zeroResultRate' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'avgResultsPerQuery' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'avgLatencyMs' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SearchAnalyticsSummaryQuery, SearchAnalyticsSummaryQueryVariables>;
+export const SearchAnalyticsTopQueriesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'SearchAnalyticsTopQueries' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'fromDate' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'DateTime' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'toDate' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'DateTime' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'limit' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'searchAnalyticsTopQueries' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'fromDate' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'fromDate' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'toDate' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'toDate' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'limit' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'limit' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'query' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'searchCount' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'avgResultCount' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  SearchAnalyticsTopQueriesQuery,
+  SearchAnalyticsTopQueriesQueryVariables
+>;
+export const SearchAnalyticsZeroResultQueriesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'SearchAnalyticsZeroResultQueries' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'fromDate' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'DateTime' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'toDate' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'DateTime' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'limit' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'searchAnalyticsZeroResultQueries' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'fromDate' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'fromDate' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'toDate' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'toDate' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'limit' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'limit' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'query' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'searchCount' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'avgResultCount' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  SearchAnalyticsZeroResultQueriesQuery,
+  SearchAnalyticsZeroResultQueriesQueryVariables
+>;
+export const SearchAnalyticsSuggestionCtrDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'SearchAnalyticsSuggestionCtr' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'fromDate' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'DateTime' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'toDate' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'DateTime' } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'searchAnalyticsSuggestionCtr' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'fromDate' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'fromDate' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'toDate' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'toDate' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'prefixBucket' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'impressions' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'clicks' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'ctr' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  SearchAnalyticsSuggestionCtrQuery,
+  SearchAnalyticsSuggestionCtrQueryVariables
+>;
+export const ExportSearchAnalyticsCsvDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'ExportSearchAnalyticsCsv' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'fromDate' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'DateTime' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'toDate' } },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'DateTime' } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'exportSearchAnalyticsCsv' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'fromDate' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'fromDate' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'toDate' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'toDate' } },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ExportSearchAnalyticsCsvQuery, ExportSearchAnalyticsCsvQueryVariables>;

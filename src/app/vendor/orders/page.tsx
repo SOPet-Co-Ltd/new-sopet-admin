@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { VendorOrderDetailDialog } from '@/components/vendor/vendor-order-detail-dialog';
@@ -22,7 +22,7 @@ import { labelOrderStatus } from '@/lib/i18n/th';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Order } from '@/types';
 
-export default function VendorOrdersPage() {
+function VendorOrdersPageContent() {
   const searchParams = useSearchParams();
   const storeId = useVendorStoreId();
   const { data: orders = [], isLoading, error } = useVendorOrders(storeId);
@@ -137,5 +137,13 @@ export default function VendorOrdersPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function VendorOrdersPage() {
+  return (
+    <Suspense fallback={<p className="text-muted">กำลังโหลดคำสั่งซื้อ...</p>}>
+      <VendorOrdersPageContent />
+    </Suspense>
   );
 }

@@ -59,3 +59,42 @@ mutation UpdateSearchSynonym($id: String!, $input: UpdateSearchSynonymInput!) {
 mutation DeleteSearchSynonym($id: String!) {
   deleteSearchSynonym(id: $id)
 }
+
+query SearchAnalyticsSummary($fromDate: DateTime, $toDate: DateTime) {
+  searchAnalyticsSummary(fromDate: $fromDate, toDate: $toDate) {
+    totalSearches
+    uniqueQueries
+    zeroResultRate
+    avgResultsPerQuery
+    avgLatencyMs
+  }
+}
+
+query SearchAnalyticsTopQueries($fromDate: DateTime, $toDate: DateTime, $limit: Int) {
+  searchAnalyticsTopQueries(fromDate: $fromDate, toDate: $toDate, limit: $limit) {
+    query
+    searchCount
+    avgResultCount
+  }
+}
+
+query SearchAnalyticsZeroResultQueries($fromDate: DateTime, $toDate: DateTime, $limit: Int) {
+  searchAnalyticsZeroResultQueries(fromDate: $fromDate, toDate: $toDate, limit: $limit) {
+    query
+    searchCount
+    avgResultCount
+  }
+}
+
+query SearchAnalyticsSuggestionCtr($fromDate: DateTime, $toDate: DateTime) {
+  searchAnalyticsSuggestionCtr(fromDate: $fromDate, toDate: $toDate) {
+    prefixBucket
+    impressions
+    clicks
+    ctr
+  }
+}
+
+query ExportSearchAnalyticsCsv($fromDate: DateTime, $toDate: DateTime) {
+  exportSearchAnalyticsCsv(fromDate: $fromDate, toDate: $toDate)
+}

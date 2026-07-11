@@ -11,7 +11,7 @@ const statusStyles: Record<string, string> = {
   shipped: 'bg-brand-soft/50 text-brand-hover',
   delivered: 'bg-success-bg text-success',
   cancelled: 'bg-danger-bg text-danger',
-  refunded: 'bg-surface text-muted border border-border',
+  refunded: 'bg-danger-bg text-danger',
 };
 
 export function Badge({

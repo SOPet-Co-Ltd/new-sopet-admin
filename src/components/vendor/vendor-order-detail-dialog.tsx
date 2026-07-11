@@ -84,7 +84,9 @@ export function VendorOrderDetailDialog({
               <DialogTitle>{order.orderNumber}</DialogTitle>
               <DialogDescription>{formatDateTime(order.createdAt)}</DialogDescription>
             </div>
-            <Badge status={order.status}>{labelOrderStatus(order.status)}</Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge status={order.status}>{labelOrderStatus(order.status)}</Badge>
+            </div>
           </div>
         </DialogHeader>
 
