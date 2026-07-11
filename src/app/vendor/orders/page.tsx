@@ -146,16 +146,14 @@ function VendorOrdersPageContent() {
         }}
       />
 
-      {trackingDialogOrderNumber ? (
-        <VendorOrderTrackingLinkDialog
-          orderNumber={trackingDialogOrderNumber}
-          open={trackingDialogOrderNumber !== null}
-          onOpenChange={(open) => {
-            if (!open) setTrackingDialogOrderNumber(null);
-          }}
-          menuTriggerRef={menuTriggerRef}
-        />
-      ) : null}
+      <VendorOrderTrackingLinkDialog
+        orderNumber={trackingDialogOrderNumber ?? ''}
+        open={trackingDialogOrderNumber !== null}
+        onOpenChange={(open) => {
+          if (!open) setTrackingDialogOrderNumber(null);
+        }}
+        menuTriggerRef={menuTriggerRef}
+      />
     </div>
   );
 }

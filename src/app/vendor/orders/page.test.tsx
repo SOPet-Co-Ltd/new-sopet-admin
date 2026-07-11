@@ -24,8 +24,20 @@ vi.mock('@/components/vendor/vendor-order-detail-dialog', () => ({
 }));
 
 vi.mock('@/components/vendor/vendor-order-tracking-link-dialog', () => ({
-  VendorOrderTrackingLinkDialog: ({ open, orderNumber }: { open: boolean; orderNumber: string }) =>
-    open ? <div data-testid="vendor-order-tracking-link-dialog" aria-label={orderNumber} /> : null,
+  VendorOrderTrackingLinkDialog: ({
+    open,
+    orderNumber,
+  }: {
+    open: boolean;
+    orderNumber: string;
+  }) => (
+    <div
+      data-testid="vendor-order-tracking-link-dialog"
+      data-open={open}
+      aria-label={orderNumber}
+      hidden={!open}
+    />
+  ),
 }));
 
 import { useVendorOrders } from '@/hooks/useVendorOrders';
@@ -115,6 +127,20 @@ describe('VendorOrdersPage', () => {
     expect(screen.getByTestId('vendor-order-tracking-link-dialog')).toHaveAttribute(
       'aria-label',
       MOCK_ORDER.orderNumber,
+    );
+  });
+
+  /**
+   * Regression: tracking dialog must stay mounted when closed so Radix can remove overlay /
+   * body pointer-events (conditional unmount left the page unclickable).
+   */
+  it('keeps tracking link dialog mounted when closed', () => {
+    mockVendorOrdersPage();
+    render(<VendorOrdersPage />);
+
+    expect(screen.getByTestId('vendor-order-tracking-link-dialog')).toHaveAttribute(
+      'data-open',
+      'false',
     );
   });
 });

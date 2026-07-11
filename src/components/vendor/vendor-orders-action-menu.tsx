@@ -35,7 +35,7 @@ export function VendorOrdersActionMenu({
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           ref={triggerRef}
