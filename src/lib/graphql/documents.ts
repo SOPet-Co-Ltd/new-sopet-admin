@@ -2212,3 +2212,11 @@ export const EXPORT_SEARCH_ANALYTICS_CSV_QUERY = gql`
     exportSearchAnalyticsCsv(fromDate: $fromDate, toDate: $toDate)
   }
 `;
+
+export const PLATFORM_SETTINGS_FOR_VENDOR_QUERY = gql`
+  query PlatformSettingsForVendor {
+    platformSettings {
+      storefrontUrl
+    }
+  }
+`;

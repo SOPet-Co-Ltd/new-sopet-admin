@@ -1254,6 +1254,41 @@ export type OrderStoreShippingType = {
   storeId: Scalars['String']['output'];
 };
 
+export type OrderTrackingItemType = {
+  __typename?: 'OrderTrackingItemType';
+  fulfillmentProvider?: Maybe<Scalars['String']['output']>;
+  fulfillmentStatus: Scalars['String']['output'];
+  productId?: Maybe<Scalars['String']['output']>;
+  productImageUrl?: Maybe<Scalars['String']['output']>;
+  productName: Scalars['String']['output'];
+  quantity: Scalars['Int']['output'];
+  storeId: Scalars['String']['output'];
+  subtotal: Scalars['Float']['output'];
+  trackingNumber?: Maybe<Scalars['String']['output']>;
+  trackingUrl?: Maybe<Scalars['String']['output']>;
+  unitPrice: Scalars['Float']['output'];
+};
+
+export type OrderTrackingStoreShippingType = {
+  __typename?: 'OrderTrackingStoreShippingType';
+  optionName: Scalars['String']['output'];
+  shippingFee: Scalars['Float']['output'];
+  storeId: Scalars['String']['output'];
+};
+
+export type OrderTrackingType = {
+  __typename?: 'OrderTrackingType';
+  createdAt: Scalars['DateTime']['output'];
+  discountAmount: Scalars['Float']['output'];
+  items: Array<OrderTrackingItemType>;
+  orderNumber: Scalars['String']['output'];
+  shippingFee: Scalars['Float']['output'];
+  status: Scalars['String']['output'];
+  storeShippings: Array<OrderTrackingStoreShippingType>;
+  subtotal: Scalars['Float']['output'];
+  total: Scalars['Float']['output'];
+};
+
 export type OrderType = {
   __typename?: 'OrderType';
   createdAt: Scalars['DateTime']['output'];
@@ -1517,6 +1552,7 @@ export type Query = {
   myTagProposals: Array<TagType>;
   notifications: Array<NotificationType>;
   order: OrderType;
+  orderTracking: OrderTrackingType;
   orders: OrderConnection;
   payment: PaymentType;
   paymentByOrderId: PaymentType;
@@ -1651,6 +1687,10 @@ export type QueryNotificationsArgs = {
 
 export type QueryOrderArgs = {
   id: Scalars['String']['input'];
+};
+
+export type QueryOrderTrackingArgs = {
+  orderNumber: Scalars['String']['input'];
 };
 
 export type QueryOrdersArgs = {
