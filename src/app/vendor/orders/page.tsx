@@ -1,11 +1,12 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { VendorOrderDetailDialog } from '@/components/vendor/vendor-order-detail-dialog';
+import { VendorOrderTrackingLinkDialog } from '@/components/vendor/vendor-order-tracking-link-dialog';
+import { VendorOrdersActionMenu } from '@/components/vendor/vendor-orders-action-menu';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import {
@@ -27,15 +28,16 @@ function VendorOrdersPageContent() {
   const storeId = useVendorStoreId();
   const { data: orders = [], isLoading, error } = useVendorOrders(storeId);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [manualSelectedOrderId, setManualSelectedOrderId] = useState<string | null>(null);
+  const [dismissedUrlOrderId, setDismissedUrlOrderId] = useState<string | null>(null);
+  const [trackingDialogOrderNumber, setTrackingDialogOrderNumber] = useState<string | null>(null);
+  const menuTriggerRef = useRef<HTMLElement | null>(null);
 
   const orderIdFromUrl = searchParams.get('orderId');
-
-  useEffect(() => {
-    if (orderIdFromUrl) {
-      setSelectedOrderId(orderIdFromUrl);
-    }
-  }, [orderIdFromUrl]);
+  const selectedOrderId =
+    orderIdFromUrl && orderIdFromUrl !== dismissedUrlOrderId
+      ? orderIdFromUrl
+      : manualSelectedOrderId;
 
   const filteredOrders = useMemo(() => {
     if (statusFilter === 'all') return orders;
@@ -77,14 +79,18 @@ function VendorOrdersPageContent() {
         header: '',
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button size="sm" variant="outline" onClick={() => setSelectedOrderId(row.original.id)}>
-              ดูรายละเอียด
-            </Button>
+            <VendorOrdersActionMenu
+              orderId={row.original.id}
+              orderNumber={row.original.orderNumber}
+              onViewDetails={setManualSelectedOrderId}
+              onCopyTrackingLink={setTrackingDialogOrderNumber}
+              menuTriggerRef={menuTriggerRef}
+            />
           </div>
         ),
       },
     ],
-    [],
+    [menuTriggerRef],
   );
 
   return (
@@ -133,9 +139,23 @@ function VendorOrdersPageContent() {
         storeId={storeId}
         open={selectedOrderId !== null}
         onOpenChange={(open) => {
-          if (!open) setSelectedOrderId(null);
+          if (!open) {
+            if (orderIdFromUrl) setDismissedUrlOrderId(orderIdFromUrl);
+            setManualSelectedOrderId(null);
+          }
         }}
       />
+
+      {trackingDialogOrderNumber ? (
+        <VendorOrderTrackingLinkDialog
+          orderNumber={trackingDialogOrderNumber}
+          open={trackingDialogOrderNumber !== null}
+          onOpenChange={(open) => {
+            if (!open) setTrackingDialogOrderNumber(null);
+          }}
+          menuTriggerRef={menuTriggerRef}
+        />
+      ) : null}
     </div>
   );
 }
