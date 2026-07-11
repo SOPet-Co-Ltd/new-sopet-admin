@@ -164,6 +164,14 @@ export interface InviteStoreMemberInput {
   role: StoreMemberRole | string;
 }
 
+export interface StoreInvitationPreview {
+  storeName: string;
+  email: string;
+  role: StoreMemberRole | string;
+  expiresAt: string;
+  userExists: boolean;
+}
+
 export interface UpdateStoreInput {
   name?: string;
   description?: string;

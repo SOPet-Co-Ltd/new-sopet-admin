@@ -3,6 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   acceptStoreInvitation,
+  acceptStoreMemberInvitation,
+  getStoreInvitationByToken,
   getStoreInvitations,
   getStoreMembers,
   inviteStoreMember,
@@ -10,8 +12,12 @@ import {
   revokeStoreInvitation,
   updateStoreMemberRole,
 } from '@/lib/api/team';
+import { setTokens } from '@/lib/api/client';
+import { getStoreIdFromToken } from '@/lib/jwt';
 import { queryKeys } from '@/lib/react-query/keys';
-import type { InviteStoreMemberInput } from '@/types';
+import { useAuthStore } from '@/stores/auth.store';
+import { useVendorStore } from '@/stores/vendor.store';
+import type { InviteStoreMemberInput, LoginResult } from '@/types';
 
 export function useStoreMembers() {
   return useQuery({
@@ -74,6 +80,34 @@ export function useAcceptStoreInvitation() {
   return useMutation({
     mutationFn: (token: string) => acceptStoreInvitation(token),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.stores.myStores() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.team.all });
+    },
+  });
+}
+
+export function useStoreInvitationPreview(token: string) {
+  return useQuery({
+    queryKey: queryKeys.team.invitationPreview(token),
+    queryFn: () => getStoreInvitationByToken(token),
+    enabled: !!token,
+    retry: false,
+  });
+}
+
+export function useAcceptStoreMemberInvitation() {
+  const setUser = useAuthStore((s) => s.setUser);
+  const queryClient = useQueryClient();
+
+  return useMutation<LoginResult, Error, { token: string; password: string; fullName: string }>({
+    mutationFn: acceptStoreMemberInvitation,
+    onSuccess: (result) => {
+      setTokens(result.accessToken, result.refreshToken);
+      const storeId = getStoreIdFromToken(result.accessToken);
+      setUser({ ...result.user, storeId });
+      if (storeId) {
+        useVendorStore.getState().setActiveStoreId(storeId);
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.stores.myStores() });
       queryClient.invalidateQueries({ queryKey: queryKeys.team.all });
     },

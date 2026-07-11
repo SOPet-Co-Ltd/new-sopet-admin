@@ -1,6 +1,8 @@
 import { executeMutation, executeQuery } from '@/lib/graphql/client';
 import {
   ACCEPT_STORE_INVITATION,
+  ACCEPT_STORE_MEMBER_INVITATION,
+  GET_STORE_INVITATION_BY_TOKEN,
   INVITE_STORE_MEMBER,
   REMOVE_STORE_MEMBER,
   REVOKE_STORE_INVITATION,
@@ -8,7 +10,14 @@ import {
   STORE_MEMBERS_QUERY,
   UPDATE_STORE_MEMBER_ROLE,
 } from '@/lib/graphql/documents';
-import type { InviteStoreMemberInput, StoreMember, StoreMemberInvitation } from '@/types';
+import { mapUser } from '@/lib/graphql/mappers';
+import type {
+  InviteStoreMemberInput,
+  LoginResult,
+  StoreInvitationPreview,
+  StoreMember,
+  StoreMemberInvitation,
+} from '@/types';
 
 type GqlStoreMember = {
   id: string;
@@ -90,4 +99,28 @@ export function acceptStoreInvitation(token: string): Promise<StoreMember> {
   return executeMutation<{ acceptStoreInvitation: GqlStoreMember }>(ACCEPT_STORE_INVITATION, {
     token,
   }).then((data) => mapStoreMember(data.acceptStoreInvitation));
+}
+
+export function getStoreInvitationByToken(token: string): Promise<StoreInvitationPreview> {
+  return executeQuery<{ getStoreInvitationByToken: StoreInvitationPreview }>(
+    GET_STORE_INVITATION_BY_TOKEN,
+    { token },
+  ).then((data) => data.getStoreInvitationByToken);
+}
+
+export function acceptStoreMemberInvitation(input: {
+  token: string;
+  password: string;
+  fullName: string;
+}): Promise<LoginResult> {
+  return executeMutation<{
+    acceptStoreMemberInvitation: {
+      tokens: { accessToken: string; refreshToken: string };
+      user: Parameters<typeof mapUser>[0];
+    };
+  }>(ACCEPT_STORE_MEMBER_INVITATION, { input }).then((data) => ({
+    accessToken: data.acceptStoreMemberInvitation.tokens.accessToken,
+    refreshToken: data.acceptStoreMemberInvitation.tokens.refreshToken,
+    user: mapUser(data.acceptStoreMemberInvitation.user),
+  }));
 }

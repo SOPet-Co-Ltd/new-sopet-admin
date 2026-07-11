@@ -63,6 +63,7 @@ export const queryKeys = {
     all: ['team'] as const,
     members: () => ['team', 'members'] as const,
     invitations: () => ['team', 'invitations'] as const,
+    invitationPreview: (token: string) => ['team', 'invitationPreview', token] as const,
   },
   promotions: {
     all: ['promotions'] as const,

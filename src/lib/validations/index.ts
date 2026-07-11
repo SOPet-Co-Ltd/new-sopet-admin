@@ -100,6 +100,13 @@ export const registerVendorSchema = z.object({
 
 export type RegisterVendorFormValues = z.infer<typeof registerVendorSchema>;
 
+export const acceptStoreMemberInviteSchema = z.object({
+  fullName: z.string().min(1, 'กรุณากรอกชื่อ-นามสกุล'),
+  password: z.string().min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'),
+});
+
+export type AcceptStoreMemberInviteFormValues = z.infer<typeof acceptStoreMemberInviteSchema>;
+
 export const storeRequestSchema = z.object({
   storeName: z.string().min(1, 'กรุณากรอกชื่อร้านค้า'),
   description: z.string().optional(),

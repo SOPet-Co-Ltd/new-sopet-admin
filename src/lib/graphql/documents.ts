@@ -630,6 +630,35 @@ export const ACCEPT_STORE_INVITATION = gql`
   }
 `;
 
+export const GET_STORE_INVITATION_BY_TOKEN = gql`
+  query GetStoreInvitationByToken($token: String!) {
+    getStoreInvitationByToken(token: $token) {
+      storeName
+      email
+      role
+      expiresAt
+      userExists
+    }
+  }
+`;
+
+export const ACCEPT_STORE_MEMBER_INVITATION = gql`
+  mutation AcceptStoreMemberInvitation($input: AcceptStoreMemberInvitationInput!) {
+    acceptStoreMemberInvitation(input: $input) {
+      tokens {
+        accessToken
+        refreshToken
+      }
+      user {
+        id
+        email
+        fullName
+        role
+      }
+    }
+  }
+`;
+
 export const STORE_DETAIL_QUERY = gql`
   query StoreDetail($id: String!) {
     store(id: $id) {

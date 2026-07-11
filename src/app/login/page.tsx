@@ -1,10 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,8 +21,17 @@ import {
   type LoginFormValues,
 } from '@/lib/validations';
 
-export default function LoginPage() {
+function getSafeRedirect(value: string | null): string | null {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) {
+    return null;
+  }
+  return value;
+}
+
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = getSafeRedirect(searchParams.get('redirect'));
   const { user, isAuthenticated } = useCurrentUser();
   const login = useLogin();
   const requestReset = useRequestPasswordReset();
@@ -51,14 +60,14 @@ export default function LoginPage() {
   useEffect(() => {
     const hasToken = !!getAccessToken();
     if (isAuthenticated && hasToken && user) {
-      router.replace(getDashboardPath(user.role));
+      router.replace(redirectTo ?? getDashboardPath(user.role));
     }
-  }, [isAuthenticated, router, user]);
+  }, [isAuthenticated, redirectTo, router, user]);
 
   async function onSubmit(values: LoginFormValues) {
     try {
       const result = await login.mutateAsync(values);
-      router.replace(getDashboardPath(result.user.role));
+      router.replace(redirectTo ?? getDashboardPath(result.user.role));
     } catch (err) {
       form.setError('root', {
         message: getErrorMessage(err, 'เข้าสู่ระบบไม่สำเร็จ'),
@@ -247,5 +256,13 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<p className="p-12 text-center text-muted">กำลังโหลด...</p>}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
