@@ -10,7 +10,7 @@ import {
   type RowData,
   type SortingState,
 } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Table,
   TableBody,
@@ -112,7 +112,7 @@ export function SortableHeader({
   children,
 }: {
   column: { getToggleSortingHandler: () => unknown; getIsSorted: () => false | 'asc' | 'desc' };
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const sorted = column.getIsSorted();
   return (
