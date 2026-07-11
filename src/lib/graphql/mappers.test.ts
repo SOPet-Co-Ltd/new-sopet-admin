@@ -27,6 +27,26 @@ describe('mapUser', () => {
       fullName: 'Vendor User',
       role: 'vendor',
       storeId: 'store-123',
+      profilePhotoUrl: null,
+    });
+  });
+
+  it('maps profilePhotoUrl when provided', () => {
+    expect(
+      mapUser({
+        id: 'u2',
+        email: 'admin@example.com',
+        fullName: 'Admin User',
+        role: 'admin',
+        profilePhotoUrl: 'https://cdn.example.com/avatar.jpg',
+      }),
+    ).toEqual({
+      id: 'u2',
+      email: 'admin@example.com',
+      fullName: 'Admin User',
+      role: 'admin',
+      storeId: undefined,
+      profilePhotoUrl: 'https://cdn.example.com/avatar.jpg',
     });
   });
 });

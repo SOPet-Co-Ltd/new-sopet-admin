@@ -11,25 +11,38 @@ test.describe('Category taxonomy fixture-e2e harness', () => {
   test('loads /admin/taxonomy with mocked GraphQL data', async ({ page }) => {
     await page.goto('/admin/taxonomy');
 
-    await expect(page.getByRole('heading', { name: 'หมวดหมู่และแท็ก' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'หมวดหมู่ แท็ก ประเภทสัตว์เลี้ยง และแบรนด์' }),
+    ).toBeVisible();
     await expect(page.getByRole('heading', { name: 'สร้างหมวดหมู่' })).toBeVisible();
-    await expect(page.getByText('อาหารสัตว์')).toBeVisible();
-    await expect(page.getByText('ของเล่นสัตว์')).toBeVisible();
-    await expect(page.getByRole('button', { name: /หมวดหมู่ \(\d+\)/ })).toBeVisible();
+
+    const approvedSection = page
+      .getByRole('heading', { name: 'หมวดหมู่ที่อนุมัติแล้ว' })
+      .locator('..');
+    await expect(approvedSection.getByText('อาหารสัตว์')).toBeVisible();
+    await expect(approvedSection.getByText('ของเล่นสัตว์')).toBeVisible();
+
+    const pendingSection = page.getByRole('heading', { name: 'หมวดหมู่รออนุมัติ' }).locator('..');
+    await expect(pendingSection.getByText('ของเล่นสัตว์')).toBeVisible();
+    await expect(page.getByRole('button', { name: /หมวดหมู่ · รออนุมัติ/ })).toBeVisible();
   });
 
   test('shows rejected categories and tags with delete-only actions', async ({ page }) => {
     await page.goto('/admin/taxonomy');
 
     await expect(page.getByRole('heading', { name: 'หมวดหมู่ที่ปฏิเสธแล้ว' })).toBeVisible();
-    await expect(page.getByText('หมวดที่ปฏิเสธ')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'ลบ' }).first()).toBeVisible();
-    await expect(page.getByRole('button', { name: 'อนุมัติ' })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'ปฏิเสธ' })).toHaveCount(0);
+    await expect(page.getByText('หมวดที่ปฏิเสธ', { exact: true })).toBeVisible();
 
-    await page.getByRole('button', { name: /แท็ก \(\d+\)/ }).click();
+    const categoryRejectedSection = page
+      .getByRole('heading', { name: 'หมวดหมู่ที่ปฏิเสธแล้ว' })
+      .locator('..');
+    await expect(categoryRejectedSection.getByRole('button', { name: 'ลบ' })).toBeVisible();
+    await expect(categoryRejectedSection.getByRole('button', { name: 'อนุมัติ' })).toHaveCount(0);
+    await expect(categoryRejectedSection.getByRole('button', { name: 'ปฏิเสธ' })).toHaveCount(0);
+
+    await page.getByRole('button', { name: /แท็ก · รออนุมัติ/ }).click();
     await expect(page.getByRole('heading', { name: 'แท็กที่ปฏิเสธแล้ว' })).toBeVisible();
-    await expect(page.getByText('แท็กที่ปฏิเสธ')).toBeVisible();
+    await expect(page.getByText('แท็กที่ปฏิเสธ', { exact: true })).toBeVisible();
   });
 
   test.fixme('Journey AC1: multi-step category delete with reassignment', async () => {
