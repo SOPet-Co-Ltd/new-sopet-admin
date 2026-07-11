@@ -187,7 +187,7 @@ async function withAuthRetry<T>(run: () => Promise<T>): Promise<T> {
       }
       await refreshPromise;
       return await run();
-    } catch (refreshError) {
+    } catch {
       clearTokens();
       notifyAuthFailure();
       throw new ApiError({

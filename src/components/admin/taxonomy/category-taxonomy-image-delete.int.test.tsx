@@ -152,7 +152,6 @@ describe('category taxonomy image & delete integration', () => {
    * ROI: 81
    */
   it('blocks approve without image and surfaces CATEGORY_IMAGE_REQUIRED on forced approve', async () => {
-    const user = userEvent.setup();
     const categoryImageRequiredError = new ApiError({
       code: 'CATEGORY_IMAGE_REQUIRED',
       message: CATEGORY_IMAGE_REQUIRED_MESSAGE,

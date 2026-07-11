@@ -1590,17 +1590,6 @@ export const STORE_REVIEW_SUMMARY_QUERY = gql`
   }
 `;
 
-export const TOP_PRODUCTS_QUERY = gql`
-  query TopProducts($storeId: String!, $limit: Int) {
-    topProducts(storeId: $storeId, limit: $limit) {
-      productId
-      name
-      unitsSold
-      revenue
-    }
-  }
-`;
-
 const SHIPPING_PROVIDER_FIELDS = `
   id
   name

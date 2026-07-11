@@ -19,7 +19,6 @@ import { Label } from '@/components/ui/label';
 import { useCreateStoreApiKey, useRevokeStoreApiKey, useStoreApiKeys } from '@/hooks/useApiKeys';
 import { useIsStoreManager } from '@/hooks/useMembershipRole';
 import { StoreIdField } from '@/components/vendor/store-id-field';
-import type { StoreApiKey } from '@/types/api';
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString('th-TH', {

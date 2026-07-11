@@ -124,15 +124,8 @@ export function useAdminCreateStoreShippingOption() {
 export function useAdminUpdateStoreShippingOption() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      input,
-      storeId,
-    }: {
-      id: string;
-      input: UpdateShippingOptionInput;
-      storeId: string;
-    }) => adminUpdateStoreShippingOption(id, input),
+    mutationFn: (variables: { id: string; input: UpdateShippingOptionInput; storeId: string }) =>
+      adminUpdateStoreShippingOption(variables.id, variables.input),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.storeShippingOptions.all });
       queryClient.invalidateQueries({
@@ -145,8 +138,7 @@ export function useAdminUpdateStoreShippingOption() {
 export function useAdminDeleteStoreShippingOption() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, storeId }: { id: string; storeId: string }) =>
-      adminDeleteStoreShippingOption(id),
+    mutationFn: ({ id }: { id: string; storeId: string }) => adminDeleteStoreShippingOption(id),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.storeShippingOptions.all });
       queryClient.invalidateQueries({

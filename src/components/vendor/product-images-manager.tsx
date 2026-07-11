@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { executeMutation } from '@/lib/graphql/client';
 import {

@@ -3,7 +3,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { switchStore } from '@/lib/api/stores';
 import { setTokens } from '@/lib/api/client';
-import { queryKeys } from '@/lib/react-query/keys';
 import { useAuthStore } from '@/stores/auth.store';
 import { useVendorStore } from '@/stores/vendor.store';
 

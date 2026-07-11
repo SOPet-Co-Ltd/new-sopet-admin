@@ -6,7 +6,7 @@ import {
   MarkNotificationReadDocument,
   MarkAllNotificationsReadDocument,
 } from '@/lib/graphql/generated/graphql';
-import { mapNotification, type Notification } from '@/lib/api/notifications';
+import { mapNotification } from '@/lib/api/notifications';
 
 export function useNotifications(unreadOnly = false) {
   const { data, loading, error, refetch } = useQuery(NotificationsDocument, {

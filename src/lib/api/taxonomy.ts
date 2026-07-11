@@ -50,7 +50,6 @@ import type {
   DeleteBrandResult,
   SetCategoryImageInput,
   SetPetTypeImageInput,
-  TagDeleteImpact,
   TaxonomyDeleteImpact,
   TaxonomyItem,
   UpdateCategoryInput,

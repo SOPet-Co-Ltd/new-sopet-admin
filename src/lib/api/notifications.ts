@@ -6,7 +6,6 @@ import {
   MARK_ALL_NOTIFICATIONS_READ,
 } from '@/lib/graphql/documents';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getNotifications(
   unreadOnly?: boolean,
 ): Promise<GqlNotification[] | Notification[]> {

@@ -41,21 +41,31 @@ yarn lint
 
 ## Testing
 
-### Vitest
+### Vitest (unit, integration, fixture-e2e)
 
 ```bash
 yarn test
 yarn test:coverage
 ```
 
-29 test files — unit, component, integration patterns.
+**File naming (colocated):**
 
-### Playwright
+| Lane              | Pattern                    | Example                             |
+| ----------------- | -------------------------- | ----------------------------------- |
+| Unit / component  | `*.test.ts(x)`             | `vendor-reply-form.test.tsx`        |
+| Integration       | `*.int.test.ts(x)`         | `query-stale-time.int.test.tsx`     |
+| Fixture E2E (RTL) | `*.fixture.e2e.test.ts(x)` | `vendor-reply.fixture.e2e.test.tsx` |
+
+Skeleton files (`*.skeleton.ts(x)`) hold AC proof obligations from design docs. Implement the target file named in the skeleton header, then delete the skeleton.
+
+### Playwright (browser E2E)
 
 ```bash
 yarn test:e2e
 yarn test:e2e:ui
 ```
+
+**File naming:** `e2e/*.fixture.e2e.spec.ts` for multi-step admin journeys; reuse `e2e/fixtures/taxonomy/admin-auth.ts` and GraphQL route mocks.
 
 Base URL: `http://localhost:3001`. Auto-starts `yarn dev`.
 

@@ -168,6 +168,7 @@ export function computeStoreTopProducts(
   period: AnalyticsPeriod,
   limit = 5,
 ): TopProduct[] {
+  // Derived from already-fetched vendor orders to avoid a separate topProducts GraphQL round-trip.
   const { from, to } = getAnalyticsPeriodRange(period);
   const scopedOrders = filterStoreOrders(orders, storeId, from, to);
   return computeTopProductsFromOrders(scopedOrders, storeId, limit);

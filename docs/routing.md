@@ -51,20 +51,20 @@ Nav defined in `src/components/admin/admin-layout.tsx`.
 
 ## Vendor routes (`src/app/vendor/`)
 
-| Route                   | Purpose                     |
-| ----------------------- | --------------------------- |
-| `/vendor`               | Dashboard                   |
-| `/vendor/stores`        | Store settings              |
-| `/vendor/orders`        | Order fulfillment           |
-| `/vendor/products`      | Product catalog             |
-| `/vendor/reviews`       | Review management + replies |
-| `/vendor/customers`     | Customer list               |
-| `/vendor/promotions`    | Store promotions            |
-| `/vendor/team`          | Team (owners only in nav)   |
-| `/vendor/api`           | API keys                    |
-| `/vendor/api/docs`      | REST API documentation      |
-| `/vendor/settings`      | Store settings              |
-| `/vendor/notifications` | Notifications               |
+| Route                   | Purpose                                                                    |
+| ----------------------- | -------------------------------------------------------------------------- |
+| `/vendor`               | Dashboard                                                                  |
+| `/vendor/stores`        | Store settings                                                             |
+| `/vendor/orders`        | Order fulfillment; action menu (detail dialog + copy public tracking link) |
+| `/vendor/products`      | Product catalog                                                            |
+| `/vendor/reviews`       | Review management + replies                                                |
+| `/vendor/customers`     | Customer list                                                              |
+| `/vendor/promotions`    | Store promotions                                                           |
+| `/vendor/team`          | Team (owners only in nav)                                                  |
+| `/vendor/api`           | API keys                                                                   |
+| `/vendor/api/docs`      | REST API documentation                                                     |
+| `/vendor/settings`      | Store settings                                                             |
+| `/vendor/notifications` | Notifications                                                              |
 
 Nav defined in `src/components/vendor/vendor-layout.tsx`. Role-gated items via `useIsStoreOwner()`, `useIsStoreManager()`.
 

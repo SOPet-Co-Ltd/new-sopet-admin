@@ -18,15 +18,25 @@ test.describe('Category taxonomy fixture-e2e harness', () => {
     await expect(page.getByRole('button', { name: /หมวดหมู่ \(\d+\)/ })).toBeVisible();
   });
 
+  test('shows rejected categories and tags with delete-only actions', async ({ page }) => {
+    await page.goto('/admin/taxonomy');
+
+    await expect(page.getByRole('heading', { name: 'หมวดหมู่ที่ปฏิเสธแล้ว' })).toBeVisible();
+    await expect(page.getByText('หมวดที่ปฏิเสธ')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ลบ' }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'อนุมัติ' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'ปฏิเสธ' })).toHaveCount(0);
+
+    await page.getByRole('button', { name: /แท็ก \(\d+\)/ }).click();
+    await expect(page.getByRole('heading', { name: 'แท็กที่ปฏิเสธแล้ว' })).toBeVisible();
+    await expect(page.getByText('แท็กที่ปฏิเสธ')).toBeVisible();
+  });
+
   test.fixme('Journey AC1: multi-step category delete with reassignment', async () => {
-    // Implemented in Phase 6 fixture-e2e task
+    // Requires extended GraphQL mock state for wizard transitions
   });
 
   test.fixme('Journey AC2: pending category upload enables approve', async () => {
-    // Implemented in Phase 7 fixture-e2e task
-  });
-
-  test.fixme('Journey AC3: rejected categories and tags with delete-only actions', async () => {
-    // Implemented in Phase 4 fixture-e2e task
+    // Requires upload fixture wiring in Playwright harness
   });
 });

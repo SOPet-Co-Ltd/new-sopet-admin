@@ -4,7 +4,6 @@ import {
   FOLDER_UPLOAD_RULES,
   getFolderUploadRules,
   isAspectRatioWithinTolerance,
-  UPLOAD_FOLDERS,
   type UploadFolder,
 } from '@/lib/api/upload.rules';
 

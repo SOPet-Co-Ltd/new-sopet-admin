@@ -113,9 +113,6 @@ export const queryKeys = {
       ['reviews', 'store', storeId, params] as const,
     summary: (storeId: string) => ['reviews', 'summary', storeId] as const,
   },
-  topProducts: {
-    store: (storeId: string, limit?: number) => ['topProducts', storeId, limit] as const,
-  },
   platform: {
     all: ['platform'] as const,
     banners: () => ['platform', 'banners'] as const,

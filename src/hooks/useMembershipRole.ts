@@ -6,7 +6,7 @@ import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 
 export function useCurrentMembershipRole(): string | undefined {
   const storeId = useVendorStoreId();
-  const { data: stores = [], isLoading } = useMyStores();
+  const { data: stores = [] } = useMyStores();
 
   const membershipRole = useMemo(() => {
     if (!storeId) return undefined;
