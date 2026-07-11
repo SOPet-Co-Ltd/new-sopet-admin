@@ -31,6 +31,13 @@ describe('VendorOrdersActionMenu', () => {
     vi.clearAllMocks();
   });
 
+  /**
+   * AC: AC-011, AC-012 — Action menu includes both "ดูรายละเอียด" and "คัดลอกลิงก์ติดตาม" items.
+   * Behavior: Open action menu trigger → both menu items rendered with correct labels
+   * @category: core-functionality
+   * @lane: integration
+   * @dependency: VendorOrdersActionMenu
+   */
   it('renders two menu items when opened', async () => {
     renderMenu();
 
@@ -40,6 +47,14 @@ describe('VendorOrdersActionMenu', () => {
     expect(screen.getByRole('menuitem', { name: 'คัดลอกลิงก์ติดตาม' })).toBeInTheDocument();
   });
 
+  /**
+   * AC: AC-011 — Given the vendor orders table, when "ดูรายละเอียด" is selected, then
+   * `onViewDetails` is invoked with the row order id (detail dialog wiring).
+   * Behavior: Open menu → select view details → onViewDetails called once with orderId
+   * @category: core-functionality
+   * @lane: integration
+   * @dependency: VendorOrdersActionMenu
+   */
   it('calls onViewDetails with orderId when view details is selected', async () => {
     const { onViewDetails } = renderMenu();
 
@@ -50,6 +65,15 @@ describe('VendorOrdersActionMenu', () => {
     expect(onViewDetails).toHaveBeenCalledTimes(1);
   });
 
+  /**
+   * AC: AC-012, AC-022 — Selecting "คัดลอกลิงก์ติดตาม" invokes copy handler and stores menu
+   * trigger ref for dialog close focus return.
+   * Behavior: Open menu → select copy tracking link → onCopyTrackingLink called with orderNumber
+   * and menuTriggerRef points to trigger button
+   * @category: core-functionality
+   * @lane: integration
+   * @dependency: VendorOrdersActionMenu, menuTriggerRef
+   */
   it('calls onCopyTrackingLink with orderNumber and updates menuTriggerRef', async () => {
     const { onCopyTrackingLink, menuTriggerRef } = renderMenu();
 
