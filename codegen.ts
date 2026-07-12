@@ -1,6 +1,23 @@
+import { existsSync } from 'node:fs';
 import type { CodegenConfig } from '@graphql-codegen/cli';
 
-const schema = process.env.GRAPHQL_SCHEMA_PATH ?? '../sopet-backend/src/schema.gql';
+function resolveSchemaPath(): string {
+  if (process.env.GRAPHQL_SCHEMA_PATH) {
+    return process.env.GRAPHQL_SCHEMA_PATH;
+  }
+
+  const candidates = ['../sopet-backend/src/schema.gql', 'sopet-backend/src/schema.gql'];
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return '../sopet-backend/src/schema.gql';
+}
+
+const schema = resolveSchemaPath();
 
 const config: CodegenConfig = {
   schema,
