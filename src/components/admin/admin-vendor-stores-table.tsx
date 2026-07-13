@@ -53,7 +53,7 @@ export function AdminVendorStoresTable({ stores }: AdminVendorStoresTableProps) 
         <h2 className="font-display text-lg font-semibold text-ink">ร้านค้าที่เป็นเจ้าของ</h2>
         <p className="text-sm text-muted">ร้านค้าทั้งหมด {stores.length} ร้าน</p>
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody>
         <DataTable columns={columns} data={stores} emptyMessage="ยังไม่มีร้านค้า" />
       </CardBody>
     </Card>

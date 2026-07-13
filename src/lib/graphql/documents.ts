@@ -1635,6 +1635,39 @@ const ADMIN_CUSTOMER_FIELDS = `
   updatedAt
 `;
 
+const VENDOR_CUSTOMER_INSIGHTS_FIELDS = `
+  totalSpent
+  orderCount
+  averageOrderValue
+  lastOrderAt
+  favoriteCount
+  reviewCount
+  recentOrders {
+    id
+    orderNumber
+    status
+    total
+    createdAt
+    items {
+      productName
+      quantity
+      unitPrice
+      subtotal
+    }
+  }
+  recentReviews {
+    id
+    productName
+    rating
+    comment
+    createdAt
+  }
+  favoriteProducts {
+    productName
+    createdAt
+  }
+`;
+
 const VENDOR_CUSTOMER_FIELDS = `
   id
   phone
@@ -1716,6 +1749,17 @@ export const VENDOR_CUSTOMER_QUERY = gql`
   query VendorCustomer($id: String!) {
     vendorCustomer(id: $id) {
       ${VENDOR_CUSTOMER_FIELDS}
+    }
+  }
+`;
+
+export const VENDOR_CUSTOMER_DETAIL_QUERY = gql`
+  query VendorCustomerDetail($id: String!) {
+    vendorCustomerDetail(id: $id) {
+      ${VENDOR_CUSTOMER_FIELDS}
+      insights {
+        ${VENDOR_CUSTOMER_INSIGHTS_FIELDS}
+      }
     }
   }
 `;

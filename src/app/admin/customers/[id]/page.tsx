@@ -123,7 +123,7 @@ export default function AdminCustomerEditPage() {
           <CardHeader>
             <h2 className="font-display text-lg font-semibold text-ink">แก้ไขข้อมูลลูกค้า</h2>
           </CardHeader>
-          <CardBody className="pt-0">
+          <CardBody>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
               <div>
                 <Label htmlFor="customer-fullName">ชื่อ-นามสกุล</Label>
@@ -220,7 +220,7 @@ export default function AdminCustomerEditPage() {
           <CardHeader>
             <h2 className="font-display text-lg font-semibold text-ink">ข้อมูลบัญชี</h2>
           </CardHeader>
-          <CardBody className="space-y-3 pt-0 text-sm">
+          <CardBody className="space-y-3 text-sm">
             <div className="flex items-start justify-between gap-4 border-b border-border pb-3">
               <span className="text-muted">สมัครเมื่อ</span>
               <span className="text-right text-ink">

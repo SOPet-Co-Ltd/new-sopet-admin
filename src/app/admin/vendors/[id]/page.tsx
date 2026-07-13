@@ -291,7 +291,7 @@ export default function AdminVendorEditPage() {
             <h2 className="font-display text-lg font-semibold text-ink">แก้ไขข้อมูลผู้ขาย</h2>
             <p className="text-sm text-muted">อัปเดตชื่อและอีเมลสำหรับเข้าสู่ระบบ</p>
           </CardHeader>
-          <CardBody className="pt-0">
+          <CardBody>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
               <div>
                 <Label htmlFor="vendor-fullName" required>
@@ -351,7 +351,7 @@ export default function AdminVendorEditPage() {
             <CardHeader>
               <h2 className="font-display text-lg font-semibold text-ink">ข้อมูลบัญชี</h2>
             </CardHeader>
-            <CardBody className="space-y-3 pt-0 text-sm">
+            <CardBody className="space-y-3 text-sm">
               <AccountInfoRow
                 label="สมัครเมื่อ"
                 value={vendor.createdAt ? formatDateTime(vendor.createdAt) : '—'}
@@ -389,7 +389,7 @@ export default function AdminVendorEditPage() {
               <h2 className="font-display text-lg font-semibold text-ink">การดำเนินการบัญชี</h2>
               <p className="text-sm text-muted">จัดการสถานะบัญชีและการเข้าสู่ระบบ</p>
             </CardHeader>
-            <CardBody className="space-y-3 pt-0">
+            <CardBody className="space-y-3">
               <Button
                 type="button"
                 variant={vendor.isActive !== false ? 'destructive' : 'outline'}

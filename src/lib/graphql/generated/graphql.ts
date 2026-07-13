@@ -1792,6 +1792,7 @@ export type Query = {
   unreadNotificationsCount: Scalars['Int']['output'];
   validatePromotion: PromotionValidationResult;
   vendorCustomer: VendorCustomerType;
+  vendorCustomerDetail: VendorCustomerDetailType;
   vendorCustomers: VendorCustomerConnection;
   vendorOrders: Array<OrderType>;
   vendorProduct: ProductType;
@@ -2085,6 +2086,10 @@ export type QueryValidatePromotionArgs = {
 };
 
 export type QueryVendorCustomerArgs = {
+  id: Scalars['String']['input'];
+};
+
+export type QueryVendorCustomerDetailArgs = {
   id: Scalars['String']['input'];
 };
 
@@ -2834,6 +2839,46 @@ export type VendorCustomerConnection = {
   __typename?: 'VendorCustomerConnection';
   items: Array<VendorCustomerType>;
   pagination: PaginationMeta;
+};
+
+export type VendorCustomerDetailType = {
+  __typename?: 'VendorCustomerDetailType';
+  createdAt: Scalars['DateTime']['output'];
+  email?: Maybe<Scalars['String']['output']>;
+  fullName?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  insights: VendorCustomerStoreInsightsType;
+  isVerified: Scalars['Boolean']['output'];
+  lastLoginAt?: Maybe<Scalars['DateTime']['output']>;
+  phone: Scalars['String']['output'];
+};
+
+export type VendorCustomerFavoriteProductSummary = {
+  __typename?: 'VendorCustomerFavoriteProductSummary';
+  createdAt: Scalars['DateTime']['output'];
+  productName: Scalars['String']['output'];
+};
+
+export type VendorCustomerStoreInsightsType = {
+  __typename?: 'VendorCustomerStoreInsightsType';
+  averageOrderValue: Scalars['Float']['output'];
+  favoriteCount: Scalars['Int']['output'];
+  favoriteProducts: Array<VendorCustomerFavoriteProductSummary>;
+  lastOrderAt?: Maybe<Scalars['DateTime']['output']>;
+  orderCount: Scalars['Int']['output'];
+  recentOrders: Array<AdminCustomerRecentOrder>;
+  recentReviews: Array<VendorCustomerStoreReviewSummary>;
+  reviewCount: Scalars['Int']['output'];
+  totalSpent: Scalars['Float']['output'];
+};
+
+export type VendorCustomerStoreReviewSummary = {
+  __typename?: 'VendorCustomerStoreReviewSummary';
+  comment?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  productName: Scalars['String']['output'];
+  rating: Scalars['Int']['output'];
 };
 
 export type VendorCustomerType = {

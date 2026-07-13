@@ -702,6 +702,35 @@ export interface VendorCustomer {
   createdAt?: string;
 }
 
+export interface VendorCustomerStoreReviewSummary {
+  id: string;
+  productName: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: string;
+}
+
+export interface VendorCustomerFavoriteProductSummary {
+  productName: string;
+  createdAt: string;
+}
+
+export interface VendorCustomerStoreInsights {
+  totalSpent: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  favoriteCount: number;
+  reviewCount: number;
+  recentOrders: AdminCustomerRecentOrder[];
+  recentReviews: VendorCustomerStoreReviewSummary[];
+  favoriteProducts: VendorCustomerFavoriteProductSummary[];
+}
+
+export interface VendorCustomerDetail extends VendorCustomer {
+  insights: VendorCustomerStoreInsights;
+}
+
 export interface CustomersQueryParams {
   page?: number;
   limit?: number;

@@ -62,7 +62,7 @@ export function AdminVendorMembershipsTable({ memberships }: AdminVendorMembersh
         <h2 className="font-display text-lg font-semibold text-ink">สมาชิกร้านค้าอื่น</h2>
         <p className="text-sm text-muted">ร้านที่ผู้ขายเข้าร่วมในฐานะพนักงานหรือผู้จัดการ</p>
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody>
         <DataTable columns={columns} data={memberships} emptyMessage="ไม่มีสมาชิกภาพอื่น" />
       </CardBody>
     </Card>

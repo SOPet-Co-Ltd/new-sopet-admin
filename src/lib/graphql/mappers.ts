@@ -804,3 +804,68 @@ export function mapVendorCustomer(customer: GqlVendorCustomer): import('@/types'
     createdAt: customer.createdAt,
   };
 }
+
+type GqlVendorCustomerStoreInsights = {
+  totalSpent: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  favoriteCount: number;
+  reviewCount: number;
+  recentOrders: GqlAdminCustomerRecentOrder[];
+  recentReviews: Array<{
+    id: string;
+    productName: string;
+    rating: number;
+    comment?: string | null;
+    createdAt: string;
+  }>;
+  favoriteProducts: Array<{
+    productName: string;
+    createdAt: string;
+  }>;
+};
+
+type GqlVendorCustomerDetail = GqlVendorCustomer & {
+  insights: GqlVendorCustomerStoreInsights;
+};
+
+export function mapVendorCustomerDetail(
+  customer: GqlVendorCustomerDetail,
+): import('@/types').VendorCustomerDetail {
+  return {
+    ...mapVendorCustomer(customer),
+    insights: {
+      totalSpent: customer.insights.totalSpent,
+      orderCount: customer.insights.orderCount,
+      averageOrderValue: customer.insights.averageOrderValue,
+      lastOrderAt: customer.insights.lastOrderAt ?? undefined,
+      favoriteCount: customer.insights.favoriteCount,
+      reviewCount: customer.insights.reviewCount,
+      recentOrders: customer.insights.recentOrders.map((order) => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        total: order.total,
+        createdAt: order.createdAt,
+        items: order.items.map((item) => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          subtotal: item.subtotal,
+        })),
+      })),
+      recentReviews: customer.insights.recentReviews.map((review) => ({
+        id: review.id,
+        productName: review.productName,
+        rating: review.rating,
+        comment: review.comment,
+        createdAt: review.createdAt,
+      })),
+      favoriteProducts: customer.insights.favoriteProducts.map((favorite) => ({
+        productName: favorite.productName,
+        createdAt: favorite.createdAt,
+      })),
+    },
+  };
+}

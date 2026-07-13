@@ -146,6 +146,7 @@ export const queryKeys = {
     list: (params: { page?: number; limit?: number; search?: string }) =>
       ['vendorCustomers', 'list', params] as const,
     detail: (id: string) => ['vendorCustomers', 'detail', id] as const,
+    detailInsights: (id: string) => ['vendorCustomers', 'detailInsights', id] as const,
   },
   apiKeys: {
     all: ['apiKeys'] as const,

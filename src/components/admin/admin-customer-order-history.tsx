@@ -92,7 +92,7 @@ export function AdminCustomerOrderHistory({
         <h2 className="font-display text-lg font-semibold text-ink">{title}</h2>
         <p className="text-sm text-muted">{description}</p>
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody>
         <DataTable columns={columns} data={rows} emptyMessage={emptyMessage} />
       </CardBody>
     </Card>
