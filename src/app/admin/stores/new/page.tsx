@@ -107,7 +107,7 @@ export default function AdminStoreNewPage() {
                 render={({ field, fieldState }) => (
                   <VendorCombobox
                     value={field.value ?? ''}
-                    onChange={(id) => field.onChange(id)}
+                    onChange={field.onChange}
                     fieldError={fieldState.error?.message}
                     aria-invalid={!!fieldState.error}
                     aria-describedby={fieldState.error ? 'ownerId-error' : undefined}

@@ -4,14 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { StatCard } from '@/components/vendor/stat-card';
 import { useRequestPayout, useStorePayoutSummary, useStorePayouts } from '@/hooks/usePayouts';
+import { PAYOUT_STATUS_LABELS } from '@/lib/payouts/status-labels';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
-
-const PAYOUT_STATUS_LABELS: Record<string, string> = {
-  pending: 'รอดำเนินการ',
-  processing: 'กำลังโอน',
-  completed: 'สำเร็จ',
-  failed: 'ล้มเหลว',
-};
 
 export function VendorPayoutBalancePanel() {
   const { data: summary, isLoading: summaryLoading } = useStorePayoutSummary();
