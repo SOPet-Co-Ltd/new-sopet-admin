@@ -1,7 +1,19 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAdminVendor, getAdminVendors, updateVendorAsAdmin } from '@/lib/api/admin-vendors';
+import {
+  getAdminVendor,
+  getAdminVendorDetail,
+  getAdminVendors,
+  updateVendorAsAdmin,
+  adminResendVendorEmailVerification,
+  adminVerifyVendorEmail,
+} from '@/lib/api/admin-vendors';
+import {
+  EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS,
+  getResendEmailVerificationButtonLabel,
+} from '@/lib/email-verification/resend';
+import { useCooldown } from '@/hooks/useCooldown';
 import { queryKeys } from '@/lib/react-query/keys';
 import type { UpdateVendorAsAdminInput } from '@/types';
 
@@ -21,6 +33,14 @@ export function useAdminVendor(id: string) {
   });
 }
 
+export function useAdminVendorDetail(id: string) {
+  return useQuery({
+    queryKey: queryKeys.adminVendors.detailInsights(id),
+    queryFn: () => getAdminVendorDetail(id),
+    enabled: !!id,
+  });
+}
+
 export function useUpdateVendorAsAdmin() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -29,6 +49,46 @@ export function useUpdateVendorAsAdmin() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.adminVendors.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.adminVendors.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.adminVendors.detailInsights(variables.id),
+      });
+    },
+  });
+}
+
+export function useAdminResendVendorEmailVerification() {
+  const queryClient = useQueryClient();
+  const { isCooldown, remainingSeconds, startCooldown } = useCooldown(
+    EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS,
+  );
+  const mutation = useMutation({
+    mutationFn: (vendorId: string) => adminResendVendorEmailVerification(vendorId),
+    onSuccess: (_data, vendorId) => {
+      startCooldown();
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminVendors.detailInsights(vendorId) });
+    },
+  });
+
+  return {
+    ...mutation,
+    isCooldown,
+    cooldownSeconds: remainingSeconds,
+    isResendDisabled: mutation.isPending || isCooldown,
+    resendButtonLabel: getResendEmailVerificationButtonLabel({
+      isPending: mutation.isPending,
+      isCooldown,
+      cooldownSeconds: remainingSeconds,
+    }),
+  };
+}
+
+export function useAdminVerifyVendorEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (vendorId: string) => adminVerifyVendorEmail(vendorId),
+    onSuccess: (_data, vendorId) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminVendors.detailInsights(vendorId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminVendors.detail(vendorId) });
     },
   });
 }

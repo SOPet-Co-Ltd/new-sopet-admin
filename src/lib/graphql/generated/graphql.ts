@@ -51,10 +51,84 @@ export type AddToCartInput = {
   variantId: Scalars['String']['input'];
 };
 
+export type AdminAuditLogConnection = {
+  __typename?: 'AdminAuditLogConnection';
+  items: Array<AdminAuditLogType>;
+  pagination: PaginationMeta;
+};
+
+export type AdminAuditLogFilterInput = {
+  action?: InputMaybe<Scalars['String']['input']>;
+  actorId?: InputMaybe<Scalars['String']['input']>;
+  actorType?: InputMaybe<Scalars['String']['input']>;
+  fromDate?: InputMaybe<Scalars['DateTime']['input']>;
+  resourceType?: InputMaybe<Scalars['String']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  toDate?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type AdminAuditLogType = {
+  __typename?: 'AdminAuditLogType';
+  action: Scalars['String']['output'];
+  actorId?: Maybe<Scalars['String']['output']>;
+  actorLabel?: Maybe<Scalars['String']['output']>;
+  actorType: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  ipAddress?: Maybe<Scalars['String']['output']>;
+  metadata?: Maybe<Scalars['String']['output']>;
+  resourceId?: Maybe<Scalars['String']['output']>;
+  resourceType: Scalars['String']['output'];
+};
+
 export type AdminCustomerConnection = {
   __typename?: 'AdminCustomerConnection';
   items: Array<AdminCustomerType>;
   pagination: PaginationMeta;
+};
+
+export type AdminCustomerDetailType = {
+  __typename?: 'AdminCustomerDetailType';
+  createdAt: Scalars['DateTime']['output'];
+  dateOfBirth?: Maybe<Scalars['String']['output']>;
+  email?: Maybe<Scalars['String']['output']>;
+  fullName?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  insights: AdminCustomerInsightsType;
+  isActive: Scalars['Boolean']['output'];
+  isVerified: Scalars['Boolean']['output'];
+  lastLoginAt?: Maybe<Scalars['DateTime']['output']>;
+  phone: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type AdminCustomerInsightsType = {
+  __typename?: 'AdminCustomerInsightsType';
+  addressCount: Scalars['Int']['output'];
+  averageOrderValue: Scalars['Float']['output'];
+  favoriteCount: Scalars['Int']['output'];
+  lastOrderAt?: Maybe<Scalars['DateTime']['output']>;
+  orderCount: Scalars['Int']['output'];
+  recentOrders: Array<AdminCustomerRecentOrder>;
+  totalSpent: Scalars['Float']['output'];
+};
+
+export type AdminCustomerOrderItemSummary = {
+  __typename?: 'AdminCustomerOrderItemSummary';
+  productName: Scalars['String']['output'];
+  quantity: Scalars['Int']['output'];
+  subtotal: Scalars['Float']['output'];
+  unitPrice: Scalars['Float']['output'];
+};
+
+export type AdminCustomerRecentOrder = {
+  __typename?: 'AdminCustomerRecentOrder';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  items: Array<AdminCustomerOrderItemSummary>;
+  orderNumber: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  total: Scalars['Float']['output'];
 };
 
 export type AdminCustomerType = {
@@ -110,6 +184,53 @@ export type AdminTeamMemberType = {
   fullName: Scalars['String']['output'];
   id: Scalars['String']['output'];
   isActive: Scalars['Boolean']['output'];
+};
+
+export type AdminVendorActivityType = {
+  __typename?: 'AdminVendorActivityType';
+  kind: Scalars['String']['output'];
+  occurredAt: Scalars['DateTime']['output'];
+  orderNumber?: Maybe<Scalars['String']['output']>;
+  storeId?: Maybe<Scalars['String']['output']>;
+  storeName?: Maybe<Scalars['String']['output']>;
+};
+
+export type AdminVendorDetailType = {
+  __typename?: 'AdminVendorDetailType';
+  createdAt: Scalars['DateTime']['output'];
+  email: Scalars['String']['output'];
+  emailVerified: Scalars['Boolean']['output'];
+  fullName: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  insights: AdminVendorInsightsType;
+  isActive: Scalars['Boolean']['output'];
+  lastLoginAt?: Maybe<Scalars['DateTime']['output']>;
+  role: Scalars['String']['output'];
+  stores: Array<AdminVendorStoreType>;
+};
+
+export type AdminVendorInsightsType = {
+  __typename?: 'AdminVendorInsightsType';
+  activities: Array<AdminVendorActivityType>;
+  averageOrderValue: Scalars['Float']['output'];
+  lastActivityAt?: Maybe<Scalars['DateTime']['output']>;
+  lastOrderAt?: Maybe<Scalars['DateTime']['output']>;
+  membershipCount: Scalars['Int']['output'];
+  memberships: Array<AdminVendorMembershipType>;
+  orderCount: Scalars['Int']['output'];
+  recentOrders: Array<AdminCustomerRecentOrder>;
+  storeCount: Scalars['Int']['output'];
+  totalRevenue: Scalars['Float']['output'];
+};
+
+export type AdminVendorMembershipType = {
+  __typename?: 'AdminVendorMembershipType';
+  joinedAt: Scalars['DateTime']['output'];
+  role: Scalars['String']['output'];
+  storeId: Scalars['String']['output'];
+  storeName: Scalars['String']['output'];
+  storeSlug: Scalars['String']['output'];
+  storeStatus: Scalars['String']['output'];
 };
 
 export type AdminVendorStoreType = {
@@ -506,8 +627,10 @@ export type Mutation = {
   adminCreateStoreShippingOption: StoreShippingOptionType;
   adminDeleteStoreShippingOption: Scalars['Boolean']['output'];
   adminLogin: VendorAuthPayload;
+  adminResendVendorEmailVerification: MessagePayload;
   adminTriggerVendorPasswordReset: MessagePayload;
   adminUpdateStoreShippingOption: StoreShippingOptionType;
+  adminVerifyVendorEmail: MessagePayload;
   approveBrand: BrandType;
   approveCategory: CategoryType;
   approvePetType: PetTypeType;
@@ -586,6 +709,7 @@ export type Mutation = {
   requestAccountDeletion: Scalars['Boolean']['output'];
   requestPasswordReset: MessagePayload;
   requestPayout: PayoutType;
+  resendEmailVerification: MessagePayload;
   resetPassword: MessagePayload;
   revokeAdminInvitation: AdminInvitationType;
   revokeStoreApiKey: Scalars['Boolean']['output'];
@@ -633,6 +757,7 @@ export type Mutation = {
   uploadImage: UploadResultType;
   vendorLogin: VendorAuthPayload;
   verifyCustomerOtp: CustomerAuthPayload;
+  verifyEmail: MessagePayload;
 };
 
 export type MutationAcceptStoreInvitationArgs = {
@@ -681,6 +806,10 @@ export type MutationAdminLoginArgs = {
   input: VendorLoginInput;
 };
 
+export type MutationAdminResendVendorEmailVerificationArgs = {
+  vendorId: Scalars['String']['input'];
+};
+
 export type MutationAdminTriggerVendorPasswordResetArgs = {
   vendorId: Scalars['String']['input'];
 };
@@ -688,6 +817,10 @@ export type MutationAdminTriggerVendorPasswordResetArgs = {
 export type MutationAdminUpdateStoreShippingOptionArgs = {
   id: Scalars['String']['input'];
   input: UpdateShippingOptionInput;
+};
+
+export type MutationAdminVerifyVendorEmailArgs = {
+  vendorId: Scalars['String']['input'];
 };
 
 export type MutationApproveBrandArgs = {
@@ -1196,6 +1329,10 @@ export type MutationVerifyCustomerOtpArgs = {
   input: VerifyCustomerOtpInput;
 };
 
+export type MutationVerifyEmailArgs = {
+  input: VerifyEmailInput;
+};
+
 export type MyStoreType = {
   __typename?: 'MyStoreType';
   address?: Maybe<Scalars['String']['output']>;
@@ -1548,7 +1685,9 @@ export type Query = {
   activePlatformPromotions: Array<PromotionType>;
   activeStorePromotions: Array<PromotionType>;
   addresses: Array<SavedAddressType>;
+  adminAuditLogs: AdminAuditLogConnection;
   adminCustomer: AdminCustomerType;
+  adminCustomerDetail: AdminCustomerDetailType;
   adminCustomers: AdminCustomerConnection;
   adminStore: AdminStoreType;
   adminStorePayoutSummary: PayoutSummaryType;
@@ -1558,6 +1697,7 @@ export type Query = {
   adminStores: Array<AdminStoreType>;
   adminTeamMembers: Array<AdminTeamMemberType>;
   adminVendor: AdminVendorType;
+  adminVendorDetail: AdminVendorDetailType;
   adminVendors: Array<AdminVendorType>;
   allPlatformAds: Array<PlatformAdType>;
   allPlatformBanners: Array<PlatformBannerType>;
@@ -1662,7 +1802,17 @@ export type QueryActiveStorePromotionsArgs = {
   storeId: Scalars['String']['input'];
 };
 
+export type QueryAdminAuditLogsArgs = {
+  filter?: InputMaybe<AdminAuditLogFilterInput>;
+  limit?: Scalars['Int']['input'];
+  page?: Scalars['Int']['input'];
+};
+
 export type QueryAdminCustomerArgs = {
+  id: Scalars['String']['input'];
+};
+
+export type QueryAdminCustomerDetailArgs = {
   id: Scalars['String']['input'];
 };
 
@@ -1693,6 +1843,10 @@ export type QueryAdminStoreShippingOptionsArgs = {
 };
 
 export type QueryAdminVendorArgs = {
+  id: Scalars['String']['input'];
+};
+
+export type QueryAdminVendorDetailArgs = {
   id: Scalars['String']['input'];
 };
 
@@ -2656,6 +2810,7 @@ export type UploadResultType = {
 export type UserProfile = {
   __typename?: 'UserProfile';
   email: Scalars['String']['output'];
+  emailVerified: Scalars['Boolean']['output'];
   fullName: Scalars['String']['output'];
   id: Scalars['String']['output'];
   profilePhotoUrl?: Maybe<Scalars['String']['output']>;
@@ -2716,6 +2871,10 @@ export type VerifyCustomerOtpInput = {
   code: Scalars['String']['input'];
   phone: Scalars['String']['input'];
   sessionId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type VerifyEmailInput = {
+  token: Scalars['String']['input'];
 };
 
 export type NotificationsQueryVariables = Exact<{

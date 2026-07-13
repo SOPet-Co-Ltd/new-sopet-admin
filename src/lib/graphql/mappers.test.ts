@@ -28,6 +28,27 @@ describe('mapUser', () => {
       role: 'vendor',
       storeId: 'store-123',
       profilePhotoUrl: null,
+      emailVerified: false,
+    });
+  });
+
+  it('maps emailVerified when provided', () => {
+    expect(
+      mapUser({
+        id: 'u3',
+        email: 'verified@example.com',
+        fullName: 'Verified Vendor',
+        role: 'vendor',
+        emailVerified: true,
+      }),
+    ).toEqual({
+      id: 'u3',
+      email: 'verified@example.com',
+      fullName: 'Verified Vendor',
+      role: 'vendor',
+      storeId: undefined,
+      profilePhotoUrl: null,
+      emailVerified: true,
     });
   });
 
@@ -47,6 +68,7 @@ describe('mapUser', () => {
       role: 'admin',
       storeId: undefined,
       profilePhotoUrl: 'https://cdn.example.com/avatar.jpg',
+      emailVerified: false,
     });
   });
 });

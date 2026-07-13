@@ -16,6 +16,7 @@ import {
 import { AuthGuard } from '@/components/auth-guard';
 import { DashboardShell, type DashboardNavSection } from '@/components/dashboard-shell';
 import { ActiveStoreDisplay } from '@/components/vendor/active-store-display';
+import { EmailVerificationBanner } from '@/components/vendor/email-verification-banner';
 import { SuspendedStoreBanner } from '@/components/vendor/suspended-store-banner';
 import { VendorStoreGuard } from '@/components/vendor/vendor-store-guard';
 import { useCurrentUser } from '@/hooks/useAuth';
@@ -122,6 +123,7 @@ export function VendorLayout({ children }: { children: React.ReactNode }) {
         navSections={navSections}
         header={header}
       >
+        <EmailVerificationBanner />
         <SuspendedStoreBanner />
         <VendorStoreGuard>{children}</VendorStoreGuard>
       </DashboardShell>

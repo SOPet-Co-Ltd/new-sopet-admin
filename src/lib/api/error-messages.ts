@@ -23,6 +23,9 @@ export const ERROR_MESSAGES = {
   STORE_SUSPENDED: 'ร้านค้านี้ถูกระงับชั่วคราว กรุณาส่งคำขอเปิดใช้งานใหม่หรือติดต่อฝ่ายสนับสนุน',
   PENDING_REACTIVATION_REQUEST_EXISTS: 'มีคำขอเปิดใช้งานร้านที่รออนุมัติอยู่แล้ว',
   PRODUCT_NOT_PUBLISHABLE: 'ยังไม่สามารถเผยแพร่สินค้าได้ กรุณาเติมข้อมูลให้ครบ',
+  EMAIL_NOT_VERIFIED:
+    'กรุณายืนยันอีเมลก่อนขอเปิดร้านใหม่ ตรวจสอบกล่องจดหมายหรือกดส่งอีเมลยืนยันอีกครั้ง',
+  EMAIL_ALREADY_VERIFIED: 'อีเมลได้รับการยืนยันแล้ว',
   CATEGORY_IMAGE_REQUIRED: 'ต้องอัปโหลดรูปภาพหมวดหมู่ก่อนอนุมัติ',
   CATEGORY_HAS_PRODUCTS: 'หมวดหมู่นี้มีสินค้าที่ต้องย้าย — กรุณาเลือกหมวดหมู่ทดแทน',
   INVALID_REPLACEMENT_CATEGORY:

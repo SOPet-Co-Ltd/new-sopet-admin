@@ -70,7 +70,9 @@ export default function RegisterPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <div>
               <h1 className="font-display text-xl font-semibold text-ink">ลงทะเบียนผู้ขาย</h1>
-              <p className="mt-1 text-sm text-muted">สร้างบัญชีเพื่อขอเปิดร้านค้าบน SOPet</p>
+              <p className="mt-1 text-sm text-muted">
+                สร้างบัญชีเพื่อขอเปิดร้านค้าบน SOPet — เราจะส่งอีเมลยืนยันไปที่อีเมลของคุณ
+              </p>
             </div>
 
             <div>

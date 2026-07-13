@@ -93,6 +93,7 @@ export const queryKeys = {
     list: (search?: string) =>
       search ? (['adminVendors', 'list', search] as const) : (['adminVendors', 'list'] as const),
     detail: (id: string) => ['adminVendors', 'detail', id] as const,
+    detailInsights: (id: string) => ['adminVendors', 'detailInsights', id] as const,
   },
   shippingProviders: {
     all: ['shippingProviders'] as const,
@@ -130,6 +131,11 @@ export const queryKeys = {
     list: (params: { page?: number; limit?: number; search?: string }) =>
       ['adminCustomers', 'list', params] as const,
     detail: (id: string) => ['adminCustomers', 'detail', id] as const,
+    detailInsights: (id: string) => ['adminCustomers', 'detailInsights', id] as const,
+  },
+  adminAuditLogs: {
+    all: ['adminAuditLogs'] as const,
+    list: (params: Record<string, unknown>) => ['adminAuditLogs', 'list', params] as const,
   },
   vendorCustomers: {
     all: ['vendorCustomers'] as const,

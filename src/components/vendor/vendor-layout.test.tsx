@@ -47,6 +47,10 @@ vi.mock('@/components/vendor/suspended-store-banner', () => ({
   SuspendedStoreBanner: () => null,
 }));
 
+vi.mock('@/components/vendor/email-verification-banner', () => ({
+  EmailVerificationBanner: () => <div data-testid="email-verification-banner">banner</div>,
+}));
+
 vi.mock('@/lib/react-query/prefetch-dashboard-nav', () => ({
   createDashboardNavPrefetchHandlers: () => ({
     onMouseEnter: vi.fn(),
@@ -190,6 +194,18 @@ describe('VendorLayout sidebar nav', () => {
     expect(screen.queryByRole('link', { name: 'แดชบอร์ด' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'คำสั่งซื้อ' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'โปรโมชัน' })).not.toBeInTheDocument();
+  });
+
+  it('shows email verification banner in vendor shell', () => {
+    setupMocks({ stores: [] });
+
+    render(
+      <VendorLayout>
+        <div>content</div>
+      </VendorLayout>,
+    );
+
+    expect(screen.getByTestId('email-verification-banner')).toBeInTheDocument();
   });
 
   it('shows full nav when vendor has stores', () => {

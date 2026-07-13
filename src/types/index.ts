@@ -16,6 +16,7 @@ export interface User {
   role: UserRole | string;
   storeId?: string;
   profilePhotoUrl?: string | null;
+  emailVerified?: boolean;
 }
 
 export type StoreStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
@@ -589,6 +590,50 @@ export interface AdminVendor {
   lastLoginAt?: string;
   createdAt?: string;
   storeCount?: number;
+  stores?: AdminVendorStore[];
+}
+
+export interface AdminVendorStore {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+}
+
+export interface AdminVendorMembership {
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  storeStatus: string;
+  role: string;
+  joinedAt: string;
+}
+
+export interface AdminVendorActivity {
+  kind: string;
+  occurredAt: string;
+  storeId?: string | null;
+  storeName?: string | null;
+  orderNumber?: string | null;
+}
+
+export interface AdminVendorInsights {
+  storeCount: number;
+  membershipCount: number;
+  totalRevenue: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  lastActivityAt?: string | null;
+  memberships: AdminVendorMembership[];
+  activities: AdminVendorActivity[];
+  recentOrders: AdminCustomerRecentOrder[];
+}
+
+export interface AdminVendorDetail extends AdminVendor {
+  emailVerified: boolean;
+  stores: AdminVendorStore[];
+  insights: AdminVendorInsights;
 }
 
 export interface UpdateVendorAsAdminInput {
@@ -608,6 +653,36 @@ export interface AdminCustomer {
   lastLoginAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface AdminCustomerOrderItemSummary {
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface AdminCustomerRecentOrder {
+  id: string;
+  orderNumber: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  items: AdminCustomerOrderItemSummary[];
+}
+
+export interface AdminCustomerInsights {
+  totalSpent: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  addressCount: number;
+  favoriteCount: number;
+  recentOrders: AdminCustomerRecentOrder[];
+}
+
+export interface AdminCustomerDetail extends AdminCustomer {
+  insights: AdminCustomerInsights;
 }
 
 export interface UpdateCustomerAsAdminInput {
@@ -874,3 +949,10 @@ export interface Payout {
   status: string;
   createdAt: string;
 }
+
+export type {
+  AuditActorType,
+  AdminAuditLog,
+  AdminAuditLogsFilter,
+  AdminAuditLogsQueryParams,
+} from './audit-logs';

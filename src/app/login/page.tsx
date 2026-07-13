@@ -9,13 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { clearTokens, getAccessToken } from '@/lib/api/client';
+import { getAccessToken } from '@/lib/api/client';
 import { getErrorMessage } from '@/lib/api/errors';
-import { AUTH_SESSION_MESSAGE_KEY } from '@/lib/auth-session';
+import { AUTH_SESSION_MESSAGE_KEY, clearAuthSession } from '@/lib/auth-session';
 import { getDashboardPath, useCurrentUser, useLogin } from '@/hooks/useAuth';
 import { isAccessTokenUsable } from '@/lib/jwt';
-import { useAuthStore } from '@/stores/auth.store';
-import { useVendorStore } from '@/stores/vendor.store';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRequestPasswordReset } from '@/hooks/usePasswordReset';
 import {
   forgotPasswordSchema,
@@ -34,6 +33,7 @@ function getSafeRedirect(value: string | null): string | null {
 function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const redirectTo = getSafeRedirect(searchParams.get('redirect'));
   const { user, isAuthenticated } = useCurrentUser();
   const login = useLogin();
@@ -51,11 +51,9 @@ function LoginPageContent() {
 
     const accessToken = getAccessToken();
     if (!isAccessTokenUsable(accessToken)) {
-      clearTokens();
-      useAuthStore.getState().clearAuth();
-      useVendorStore.getState().clearVendor();
+      clearAuthSession(queryClient);
     }
-  }, []);
+  }, [queryClient]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),

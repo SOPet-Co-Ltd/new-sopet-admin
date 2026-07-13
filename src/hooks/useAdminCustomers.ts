@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getAdminCustomer,
+  getAdminCustomerDetail,
   getAdminCustomers,
   setCustomerActive,
   updateCustomerAsAdmin,
@@ -25,6 +26,14 @@ export function useAdminCustomer(id: string) {
   });
 }
 
+export function useAdminCustomerDetail(id: string) {
+  return useQuery({
+    queryKey: queryKeys.adminCustomers.detailInsights(id),
+    queryFn: () => getAdminCustomerDetail(id),
+    enabled: !!id,
+  });
+}
+
 export function useUpdateCustomerAsAdmin() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -33,6 +42,9 @@ export function useUpdateCustomerAsAdmin() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.adminCustomers.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.adminCustomers.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.adminCustomers.detailInsights(variables.id),
+      });
     },
   });
 }
@@ -45,6 +57,9 @@ export function useSetCustomerActive() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.adminCustomers.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.adminCustomers.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.adminCustomers.detailInsights(variables.id),
+      });
     },
   });
 }

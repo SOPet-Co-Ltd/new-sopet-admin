@@ -5,6 +5,7 @@ import {
   HiBell,
   HiBuildingStorefront,
   HiChartBarSquare,
+  HiClipboardDocumentList,
   HiCog6Tooth,
   HiInboxArrowDown,
   HiShieldCheck,
@@ -58,6 +59,7 @@ const navSections: DashboardNavSection[] = [
   {
     title: 'บัญชี',
     items: [
+      { href: '/admin/audit-logs', label: 'บันทึกการใช้งาน', icon: HiClipboardDocumentList },
       { href: '/admin/notifications', label: 'การแจ้งเตือน', icon: HiBell },
       { href: '/admin/settings', label: 'ตั้งค่าแพลตฟอร์ม', icon: HiCog6Tooth },
       { href: '/admin/team', label: 'ทีมผู้ดูแล', icon: HiShieldCheck },
