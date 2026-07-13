@@ -7,19 +7,19 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { HiArrowLeft } from 'react-icons/hi2';
 import { AdminCustomerOrderHistory } from '@/components/admin/admin-customer-order-history';
-import { StatCard } from '@/components/vendor/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getMaxBirthday, MIN_BIRTHDAY } from '@/lib/datetime/calendarUtils';
+import { StatCard } from '@/components/vendor/stat-card';
 import {
   useAdminCustomerDetail,
   useSetCustomerActive,
   useUpdateCustomerAsAdmin,
 } from '@/hooks/useAdminCustomers';
+import { getMaxBirthday, MIN_BIRTHDAY } from '@/lib/datetime/calendarUtils';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { adminCustomerFormSchema, type AdminCustomerFormValues } from '@/lib/validations';
 

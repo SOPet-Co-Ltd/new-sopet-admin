@@ -1,19 +1,19 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCooldown } from '@/hooks/useCooldown';
 import {
+  adminResendVendorEmailVerification,
+  adminVerifyVendorEmail,
   getAdminVendor,
   getAdminVendorDetail,
   getAdminVendors,
   updateVendorAsAdmin,
-  adminResendVendorEmailVerification,
-  adminVerifyVendorEmail,
 } from '@/lib/api/admin-vendors';
 import {
   EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS,
   getResendEmailVerificationButtonLabel,
 } from '@/lib/email-verification/resend';
-import { useCooldown } from '@/hooks/useCooldown';
 import { queryKeys } from '@/lib/react-query/keys';
 import type { UpdateVendorAsAdminInput } from '@/types';
 

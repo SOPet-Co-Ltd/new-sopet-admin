@@ -17,7 +17,6 @@ import { AdminCustomerOrderHistory } from '@/components/admin/admin-customer-ord
 import { AdminVendorActivityLog } from '@/components/admin/admin-vendor-activity-log';
 import { AdminVendorMembershipsTable } from '@/components/admin/admin-vendor-memberships-table';
 import { AdminVendorStoresTable } from '@/components/admin/admin-vendor-stores-table';
-import { StatCard } from '@/components/vendor/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
@@ -31,14 +30,15 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { StatCard } from '@/components/vendor/stat-card';
 import {
   useAdminResendVendorEmailVerification,
   useAdminVendorDetail,
   useAdminVerifyVendorEmail,
   useUpdateVendorAsAdmin,
 } from '@/hooks/useAdminVendors';
-import { ADMIN_TRIGGER_VENDOR_PASSWORD_RESET } from '@/lib/graphql/documents';
 import { executeMutation } from '@/lib/graphql/client';
+import { ADMIN_TRIGGER_VENDOR_PASSWORD_RESET } from '@/lib/graphql/documents';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { adminVendorFormSchema, type AdminVendorFormValues } from '@/lib/validations';
 

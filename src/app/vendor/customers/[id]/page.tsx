@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { HiArrowLeft, HiHeart, HiStar } from 'react-icons/hi2';
 import { AdminCustomerOrderHistory } from '@/components/admin/admin-customer-order-history';
-import { StatCard } from '@/components/vendor/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
+import { StatCard } from '@/components/vendor/stat-card';
 import { useVendorCustomerDetail } from '@/hooks/useVendorCustomers';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 

@@ -148,7 +148,7 @@ export function VendorCombobox({
         ) : null}
       </div>
       {open ? (
-        <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-white shadow-(--shadow-elevated)">
+        <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-white shadow-[var(--shadow-elevated)]">
           {isLoadingResults ? (
             <p className="px-3 py-2 text-sm text-muted">กำลังค้นหา...</p>
           ) : error ? (

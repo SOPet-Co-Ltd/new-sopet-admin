@@ -20,8 +20,8 @@ import { EmailVerificationBanner } from '@/components/vendor/email-verification-
 import { SuspendedStoreBanner } from '@/components/vendor/suspended-store-banner';
 import { VendorStoreGuard } from '@/components/vendor/vendor-store-guard';
 import { useCurrentUser } from '@/hooks/useAuth';
-import { useMyStores } from '@/hooks/useMyStores';
 import { useIsStoreManager, useIsStoreOwner } from '@/hooks/useMembershipRole';
+import { useMyStores } from '@/hooks/useMyStores';
 import { vendorHasStores } from '@/lib/vendor/vendor-store-access';
 
 const storeSection: DashboardNavSection = {

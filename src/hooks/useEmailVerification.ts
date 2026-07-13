@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
+import { useCooldown } from '@/hooks/useCooldown';
 import { normalizeError } from '@/lib/api/errors';
 import { ERROR_MESSAGES } from '@/lib/api/error-messages';
 import { resendEmailVerification, verifyEmail } from '@/lib/api/emailVerification';
@@ -10,7 +11,6 @@ import {
   EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS,
   getResendEmailVerificationButtonLabel,
 } from '@/lib/email-verification/resend';
-import { useCooldown } from '@/hooks/useCooldown';
 import { useAuthStore } from '@/stores/auth.store';
 
 export function useVerifyEmail() {

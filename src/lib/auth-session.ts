@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { clearTokens, getAccessToken } from '@/lib/api/client';
 import { getMe } from '@/lib/api/auth';
+import { clearTokens, getAccessToken } from '@/lib/api/client';
 import { getApolloClient } from '@/lib/graphql/client';
 import { isAccessTokenUsable } from '@/lib/jwt';
 import { useAuthStore } from '@/stores/auth.store';

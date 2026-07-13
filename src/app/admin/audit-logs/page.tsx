@@ -15,14 +15,8 @@ import {
   getAuditActionLabel,
   getAuditResourceLabel,
 } from '@/lib/audit-logs/labels';
+import { formatDateTime } from '@/lib/utils';
 import type { AdminAuditLog } from '@/types';
-
-function formatDateTime(value: string): string {
-  return new Intl.DateTimeFormat('th-TH', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value));
-}
 
 export default function AdminAuditLogsPage() {
   const [search, setSearch] = useState('');
