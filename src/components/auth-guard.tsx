@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAccessToken } from '@/lib/api/client';
+import { isAccessTokenUsable } from '@/lib/jwt';
 import { useAuthStore } from '@/stores/auth.store';
 
 interface AuthGuardProps {
@@ -15,7 +16,8 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
-  const hasToken = typeof window !== 'undefined' && !!getAccessToken();
+  const accessToken = typeof window !== 'undefined' ? getAccessToken() : undefined;
+  const hasToken = isAccessTokenUsable(accessToken);
 
   useEffect(() => {
     if (!hasHydrated) {

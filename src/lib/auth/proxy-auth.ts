@@ -1,19 +1,10 @@
 import { ACCESS_TOKEN } from '@/lib/config';
-import { decodeJwtPayload } from '@/lib/jwt';
+import { getPortalRoleFromToken } from '@/lib/jwt';
 
 export type AuthRole = 'admin' | 'vendor';
 
 export function getRoleFromAccessToken(token: string | undefined): AuthRole | null {
-  if (!token) return null;
-
-  const payload = decodeJwtPayload(token);
-  const role = payload?.role;
-
-  if (role === 'admin' || role === 'vendor') {
-    return role;
-  }
-
-  return null;
+  return getPortalRoleFromToken(token);
 }
 
 export function getAuthRedirectPath(

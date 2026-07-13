@@ -9,10 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getAccessToken } from '@/lib/api/client';
+import { clearTokens, getAccessToken } from '@/lib/api/client';
 import { getErrorMessage } from '@/lib/api/errors';
 import { AUTH_SESSION_MESSAGE_KEY } from '@/lib/auth-session';
 import { getDashboardPath, useCurrentUser, useLogin } from '@/hooks/useAuth';
+import { isAccessTokenUsable } from '@/lib/jwt';
+import { useAuthStore } from '@/stores/auth.store';
+import { useVendorStore } from '@/stores/vendor.store';
 import { useRequestPasswordReset } from '@/hooks/usePasswordReset';
 import {
   forgotPasswordSchema,
@@ -45,6 +48,13 @@ function LoginPageContent() {
       setSessionMessage(stored);
       sessionStorage.removeItem(AUTH_SESSION_MESSAGE_KEY);
     }
+
+    const accessToken = getAccessToken();
+    if (!isAccessTokenUsable(accessToken)) {
+      clearTokens();
+      useAuthStore.getState().clearAuth();
+      useVendorStore.getState().clearVendor();
+    }
   }, []);
 
   const form = useForm<LoginFormValues>({
@@ -58,8 +68,8 @@ function LoginPageContent() {
   });
 
   useEffect(() => {
-    const hasToken = !!getAccessToken();
-    if (isAuthenticated && hasToken && user) {
+    const accessToken = getAccessToken();
+    if (isAuthenticated && isAccessTokenUsable(accessToken) && user) {
       router.replace(redirectTo ?? getDashboardPath(user.role));
     }
   }, [isAuthenticated, redirectTo, router, user]);
