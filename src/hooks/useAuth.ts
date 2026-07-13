@@ -15,6 +15,7 @@ export function useLogin() {
 
   return useMutation<LoginResult, Error, LoginInput>({
     mutationFn: async (input) => {
+      clearTokens();
       const result = await login(input);
       if (!PORTAL_ROLES.has(result.user.role)) {
         throw new Error('พอร์ทัลนี้สำหรับผู้ดูแลระบบและผู้ขายเท่านั้น');

@@ -12,6 +12,11 @@ describe('proxy-auth', () => {
     expect(getRoleFromAccessToken('not-a-jwt')).toBeNull();
   });
 
+  it('returns null role for expired tokens', () => {
+    const token = createFakeJwt({ role: 'admin', exp: Math.floor(Date.now() / 1000) - 60 });
+    expect(getRoleFromAccessToken(token)).toBeNull();
+  });
+
   it('redirects unauthenticated admin requests to login', () => {
     expect(getAuthRedirectPath('/admin/stores', null, undefined)).toBe('/login');
   });
