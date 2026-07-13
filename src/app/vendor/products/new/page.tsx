@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2';
 import { VariantOptionGroupsEditor } from '@/components/vendor/variant-option-groups-editor';
 import { BrandField, PetTypeField } from '@/components/vendor/pet-type-brand-fields';
@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { ProductDescriptionEditor } from '@/components/vendor/product-description-editor';
 import { useCreateProduct } from '@/hooks/useProductMutations';
 import { useSyncProductVariants } from '@/hooks/useSyncProductVariants';
 import {
@@ -136,15 +136,20 @@ export default function NewProductPage() {
               ) : null}
             </div>
 
-            <div>
-              <Label htmlFor="description">รายละเอียด</Label>
-              <Textarea
-                id="description"
-                placeholder="อธิบายสินค้า..."
-                {...form.register('description')}
-                className="mt-1.5"
-              />
-            </div>
+            <Controller
+              name="description"
+              control={form.control}
+              render={({ field }) => (
+                <ProductDescriptionEditor
+                  id="description"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  placeholder="อธิบายสินค้า..."
+                  disabled={isPending}
+                />
+              )}
+            />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <CategoryField

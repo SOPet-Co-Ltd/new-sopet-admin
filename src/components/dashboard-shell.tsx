@@ -139,7 +139,7 @@ export function DashboardShell({
         </div>
       ) : null}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-3 border-b border-border bg-white px-4 py-3 md:hidden">
           <button
             type="button"
@@ -159,7 +159,7 @@ export function DashboardShell({
           </div>
         </div>
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-10">{children}</div>
         </main>
       </div>

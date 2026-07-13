@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { HiChevronDown } from 'react-icons/hi2';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,6 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -202,10 +209,17 @@ export function TagsField({ value, onChange }: TagsFieldProps) {
     }
   }
 
+  const selectedTagNames = tags.filter((tag) => value.includes(tag.id)).map((tag) => tag.name);
+  const triggerLabel = isLoading
+    ? 'กำลังโหลด...'
+    : selectedTagNames.length > 0
+      ? selectedTagNames.join(', ')
+      : 'เลือกแท็ก';
+
   return (
     <div>
       <div className="flex items-center justify-between gap-2">
-        <Label>แท็ก</Label>
+        <Label htmlFor="tags">แท็ก</Label>
         <Button
           type="button"
           variant="ghost"
@@ -216,33 +230,40 @@ export function TagsField({ value, onChange }: TagsFieldProps) {
           เสนอแท็กใหม่
         </Button>
       </div>
-      <div
-        className={cn(
-          'mt-1.5 max-h-40 space-y-2 overflow-y-auto rounded-lg border border-border p-3',
-          isLoading && 'opacity-60',
-        )}
-      >
-        {tags.length === 0 && !isLoading ? (
-          <p className="text-sm text-muted">ยังไม่มีแท็กที่อนุมัติ</p>
-        ) : null}
-        {tags.map((tag) => {
-          const checked = value.includes(tag.id);
-          return (
-            <label key={tag.id} className="flex cursor-pointer items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={() => toggleTag(tag.id)}
-                className="rounded border-border text-brand focus:ring-brand/20"
-              />
-              <span className={checked ? 'font-medium text-ink' : 'text-muted'}>{tag.name}</span>
-            </label>
-          );
-        })}
-      </div>
-      {value.length > 0 ? (
-        <p className="mt-1.5 text-xs text-muted">เลือกแล้ว {value.length} แท็ก</p>
-      ) : null}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild disabled={isLoading}>
+          <button
+            id="tags"
+            type="button"
+            className={cn(
+              'mt-1.5 flex h-10 w-full items-center justify-between rounded-lg border border-border bg-white px-3 py-2 text-sm shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:cursor-not-allowed disabled:opacity-50',
+              selectedTagNames.length === 0 ? 'text-muted' : 'text-ink',
+            )}
+            aria-label="เลือกแท็ก"
+          >
+            <span className="truncate">{triggerLabel}</span>
+            <HiChevronDown className="ml-2 size-4 shrink-0 text-muted" aria-hidden="true" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="start"
+          className="max-h-60 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
+        >
+          {tags.length === 0 && !isLoading ? (
+            <p className="px-2 py-1.5 text-sm text-muted">ยังไม่มีแท็กที่อนุมัติ</p>
+          ) : null}
+          {tags.map((tag) => (
+            <DropdownMenuCheckboxItem
+              key={tag.id}
+              checked={value.includes(tag.id)}
+              onCheckedChange={() => toggleTag(tag.id)}
+              onSelect={(event) => event.preventDefault()}
+            >
+              {tag.name}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
       {notice ? <p className="mt-1 text-xs text-muted">{notice}</p> : null}
       {loadError ? (
         <p className="mt-1 text-xs text-muted">ยังโหลดแท็กไม่ได้ — ลองใหม่เมื่อ API พร้อม</p>

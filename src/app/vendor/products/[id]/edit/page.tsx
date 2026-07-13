@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ProductDescriptionEditor } from '@/components/vendor/product-description-editor';
 import { Textarea } from '@/components/ui/textarea';
 import { useProduct } from '@/hooks/useProduct';
 import { useDeleteProduct, usePublishProduct, useUpdateProduct } from '@/hooks/useProductMutations';
@@ -199,15 +200,20 @@ export default function EditProductPage() {
               ) : null}
             </div>
 
-            <div>
-              <Label htmlFor="description">รายละเอียด</Label>
-              <Textarea
-                id="description"
-                placeholder="อธิบายสินค้า..."
-                {...form.register('description')}
-                className="mt-1.5"
-              />
-            </div>
+            <Controller
+              name="description"
+              control={form.control}
+              render={({ field }) => (
+                <ProductDescriptionEditor
+                  id="description"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  placeholder="อธิบายสินค้า..."
+                  disabled={isPending}
+                />
+              )}
+            />
 
             <div>
               <Label htmlFor="warning">คำเตือน</Label>
