@@ -16,6 +16,7 @@ export interface User {
   role: UserRole | string;
   storeId?: string;
   profilePhotoUrl?: string | null;
+  emailVerified?: boolean;
 }
 
 export type StoreStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
@@ -558,11 +559,9 @@ export interface AdminStore extends StoreDetail {
 }
 
 export interface CreateStoreAsAdminInput {
+  ownerUserId: string;
   name: string;
-  slug?: string;
   description?: string;
-  ownerId?: string;
-  ownerEmail?: string;
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
@@ -578,7 +577,7 @@ export interface UpdateStoreAsAdminInput {
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
-  ownerId?: string;
+  ownerId?: string | null;
   ownerEmail?: string;
 }
 
@@ -591,6 +590,50 @@ export interface AdminVendor {
   lastLoginAt?: string;
   createdAt?: string;
   storeCount?: number;
+  stores?: AdminVendorStore[];
+}
+
+export interface AdminVendorStore {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+}
+
+export interface AdminVendorMembership {
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  storeStatus: string;
+  role: string;
+  joinedAt: string;
+}
+
+export interface AdminVendorActivity {
+  kind: string;
+  occurredAt: string;
+  storeId?: string | null;
+  storeName?: string | null;
+  orderNumber?: string | null;
+}
+
+export interface AdminVendorInsights {
+  storeCount: number;
+  membershipCount: number;
+  totalRevenue: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  lastActivityAt?: string | null;
+  memberships: AdminVendorMembership[];
+  activities: AdminVendorActivity[];
+  recentOrders: AdminCustomerRecentOrder[];
+}
+
+export interface AdminVendorDetail extends AdminVendor {
+  emailVerified: boolean;
+  stores: AdminVendorStore[];
+  insights: AdminVendorInsights;
 }
 
 export interface UpdateVendorAsAdminInput {
@@ -612,6 +655,36 @@ export interface AdminCustomer {
   updatedAt?: string;
 }
 
+export interface AdminCustomerOrderItemSummary {
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface AdminCustomerRecentOrder {
+  id: string;
+  orderNumber: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  items: AdminCustomerOrderItemSummary[];
+}
+
+export interface AdminCustomerInsights {
+  totalSpent: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  addressCount: number;
+  favoriteCount: number;
+  recentOrders: AdminCustomerRecentOrder[];
+}
+
+export interface AdminCustomerDetail extends AdminCustomer {
+  insights: AdminCustomerInsights;
+}
+
 export interface UpdateCustomerAsAdminInput {
   fullName?: string;
   email?: string;
@@ -627,6 +700,35 @@ export interface VendorCustomer {
   isVerified: boolean;
   lastLoginAt?: string | null;
   createdAt?: string;
+}
+
+export interface VendorCustomerStoreReviewSummary {
+  id: string;
+  productName: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: string;
+}
+
+export interface VendorCustomerFavoriteProductSummary {
+  productName: string;
+  createdAt: string;
+}
+
+export interface VendorCustomerStoreInsights {
+  totalSpent: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  favoriteCount: number;
+  reviewCount: number;
+  recentOrders: AdminCustomerRecentOrder[];
+  recentReviews: VendorCustomerStoreReviewSummary[];
+  favoriteProducts: VendorCustomerFavoriteProductSummary[];
+}
+
+export interface VendorCustomerDetail extends VendorCustomer {
+  insights: VendorCustomerStoreInsights;
 }
 
 export interface CustomersQueryParams {
@@ -857,3 +959,29 @@ export interface AdminInvitation {
 export interface InviteAdminInput {
   email: string;
 }
+
+export interface PayoutSummary {
+  storeId: string;
+  grossRevenue: number;
+  totalPaidOut: number;
+  availableBalance: number;
+  pendingPayoutAmount: number;
+  minimumPayoutAmount: number;
+  canRequestPayout: boolean;
+}
+
+export interface Payout {
+  id: string;
+  storeId: string;
+  amount: number;
+  netAmount: number;
+  status: string;
+  createdAt: string;
+}
+
+export type {
+  AuditActorType,
+  AdminAuditLog,
+  AdminAuditLogsFilter,
+  AdminAuditLogsQueryParams,
+} from './audit-logs';

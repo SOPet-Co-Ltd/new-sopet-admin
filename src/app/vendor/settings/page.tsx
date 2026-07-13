@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { VendorShippingPanel } from '@/components/vendor/shipping-settings-panel';
+import { VendorPayoutBalancePanel } from '@/components/vendor/vendor-payout-balance-panel';
 import { VendorStoreSettingsPanel } from '@/components/vendor/vendor-store-settings-panel';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
@@ -347,122 +348,132 @@ export default function VendorSettingsPage() {
       ) : null}
 
       {tab === 'payout' && isOwner ? (
-        <Card className="max-w-2xl">
-          <CardHeader>
-            <h2 className="font-display font-medium text-ink">บัญชีรับเงิน Omise</h2>
-          </CardHeader>
-          <CardBody>
-            {storeLoading ? (
-              <p className="text-muted">กำลังโหลด...</p>
-            ) : (
-              <form onSubmit={payoutForm.handleSubmit(onPayoutSubmit)} className="space-y-4">
-                {(() => {
-                  const status = store?.omiseRecipientStatus ?? 'not_connected';
-                  const info = OMISE_STATUS_INFO[status] ?? OMISE_STATUS_INFO.not_connected;
-                  return (
-                    <div className={`rounded-lg px-3 py-2 text-sm ${info.className}`} role="status">
-                      <span className="font-medium">สถานะ: {info.label}</span>
-                      {status === 'failed' && store?.omiseRecipientFailureMessage ? (
-                        <p className="mt-1 text-xs">{store.omiseRecipientFailureMessage}</p>
-                      ) : null}
-                    </div>
-                  );
-                })()}
-                <div>
-                  <Label htmlFor="bankCode" required>
-                    ธนาคาร
-                  </Label>
-                  <Controller
-                    control={payoutForm.control}
-                    name="bankCode"
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger
-                          id="bankCode"
-                          aria-invalid={!!payoutForm.formState.errors.bankCode}
-                          aria-describedby={
-                            payoutForm.formState.errors.bankCode ? 'bankCode-error' : undefined
-                          }
-                          className="mt-1.5"
-                        >
-                          <SelectValue placeholder="เลือกธนาคาร" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {THAI_BANKS.map((bank) => (
-                            <SelectItem key={bank.code} value={bank.code}>
-                              {bank.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {payoutForm.formState.errors.bankCode ? (
-                    <p id="bankCode-error" className="mt-1 text-xs text-danger" role="alert">
-                      {payoutForm.formState.errors.bankCode.message}
-                    </p>
-                  ) : null}
-                </div>
-                <div>
-                  <Label htmlFor="bankAccountName" required>
-                    ชื่อบัญชี
-                  </Label>
-                  <Input
-                    id="bankAccountName"
-                    autoComplete="name"
-                    placeholder="ชื่อบัญชี"
-                    aria-invalid={!!payoutForm.formState.errors.bankAccountName}
-                    aria-describedby={
-                      payoutForm.formState.errors.bankAccountName
-                        ? 'bankAccountName-error'
-                        : undefined
-                    }
-                    {...payoutForm.register('bankAccountName')}
-                    className="mt-1.5"
-                  />
-                  {payoutForm.formState.errors.bankAccountName ? (
-                    <p id="bankAccountName-error" className="mt-1 text-xs text-danger" role="alert">
-                      {payoutForm.formState.errors.bankAccountName.message}
-                    </p>
-                  ) : null}
-                </div>
-                <div>
-                  <Label htmlFor="bankAccountNumber" required>
-                    เลขที่บัญชี
-                  </Label>
-                  <Input
-                    id="bankAccountNumber"
-                    placeholder="เลขที่บัญชีธนาคาร"
-                    aria-invalid={!!payoutForm.formState.errors.bankAccountNumber}
-                    aria-describedby={
-                      payoutForm.formState.errors.bankAccountNumber
-                        ? 'bankAccountNumber-error'
-                        : undefined
-                    }
-                    {...payoutForm.register('bankAccountNumber')}
-                    className="mt-1.5"
-                  />
-                  {payoutForm.formState.errors.bankAccountNumber ? (
-                    <p
-                      id="bankAccountNumber-error"
-                      className="mt-1 text-xs text-danger"
-                      role="alert"
-                    >
-                      {payoutForm.formState.errors.bankAccountNumber.message}
-                    </p>
-                  ) : null}
-                </div>
-                <Button
-                  type="submit"
-                  disabled={updatePayout.isPending}
-                  aria-busy={updatePayout.isPending}
-                >
-                  {updatePayout.isPending ? 'กำลังบันทึก...' : 'บันทึกบัญชีรับเงิน'}
-                </Button>
-              </form>
-            )}
-          </CardBody>
-        </Card>
+        <div className="space-y-6">
+          <VendorPayoutBalancePanel />
+          <Card className="max-w-2xl">
+            <CardHeader>
+              <h2 className="font-display font-medium text-ink">บัญชีรับเงิน Omise</h2>
+            </CardHeader>
+            <CardBody>
+              {storeLoading ? (
+                <p className="text-muted">กำลังโหลด...</p>
+              ) : (
+                <form onSubmit={payoutForm.handleSubmit(onPayoutSubmit)} className="space-y-4">
+                  {(() => {
+                    const status = store?.omiseRecipientStatus ?? 'not_connected';
+                    const info = OMISE_STATUS_INFO[status] ?? OMISE_STATUS_INFO.not_connected;
+                    return (
+                      <div
+                        className={`rounded-lg px-3 py-2 text-sm ${info.className}`}
+                        role="status"
+                      >
+                        <span className="font-medium">สถานะ: {info.label}</span>
+                        {status === 'failed' && store?.omiseRecipientFailureMessage ? (
+                          <p className="mt-1 text-xs">{store.omiseRecipientFailureMessage}</p>
+                        ) : null}
+                      </div>
+                    );
+                  })()}
+                  <div>
+                    <Label htmlFor="bankCode" required>
+                      ธนาคาร
+                    </Label>
+                    <Controller
+                      control={payoutForm.control}
+                      name="bankCode"
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger
+                            id="bankCode"
+                            aria-invalid={!!payoutForm.formState.errors.bankCode}
+                            aria-describedby={
+                              payoutForm.formState.errors.bankCode ? 'bankCode-error' : undefined
+                            }
+                            className="mt-1.5"
+                          >
+                            <SelectValue placeholder="เลือกธนาคาร" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {THAI_BANKS.map((bank) => (
+                              <SelectItem key={bank.code} value={bank.code}>
+                                {bank.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {payoutForm.formState.errors.bankCode ? (
+                      <p id="bankCode-error" className="mt-1 text-xs text-danger" role="alert">
+                        {payoutForm.formState.errors.bankCode.message}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div>
+                    <Label htmlFor="bankAccountName" required>
+                      ชื่อบัญชี
+                    </Label>
+                    <Input
+                      id="bankAccountName"
+                      autoComplete="name"
+                      placeholder="ชื่อบัญชี"
+                      aria-invalid={!!payoutForm.formState.errors.bankAccountName}
+                      aria-describedby={
+                        payoutForm.formState.errors.bankAccountName
+                          ? 'bankAccountName-error'
+                          : undefined
+                      }
+                      {...payoutForm.register('bankAccountName')}
+                      className="mt-1.5"
+                    />
+                    {payoutForm.formState.errors.bankAccountName ? (
+                      <p
+                        id="bankAccountName-error"
+                        className="mt-1 text-xs text-danger"
+                        role="alert"
+                      >
+                        {payoutForm.formState.errors.bankAccountName.message}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div>
+                    <Label htmlFor="bankAccountNumber" required>
+                      เลขที่บัญชี
+                    </Label>
+                    <Input
+                      id="bankAccountNumber"
+                      placeholder="เลขที่บัญชีธนาคาร"
+                      aria-invalid={!!payoutForm.formState.errors.bankAccountNumber}
+                      aria-describedby={
+                        payoutForm.formState.errors.bankAccountNumber
+                          ? 'bankAccountNumber-error'
+                          : undefined
+                      }
+                      {...payoutForm.register('bankAccountNumber')}
+                      className="mt-1.5"
+                    />
+                    {payoutForm.formState.errors.bankAccountNumber ? (
+                      <p
+                        id="bankAccountNumber-error"
+                        className="mt-1 text-xs text-danger"
+                        role="alert"
+                      >
+                        {payoutForm.formState.errors.bankAccountNumber.message}
+                      </p>
+                    ) : null}
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={updatePayout.isPending}
+                    aria-busy={updatePayout.isPending}
+                  >
+                    {updatePayout.isPending ? 'กำลังบันทึก...' : 'บันทึกบัญชีรับเงิน'}
+                  </Button>
+                </form>
+              )}
+            </CardBody>
+          </Card>
+        </div>
       ) : null}
 
       {tab === 'shipping' && isOwner ? <VendorShippingPanel /> : null}

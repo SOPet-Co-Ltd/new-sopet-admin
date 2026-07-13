@@ -47,6 +47,12 @@ test.describe('proxy auth gate', () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
+  test('redirects authenticated vendor away from register via proxy', async ({ page }) => {
+    await authenticateAsVendor(page);
+    await page.goto('/register');
+    await expect(page).toHaveURL(/\/vendor$/);
+  });
+
   test('does not flash loading text during protected-to-protected navigation', async ({ page }) => {
     await authenticateAsAdmin(page);
     await installTaxonomyGraphQLMocks(page);

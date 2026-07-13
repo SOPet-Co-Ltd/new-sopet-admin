@@ -1,8 +1,10 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { login } from '@/lib/api/auth';
-import { setTokens, clearTokens } from '@/lib/api/client';
+import { clearTokens, setTokens } from '@/lib/api/client';
+import { clearAuthSession, resetSessionCaches } from '@/lib/auth-session';
 import { getStoreIdFromToken } from '@/lib/jwt';
 import { useAuthStore } from '@/stores/auth.store';
 import { useVendorStore } from '@/stores/vendor.store';
@@ -11,11 +13,14 @@ import type { LoginInput, LoginResult } from '@/types';
 const PORTAL_ROLES = new Set(['admin', 'vendor']);
 
 export function useLogin() {
+  const queryClient = useQueryClient();
   const setUser = useAuthStore((s) => s.setUser);
 
   return useMutation<LoginResult, Error, LoginInput>({
     mutationFn: async (input) => {
       clearTokens();
+      useAuthStore.getState().clearAuth();
+      useVendorStore.getState().clearVendor();
       const result = await login(input);
       if (!PORTAL_ROLES.has(result.user.role)) {
         throw new Error('พอร์ทัลนี้สำหรับผู้ดูแลระบบและผู้ขายเท่านั้น');
@@ -29,17 +34,17 @@ export function useLogin() {
       if (storeId) {
         useVendorStore.getState().setActiveStoreId(storeId);
       }
+      resetSessionCaches(queryClient);
     },
   });
 }
 
 export function useLogout() {
-  const clearAuth = useAuthStore((s) => s.clearAuth);
-  const clearVendor = useVendorStore((s) => s.clearVendor);
+  const queryClient = useQueryClient();
+  const router = useRouter();
   return () => {
-    clearTokens();
-    clearAuth();
-    clearVendor();
+    clearAuthSession(queryClient);
+    router.replace('/login');
   };
 }
 

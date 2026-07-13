@@ -16,9 +16,13 @@ import {
 import { AuthGuard } from '@/components/auth-guard';
 import { DashboardShell, type DashboardNavSection } from '@/components/dashboard-shell';
 import { ActiveStoreDisplay } from '@/components/vendor/active-store-display';
+import { EmailVerificationBanner } from '@/components/vendor/email-verification-banner';
 import { SuspendedStoreBanner } from '@/components/vendor/suspended-store-banner';
+import { VendorStoreGuard } from '@/components/vendor/vendor-store-guard';
 import { useCurrentUser } from '@/hooks/useAuth';
 import { useIsStoreManager, useIsStoreOwner } from '@/hooks/useMembershipRole';
+import { useMyStores } from '@/hooks/useMyStores';
+import { vendorHasStores } from '@/lib/vendor/vendor-store-access';
 
 const storeSection: DashboardNavSection = {
   title: 'ร้านค้า',
@@ -61,12 +65,25 @@ const accountSection: DashboardNavSection = {
   ],
 };
 
-export function VendorLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useCurrentUser();
-  const { isOwner } = useIsStoreOwner();
-  const { isManager } = useIsStoreManager();
+const noStoresNavSection: DashboardNavSection = {
+  title: 'ร้านค้า',
+  items: [{ href: '/vendor/stores', label: 'ร้านค้าของฉัน', icon: HiBuildingStorefront }],
+};
 
-  const navSections: DashboardNavSection[] = [
+export function buildVendorNavSections({
+  hasStores,
+  isOwner,
+  isManager,
+}: {
+  hasStores: boolean;
+  isOwner: boolean;
+  isManager: boolean;
+}): DashboardNavSection[] {
+  if (!hasStores) {
+    return [noStoresNavSection, accountSection];
+  }
+
+  return [
     storeSection,
     salesSection,
     marketingSection,
@@ -74,6 +91,20 @@ export function VendorLayout({ children }: { children: React.ReactNode }) {
     ...(isManager ? [systemSection] : []),
     accountSection,
   ];
+}
+
+export function VendorLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useCurrentUser();
+  const { data: stores = [], isLoading: isStoresLoading } = useMyStores();
+  const { isOwner } = useIsStoreOwner();
+  const { isManager } = useIsStoreManager();
+
+  const hasStores = vendorHasStores(stores);
+  const navSections = buildVendorNavSections({
+    hasStores: isStoresLoading ? false : hasStores,
+    isOwner,
+    isManager,
+  });
 
   const header = (
     <>
@@ -92,8 +123,9 @@ export function VendorLayout({ children }: { children: React.ReactNode }) {
         navSections={navSections}
         header={header}
       >
+        <EmailVerificationBanner />
         <SuspendedStoreBanner />
-        {children}
+        <VendorStoreGuard>{children}</VendorStoreGuard>
       </DashboardShell>
     </AuthGuard>
   );

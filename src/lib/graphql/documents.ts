@@ -10,6 +10,7 @@ export const ME_QUERY = gql`
         role
         storeId
         profilePhotoUrl
+        emailVerified
       }
     }
   }
@@ -27,6 +28,7 @@ export const VENDOR_LOGIN = gql`
         email
         fullName
         role
+        emailVerified
       }
     }
   }
@@ -44,6 +46,7 @@ export const ADMIN_LOGIN = gql`
         email
         fullName
         role
+        emailVerified
       }
     }
   }
@@ -654,6 +657,7 @@ export const ACCEPT_STORE_MEMBER_INVITATION = gql`
         email
         fullName
         role
+        emailVerified
       }
     }
   }
@@ -829,6 +833,7 @@ export const REGISTER_VENDOR = gql`
         email
         fullName
         role
+        emailVerified
       }
     }
   }
@@ -1016,6 +1021,44 @@ const ADMIN_VENDOR_FIELDS = `
   }
 `;
 
+const ADMIN_VENDOR_INSIGHTS_FIELDS = `
+  storeCount
+  membershipCount
+  totalRevenue
+  orderCount
+  averageOrderValue
+  lastOrderAt
+  lastActivityAt
+  memberships {
+    storeId
+    storeName
+    storeSlug
+    storeStatus
+    role
+    joinedAt
+  }
+  activities {
+    kind
+    occurredAt
+    storeId
+    storeName
+    orderNumber
+  }
+  recentOrders {
+    id
+    orderNumber
+    status
+    total
+    createdAt
+    items {
+      productName
+      quantity
+      unitPrice
+      subtotal
+    }
+  }
+`;
+
 export const ADMIN_VENDORS_QUERY = gql`
   query AdminVendors($search: String) {
     adminVendors(search: $search) {
@@ -1032,6 +1075,18 @@ export const ADMIN_VENDOR_QUERY = gql`
   }
 `;
 
+export const ADMIN_VENDOR_DETAIL_QUERY = gql`
+  query AdminVendorDetail($id: String!) {
+    adminVendorDetail(id: $id) {
+      ${ADMIN_VENDOR_FIELDS}
+      emailVerified
+      insights {
+        ${ADMIN_VENDOR_INSIGHTS_FIELDS}
+      }
+    }
+  }
+`;
+
 export const UPDATE_VENDOR_AS_ADMIN = gql`
   mutation UpdateVendorAsAdmin($input: UpdateVendorAsAdminInput!) {
     updateVendorAsAdmin(input: $input) {
@@ -1043,6 +1098,38 @@ export const UPDATE_VENDOR_AS_ADMIN = gql`
 export const ADMIN_TRIGGER_VENDOR_PASSWORD_RESET = gql`
   mutation AdminTriggerVendorPasswordReset($vendorId: String!) {
     adminTriggerVendorPasswordReset(vendorId: $vendorId) {
+      message
+    }
+  }
+`;
+
+export const ADMIN_RESEND_VENDOR_EMAIL_VERIFICATION = gql`
+  mutation AdminResendVendorEmailVerification($vendorId: String!) {
+    adminResendVendorEmailVerification(vendorId: $vendorId) {
+      message
+    }
+  }
+`;
+
+export const ADMIN_VERIFY_VENDOR_EMAIL = gql`
+  mutation AdminVerifyVendorEmail($vendorId: String!) {
+    adminVerifyVendorEmail(vendorId: $vendorId) {
+      message
+    }
+  }
+`;
+
+export const VERIFY_EMAIL = gql`
+  mutation VerifyEmail($input: VerifyEmailInput!) {
+    verifyEmail(input: $input) {
+      message
+    }
+  }
+`;
+
+export const RESEND_EMAIL_VERIFICATION = gql`
+  mutation ResendEmailVerification {
+    resendEmailVerification {
       message
     }
   }
@@ -1084,6 +1171,7 @@ export const ACCEPT_VENDOR_INVITATION = gql`
         email
         fullName
         role
+        emailVerified
       }
     }
   }
@@ -1512,6 +1600,28 @@ export const UPLOAD_IMAGE = gql`
   }
 `;
 
+const ADMIN_CUSTOMER_INSIGHTS_FIELDS = `
+  totalSpent
+  orderCount
+  averageOrderValue
+  lastOrderAt
+  addressCount
+  favoriteCount
+  recentOrders {
+    id
+    orderNumber
+    status
+    total
+    createdAt
+    items {
+      productName
+      quantity
+      unitPrice
+      subtotal
+    }
+  }
+`;
+
 const ADMIN_CUSTOMER_FIELDS = `
   id
   phone
@@ -1523,6 +1633,39 @@ const ADMIN_CUSTOMER_FIELDS = `
   lastLoginAt
   createdAt
   updatedAt
+`;
+
+const VENDOR_CUSTOMER_INSIGHTS_FIELDS = `
+  totalSpent
+  orderCount
+  averageOrderValue
+  lastOrderAt
+  favoriteCount
+  reviewCount
+  recentOrders {
+    id
+    orderNumber
+    status
+    total
+    createdAt
+    items {
+      productName
+      quantity
+      unitPrice
+      subtotal
+    }
+  }
+  recentReviews {
+    id
+    productName
+    rating
+    comment
+    createdAt
+  }
+  favoriteProducts {
+    productName
+    createdAt
+  }
 `;
 
 const VENDOR_CUSTOMER_FIELDS = `
@@ -1555,6 +1698,17 @@ export const ADMIN_CUSTOMER_QUERY = gql`
   query AdminCustomer($id: String!) {
     adminCustomer(id: $id) {
       ${ADMIN_CUSTOMER_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_CUSTOMER_DETAIL_QUERY = gql`
+  query AdminCustomerDetail($id: String!) {
+    adminCustomerDetail(id: $id) {
+      ${ADMIN_CUSTOMER_FIELDS}
+      insights {
+        ${ADMIN_CUSTOMER_INSIGHTS_FIELDS}
+      }
     }
   }
 `;
@@ -1595,6 +1749,17 @@ export const VENDOR_CUSTOMER_QUERY = gql`
   query VendorCustomer($id: String!) {
     vendorCustomer(id: $id) {
       ${VENDOR_CUSTOMER_FIELDS}
+    }
+  }
+`;
+
+export const VENDOR_CUSTOMER_DETAIL_QUERY = gql`
+  query VendorCustomerDetail($id: String!) {
+    vendorCustomerDetail(id: $id) {
+      ${VENDOR_CUSTOMER_FIELDS}
+      insights {
+        ${VENDOR_CUSTOMER_INSIGHTS_FIELDS}
+      }
     }
   }
 `;
@@ -1793,6 +1958,102 @@ export const PLATFORM_SETTINGS_FOR_VENDOR_QUERY = gql`
   query PlatformSettingsForVendor {
     platformSettings {
       storefrontUrl
+    }
+  }
+`;
+
+const PAYOUT_SUMMARY_FIELDS = `
+  storeId
+  grossRevenue
+  totalPaidOut
+  availableBalance
+  pendingPayoutAmount
+  minimumPayoutAmount
+  canRequestPayout
+`;
+
+const PAYOUT_FIELDS = `
+  id
+  storeId
+  amount
+  netAmount
+  status
+  createdAt
+`;
+
+export const STORE_PAYOUT_SUMMARY_QUERY = gql`
+  query StorePayoutSummary {
+    storePayoutSummary {
+      ${PAYOUT_SUMMARY_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_STORE_PAYOUT_SUMMARY_QUERY = gql`
+  query AdminStorePayoutSummary($storeId: String!) {
+    adminStorePayoutSummary(storeId: $storeId) {
+      ${PAYOUT_SUMMARY_FIELDS}
+    }
+  }
+`;
+
+export const STORE_PAYOUTS_QUERY = gql`
+  query StorePayouts {
+    storePayouts {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_STORE_PAYOUTS_QUERY = gql`
+  query AdminStorePayouts($storeId: String!) {
+    adminStorePayouts(storeId: $storeId) {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const REQUEST_PAYOUT_MUTATION = gql`
+  mutation RequestPayout {
+    requestPayout {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const TRIGGER_PAYOUT_MUTATION = gql`
+  mutation TriggerPayout($input: TriggerPayoutInput!) {
+    triggerPayout(input: $input) {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+const ADMIN_AUDIT_LOG_FIELDS = `
+  id
+  actorType
+  actorId
+  actorLabel
+  action
+  resourceType
+  resourceId
+  metadata
+  ipAddress
+  createdAt
+`;
+
+export const ADMIN_AUDIT_LOGS_QUERY = gql`
+  query AdminAuditLogs($page: Int!, $limit: Int!, $filter: AdminAuditLogFilterInput) {
+    adminAuditLogs(page: $page, limit: $limit, filter: $filter) {
+      items {
+        ${ADMIN_AUDIT_LOG_FIELDS}
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
     }
   }
 `;

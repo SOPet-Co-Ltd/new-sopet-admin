@@ -137,6 +137,25 @@ export function labelStoreStatus(status: string): string {
   return storeStatusLabels[status] ?? status;
 }
 
+const vendorActivityLabels: Record<string, string> = {
+  account_created: 'สมัครบัญชีผู้ขาย',
+  last_login: 'เข้าสู่ระบบล่าสุด',
+  store_created: 'สร้างร้านค้า',
+  membership_joined: 'เข้าร่วมร้านค้า',
+  admin_store_approved: 'แอดมินอนุมัติร้านค้า',
+  admin_store_rejected: 'แอดมินปฏิเสธร้านค้า',
+  admin_store_suspended: 'แอดมินระงับร้านค้า',
+  password_reset_sent: 'ส่งอีเมลรีเซ็ตรหัสผ่าน',
+  vendor_updated: 'แก้ไขข้อมูลผู้ขาย',
+  store_reactivated: 'เปิดใช้งานร้านค้าอีกครั้ง',
+  store_owner_changed: 'เปลี่ยนเจ้าของร้านค้า',
+  order_received: 'ได้รับคำสั่งซื้อ',
+};
+
+export function labelVendorActivity(kind: string): string {
+  return vendorActivityLabels[kind] ?? kind;
+}
+
 export function labelPromotionType(type: string): string {
   return promotionTypeLabels[type] ?? type;
 }

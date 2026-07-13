@@ -1,4 +1,8 @@
-import type { ProductsQueryParams, StoreProductReviewsParams } from '@/types';
+import type {
+  AdminAuditLogsQueryParams,
+  ProductsQueryParams,
+  StoreProductReviewsParams,
+} from '@/types';
 
 export const queryKeys = {
   auth: {
@@ -93,6 +97,7 @@ export const queryKeys = {
     list: (search?: string) =>
       search ? (['adminVendors', 'list', search] as const) : (['adminVendors', 'list'] as const),
     detail: (id: string) => ['adminVendors', 'detail', id] as const,
+    detailInsights: (id: string) => ['adminVendors', 'detailInsights', id] as const,
   },
   shippingProviders: {
     all: ['shippingProviders'] as const,
@@ -130,12 +135,18 @@ export const queryKeys = {
     list: (params: { page?: number; limit?: number; search?: string }) =>
       ['adminCustomers', 'list', params] as const,
     detail: (id: string) => ['adminCustomers', 'detail', id] as const,
+    detailInsights: (id: string) => ['adminCustomers', 'detailInsights', id] as const,
+  },
+  adminAuditLogs: {
+    all: ['adminAuditLogs'] as const,
+    list: (params: AdminAuditLogsQueryParams) => ['adminAuditLogs', 'list', params] as const,
   },
   vendorCustomers: {
     all: ['vendorCustomers'] as const,
     list: (params: { page?: number; limit?: number; search?: string }) =>
       ['vendorCustomers', 'list', params] as const,
     detail: (id: string) => ['vendorCustomers', 'detail', id] as const,
+    detailInsights: (id: string) => ['vendorCustomers', 'detailInsights', id] as const,
   },
   apiKeys: {
     all: ['apiKeys'] as const,
@@ -161,5 +172,12 @@ export const queryKeys = {
       ['search', 'analyticsZeroResultQueries', fromDate, toDate, limit] as const,
     analyticsSuggestionCtr: (fromDate?: string, toDate?: string) =>
       ['search', 'analyticsSuggestionCtr', fromDate, toDate] as const,
+  },
+  payouts: {
+    all: ['payouts'] as const,
+    vendorSummary: () => ['payouts', 'vendorSummary'] as const,
+    vendorHistory: () => ['payouts', 'vendorHistory'] as const,
+    adminSummary: (storeId: string) => ['payouts', 'adminSummary', storeId] as const,
+    adminHistory: (storeId: string) => ['payouts', 'adminHistory', storeId] as const,
   },
 } as const;

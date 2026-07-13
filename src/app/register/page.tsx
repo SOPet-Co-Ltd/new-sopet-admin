@@ -3,26 +3,58 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
+import { getDashboardPath, useCurrentUser } from '@/hooks/useAuth';
 import { useRegisterVendor } from '@/hooks/useRegisterVendor';
+import { getAccessToken } from '@/lib/api/client';
+import { isAccessTokenUsable } from '@/lib/jwt';
 import { registerVendorSchema, type RegisterVendorFormValues } from '@/lib/validations';
+import { useAuthStore } from '@/stores/auth.store';
 
 export default function RegisterPage() {
   const router = useRouter();
   const register = useRegisterVendor();
+  const { user, isAuthenticated } = useCurrentUser();
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
+    const accessToken = getAccessToken();
+    if (isAuthenticated && isAccessTokenUsable(accessToken) && user) {
+      router.replace(getDashboardPath(user.role));
+    }
+  }, [hasHydrated, isAuthenticated, router, user]);
+
+  const accessToken = typeof window !== 'undefined' ? getAccessToken() : undefined;
+  const isRedirecting =
+    hasHydrated && isAuthenticated && isAccessTokenUsable(accessToken) && !!user;
 
   const form = useForm<RegisterVendorFormValues>({
     resolver: zodResolver(registerVendorSchema),
-    defaultValues: { email: '', password: '', fullName: '' },
+    defaultValues: { email: '', password: '', confirmPassword: '', fullName: '' },
   });
+
+  if (!hasHydrated || isRedirecting) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-cream">
+        <p className="text-muted">กำลังเปลี่ยนหน้า...</p>
+      </div>
+    );
+  }
 
   async function onSubmit(values: RegisterVendorFormValues) {
     try {
-      await register.mutateAsync(values);
+      const { email, password, fullName } = values;
+      await register.mutateAsync({ email, password, fullName });
       router.replace('/vendor/requests');
     } catch (err) {
       form.setError('root', {
@@ -38,7 +70,9 @@ export default function RegisterPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <div>
               <h1 className="font-display text-xl font-semibold text-ink">ลงทะเบียนผู้ขาย</h1>
-              <p className="mt-1 text-sm text-muted">สร้างบัญชีเพื่อขอเปิดร้านค้าบน SOPet</p>
+              <p className="mt-1 text-sm text-muted">
+                สร้างบัญชีเพื่อขอเปิดร้านค้าบน SOPet — เราจะส่งอีเมลยืนยันไปที่อีเมลของคุณ
+              </p>
             </div>
 
             <div>
@@ -86,9 +120,8 @@ export default function RegisterPage() {
               <Label htmlFor="password" required>
                 รหัสผ่าน
               </Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 autoComplete="new-password"
                 placeholder="อย่างน้อย 8 ตัวอักษร"
                 aria-invalid={!!form.formState.errors.password}
@@ -99,6 +132,28 @@ export default function RegisterPage() {
               {form.formState.errors.password ? (
                 <p id="password-error" role="alert" className="mt-1 text-xs text-danger">
                   {form.formState.errors.password.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div>
+              <Label htmlFor="confirmPassword" required>
+                ยืนยันรหัสผ่าน
+              </Label>
+              <PasswordInput
+                id="confirmPassword"
+                autoComplete="new-password"
+                placeholder="กรอกรหัสผ่านอีกครั้ง"
+                aria-invalid={!!form.formState.errors.confirmPassword}
+                aria-describedby={
+                  form.formState.errors.confirmPassword ? 'confirmPassword-error' : undefined
+                }
+                {...form.register('confirmPassword')}
+                className="mt-1.5"
+              />
+              {form.formState.errors.confirmPassword ? (
+                <p id="confirmPassword-error" role="alert" className="mt-1 text-xs text-danger">
+                  {form.formState.errors.confirmPassword.message}
                 </p>
               ) : null}
             </div>

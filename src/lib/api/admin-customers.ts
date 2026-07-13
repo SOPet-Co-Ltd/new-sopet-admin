@@ -1,13 +1,15 @@
 import { executeMutation, executeQuery } from '@/lib/graphql/client';
 import {
+  ADMIN_CUSTOMER_DETAIL_QUERY,
   ADMIN_CUSTOMER_QUERY,
   ADMIN_CUSTOMERS_QUERY,
   SET_CUSTOMER_ACTIVE,
   UPDATE_CUSTOMER_AS_ADMIN,
 } from '@/lib/graphql/documents';
-import { mapAdminCustomer } from '@/lib/graphql/mappers';
+import { mapAdminCustomer, mapAdminCustomerDetail } from '@/lib/graphql/mappers';
 import type {
   AdminCustomer,
+  AdminCustomerDetail,
   CustomersQueryParams,
   Paginated,
   UpdateCustomerAsAdminInput,
@@ -35,6 +37,13 @@ export function getAdminCustomer(id: string): Promise<AdminCustomer> {
   return executeQuery<{ adminCustomer: GqlAdminCustomer }>(ADMIN_CUSTOMER_QUERY, { id }).then(
     (data) => mapAdminCustomer(data.adminCustomer),
   );
+}
+
+export function getAdminCustomerDetail(id: string): Promise<AdminCustomerDetail> {
+  return executeQuery<{ adminCustomerDetail: Parameters<typeof mapAdminCustomerDetail>[0] }>(
+    ADMIN_CUSTOMER_DETAIL_QUERY,
+    { id },
+  ).then((data) => mapAdminCustomerDetail(data.adminCustomerDetail));
 }
 
 export function updateCustomerAsAdmin(

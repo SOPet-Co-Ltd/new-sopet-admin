@@ -10,7 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getDashboardPath, useCurrentUser } from '@/hooks/useAuth';
 import { useAcceptVendorInvitation } from '@/hooks/useVendorInvitations';
+import { getAccessToken } from '@/lib/api/client';
+import { isAccessTokenUsable } from '@/lib/jwt';
+import { useAuthStore } from '@/stores/auth.store';
 
 const schema = z.object({
   fullName: z.string().min(1, 'กรุณากรอกชื่อ'),
@@ -24,6 +28,23 @@ function AcceptVendorInviteForm() {
   const router = useRouter();
   const token = searchParams.get('token') ?? '';
   const acceptMutation = useAcceptVendorInvitation();
+  const { user, isAuthenticated } = useCurrentUser();
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
+    const accessToken = getAccessToken();
+    if (isAuthenticated && isAccessTokenUsable(accessToken) && user) {
+      router.replace(getDashboardPath(user.role));
+    }
+  }, [hasHydrated, isAuthenticated, router, user]);
+
+  const accessToken = typeof window !== 'undefined' ? getAccessToken() : undefined;
+  const isRedirecting =
+    hasHydrated && isAuthenticated && isAccessTokenUsable(accessToken) && !!user;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -35,6 +56,10 @@ function AcceptVendorInviteForm() {
       form.setError('root', { message: 'ลิงก์คำเชิญไม่ถูกต้อง' });
     }
   }, [form, token]);
+
+  if (!hasHydrated || isRedirecting) {
+    return <p className="text-muted">กำลังเปลี่ยนหน้า...</p>;
+  }
 
   async function onSubmit(values: FormValues) {
     if (!token) return;

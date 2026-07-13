@@ -18,6 +18,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useMyStoreRequests, useSubmitStoreRequest } from '@/hooks/useStoreRequests';
+import { useCurrentUser } from '@/hooks/useAuth';
+import { getErrorMessage } from '@/lib/api/errors';
 import { labelStoreRequestStatus } from '@/lib/i18n/th';
 import { storeRequestSchema, type StoreRequestFormValues } from '@/lib/validations';
 
@@ -37,6 +39,8 @@ export function StoreRequestSection({
   const setOpen = onOpenChange ?? setInternalOpen;
   const { data: requests = [], isLoading, error } = useMyStoreRequests();
   const submitMutation = useSubmitStoreRequest();
+  const { user } = useCurrentUser();
+  const isEmailVerified = user?.emailVerified === true;
 
   const form = useForm<StoreRequestFormValues>({
     resolver: zodResolver(storeRequestSchema),
@@ -192,17 +196,26 @@ export function StoreRequestSection({
                 </p>
               ) : null}
             </div>
+            {!isEmailVerified && user?.email ? (
+              <p className="sm:col-span-2 text-sm text-muted">
+                กรุณายืนยันอีเมลก่อนส่งคำขอ —{' '}
+                <a
+                  href="#email-verification-banner"
+                  className="font-medium text-brand underline-offset-2 hover:underline"
+                >
+                  ดูวิธียืนยัน
+                </a>
+              </p>
+            ) : null}
             <div className="sm:col-span-2 flex flex-wrap gap-3">
               {submitMutation.error ? (
                 <p className="mb-2 w-full text-sm text-danger">
-                  {submitMutation.error instanceof Error
-                    ? submitMutation.error.message
-                    : 'ส่งคำขอไม่สำเร็จ'}
+                  {getErrorMessage(submitMutation.error, 'ส่งคำขอไม่สำเร็จ')}
                 </p>
               ) : null}
               <Button
                 type="submit"
-                disabled={submitMutation.isPending}
+                disabled={submitMutation.isPending || !isEmailVerified}
                 aria-busy={submitMutation.isPending}
               >
                 {submitMutation.isPending ? 'กำลังส่ง...' : 'ส่งคำขอเปิดร้าน'}

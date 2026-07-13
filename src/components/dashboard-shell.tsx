@@ -4,10 +4,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState, type ComponentType } from 'react';
-import { HiBars3 } from 'react-icons/hi2';
+import { HiArrowRightOnRectangle, HiBars3, HiUserCircle } from 'react-icons/hi2';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Button } from '@/components/ui/button';
-import { useLogout } from '@/hooks/useAuth';
+import { useCurrentUser, useLogout } from '@/hooks/useAuth';
 import { createDashboardNavPrefetchHandlers } from '@/lib/react-query/prefetch-dashboard-nav';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +38,7 @@ export function DashboardShell({
 }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const { user } = useCurrentUser();
   const logout = useLogout();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -110,11 +110,37 @@ export function DashboardShell({
         ))}
       </nav>
 
-      <div className="space-y-2 border-t border-border p-4">
-        <ThemeToggle />
-        <Button type="button" variant="outline" className="w-full" onClick={logout}>
-          ออกจากระบบ
-        </Button>
+      <div className="border-t border-border p-4">
+        <div className="space-y-3 rounded-xl bg-surface p-3">
+          {user ? (
+            <>
+              <div className="flex items-center gap-3 px-1">
+                <div
+                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand"
+                  aria-hidden="true"
+                >
+                  <HiUserCircle className="size-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-ink">{user.fullName}</p>
+                  <p className="truncate text-xs text-muted">{user.email}</p>
+                </div>
+              </div>
+              <div className="h-px bg-border" aria-hidden="true" />
+            </>
+          ) : null}
+          <div className="space-y-1">
+            <ThemeToggle variant="labeled" />
+            <button
+              type="button"
+              onClick={logout}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-all hover:bg-danger/10 hover:text-danger"
+            >
+              <HiArrowRightOnRectangle className="size-4 shrink-0" aria-hidden="true" />
+              <span>ออกจากระบบ</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -139,7 +165,7 @@ export function DashboardShell({
         </div>
       ) : null}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-3 border-b border-border bg-white px-4 py-3 md:hidden">
           <button
             type="button"
@@ -159,7 +185,7 @@ export function DashboardShell({
           </div>
         </div>
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-10">{children}</div>
         </main>
       </div>
