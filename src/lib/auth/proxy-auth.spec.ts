@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getAuthRedirectPath, getRoleFromAccessToken } from '@/lib/auth/proxy-auth';
+import {
+  getAuthRedirectPath,
+  getGuestOnlyRedirectPath,
+  getRoleFromAccessToken,
+} from '@/lib/auth/proxy-auth';
 
 function createFakeJwt(payload: Record<string, unknown>): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
@@ -44,5 +48,24 @@ describe('proxy-auth', () => {
   it('allows matching vendor role through vendor routes', () => {
     const token = createFakeJwt({ role: 'vendor' });
     expect(getAuthRedirectPath('/vendor/products', 'vendor', token)).toBeNull();
+  });
+
+  it('redirects authenticated users away from register', () => {
+    const vendorToken = createFakeJwt({ role: 'vendor' });
+    expect(getGuestOnlyRedirectPath('/register', 'vendor', vendorToken)).toBe('/vendor');
+
+    const adminToken = createFakeJwt({ role: 'admin' });
+    expect(getGuestOnlyRedirectPath('/register', 'admin', adminToken)).toBe('/admin/stores');
+    expect(getGuestOnlyRedirectPath('/register/invite', 'vendor', vendorToken)).toBe('/vendor');
+  });
+
+  it('allows unauthenticated users to access register', () => {
+    expect(getGuestOnlyRedirectPath('/register', null, undefined)).toBeNull();
+    expect(getGuestOnlyRedirectPath('/register', null, 'token')).toBeNull();
+  });
+
+  it('ignores non-register routes for guest-only redirect', () => {
+    const token = createFakeJwt({ role: 'vendor' });
+    expect(getGuestOnlyRedirectPath('/login', 'vendor', token)).toBeNull();
   });
 });

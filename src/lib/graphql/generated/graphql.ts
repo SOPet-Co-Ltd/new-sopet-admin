@@ -585,6 +585,7 @@ export type Mutation = {
   reorderProductImages: Array<ProductImageType>;
   requestAccountDeletion: Scalars['Boolean']['output'];
   requestPasswordReset: MessagePayload;
+  requestPayout: PayoutType;
   resetPassword: MessagePayload;
   revokeAdminInvitation: AdminInvitationType;
   revokeStoreApiKey: Scalars['Boolean']['output'];
@@ -603,6 +604,7 @@ export type Mutation = {
   switchStore: VendorAuthPayload;
   syncProductVariants: Array<ProductVariantType>;
   togglePromotion: PromotionType;
+  triggerPayout: PayoutType;
   updateAddress: SavedAddressType;
   updateCartItem: CartType;
   updateCategory: CategoryType;
@@ -1069,6 +1071,10 @@ export type MutationTogglePromotionArgs = {
   isActive: Scalars['Boolean']['input'];
 };
 
+export type MutationTriggerPayoutArgs = {
+  input: TriggerPayoutInput;
+};
+
 export type MutationUpdateAddressArgs = {
   id: Scalars['String']['input'];
   input: UpdateAddressInput;
@@ -1346,9 +1352,21 @@ export type PaymentType = {
   status: Scalars['String']['output'];
 };
 
+export type PayoutSummaryType = {
+  __typename?: 'PayoutSummaryType';
+  availableBalance: Scalars['Float']['output'];
+  canRequestPayout: Scalars['Boolean']['output'];
+  grossRevenue: Scalars['Float']['output'];
+  minimumPayoutAmount: Scalars['Float']['output'];
+  pendingPayoutAmount: Scalars['Float']['output'];
+  storeId: Scalars['String']['output'];
+  totalPaidOut: Scalars['Float']['output'];
+};
+
 export type PayoutType = {
   __typename?: 'PayoutType';
   amount: Scalars['Float']['output'];
+  createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
   netAmount: Scalars['Float']['output'];
   status: Scalars['String']['output'];
@@ -1533,6 +1551,8 @@ export type Query = {
   adminCustomer: AdminCustomerType;
   adminCustomers: AdminCustomerConnection;
   adminStore: AdminStoreType;
+  adminStorePayoutSummary: PayoutSummaryType;
+  adminStorePayouts: Array<PayoutType>;
   adminStoreReactivationRequests: Array<StoreReactivationRequestType>;
   adminStoreShippingOptions: Array<StoreShippingOptionType>;
   adminStores: Array<AdminStoreType>;
@@ -1618,6 +1638,7 @@ export type Query = {
   storeBySlug: StoreType;
   storeInvitations: Array<StoreMemberInvitationType>;
   storeMembers: Array<StoreMemberType>;
+  storePayoutSummary: PayoutSummaryType;
   storePayouts: Array<PayoutType>;
   storeProductReviews: StoreProductReviewConnection;
   storePromotions: Array<PromotionType>;
@@ -1653,6 +1674,14 @@ export type QueryAdminCustomersArgs = {
 
 export type QueryAdminStoreArgs = {
   id: Scalars['String']['input'];
+};
+
+export type QueryAdminStorePayoutSummaryArgs = {
+  storeId: Scalars['String']['input'];
+};
+
+export type QueryAdminStorePayoutsArgs = {
+  storeId: Scalars['String']['input'];
 };
 
 export type QueryAdminStoreReactivationRequestsArgs = {
@@ -2394,6 +2423,11 @@ export type TopStoreType = {
   revenue: Scalars['Float']['output'];
   storeId: Scalars['String']['output'];
   storeName: Scalars['String']['output'];
+};
+
+export type TriggerPayoutInput = {
+  amount?: InputMaybe<Scalars['Float']['input']>;
+  storeId: Scalars['String']['input'];
 };
 
 export type UpdateAddressInput = {

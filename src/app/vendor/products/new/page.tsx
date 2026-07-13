@@ -136,21 +136,6 @@ export default function NewProductPage() {
               ) : null}
             </div>
 
-            <Controller
-              name="description"
-              control={form.control}
-              render={({ field }) => (
-                <ProductDescriptionEditor
-                  id="description"
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  placeholder="อธิบายสินค้า..."
-                  disabled={isPending}
-                />
-              )}
-            />
-
             <div className="grid gap-4 sm:grid-cols-2">
               <CategoryField
                 value={form.watch('categoryId')}
@@ -169,6 +154,21 @@ export default function NewProductPage() {
                 onChange={(tagIds) => form.setValue('tagIds', tagIds)}
               />
             </div>
+
+            <Controller
+              name="description"
+              control={form.control}
+              render={({ field }) => (
+                <ProductDescriptionEditor
+                  id="description"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  placeholder="อธิบายสินค้า..."
+                  disabled={isPending}
+                />
+              )}
+            />
           </CardBody>
         </Card>
 

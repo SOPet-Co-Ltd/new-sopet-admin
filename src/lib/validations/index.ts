@@ -92,11 +92,17 @@ export const productFormSchema = z.object({
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
 
-export const registerVendorSchema = z.object({
-  email: z.email('กรุณากรอกอีเมลที่ถูกต้อง'),
-  password: z.string().min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'),
-  fullName: z.string().min(1, 'กรุณากรอกชื่อ-นามสกุล'),
-});
+export const registerVendorSchema = z
+  .object({
+    email: z.email('กรุณากรอกอีเมลที่ถูกต้อง'),
+    password: z.string().min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'),
+    confirmPassword: z.string().min(1, 'กรุณายืนยันรหัสผ่าน'),
+    fullName: z.string().min(1, 'กรุณากรอกชื่อ-นามสกุล'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'รหัสผ่านไม่ตรงกัน',
+    path: ['confirmPassword'],
+  });
 
 export type RegisterVendorFormValues = z.infer<typeof registerVendorSchema>;
 
@@ -148,7 +154,7 @@ export const adminStoreFormSchema = z.object({
   contactPhone: z.string().optional(),
   contactEmail: z.union([z.literal(''), z.email('กรุณากรอกอีเมลที่ถูกต้อง')]).optional(),
   address: z.string().optional(),
-  ownerId: z.string().optional(),
+  ownerId: z.string().min(1, 'กรุณาเลือกเจ้าของร้านค้า'),
   ownerEmail: z.union([z.literal(''), z.email('กรุณากรอกอีเมลที่ถูกต้อง')]).optional(),
 });
 

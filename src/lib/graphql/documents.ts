@@ -1796,3 +1796,70 @@ export const PLATFORM_SETTINGS_FOR_VENDOR_QUERY = gql`
     }
   }
 `;
+
+const PAYOUT_SUMMARY_FIELDS = `
+  storeId
+  grossRevenue
+  totalPaidOut
+  availableBalance
+  pendingPayoutAmount
+  minimumPayoutAmount
+  canRequestPayout
+`;
+
+const PAYOUT_FIELDS = `
+  id
+  storeId
+  amount
+  netAmount
+  status
+  createdAt
+`;
+
+export const STORE_PAYOUT_SUMMARY_QUERY = gql`
+  query StorePayoutSummary {
+    storePayoutSummary {
+      ${PAYOUT_SUMMARY_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_STORE_PAYOUT_SUMMARY_QUERY = gql`
+  query AdminStorePayoutSummary($storeId: String!) {
+    adminStorePayoutSummary(storeId: $storeId) {
+      ${PAYOUT_SUMMARY_FIELDS}
+    }
+  }
+`;
+
+export const STORE_PAYOUTS_QUERY = gql`
+  query StorePayouts {
+    storePayouts {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_STORE_PAYOUTS_QUERY = gql`
+  query AdminStorePayouts($storeId: String!) {
+    adminStorePayouts(storeId: $storeId) {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const REQUEST_PAYOUT_MUTATION = gql`
+  mutation RequestPayout {
+    requestPayout {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const TRIGGER_PAYOUT_MUTATION = gql`
+  mutation TriggerPayout($input: TriggerPayoutInput!) {
+    triggerPayout(input: $input) {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;

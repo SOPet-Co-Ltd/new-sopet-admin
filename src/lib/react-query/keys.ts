@@ -162,4 +162,11 @@ export const queryKeys = {
     analyticsSuggestionCtr: (fromDate?: string, toDate?: string) =>
       ['search', 'analyticsSuggestionCtr', fromDate, toDate] as const,
   },
+  payouts: {
+    all: ['payouts'] as const,
+    vendorSummary: () => ['payouts', 'vendorSummary'] as const,
+    vendorHistory: () => ['payouts', 'vendorHistory'] as const,
+    adminSummary: (storeId: string) => ['payouts', 'adminSummary', storeId] as const,
+    adminHistory: (storeId: string) => ['payouts', 'adminHistory', storeId] as const,
+  },
 } as const;

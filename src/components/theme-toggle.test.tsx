@@ -45,4 +45,22 @@ describe('ThemeToggle', () => {
 
     expect(toggleTheme).toHaveBeenCalledOnce();
   });
+
+  it('renders labeled variant with current mode text', () => {
+    mockedUseTheme.mockReturnValue({
+      theme: 'light',
+      mounted: true,
+      toggleTheme: vi.fn(),
+      isDark: false,
+      setTheme: vi.fn(),
+      systemTheme: 'light',
+      storedTheme: null,
+    });
+
+    render(<ThemeToggle variant="labeled" />);
+
+    expect(screen.getByText('โหมดสว่าง')).toBeInTheDocument();
+    expect(screen.getByText('สลับ')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'เปลี่ยนเป็นโหมดมืด' })).toBeInTheDocument();
+  });
 });

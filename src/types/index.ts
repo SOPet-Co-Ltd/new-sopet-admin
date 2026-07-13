@@ -558,11 +558,9 @@ export interface AdminStore extends StoreDetail {
 }
 
 export interface CreateStoreAsAdminInput {
+  ownerUserId: string;
   name: string;
-  slug?: string;
   description?: string;
-  ownerId?: string;
-  ownerEmail?: string;
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
@@ -578,7 +576,7 @@ export interface UpdateStoreAsAdminInput {
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
-  ownerId?: string;
+  ownerId?: string | null;
   ownerEmail?: string;
 }
 
@@ -856,4 +854,23 @@ export interface AdminInvitation {
 
 export interface InviteAdminInput {
   email: string;
+}
+
+export interface PayoutSummary {
+  storeId: string;
+  grossRevenue: number;
+  totalPaidOut: number;
+  availableBalance: number;
+  pendingPayoutAmount: number;
+  minimumPayoutAmount: number;
+  canRequestPayout: boolean;
+}
+
+export interface Payout {
+  id: string;
+  storeId: string;
+  amount: number;
+  netAmount: number;
+  status: string;
+  createdAt: string;
 }

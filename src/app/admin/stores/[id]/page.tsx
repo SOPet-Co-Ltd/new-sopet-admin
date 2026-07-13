@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { HiArrowLeft } from 'react-icons/hi2';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
@@ -19,8 +19,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { VendorCombobox } from '@/components/admin/vendor-combobox';
+import { AdminStorePayoutPanel } from '@/components/admin/admin-store-payout-panel';
 import { useAdminStore, useUpdateStoreAsAdmin } from '@/hooks/useAdminStores';
 import { useAdminVendor } from '@/hooks/useAdminVendors';
+import { buildUpdateStoreAsAdminInput } from '@/lib/api/admin-stores';
 import { adminStoreFormSchema, type AdminStoreFormValues } from '@/lib/validations';
 
 export default function AdminStoreEditPage() {
@@ -49,33 +51,27 @@ export default function AdminStoreEditPage() {
 
   useEffect(() => {
     if (!store) return;
-    form.reset({
-      name: store.name,
-      slug: store.slug,
-      description: store.description ?? '',
-      status: store.status as AdminStoreFormValues['status'],
-      contactPhone: store.contactPhone ?? '',
-      contactEmail: store.contactEmail ?? '',
-      address: store.address ?? '',
-      ownerId: store.ownerId ?? '',
-      ownerEmail: store.ownerEmail ?? '',
-    });
+    form.reset(
+      {
+        name: store.name,
+        slug: store.slug,
+        description: store.description ?? '',
+        status: store.status as AdminStoreFormValues['status'],
+        contactPhone: store.contactPhone ?? '',
+        contactEmail: store.contactEmail ?? '',
+        address: store.address ?? '',
+        ownerId: store.ownerId ?? '',
+        ownerEmail: store.ownerEmail ?? '',
+      },
+      { keepDirtyValues: true },
+    );
   }, [store, form]);
 
   async function onSubmit(values: AdminStoreFormValues) {
     try {
       await updateMutation.mutateAsync({
         id: params.id,
-        input: {
-          name: values.name,
-          slug: values.slug || undefined,
-          description: values.description || undefined,
-          status: values.status,
-          contactPhone: values.contactPhone || undefined,
-          contactEmail: values.contactEmail || undefined,
-          address: values.address || undefined,
-          ownerId: values.ownerId || undefined,
-        },
+        input: buildUpdateStoreAsAdminInput(values),
       });
       router.push('/admin/stores');
     } catch {
@@ -128,6 +124,9 @@ export default function AdminStoreEditPage() {
             <div>
               <Label htmlFor="slug">Slug</Label>
               <Input id="slug" autoComplete="off" {...form.register('slug')} className="mt-1.5" />
+              <p className="mt-1 text-xs text-muted">
+                slug ที่ระบบสร้างอัตโนมัติจะแสดงหลังบันทึก (ชื่อไทยล้วนได้ slug สั้นแบบสุ่ม)
+              </p>
             </div>
             <div className="sm:col-span-2">
               <Label htmlFor="description">รายละเอียด</Label>
@@ -157,13 +156,26 @@ export default function AdminStoreEditPage() {
               </Select>
             </div>
             <div>
-              <Label htmlFor="ownerId">รหัสเจ้าของ</Label>
-              <VendorCombobox
-                value={ownerId}
-                onChange={(id) => form.setValue('ownerId', id)}
-                initialLabel={
-                  ownerVendor ? `${ownerVendor.fullName} — ${ownerVendor.email}` : undefined
-                }
+              <Label htmlFor="ownerId" required>
+                เจ้าของร้านค้า
+              </Label>
+              <Controller
+                name="ownerId"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <VendorCombobox
+                    value={field.value ?? ''}
+                    onChange={(id) => field.onChange(id)}
+                    initialLabel={
+                      ownerId && ownerVendor?.id === ownerId
+                        ? `${ownerVendor.fullName} — ${ownerVendor.email}`
+                        : undefined
+                    }
+                    fieldError={fieldState.error?.message}
+                    aria-invalid={!!fieldState.error}
+                    aria-describedby={fieldState.error ? 'ownerId-error' : undefined}
+                  />
+                )}
               />
             </div>
             <div>
@@ -247,6 +259,8 @@ export default function AdminStoreEditPage() {
           </form>
         </CardBody>
       </Card>
+
+      <AdminStorePayoutPanel storeId={params.id} />
     </div>
   );
 }

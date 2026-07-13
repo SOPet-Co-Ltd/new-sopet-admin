@@ -200,49 +200,6 @@ export default function EditProductPage() {
               ) : null}
             </div>
 
-            <Controller
-              name="description"
-              control={form.control}
-              render={({ field }) => (
-                <ProductDescriptionEditor
-                  id="description"
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  placeholder="อธิบายสินค้า..."
-                  disabled={isPending}
-                />
-              )}
-            />
-
-            <div>
-              <Label htmlFor="warning">คำเตือน</Label>
-              <Textarea
-                id="warning"
-                placeholder="ข้อความเตือนสำหรับลูกค้า (ถ้ามี)"
-                {...form.register('warning')}
-                className="mt-1.5"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="expiryDate">วันหมดอายุ</Label>
-              <Controller
-                name="expiryDate"
-                control={form.control}
-                render={({ field }) => (
-                  <DateTimePicker
-                    id="expiryDate"
-                    mode="date"
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    placeholder="เลือกวันหมดอายุ"
-                    className="mt-1.5"
-                  />
-                )}
-              />
-            </div>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <CategoryField
                 value={form.watch('categoryId')}
@@ -268,41 +225,84 @@ export default function EditProductPage() {
                   form.setValue('brandId', brandId);
                 }}
               />
-              {!hasVariants ? (
-                <div>
-                  <Label htmlFor="basePrice">ราคาฐาน</Label>
-                  <Input
-                    id="basePrice"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    aria-invalid={!!form.formState.errors.basePrice}
-                    aria-describedby={
-                      form.formState.errors.basePrice ? 'basePrice-error' : undefined
-                    }
-                    {...form.register('basePrice', {
-                      setValueAs: (value: unknown) => {
-                        if (value === '' || value === null || value === undefined) return undefined;
-                        const parsed = Number(value);
-                        return Number.isNaN(parsed) ? undefined : parsed;
-                      },
-                    })}
-                    className="mt-1.5"
-                  />
-                  {form.formState.errors.basePrice ? (
-                    <p id="basePrice-error" className="mt-1 text-xs text-danger" role="alert">
-                      {form.formState.errors.basePrice.message}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
+              <TagsField
+                value={form.watch('tagIds') ?? []}
+                onChange={(tagIds) => form.setValue('tagIds', tagIds)}
+              />
             </div>
 
-            <TagsField
-              value={form.watch('tagIds') ?? []}
-              onChange={(tagIds) => form.setValue('tagIds', tagIds)}
+            <Controller
+              name="description"
+              control={form.control}
+              render={({ field }) => (
+                <ProductDescriptionEditor
+                  id="description"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  placeholder="อธิบายสินค้า..."
+                  disabled={isPending}
+                />
+              )}
             />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="warning">คำเตือน</Label>
+                <Textarea
+                  id="warning"
+                  placeholder="ข้อความเตือนสำหรับลูกค้า (ถ้ามี)"
+                  {...form.register('warning')}
+                  className="mt-1.5"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="expiryDate">วันหมดอายุ</Label>
+                <Controller
+                  name="expiryDate"
+                  control={form.control}
+                  render={({ field }) => (
+                    <DateTimePicker
+                      id="expiryDate"
+                      mode="date"
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      placeholder="เลือกวันหมดอายุ"
+                      className="mt-1.5"
+                    />
+                  )}
+                />
+              </div>
+            </div>
+
+            {!hasVariants ? (
+              <div>
+                <Label htmlFor="basePrice">ราคาฐาน</Label>
+                <Input
+                  id="basePrice"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  aria-invalid={!!form.formState.errors.basePrice}
+                  aria-describedby={form.formState.errors.basePrice ? 'basePrice-error' : undefined}
+                  {...form.register('basePrice', {
+                    setValueAs: (value: unknown) => {
+                      if (value === '' || value === null || value === undefined) return undefined;
+                      const parsed = Number(value);
+                      return Number.isNaN(parsed) ? undefined : parsed;
+                    },
+                  })}
+                  className="mt-1.5"
+                />
+                {form.formState.errors.basePrice ? (
+                  <p id="basePrice-error" className="mt-1 text-xs text-danger" role="alert">
+                    {form.formState.errors.basePrice.message}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             <div>
               <Label htmlFor="status">สถานะ</Label>

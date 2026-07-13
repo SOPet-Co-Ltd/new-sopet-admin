@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   loginSchema,
+  adminStoreFormSchema,
   payoutFormSchema,
   productFormSchema,
   registerVendorSchema,
@@ -55,9 +56,47 @@ describe('registerVendorSchema', () => {
     const result = registerVendorSchema.safeParse({
       email: 'vendor@example.com',
       password: 'short',
+      confirmPassword: 'short',
       fullName: 'Vendor Name',
     });
     expect(result.success).toBe(false);
+  });
+
+  it('rejects mismatched confirmation with Thai message', () => {
+    const result = registerVendorSchema.safeParse({
+      email: 'vendor@example.com',
+      password: 'password123',
+      confirmPassword: 'different123',
+      fullName: 'Vendor Name',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const confirmIssue = result.error.issues.find((i) => i.path.includes('confirmPassword'));
+      expect(confirmIssue?.message).toBe('รหัสผ่านไม่ตรงกัน');
+    }
+  });
+
+  it('requires confirmPassword', () => {
+    const result = registerVendorSchema.safeParse({
+      email: 'vendor@example.com',
+      password: 'password123',
+      confirmPassword: '',
+      fullName: 'Vendor Name',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path.includes('confirmPassword'))).toBe(true);
+    }
+  });
+
+  it('accepts valid registration data', () => {
+    const result = registerVendorSchema.safeParse({
+      email: 'vendor@example.com',
+      password: 'password123',
+      confirmPassword: 'password123',
+      fullName: 'Vendor Name',
+    });
+    expect(result.success).toBe(true);
   });
 });
 
@@ -81,5 +120,29 @@ describe('productFormSchema', () => {
       basePrice: -1,
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe('adminStoreFormSchema', () => {
+  it('requires ownerId with Thai message', () => {
+    const result = adminStoreFormSchema.safeParse({
+      name: 'Pet Shop',
+      ownerId: '',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path.includes('ownerId'))).toBe(true);
+      expect(result.error.issues.find((issue) => issue.path.includes('ownerId'))?.message).toBe(
+        'กรุณาเลือกเจ้าของร้านค้า',
+      );
+    }
+  });
+
+  it('accepts create payload when owner is selected', () => {
+    const result = adminStoreFormSchema.safeParse({
+      name: 'Pet Shop',
+      ownerId: '11111111-1111-4111-8111-111111111111',
+    });
+    expect(result.success).toBe(true);
   });
 });

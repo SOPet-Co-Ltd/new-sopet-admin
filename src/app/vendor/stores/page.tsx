@@ -21,6 +21,7 @@ import { useSwitchStore } from '@/hooks/useSwitchStore';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { getErrorMessage } from '@/lib/api/errors';
 import { labelMembershipRole, labelStoreStatus } from '@/lib/i18n/th';
+import { vendorHasStores } from '@/lib/vendor/vendor-store-access';
 import { cn } from '@/lib/utils';
 import type { VendorStore } from '@/types';
 
@@ -262,6 +263,7 @@ export default function VendorStoresPage() {
   );
 
   const showFilters = ownedStores.length > 0 && joinedStores.length > 0;
+  const hasStores = vendorHasStores(myStores);
 
   function handleSelectStore(storeId: string) {
     const entry = myStores.find((item) => item.store.id === storeId);
@@ -410,13 +412,15 @@ export default function VendorStoresPage() {
             />
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-muted">
-              <HiUserGroup className="size-4" aria-hidden="true" />
-              <span>เสนอหมวดหมู่และแท็ก</span>
+          {!isLoading && hasStores ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-muted">
+                <HiUserGroup className="size-4" aria-hidden="true" />
+                <span>เสนอหมวดหมู่และแท็ก</span>
+              </div>
+              <TaxonomyProposalsSection />
             </div>
-            <TaxonomyProposalsSection />
-          </div>
+          ) : null}
         </div>
       </section>
     </div>

@@ -7,6 +7,24 @@ export function getRoleFromAccessToken(token: string | undefined): AuthRole | nu
   return getPortalRoleFromToken(token);
 }
 
+export function getDashboardPathForRole(role: AuthRole): string {
+  if (role === 'admin') return '/admin/stores';
+  return '/vendor';
+}
+
+export function getGuestOnlyRedirectPath(
+  pathname: string,
+  role: AuthRole | null,
+  accessToken?: string,
+): string | null {
+  const isGuestOnlyRoute = pathname === '/register' || pathname.startsWith('/register/');
+  if (!isGuestOnlyRoute || !accessToken || !role) {
+    return null;
+  }
+
+  return getDashboardPathForRole(role);
+}
+
 export function getAuthRedirectPath(
   pathname: string,
   role: AuthRole | null,
