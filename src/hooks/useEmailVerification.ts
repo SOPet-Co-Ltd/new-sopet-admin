@@ -66,5 +66,5 @@ export function useSyncEmailVerificationStatus() {
       return;
     }
     void refreshAuthUser();
-  }, [hasHydrated, isAuthenticated, user?.id, user?.emailVerified]);
+  }, [hasHydrated, isAuthenticated, user]);
 }
