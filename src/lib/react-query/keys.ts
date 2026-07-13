@@ -1,4 +1,8 @@
-import type { ProductsQueryParams, StoreProductReviewsParams } from '@/types';
+import type {
+  AdminAuditLogsQueryParams,
+  ProductsQueryParams,
+  StoreProductReviewsParams,
+} from '@/types';
 
 export const queryKeys = {
   auth: {
@@ -135,7 +139,7 @@ export const queryKeys = {
   },
   adminAuditLogs: {
     all: ['adminAuditLogs'] as const,
-    list: (params: Record<string, unknown>) => ['adminAuditLogs', 'list', params] as const,
+    list: (params: AdminAuditLogsQueryParams) => ['adminAuditLogs', 'list', params] as const,
   },
   vendorCustomers: {
     all: ['vendorCustomers'] as const,

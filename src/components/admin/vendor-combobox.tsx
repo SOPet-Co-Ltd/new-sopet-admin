@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAdminVendors } from '@/hooks/useAdminVendors';
@@ -55,6 +55,13 @@ export function VendorCombobox({
     enabled: open,
   });
 
+  const closeDropdown = useCallback(() => {
+    setOpen(false);
+    setInputValue('');
+    setDebouncedSearch('');
+    setIsActiveSearch(false);
+  }, []);
+
   useEffect(() => {
     function handleMouseDown(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -63,20 +70,13 @@ export function VendorCombobox({
     }
     document.addEventListener('mousedown', handleMouseDown);
     return () => document.removeEventListener('mousedown', handleMouseDown);
-  }, []);
+  }, [closeDropdown]);
 
   const closedLabel = !value
     ? ''
     : selection?.id === value
       ? selection.label
       : (initialLabel ?? value);
-
-  function closeDropdown() {
-    setOpen(false);
-    setInputValue('');
-    setDebouncedSearch('');
-    setIsActiveSearch(false);
-  }
 
   function handleSelect(id: string, fullName: string, email: string) {
     const label = vendorLabel(fullName, email);
@@ -148,7 +148,7 @@ export function VendorCombobox({
         ) : null}
       </div>
       {open ? (
-        <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-white shadow-[var(--shadow-elevated)]">
+        <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-border bg-white shadow-(--shadow-elevated)">
           {isLoadingResults ? (
             <p className="px-3 py-2 text-sm text-muted">กำลังค้นหา...</p>
           ) : error ? (
