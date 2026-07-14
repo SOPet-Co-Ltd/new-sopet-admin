@@ -730,6 +730,7 @@ export type Mutation = {
   togglePromotion: PromotionType;
   triggerPayout: PayoutType;
   updateAddress: SavedAddressType;
+  updateBrand: BrandType;
   updateCartItem: CartType;
   updateCategory: CategoryType;
   updateCustomerAsAdmin: AdminCustomerType;
@@ -752,6 +753,7 @@ export type Mutation = {
   updateStoreAsAdmin: AdminStoreType;
   updateStoreMemberRole: StoreMemberType;
   updateStorePayout: MyStoreType;
+  updateTag: TagType;
   updateUserProfile: UserProfile;
   updateVendorAsAdmin: AdminVendorType;
   uploadImage: UploadResultType;
@@ -1213,6 +1215,10 @@ export type MutationUpdateAddressArgs = {
   input: UpdateAddressInput;
 };
 
+export type MutationUpdateBrandArgs = {
+  input: UpdateBrandInput;
+};
+
 export type MutationUpdateCartItemArgs = {
   input: UpdateCartItemInput;
 };
@@ -1306,6 +1312,10 @@ export type MutationUpdateStoreMemberRoleArgs = {
 
 export type MutationUpdateStorePayoutArgs = {
   input: UpdateStorePayoutInput;
+};
+
+export type MutationUpdateTagArgs = {
+  input: UpdateTagInput;
 };
 
 export type MutationUpdateUserProfileArgs = {
@@ -1761,7 +1771,9 @@ export type Query = {
   productReviews: Array<ReviewType>;
   products: ProductConnection;
   recommendedProducts: Array<ProductType>;
+  rejectedBrands: Array<BrandType>;
   rejectedCategories: Array<CategoryType>;
+  rejectedPetTypes: Array<PetTypeType>;
   rejectedTags: Array<TagType>;
   searchAnalyticsSuggestionCtr: Array<SearchSuggestionCtrRowType>;
   searchAnalyticsSummary: SearchAnalyticsSummaryType;
@@ -2603,6 +2615,12 @@ export type UpdateAddressInput = {
   tumbon?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateBrandInput = {
+  brandId: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  slug?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpdateCartItemInput = {
   itemId: Scalars['String']['input'];
   quantity: Scalars['Int']['input'];
@@ -2612,6 +2630,7 @@ export type UpdateCartItemInput = {
 export type UpdateCategoryInput = {
   categoryId: Scalars['String']['input'];
   name: Scalars['String']['input'];
+  slug?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateCustomerAsAdminInput = {
@@ -2630,6 +2649,7 @@ export type UpdateOrderStatusInput = {
 export type UpdatePetTypeInput = {
   name: Scalars['String']['input'];
   petTypeId: Scalars['String']['input'];
+  slug?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdatePlatformAdInput = {
@@ -2794,6 +2814,12 @@ export type UpdateStoreSettingsInput = {
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateTagInput = {
+  name: Scalars['String']['input'];
+  slug?: InputMaybe<Scalars['String']['input']>;
+  tagId: Scalars['String']['input'];
+};
+
 export type UpdateUserProfileInput = {
   fullName?: InputMaybe<Scalars['String']['input']>;
   profilePhotoUrl?: InputMaybe<Scalars['String']['input']>;
@@ -2920,6 +2946,12 @@ export type VerifyCustomerOtpInput = {
 
 export type VerifyEmailInput = {
   token: Scalars['String']['input'];
+};
+
+export type UpdateTagInput = {
+  name: string;
+  slug?: string | null | undefined;
+  tagId: string;
 };
 
 export type NotificationsQueryVariables = Exact<{
@@ -3497,6 +3529,33 @@ export type RejectedTagsQuery = {
   }>;
 };
 
+export type RejectedPetTypesQueryVariables = Exact<{ [key: string]: never }>;
+
+export type RejectedPetTypesQuery = {
+  rejectedPetTypes: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    approvalStatus: string;
+    imageUrl: string | null;
+    createdBy: string;
+    createdAt: string;
+  }>;
+};
+
+export type RejectedBrandsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type RejectedBrandsQuery = {
+  rejectedBrands: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    approvalStatus: string;
+    createdBy: string;
+    createdAt: string;
+  }>;
+};
+
 export type SetCategoryImageMutationVariables = Exact<{
   input: SetCategoryImageInput;
 }>;
@@ -3537,6 +3596,22 @@ export type UpdatePetTypeMutation = {
     approvalStatus: string;
     imageUrl: string | null;
   };
+};
+
+export type UpdateTagMutationVariables = Exact<{
+  input: UpdateTagInput;
+}>;
+
+export type UpdateTagMutation = {
+  updateTag: { id: string; name: string; slug: string; approvalStatus: string };
+};
+
+export type UpdateBrandMutationVariables = Exact<{
+  input: UpdateBrandInput;
+}>;
+
+export type UpdateBrandMutation = {
+  updateBrand: { id: string; name: string; slug: string; approvalStatus: string };
 };
 
 export type DeleteCategoryMutationVariables = Exact<{
@@ -5524,6 +5599,67 @@ export const RejectedTagsDocument = {
     },
   ],
 } as unknown as DocumentNode<RejectedTagsQuery, RejectedTagsQueryVariables>;
+export const RejectedPetTypesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'RejectedPetTypes' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'rejectedPetTypes' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'slug' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'approvalStatus' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'imageUrl' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdBy' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RejectedPetTypesQuery, RejectedPetTypesQueryVariables>;
+export const RejectedBrandsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'RejectedBrands' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'rejectedBrands' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'slug' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'approvalStatus' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdBy' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RejectedBrandsQuery, RejectedBrandsQueryVariables>;
 export const SetCategoryImageDocument = {
   kind: 'Document',
   definitions: [
@@ -5662,6 +5798,96 @@ export const UpdatePetTypeDocument = {
     },
   ],
 } as unknown as DocumentNode<UpdatePetTypeMutation, UpdatePetTypeMutationVariables>;
+export const UpdateTagDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateTag' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'UpdateTagInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'updateTag' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'slug' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'approvalStatus' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateTagMutation, UpdateTagMutationVariables>;
+export const UpdateBrandDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateBrand' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'UpdateBrandInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'updateBrand' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'slug' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'approvalStatus' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateBrandMutation, UpdateBrandMutationVariables>;
 export const DeleteCategoryDocument = {
   kind: 'Document',
   definitions: [

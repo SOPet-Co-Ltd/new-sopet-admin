@@ -41,7 +41,8 @@ export function PetTypeCreateCard() {
       <CardHeader>
         <h2 className="font-display font-medium text-ink">สร้างประเภทสัตว์เลี้ยง</h2>
         <p className="mt-1 text-sm text-muted">
-          อัปโหลดรูปภาพก่อนอนุมัติประเภทสัตว์เลี้ยงที่รอดำเนินการ
+          ประเภทสัตว์เลี้ยงที่สร้างโดยผู้ดูแลจะได้รับการอนุมัติทันที
+          รูปภาพจำเป็นสำหรับการแสดงบนหน้าร้าน
         </p>
       </CardHeader>
       <CardBody>

@@ -30,6 +30,8 @@ import {
   getPendingBrands,
   getRejectedCategories,
   getRejectedTags,
+  getRejectedPetTypes,
+  getRejectedBrands,
   rejectCategory,
   rejectTag,
   rejectPetType,
@@ -38,6 +40,8 @@ import {
   setPetTypeImage,
   updateCategory,
   updatePetType,
+  updateTag,
+  updateBrand,
 } from '@/lib/api/taxonomy';
 import { queryKeys } from '@/lib/react-query/keys';
 import type {
@@ -50,6 +54,8 @@ import type {
   SetPetTypeImageInput,
   UpdateCategoryInput,
   UpdatePetTypeInput,
+  UpdateTagInput,
+  UpdateBrandInput,
 } from '@/types';
 
 const TAXONOMY_STALE_TIME = 5 * 60 * 1000; // Taxonomy rarely changes
@@ -139,6 +145,22 @@ export function useRejectedTags() {
     staleTime: TAXONOMY_STALE_TIME,
     queryKey: queryKeys.taxonomy.rejectedTags(),
     queryFn: getRejectedTags,
+  });
+}
+
+export function useRejectedPetTypes() {
+  return useQuery({
+    staleTime: TAXONOMY_STALE_TIME,
+    queryKey: queryKeys.taxonomy.rejectedPetTypes(),
+    queryFn: getRejectedPetTypes,
+  });
+}
+
+export function useRejectedBrands() {
+  return useQuery({
+    staleTime: TAXONOMY_STALE_TIME,
+    queryKey: queryKeys.taxonomy.rejectedBrands(),
+    queryFn: getRejectedBrands,
   });
 }
 
@@ -300,6 +322,32 @@ export function useUpdatePetType() {
   });
 }
 
+export function useUpdateTag() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateTagInput) => updateTag(input),
+    onSuccess: () => {
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedTags,
+        queryKeys.taxonomy.pendingTags,
+      ]);
+    },
+  });
+}
+
+export function useUpdateBrand() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateBrandInput) => updateBrand(input),
+    onSuccess: () => {
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.approvedBrands,
+        queryKeys.taxonomy.pendingBrands,
+      ]);
+    },
+  });
+}
+
 export function useApproveCategory() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -392,6 +440,7 @@ export function useDeletePetType() {
       invalidateTaxonomyKeys(queryClient, [
         queryKeys.taxonomy.approvedPetTypes,
         queryKeys.taxonomy.pendingPetTypes,
+        queryKeys.taxonomy.rejectedPetTypes,
         () => queryKeys.taxonomy.petTypeDeleteImpact(variables.id),
       ]);
     },
@@ -406,6 +455,7 @@ export function useDeleteBrand() {
       invalidateTaxonomyKeys(queryClient, [
         queryKeys.taxonomy.approvedBrands,
         queryKeys.taxonomy.pendingBrands,
+        queryKeys.taxonomy.rejectedBrands,
         () => queryKeys.taxonomy.brandDeleteImpact(variables.id),
       ]);
     },
@@ -420,6 +470,7 @@ export function useApprovePetType() {
       invalidateTaxonomyKeys(queryClient, [
         queryKeys.taxonomy.approvedPetTypes,
         queryKeys.taxonomy.pendingPetTypes,
+        queryKeys.taxonomy.rejectedPetTypes,
       ]);
     },
   });
@@ -430,7 +481,10 @@ export function useRejectPetType() {
   return useMutation({
     mutationFn: (id: string) => rejectPetType(id),
     onSuccess: () => {
-      invalidateTaxonomyKeys(queryClient, [queryKeys.taxonomy.pendingPetTypes]);
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.pendingPetTypes,
+        queryKeys.taxonomy.rejectedPetTypes,
+      ]);
     },
   });
 }
@@ -443,6 +497,7 @@ export function useApproveBrand() {
       invalidateTaxonomyKeys(queryClient, [
         queryKeys.taxonomy.approvedBrands,
         queryKeys.taxonomy.pendingBrands,
+        queryKeys.taxonomy.rejectedBrands,
       ]);
     },
   });
@@ -453,7 +508,10 @@ export function useRejectBrand() {
   return useMutation({
     mutationFn: (id: string) => rejectBrand(id),
     onSuccess: () => {
-      invalidateTaxonomyKeys(queryClient, [queryKeys.taxonomy.pendingBrands]);
+      invalidateTaxonomyKeys(queryClient, [
+        queryKeys.taxonomy.pendingBrands,
+        queryKeys.taxonomy.rejectedBrands,
+      ]);
     },
   });
 }

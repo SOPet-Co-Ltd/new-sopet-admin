@@ -16,6 +16,7 @@ export const ERROR_MESSAGES = {
   CONFLICT: 'ข้อมูลนี้มีอยู่แล้วหรือขัดแย้งกับข้อมูลอื่น',
   DUPLICATE_NAME: 'มีชื่อนี้อยู่แล้ว กรุณาใช้ชื่ออื่น',
   SLUG_EXISTS: 'ชื่อย่อ (slug) นี้ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น',
+  INVALID_SLUG: 'รูปแบบ slug ไม่ถูกต้อง',
   PAYLOAD_TOO_LARGE: 'ไฟล์หรือข้อมูลมีขนาดใหญ่เกินไป',
   TOO_MANY_REQUESTS: 'มีการร้องขอมากเกินไป กรุณารอสักครู่แล้วลองใหม่',
   INSUFFICIENT_STOCK: 'สินค้าไม่เพียงพอในสต็อก',
@@ -33,6 +34,7 @@ export const ERROR_MESSAGES = {
   INVALID_CATEGORY_IMAGE_URL: 'URL รูปภาพไม่ถูกต้อง',
   CATEGORY_NOT_FOUND: 'ไม่พบหมวดหมู่',
   TAG_NOT_FOUND: 'ไม่พบแท็ก',
+  BRAND_NOT_FOUND: 'ไม่พบแบรนด์',
 } as const;
 
 export type ErrorMessageCode = keyof typeof ERROR_MESSAGES;

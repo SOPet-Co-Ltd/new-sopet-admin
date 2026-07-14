@@ -9,28 +9,21 @@ import { useForm } from 'react-hook-form';
 import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
-import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  useApprovedPetTypes,
-  useDeletePetType,
-  useSetPetTypeImage,
-  useUpdatePetType,
-} from '@/hooks/useTaxonomy';
+import { useApprovedTags, useDeleteTag, useUpdateTag } from '@/hooks/useTaxonomy';
 import { isApiError } from '@/lib/api/errors';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { editTaxonomySchema, type EditTaxonomyFormValues } from '@/lib/validations';
 
-export default function EditPetTypePage() {
+export default function EditTagPage() {
   const params = useParams<{ id: string }>();
-  const petTypeId = params.id;
+  const tagId = params.id;
   const router = useRouter();
-  const { data: petTypes = [], isLoading, error } = useApprovedPetTypes();
-  const petType = petTypes.find((item) => item.id === petTypeId);
-  const updatePetType = useUpdatePetType();
-  const deletePetType = useDeletePetType();
-  const setPetTypeImage = useSetPetTypeImage();
+  const { data: tags = [], isLoading, error } = useApprovedTags();
+  const tag = tags.find((item) => item.id === tagId);
+  const updateTag = useUpdateTag();
+  const deleteTag = useDeleteTag();
 
   const form = useForm<EditTaxonomyFormValues>({
     resolver: zodResolver(editTaxonomySchema),
@@ -38,29 +31,25 @@ export default function EditPetTypePage() {
   });
 
   useEffect(() => {
-    if (petType) {
-      form.reset({ name: petType.name, slug: petType.slug });
+    if (tag) {
+      form.reset({ name: tag.name, slug: tag.slug });
     }
-  }, [petType, form]);
+  }, [tag, form]);
 
-  const isPending = updatePetType.isPending || deletePetType.isPending || setPetTypeImage.isPending;
+  const isPending = updateTag.isPending || deleteTag.isPending;
 
   async function onSubmit(values: EditTaxonomyFormValues) {
-    if (!petType) return;
+    if (!tag) return;
     const name = values.name.trim();
     const slug = values.slug.trim();
-    const nameChanged = name !== petType.name;
-    const slugChanged = slug !== petType.slug;
+    const nameChanged = name !== tag.name;
+    const slugChanged = slug !== tag.slug;
     if (!nameChanged && !slugChanged) {
       router.push('/admin/taxonomy');
       return;
     }
     try {
-      await updatePetType.mutateAsync({
-        petTypeId: petType.id,
-        name,
-        slug,
-      });
+      await updateTag.mutateAsync({ tagId: tag.id, name, slug });
       router.push('/admin/taxonomy');
     } catch (err) {
       const message = isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ';
@@ -77,11 +66,11 @@ export default function EditPetTypePage() {
     return <p className="text-muted">กำลังโหลด...</p>;
   }
 
-  if (error || !petType) {
+  if (error || !tag) {
     return (
       <div className="space-y-4">
         <p className="text-sm text-danger">
-          {error instanceof Error ? error.message : 'ไม่พบประเภทสัตว์เลี้ยง'}
+          {error instanceof Error ? error.message : 'ไม่พบแท็ก'}
         </p>
         <Button variant="outline" asChild>
           <Link href="/admin/taxonomy">กลับ</Link>
@@ -93,8 +82,8 @@ export default function EditPetTypePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
-        title="แก้ไขประเภทสัตว์เลี้ยง"
-        description={labelTaxonomyStatus(petType.status)}
+        title="แก้ไขแท็ก"
+        description={labelTaxonomyStatus(tag.status)}
         back={
           <Link
             href="/admin/taxonomy"
@@ -110,65 +99,49 @@ export default function EditPetTypePage() {
         <CardBody>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <Label htmlFor="pet-type-name" required>
-                ชื่อประเภทสัตว์เลี้ยง
+              <Label htmlFor="tag-name" required>
+                ชื่อแท็ก
               </Label>
               <Input
-                id="pet-type-name"
-                placeholder="เช่น สุนัข"
+                id="tag-name"
+                placeholder="เช่น ออร์แกนิก"
                 aria-invalid={!!form.formState.errors.name}
-                aria-describedby={form.formState.errors.name ? 'pet-type-name-error' : undefined}
+                aria-describedby={form.formState.errors.name ? 'tag-name-error' : undefined}
                 {...form.register('name')}
                 className="mt-1.5"
                 disabled={isPending}
               />
               {form.formState.errors.name ? (
-                <p id="pet-type-name-error" role="alert" className="mt-1 text-xs text-danger">
+                <p id="tag-name-error" role="alert" className="mt-1 text-xs text-danger">
                   {form.formState.errors.name.message}
                 </p>
               ) : null}
             </div>
 
             <div>
-              <Label htmlFor="pet-type-slug" required>
+              <Label htmlFor="tag-slug" required>
                 Slug
               </Label>
               <Input
-                id="pet-type-slug"
+                id="tag-slug"
                 autoComplete="off"
-                placeholder="เช่น dog"
+                placeholder="เช่น organic"
                 aria-invalid={!!form.formState.errors.slug}
-                aria-describedby={
-                  form.formState.errors.slug ? 'pet-type-slug-error' : 'pet-type-slug-hint'
-                }
+                aria-describedby={form.formState.errors.slug ? 'tag-slug-error' : 'tag-slug-hint'}
                 {...form.register('slug')}
                 className="mt-1.5"
                 disabled={isPending}
               />
               {form.formState.errors.slug ? (
-                <p id="pet-type-slug-error" role="alert" className="mt-1 text-xs text-danger">
+                <p id="tag-slug-error" role="alert" className="mt-1 text-xs text-danger">
                   {form.formState.errors.slug.message}
                 </p>
               ) : (
-                <p id="pet-type-slug-hint" className="mt-1 text-xs text-muted">
+                <p id="tag-slug-hint" className="mt-1 text-xs text-muted">
                   ใช้ใน URL และตัวกรอง — เปลี่ยนแล้วลิงก์เดิมอาจใช้ไม่ได้
                 </p>
               )}
             </div>
-
-            <ImageUploadField
-              label="รูปภาพประเภทสัตว์เลี้ยง"
-              value={petType.imageUrl ?? ''}
-              onChange={(url) =>
-                void setPetTypeImage.mutateAsync({ petTypeId: petType.id, imageUrl: url })
-              }
-              folder="pet-types"
-              showUrl={false}
-              disabled={isPending}
-              error={
-                setPetTypeImage.error instanceof Error ? setPetTypeImage.error.message : undefined
-              }
-            />
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
               <div className="flex gap-3">
@@ -176,18 +149,18 @@ export default function EditPetTypePage() {
                   <Link href="/admin/taxonomy">ยกเลิก</Link>
                 </Button>
                 <Button type="submit" disabled={isPending} aria-busy={isPending}>
-                  {updatePetType.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+                  {updateTag.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
                 </Button>
               </div>
               <ConfirmDeleteButton
-                confirmLabel={petType.name}
-                title="ลบประเภทสัตว์เลี้ยง"
+                confirmLabel={tag.name}
+                title="ลบแท็ก"
                 variant="destructive"
                 size="default"
                 disabled={isPending}
-                isDeleting={deletePetType.isPending}
+                isDeleting={deleteTag.isPending}
                 onConfirm={async () => {
-                  await deletePetType.mutateAsync({ id: petType.id });
+                  await deleteTag.mutateAsync(tag.id);
                   router.push('/admin/taxonomy');
                 }}
               />

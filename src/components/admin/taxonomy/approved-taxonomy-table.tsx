@@ -8,12 +8,13 @@ import type { TaxonomyDeleteKind } from '@/components/admin/taxonomy/taxonomy-de
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
-import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import type { TaxonomyItem } from '@/types';
 
 function taxonomyEditHref(kind: TaxonomyDeleteKind, id: string): string | null {
   if (kind === 'category') return `/admin/taxonomy/categories/${id}/edit`;
+  if (kind === 'tag') return `/admin/taxonomy/tags/${id}/edit`;
   if (kind === 'petType') return `/admin/taxonomy/pet-types/${id}/edit`;
+  if (kind === 'brand') return `/admin/taxonomy/brands/${id}/edit`;
   return null;
 }
 
@@ -67,14 +68,6 @@ export function ApprovedTaxonomyTable({
         header: ({ column }) => <SortableHeader column={column}>Slug</SortableHeader>,
         cell: ({ row }) => <span className="text-sm text-muted">{row.original.slug}</span>,
         meta: { className: 'hidden md:table-cell' },
-      },
-      {
-        accessorKey: 'status',
-        header: 'สถานะ',
-        cell: ({ row }) => (
-          <span className="text-sm text-muted">{labelTaxonomyStatus(row.original.status)}</span>
-        ),
-        meta: { className: 'hidden sm:table-cell' },
       },
       {
         id: 'actions',

@@ -9,28 +9,21 @@ import { useForm } from 'react-hook-form';
 import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
-import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  useApprovedPetTypes,
-  useDeletePetType,
-  useSetPetTypeImage,
-  useUpdatePetType,
-} from '@/hooks/useTaxonomy';
+import { useApprovedBrands, useDeleteBrand, useUpdateBrand } from '@/hooks/useTaxonomy';
 import { isApiError } from '@/lib/api/errors';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { editTaxonomySchema, type EditTaxonomyFormValues } from '@/lib/validations';
 
-export default function EditPetTypePage() {
+export default function EditBrandPage() {
   const params = useParams<{ id: string }>();
-  const petTypeId = params.id;
+  const brandId = params.id;
   const router = useRouter();
-  const { data: petTypes = [], isLoading, error } = useApprovedPetTypes();
-  const petType = petTypes.find((item) => item.id === petTypeId);
-  const updatePetType = useUpdatePetType();
-  const deletePetType = useDeletePetType();
-  const setPetTypeImage = useSetPetTypeImage();
+  const { data: brands = [], isLoading, error } = useApprovedBrands();
+  const brand = brands.find((item) => item.id === brandId);
+  const updateBrand = useUpdateBrand();
+  const deleteBrand = useDeleteBrand();
 
   const form = useForm<EditTaxonomyFormValues>({
     resolver: zodResolver(editTaxonomySchema),
@@ -38,29 +31,25 @@ export default function EditPetTypePage() {
   });
 
   useEffect(() => {
-    if (petType) {
-      form.reset({ name: petType.name, slug: petType.slug });
+    if (brand) {
+      form.reset({ name: brand.name, slug: brand.slug });
     }
-  }, [petType, form]);
+  }, [brand, form]);
 
-  const isPending = updatePetType.isPending || deletePetType.isPending || setPetTypeImage.isPending;
+  const isPending = updateBrand.isPending || deleteBrand.isPending;
 
   async function onSubmit(values: EditTaxonomyFormValues) {
-    if (!petType) return;
+    if (!brand) return;
     const name = values.name.trim();
     const slug = values.slug.trim();
-    const nameChanged = name !== petType.name;
-    const slugChanged = slug !== petType.slug;
+    const nameChanged = name !== brand.name;
+    const slugChanged = slug !== brand.slug;
     if (!nameChanged && !slugChanged) {
       router.push('/admin/taxonomy');
       return;
     }
     try {
-      await updatePetType.mutateAsync({
-        petTypeId: petType.id,
-        name,
-        slug,
-      });
+      await updateBrand.mutateAsync({ brandId: brand.id, name, slug });
       router.push('/admin/taxonomy');
     } catch (err) {
       const message = isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ';
@@ -77,11 +66,11 @@ export default function EditPetTypePage() {
     return <p className="text-muted">กำลังโหลด...</p>;
   }
 
-  if (error || !petType) {
+  if (error || !brand) {
     return (
       <div className="space-y-4">
         <p className="text-sm text-danger">
-          {error instanceof Error ? error.message : 'ไม่พบประเภทสัตว์เลี้ยง'}
+          {error instanceof Error ? error.message : 'ไม่พบแบรนด์'}
         </p>
         <Button variant="outline" asChild>
           <Link href="/admin/taxonomy">กลับ</Link>
@@ -93,8 +82,8 @@ export default function EditPetTypePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
-        title="แก้ไขประเภทสัตว์เลี้ยง"
-        description={labelTaxonomyStatus(petType.status)}
+        title="แก้ไขแบรนด์"
+        description={labelTaxonomyStatus(brand.status)}
         back={
           <Link
             href="/admin/taxonomy"
@@ -110,65 +99,51 @@ export default function EditPetTypePage() {
         <CardBody>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <Label htmlFor="pet-type-name" required>
-                ชื่อประเภทสัตว์เลี้ยง
+              <Label htmlFor="brand-name" required>
+                ชื่อแบรนด์
               </Label>
               <Input
-                id="pet-type-name"
-                placeholder="เช่น สุนัข"
+                id="brand-name"
+                placeholder="เช่น Royal Canin"
                 aria-invalid={!!form.formState.errors.name}
-                aria-describedby={form.formState.errors.name ? 'pet-type-name-error' : undefined}
+                aria-describedby={form.formState.errors.name ? 'brand-name-error' : undefined}
                 {...form.register('name')}
                 className="mt-1.5"
                 disabled={isPending}
               />
               {form.formState.errors.name ? (
-                <p id="pet-type-name-error" role="alert" className="mt-1 text-xs text-danger">
+                <p id="brand-name-error" role="alert" className="mt-1 text-xs text-danger">
                   {form.formState.errors.name.message}
                 </p>
               ) : null}
             </div>
 
             <div>
-              <Label htmlFor="pet-type-slug" required>
+              <Label htmlFor="brand-slug" required>
                 Slug
               </Label>
               <Input
-                id="pet-type-slug"
+                id="brand-slug"
                 autoComplete="off"
-                placeholder="เช่น dog"
+                placeholder="เช่น royal-canin"
                 aria-invalid={!!form.formState.errors.slug}
                 aria-describedby={
-                  form.formState.errors.slug ? 'pet-type-slug-error' : 'pet-type-slug-hint'
+                  form.formState.errors.slug ? 'brand-slug-error' : 'brand-slug-hint'
                 }
                 {...form.register('slug')}
                 className="mt-1.5"
                 disabled={isPending}
               />
               {form.formState.errors.slug ? (
-                <p id="pet-type-slug-error" role="alert" className="mt-1 text-xs text-danger">
+                <p id="brand-slug-error" role="alert" className="mt-1 text-xs text-danger">
                   {form.formState.errors.slug.message}
                 </p>
               ) : (
-                <p id="pet-type-slug-hint" className="mt-1 text-xs text-muted">
+                <p id="brand-slug-hint" className="mt-1 text-xs text-muted">
                   ใช้ใน URL และตัวกรอง — เปลี่ยนแล้วลิงก์เดิมอาจใช้ไม่ได้
                 </p>
               )}
             </div>
-
-            <ImageUploadField
-              label="รูปภาพประเภทสัตว์เลี้ยง"
-              value={petType.imageUrl ?? ''}
-              onChange={(url) =>
-                void setPetTypeImage.mutateAsync({ petTypeId: petType.id, imageUrl: url })
-              }
-              folder="pet-types"
-              showUrl={false}
-              disabled={isPending}
-              error={
-                setPetTypeImage.error instanceof Error ? setPetTypeImage.error.message : undefined
-              }
-            />
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
               <div className="flex gap-3">
@@ -176,18 +151,18 @@ export default function EditPetTypePage() {
                   <Link href="/admin/taxonomy">ยกเลิก</Link>
                 </Button>
                 <Button type="submit" disabled={isPending} aria-busy={isPending}>
-                  {updatePetType.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+                  {updateBrand.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
                 </Button>
               </div>
               <ConfirmDeleteButton
-                confirmLabel={petType.name}
-                title="ลบประเภทสัตว์เลี้ยง"
+                confirmLabel={brand.name}
+                title="ลบแบรนด์"
                 variant="destructive"
                 size="default"
                 disabled={isPending}
-                isDeleting={deletePetType.isPending}
+                isDeleting={deleteBrand.isPending}
                 onConfirm={async () => {
-                  await deletePetType.mutateAsync({ id: petType.id });
+                  await deleteBrand.mutateAsync({ id: brand.id });
                   router.push('/admin/taxonomy');
                 }}
               />

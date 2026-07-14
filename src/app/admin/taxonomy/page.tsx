@@ -34,6 +34,8 @@ import {
   useRejectBrand,
   useRejectedCategories,
   useRejectedTags,
+  useRejectedPetTypes,
+  useRejectedBrands,
 } from '@/hooks/useTaxonomy';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
@@ -128,6 +130,16 @@ export default function AdminTaxonomyPage() {
     isLoading: loadingRejectedTags,
     error: rejectedTagsError,
   } = useRejectedTags();
+  const {
+    data: rejectedPetTypes = [],
+    isLoading: loadingRejectedPetTypes,
+    error: rejectedPetTypesError,
+  } = useRejectedPetTypes();
+  const {
+    data: rejectedBrands = [],
+    isLoading: loadingRejectedBrands,
+    error: rejectedBrandsError,
+  } = useRejectedBrands();
   const {
     data: approvedCategories = [],
     isLoading: loadingApprovedCategories,
@@ -291,7 +303,12 @@ export default function AdminTaxonomyPage() {
         <div className="space-y-4">
           <Card>
             <CardBody className="space-y-3">
-              <h2 className="font-display font-medium text-ink">สร้างแท็ก (อนุมัติอัตโนมัติ)</h2>
+              <div>
+                <h2 className="font-display font-medium text-ink">สร้างแท็ก</h2>
+                <p className="mt-1 text-sm text-muted">
+                  แท็กที่สร้างโดยผู้ดูแลจะได้รับการอนุมัติทันที
+                </p>
+              </div>
               <form
                 onSubmit={tagForm.handleSubmit(onCreateTag)}
                 className="flex flex-wrap items-end gap-3"
@@ -370,6 +387,7 @@ export default function AdminTaxonomyPage() {
               title="ประเภทสัตว์เลี้ยงที่อนุมัติแล้ว"
               items={approvedPetTypes}
               kind="petType"
+              showImage
               disabled={mutationPending}
             />
           )}
@@ -397,12 +415,24 @@ export default function AdminTaxonomyPage() {
               </CardBody>
             </Card>
           )}
+          <RejectedTaxonomySection
+            kind="petType"
+            items={rejectedPetTypes}
+            isLoading={loadingRejectedPetTypes}
+            error={rejectedPetTypesError}
+            disabled={mutationPending}
+          />
         </div>
       ) : (
         <div className="space-y-4">
           <Card>
             <CardBody className="space-y-3">
-              <h2 className="font-display font-medium text-ink">สร้างแบรนด์ (อนุมัติอัตโนมัติ)</h2>
+              <div>
+                <h2 className="font-display font-medium text-ink">สร้างแบรนด์</h2>
+                <p className="mt-1 text-sm text-muted">
+                  แบรนด์ที่สร้างโดยผู้ดูแลจะได้รับการอนุมัติทันที
+                </p>
+              </div>
               <form
                 onSubmit={brandForm.handleSubmit(onCreateBrand)}
                 className="flex flex-wrap items-end gap-3"
@@ -467,6 +497,13 @@ export default function AdminTaxonomyPage() {
               onReject={(id) => rejectBrand.mutate(id)}
             />
           )}
+          <RejectedTaxonomySection
+            kind="brand"
+            items={rejectedBrands}
+            isLoading={loadingRejectedBrands}
+            error={rejectedBrandsError}
+            disabled={mutationPending}
+          />
         </div>
       )}
     </div>
