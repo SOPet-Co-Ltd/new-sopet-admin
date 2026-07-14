@@ -1765,7 +1765,7 @@ export const VENDOR_CUSTOMER_DETAIL_QUERY = gql`
 `;
 
 export const STORE_API_KEYS_QUERY = gql`
-  query StoreApiKeys($storeId: ID!) {
+  query StoreApiKeys($storeId: String!) {
     storeApiKeys(storeId: $storeId) {
       id
       name
@@ -1778,7 +1778,7 @@ export const STORE_API_KEYS_QUERY = gql`
 `;
 
 export const CREATE_STORE_API_KEY = gql`
-  mutation CreateStoreApiKey($storeId: ID!, $name: String!) {
+  mutation CreateStoreApiKey($storeId: String!, $name: String!) {
     createStoreApiKey(storeId: $storeId, name: $name) {
       apiKey {
         id
@@ -1793,7 +1793,7 @@ export const CREATE_STORE_API_KEY = gql`
 `;
 
 export const REVOKE_STORE_API_KEY = gql`
-  mutation RevokeStoreApiKey($storeId: ID!, $id: ID!) {
+  mutation RevokeStoreApiKey($storeId: String!, $id: String!) {
     revokeStoreApiKey(storeId: $storeId, id: $id)
   }
 `;
