@@ -12,9 +12,11 @@ flowchart TD
   F --> G[Tests]
 ```
 
-## Example: admin page for new GraphQL query
+## Example: admin page for a new GraphQL query
 
 ### 1. Add operation
+
+Prefer inline documents for one-off admin ops; use `.graphql` + codegen when sharing typed documents (search, notifications, promotions, taxonomy already do).
 
 ```typescript
 // src/lib/graphql/documents.ts
@@ -44,13 +46,17 @@ export async function fetchMyAdminData(filter?: string) {
 ### 3. Hook
 
 ```typescript
+// src/lib/react-query/keys.ts — add a domain namespace
+// myAdminData: { all: ['myAdminData'] as const, list: (filter?: string) => … }
+
 // src/hooks/useMyAdminData.ts
 import { useQuery } from '@tanstack/react-query';
 import { fetchMyAdminData } from '@/lib/api/my-feature';
+import { queryKeys } from '@/lib/react-query/keys';
 
 export function useMyAdminData(filter?: string) {
   return useQuery({
-    queryKey: ['myAdminData', filter],
+    queryKey: queryKeys.myAdminData.list(filter),
     queryFn: () => fetchMyAdminData(filter),
   });
 }
@@ -69,28 +75,29 @@ export default function MyFeaturePage() {
   const { data, isLoading, error, refetch } = useMyAdminData();
   if (error) return <QueryErrorState error={error} onRetry={refetch} />;
   if (isLoading) return <p>กำลังโหลด...</p>;
-  return (/* render data */);
+  return null; // render data
 }
 ```
 
 ### 5. Add nav item
 
-Update `src/components/admin/admin-layout.tsx` nav sections.
+Update `src/components/admin/admin-layout.tsx` (or `vendor-layout.tsx`) nav sections.
 
 ### 6. Test
 
-```typescript
-// src/hooks/useMyAdminData.test.ts — mock lib/api
-// e2e/my-feature.spec.ts — Playwright with admin auth fixture
-```
+- Unit: `src/hooks/useMyAdminData.test.ts` — mock `lib/api`
+- Page/component: colocated `*.test.tsx`
+- Browser: `e2e/my-feature.spec.ts` with admin auth fixture when the flow needs a real page load
 
-## Form feature checklist
+## Form feature requirements
 
-- [ ] Zod schema in `lib/validations/`
-- [ ] `react-hook-form` + `zodResolver`
-- [ ] Mutation hook with `invalidateQueries`
-- [ ] `meta: { toastError: true }` for automatic error toasts
-- [ ] Thai validation messages
+When adding a form:
+
+1. Zod schema in `lib/validations/` with Thai messages
+2. `react-hook-form` + `zodResolver`
+3. Mutation hook that `invalidateQueries` on success
+4. `meta: { toastError: true }` when toast-on-error is desired
+5. Surface API failures with `getErrorMessage()`
 
 ## Vendor vs admin
 
@@ -103,9 +110,12 @@ Update `src/components/admin/admin-layout.tsx` nav sections.
 
 ## Cross-repo coordination
 
-See [workspace cross-repo workflow](../../new-sopet-workspace/docs/developer/cross-repo-workflow.md).
+1. Change API/schema in `../sopet-backend` and regenerate `src/schema.gql` (`yarn start:dev`).
+2. Run `yarn graphql:codegen` in this repo (and `../sopet-storefront` if the customer UI is affected).
+3. Implement UI/hooks here; commit each repo separately. Merge backend before frontend CI that depends on the new schema.
 
 ## Related docs
 
 - [Data fetching](data-fetching.md)
 - [Forms & validation](forms-validation.md)
+- [Development guide](development-guide.md)
