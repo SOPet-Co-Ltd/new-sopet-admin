@@ -15,6 +15,9 @@ export function useTheme() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Resolves theme from localStorage/media query, which only exist client-side;
+    // must run post-mount to avoid an SSR/CSR hydration mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(resolveTheme());
     setMounted(true);
   }, []);

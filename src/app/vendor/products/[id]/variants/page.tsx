@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { HiArrowLeft } from 'react-icons/hi2';
 import { VariantItemsSpreadsheet } from '@/components/vendor/variant-items-spreadsheet';
 import { Button } from '@/components/ui/button';
@@ -18,14 +18,13 @@ export default function ProductVariantsPage() {
   const syncMutation = useSyncProductVariants();
 
   const [items, setItems] = useState<VariantItem[]>([]);
-  const [initialized, setInitialized] = useState(false);
+  const [loadedProductId, setLoadedProductId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    if (!product || initialized) return;
+  if (product && product.id !== loadedProductId) {
+    setLoadedProductId(product.id);
     setItems(variantItemsFromProduct(product.variants ?? []));
-    setInitialized(true);
-  }, [initialized, product]);
+  }
 
   const optionGroups = useMemo(() => extractOptionGroups(items), [items]);
 

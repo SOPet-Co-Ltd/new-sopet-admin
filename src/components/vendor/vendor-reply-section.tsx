@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { formatDateTime } from '@/lib/utils';
 import type { ReviewReply } from '@/types';
@@ -16,14 +16,11 @@ export function VendorReplySection({ reviewId, reply, storeId }: VendorReplySect
   const [isExpanded, setIsExpanded] = useState(false);
   const [optimisticReply, setOptimisticReply] = useState<ReviewReply | null>(null);
   const panelId = `vendor-reply-panel-${reviewId}`;
-  const effectiveReply = optimisticReply ?? reply ?? null;
+  // Once the real reply catches up to the optimistic one, prefer the server value
+  // instead of clearing optimisticReply via a setState-in-effect.
+  const effectiveReply =
+    reply?.id && optimisticReply?.id === reply.id ? reply : (optimisticReply ?? reply ?? null);
   const hasReply = Boolean(effectiveReply?.id);
-
-  useEffect(() => {
-    if (reply?.id && optimisticReply?.id === reply.id) {
-      setOptimisticReply(null);
-    }
-  }, [reply, optimisticReply?.id]);
 
   function collapse() {
     setIsExpanded(false);

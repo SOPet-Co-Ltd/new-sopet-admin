@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -114,12 +114,12 @@ export function SearchRankingWeightForm({
   const [values, setValues] = useState<UpdateSearchRankingWeightsInput>({});
   const [errors, setErrors] = useState<FieldErrors>({});
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [appliedWeights, setAppliedWeights] = useState<SearchRankingWeights | undefined>(undefined);
 
-  useEffect(() => {
-    if (initialWeights) {
-      setValues(toFormValues(initialWeights));
-    }
-  }, [initialWeights]);
+  if (initialWeights && initialWeights !== appliedWeights) {
+    setAppliedWeights(initialWeights);
+    setValues(toFormValues(initialWeights));
+  }
 
   const handleChange = (key: keyof UpdateSearchRankingWeightsInput, rawValue: string) => {
     setSavedMessage(null);

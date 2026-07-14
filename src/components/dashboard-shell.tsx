@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState, type ComponentType } from 'react';
+import { useState, type ComponentType } from 'react';
 import { HiArrowRightOnRectangle, HiBars3, HiUserCircle } from 'react-icons/hi2';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useCurrentUser, useLogout } from '@/hooks/useAuth';
@@ -41,10 +41,12 @@ export function DashboardShell({
   const { user } = useCurrentUser();
   const logout = useLogout();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
-  useEffect(() => {
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setMobileOpen(false);
-  }, [pathname]);
+  }
 
   const sidebar = (
     <div className="flex h-full flex-col">

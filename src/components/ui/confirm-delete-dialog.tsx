@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -37,13 +37,15 @@ export function ConfirmDeleteDialog({
 }: ConfirmDeleteDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [confirmText, setConfirmText] = useState('');
+  const [prevOpen, setPrevOpen] = useState(open);
 
-  useEffect(() => {
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (!open) {
       setError(null);
       setConfirmText('');
     }
-  }, [open]);
+  }
 
   const textConfirmed = confirmText.trim() === confirmLabel.trim();
 
