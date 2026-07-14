@@ -58,6 +58,17 @@ export const proposeTaxonomySchema = z.object({
 
 export type ProposeTaxonomyFormValues = z.infer<typeof proposeTaxonomySchema>;
 
+export const editTaxonomySchema = z.object({
+  name: z.string().min(1, 'กรุณากรอกชื่อ'),
+  slug: z
+    .string()
+    .min(1, 'กรุณากรอก slug')
+    .max(255, 'slug ยาวเกินไป')
+    .regex(/^[\p{L}\p{N}\p{M}-]+$/u, 'slug ใช้ได้เฉพาะตัวอักษร ตัวเลข และขีดกลาง'),
+});
+
+export type EditTaxonomyFormValues = z.infer<typeof editTaxonomySchema>;
+
 export const productImageFormSchema = z.object({
   id: z.string().optional(),
   imageUrl: z.string().url('กรุณากรอก URL รูปภาพที่ถูกต้อง'),

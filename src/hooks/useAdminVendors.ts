@@ -66,6 +66,7 @@ export function useAdminResendVendorEmailVerification() {
     onSuccess: (_data, vendorId) => {
       startCooldown();
       queryClient.invalidateQueries({ queryKey: queryKeys.adminVendors.detailInsights(vendorId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminVendors.detail(vendorId) });
     },
   });
 

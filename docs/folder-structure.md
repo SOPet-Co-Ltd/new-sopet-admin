@@ -186,6 +186,7 @@ Playwright browser specs and fixtures:
 | `vitest.config.ts`                           | Unit/integration tests under `src/`          |
 | `vercel.json`                                | Vercel install / git deploy settings         |
 | `.husky/pre-commit`                          | lint-staged → Prettier                       |
+| `.husky/pre-push`                            | `yarn test` (Vitest)                         |
 | `scripts/ensure-graphql-schema.mjs`          | Resolve or fetch schema for codegen          |
 | `scripts/fix-graphql-codegen-duplicates.mjs` | Guard duplicate codegen symbols              |
 

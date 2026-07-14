@@ -20,7 +20,7 @@ import {
 } from '@/hooks/useTaxonomy';
 import { isApiError } from '@/lib/api/errors';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
-import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
+import { editTaxonomySchema, type EditTaxonomyFormValues } from '@/lib/validations';
 
 export default function EditCategoryPage() {
   const params = useParams<{ id: string }>();
@@ -33,31 +33,45 @@ export default function EditCategoryPage() {
   const deleteCategory = useDeleteCategory();
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const form = useForm<ProposeTaxonomyFormValues>({
-    resolver: zodResolver(proposeTaxonomySchema),
-    defaultValues: { name: '' },
+  const form = useForm<EditTaxonomyFormValues>({
+    resolver: zodResolver(editTaxonomySchema),
+    defaultValues: { name: '', slug: '' },
   });
 
   useEffect(() => {
     if (category) {
-      form.reset({ name: category.name });
+      form.reset({ name: category.name, slug: category.slug });
     }
   }, [category, form]);
 
   const isPending =
     updateCategory.isPending || setCategoryImage.isPending || deleteCategory.isPending;
 
-  async function onSubmit(values: ProposeTaxonomyFormValues) {
+  async function onSubmit(values: EditTaxonomyFormValues) {
     if (!category) return;
+    const name = values.name.trim();
+    const slug = values.slug.trim();
+    const nameChanged = name !== category.name;
+    const slugChanged = slug !== category.slug;
+    if (!nameChanged && !slugChanged) {
+      router.push('/admin/taxonomy');
+      return;
+    }
     try {
-      if (values.name.trim() !== category.name) {
-        await updateCategory.mutateAsync({ categoryId: category.id, name: values.name.trim() });
-      }
+      await updateCategory.mutateAsync({
+        categoryId: category.id,
+        name,
+        slug,
+      });
       router.push('/admin/taxonomy');
     } catch (err) {
-      form.setError('name', {
-        message: isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ',
-      });
+      const message = isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ';
+      const code = isApiError(err) ? err.code : undefined;
+      if (code === 'SLUG_EXISTS' || code === 'INVALID_SLUG') {
+        form.setError('slug', { message });
+      } else {
+        form.setError('name', { message });
+      }
     }
   }
 
@@ -92,7 +106,7 @@ export default function EditCategoryPage() {
     <div className="mx-auto max-w-2xl">
       <PageHeader
         title="แก้ไขหมวดหมู่"
-        description={`${category.slug} · ${labelTaxonomyStatus(category.status)}`}
+        description={labelTaxonomyStatus(category.status)}
         back={
           <Link
             href="/admin/taxonomy"
@@ -125,6 +139,33 @@ export default function EditCategoryPage() {
                   {form.formState.errors.name.message}
                 </p>
               ) : null}
+            </div>
+
+            <div>
+              <Label htmlFor="category-slug" required>
+                Slug
+              </Label>
+              <Input
+                id="category-slug"
+                autoComplete="off"
+                placeholder="เช่น pet-food"
+                aria-invalid={!!form.formState.errors.slug}
+                aria-describedby={
+                  form.formState.errors.slug ? 'category-slug-error' : 'category-slug-hint'
+                }
+                {...form.register('slug')}
+                className="mt-1.5"
+                disabled={isPending}
+              />
+              {form.formState.errors.slug ? (
+                <p id="category-slug-error" role="alert" className="mt-1 text-xs text-danger">
+                  {form.formState.errors.slug.message}
+                </p>
+              ) : (
+                <p id="category-slug-hint" className="mt-1 text-xs text-muted">
+                  ใช้ใน URL และตัวกรอง — เปลี่ยนแล้วลิงก์เดิมอาจใช้ไม่ได้
+                </p>
+              )}
             </div>
 
             <ImageUploadField

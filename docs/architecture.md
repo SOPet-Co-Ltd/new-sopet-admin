@@ -14,7 +14,7 @@
 | Tables            | TanStack Table        | 8.21.3                 |
 | Testing           | Vitest + Playwright   | 4.1.9 / 1.61.1         |
 
-Package manager: **Yarn 1.22+** (`only-allow yarn`). Node.js **20+** (CI uses Node 20).
+Package manager: **Yarn 1.22+** (`only-allow yarn`). Node.js **22+** (CI uses Node 22).
 
 ## Dual portal design
 

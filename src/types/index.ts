@@ -120,11 +120,25 @@ export interface SetCategoryImageInput {
 export interface UpdateCategoryInput {
   categoryId: string;
   name: string;
+  slug?: string;
 }
 
 export interface UpdatePetTypeInput {
   petTypeId: string;
   name: string;
+  slug?: string;
+}
+
+export interface UpdateTagInput {
+  tagId: string;
+  name: string;
+  slug?: string;
+}
+
+export interface UpdateBrandInput {
+  brandId: string;
+  name: string;
+  slug?: string;
 }
 
 export interface DeleteCategoryInput {

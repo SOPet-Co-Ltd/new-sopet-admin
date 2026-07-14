@@ -5,7 +5,7 @@ import { TaxonomyDeleteButton } from '@/components/admin/taxonomy/taxonomy-delet
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import type { TaxonomyItem } from '@/types';
 
-export type RejectedTaxonomyKind = 'category' | 'tag';
+export type RejectedTaxonomyKind = 'category' | 'tag' | 'petType' | 'brand';
 
 const SECTION_COPY: Record<RejectedTaxonomyKind, { title: string; empty: string; error: string }> =
   {
@@ -18,6 +18,16 @@ const SECTION_COPY: Record<RejectedTaxonomyKind, { title: string; empty: string;
       title: 'แท็กที่ปฏิเสธแล้ว',
       empty: 'ไม่มีแท็กที่ปฏิเสธ',
       error: 'โหลดแท็กที่ปฏิเสธไม่สำเร็จ',
+    },
+    petType: {
+      title: 'ประเภทสัตว์เลี้ยงที่ปฏิเสธแล้ว',
+      empty: 'ไม่มีประเภทสัตว์เลี้ยงที่ปฏิเสธ',
+      error: 'โหลดประเภทสัตว์เลี้ยงที่ปฏิเสธไม่สำเร็จ',
+    },
+    brand: {
+      title: 'แบรนด์ที่ปฏิเสธแล้ว',
+      empty: 'ไม่มีแบรนด์ที่ปฏิเสธ',
+      error: 'โหลดแบรนด์ที่ปฏิเสธไม่สำเร็จ',
     },
   };
 

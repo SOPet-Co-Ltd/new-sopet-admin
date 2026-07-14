@@ -38,15 +38,18 @@ export function VendorReplyForm({ reviewId, reply, storeId, onSaveSuccess }: Ven
   const [draftBody, setDraftBody] = useState(reply?.body ?? '');
   const [inlineError, setInlineError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [loadedKey, setLoadedKey] = useState(`${reviewId}:${reply?.body ?? ''}`);
   const createMutation = useCreateReviewReply(storeId);
   const updateMutation = useUpdateReviewReply(storeId);
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  useEffect(() => {
+  const currentKey = `${reviewId}:${reply?.body ?? ''}`;
+  if (currentKey !== loadedKey) {
+    setLoadedKey(currentKey);
     setDraftBody(reply?.body ?? '');
     setInlineError(null);
     setSuccessMessage(null);
-  }, [reviewId, reply?.body]);
+  }
 
   useEffect(() => {
     if (!successMessage) {

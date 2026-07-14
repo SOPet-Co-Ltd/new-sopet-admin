@@ -56,6 +56,8 @@ export const queryKeys = {
     myTagProposals: () => ['taxonomy', 'myTagProposals'] as const,
     rejectedCategories: () => ['taxonomy', 'rejectedCategories'] as const,
     rejectedTags: () => ['taxonomy', 'rejectedTags'] as const,
+    rejectedPetTypes: () => ['taxonomy', 'rejectedPetTypes'] as const,
+    rejectedBrands: () => ['taxonomy', 'rejectedBrands'] as const,
     categoryDeleteImpact: (categoryId: string) =>
       ['taxonomy', 'categoryDeleteImpact', categoryId] as const,
     tagDeleteImpact: (tagId: string) => ['taxonomy', 'tagDeleteImpact', tagId] as const,

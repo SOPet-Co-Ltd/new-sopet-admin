@@ -92,6 +92,8 @@ export function getVendorOrders(storeId: string) {
 - Auth header from cookies
 - Auth refresh retry on unauthorized responses
 - `ApolloProvider` in `src/lib/providers.tsx`
+- `executeQuery` defaults to `fetchPolicy: 'network-only'` so TanStack invalidation/refetch always hits the network (not Apollo `InMemoryCache`)
+- `executeMutation` awaits `cache.reset()` unless `skipCacheReset: true` (e.g. taxonomy)
 
 Apollo is the transport; TanStack Query is the React cache for most screens. Notification unread polling uses Apollo HTTP `useQuery`, not a required browser WS setup in `.env.example`.
 

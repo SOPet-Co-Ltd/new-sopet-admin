@@ -36,7 +36,7 @@ Defense-in-depth auth: `src/proxy.ts` (server) + `AuthGuard` (client). See [docs
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - Yarn 1.22+ (`packageManager`: `yarn@1.22.22`)
 - Running [backend](../sopet-backend/) at `http://localhost:3002`
 - Backend schema at `../sopet-backend/src/schema.gql` (for GraphQL codegen)

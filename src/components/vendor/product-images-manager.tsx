@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { useImageUpload } from '@/hooks/useImageUpload';
@@ -42,15 +42,17 @@ function imageConfirmLabel(url: string): string {
 
 export function ProductImagesManager({ product }: { product: Product }) {
   const queryClient = useQueryClient();
-  const [images, setImages] = useState<ProductImage[]>([]);
+  const [images, setImages] = useState<ProductImage[]>(() => sortImages(product.images ?? []));
+  const [loadedImages, setLoadedImages] = useState(product.images);
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [mediaPending, setMediaPending] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { upload: uploadProductImage, isUploading: imageUploading } = useImageUpload('products');
 
-  useEffect(() => {
+  if (product.images !== loadedImages) {
+    setLoadedImages(product.images);
     setImages(sortImages(product.images ?? []));
-  }, [product.images]);
+  }
 
   function invalidateProducts() {
     queryClient.invalidateQueries({ queryKey: queryKeys.products.all });

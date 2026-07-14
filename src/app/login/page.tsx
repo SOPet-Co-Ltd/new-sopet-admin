@@ -40,15 +40,16 @@ function LoginPageContent() {
   const requestReset = useRequestPasswordReset();
   const [showForgot, setShowForgot] = useState(false);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
-  const [sessionMessage, setSessionMessage] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [sessionMessage] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
     const stored = sessionStorage.getItem(AUTH_SESSION_MESSAGE_KEY);
     if (stored) {
-      setSessionMessage(stored);
       sessionStorage.removeItem(AUTH_SESSION_MESSAGE_KEY);
     }
+    return stored;
+  });
 
+  useEffect(() => {
     const accessToken = getAccessToken();
     if (!isAccessTokenUsable(accessToken)) {
       clearAuthSession(queryClient);
