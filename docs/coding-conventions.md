@@ -29,7 +29,8 @@ yarn format
 yarn format:check    # CI
 ```
 
-Husky pre-commit → lint-staged → Prettier on staged `*.{ts,tsx,js,jsx,json,md,yml,yaml}`.
+Husky pre-commit → lint-staged → Prettier on staged `*.{ts,tsx,js,jsx,json,md,yml,yaml}`.  
+Husky pre-push → `yarn test` (unit/integration; Playwright e2e stays in CI).
 
 ## ESLint
 
