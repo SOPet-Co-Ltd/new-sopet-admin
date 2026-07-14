@@ -79,6 +79,18 @@ const login = useLogin();
 
 `src/app/reset-password/page.tsx` → `usePasswordReset` → `lib/api/passwordReset.ts`
 
+## Vendor email verification
+
+Vendors must verify email before submitting a **new** store request (joining via store-member invite does not require verification). Full product rules: [backend authentication — vendor email verification](../../sopet-backend/docs/authentication.md#vendor-email-verification).
+
+| UI                           | Path / action                                             |
+| ---------------------------- | --------------------------------------------------------- |
+| Link landing                 | `/verify-email?token=…` (`src/app/verify-email/page.tsx`) |
+| Vendor resend                | Stores page → store request section                       |
+| Admin resend / manual verify | Admin → Vendors → vendor detail                           |
+
+Links in emails use `ADMIN_PANEL_URL` from the backend. Brand logo in mail is served from the API: `${API_URL}/images/email/sopet-logo-white.png`.
+
 ## E2E auth
 
 `e2e/fixtures/taxonomy/admin-auth.ts` — sets cookie-based JWT for Playwright tests.

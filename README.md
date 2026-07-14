@@ -11,7 +11,7 @@ Single Next.js application with two portals:
 - **`/admin`** — platform administration (stores, vendors, taxonomy, search tuning, analytics)
 - **`/vendor`** — store management (products, orders, reviews, promotions, API keys)
 
-Shared auth routes: `/login`, `/register`, `/reset-password`, `/invite/store`.
+Shared auth routes: `/login`, `/register`, `/reset-password`, `/verify-email`, `/invite/store`.
 
 ## Tech stack
 
