@@ -60,6 +60,8 @@ describe('proxy-auth', () => {
   });
 
   it('allows unauthenticated users to access register', () => {
+    expect(getAuthRedirectPath('/register', null, undefined)).toBeNull();
+    expect(getAuthRedirectPath('/register/invite', null, undefined)).toBeNull();
     expect(getGuestOnlyRedirectPath('/register', null, undefined)).toBeNull();
     expect(getGuestOnlyRedirectPath('/register', null, 'token')).toBeNull();
   });

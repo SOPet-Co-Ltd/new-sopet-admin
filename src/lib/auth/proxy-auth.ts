@@ -30,6 +30,11 @@ export function getAuthRedirectPath(
   role: AuthRole | null,
   accessToken?: string,
 ): string | null {
+  const isProtectedRoute = pathname.startsWith('/admin') || pathname.startsWith('/vendor');
+  if (!isProtectedRoute) {
+    return null;
+  }
+
   if (!accessToken || !role) {
     return '/login';
   }
