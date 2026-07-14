@@ -29,23 +29,32 @@ const onSubmit = form.handleSubmit(async (values) => {
 
 ## Schema location
 
-`src/lib/validations/index.ts` — most schemas
-`src/lib/validations/promotions.ts` — promotion-specific
+| File                                | Contents                   |
+| ----------------------------------- | -------------------------- |
+| `src/lib/validations/index.ts`      | Most form schemas          |
+| `src/lib/validations/promotions.ts` | Promotion-specific schemas |
 
 ## Schema examples
 
-| Schema                 | Used in                |
-| ---------------------- | ---------------------- |
-| `loginSchema`          | `/login`               |
-| `registerVendorSchema` | `/register`            |
-| `productFormSchema`    | Product edit/create    |
-| `promotionFormSchema`  | Promotion forms        |
-| `adminStoreFormSchema` | Admin store CRUD       |
-| `storeInfoFormSchema`  | Vendor store settings  |
-| `inviteMemberSchema`   | Team invitations       |
-| `shippingOptionSchema` | Shipping configuration |
+| Schema                                                    | Used in                     |
+| --------------------------------------------------------- | --------------------------- |
+| `loginSchema`                                             | `/login`                    |
+| `registerVendorSchema`                                    | `/register`                 |
+| `acceptStoreMemberInviteSchema`                           | Invite accept flows         |
+| `productFormSchema`                                       | Product create/edit         |
+| `productCreateSchema`                                     | Product create draft fields |
+| `promotionFormSchema`                                     | Promotion forms             |
+| `adminStoreFormSchema`                                    | Admin store CRUD            |
+| `adminVendorFormSchema`                                   | Admin vendor forms          |
+| `adminCustomerFormSchema`                                 | Admin customer forms        |
+| `storeInfoFormSchema`                                     | Vendor store settings       |
+| `storeRequestSchema`                                      | Vendor new store request    |
+| `inviteMemberSchema`                                      | Team invitations            |
+| `shippingOptionSchema`                                    | Shipping configuration      |
+| `forgotPasswordSchema` / `resetPasswordSchema`            | Password reset              |
+| `bannerFormSchema` / `sponsorFormSchema` / `adFormSchema` | Platform settings           |
 
-Thai error messages in schema definitions:
+Thai error messages live in the schema definitions:
 
 ```typescript
 export const loginSchema = z.object({
@@ -61,11 +70,11 @@ import { getErrorMessage } from '@/lib/api/errors';
 form.setError('root', { message: getErrorMessage(error) });
 ```
 
-Mapped Thai messages in `src/lib/api/error-messages.ts`.
+Mapped Thai messages: `src/lib/api/error-messages.ts`.
 
 ## Image upload
 
-`components/ui/image-upload-field.tsx` — integrates with GraphQL `uploadImage` mutation via `lib/api/upload.rules.ts`.
+`components/ui/image-upload-field.tsx` uploads via GraphQL through `src/lib/api/upload.ts`, with client rules in `src/lib/api/upload.rules.ts`.
 
 ## Related docs
 

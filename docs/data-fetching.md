@@ -20,28 +20,21 @@ sequenceDiagram
   H-->>P: { data, isLoading, error }
 ```
 
+Do not call Apollo Client from page/components for normal server state. Use a hook in `src/hooks/`.
+
 ## TanStack Query (primary)
 
-**Provider:** `src/lib/react-query/provider.tsx`
+**Provider:** `src/lib/react-query/provider.tsx` (mounted from `src/lib/providers.tsx`).
 
 Defaults:
 
-- `staleTime: 60_000` (60s)
-- `retry: 1`
-- `refetchOnWindowFocus: false`
+| Option                 | Value  |
+| ---------------------- | ------ |
+| `staleTime`            | 60_000 |
+| `retry`                | 1      |
+| `refetchOnWindowFocus` | false  |
 
-**Query keys:** `src/lib/react-query/keys.ts` — one namespace per domain, e.g.:
-
-```typescript
-export const queryKeys = {
-  orders: {
-    all: ['orders'] as const,
-    vendorRoot: () => ['orders', 'vendor'] as const,
-    vendor: (storeId: string) => ['orders', 'vendor', storeId] as const,
-  },
-  // ...other domains
-};
-```
+**Query keys:** `src/lib/react-query/keys.ts` — namespaced factories per domain (`orders`, `products`, `taxonomy`, `analytics`, …).
 
 **Hook pattern:**
 
@@ -57,7 +50,7 @@ export function useVendorOrders(storeId?: string) {
 }
 ```
 
-**Mutations:**
+**Mutations:** invalidate with root keys; use `meta: { toastError: true }` when the toast middleware should show failures.
 
 ```typescript
 // src/hooks/useVendorOrderWorkflow.ts
@@ -71,11 +64,11 @@ export function useMarkVendorOrderPaid() {
 }
 ```
 
-## lib/api (GraphQL service layer)
+## `lib/api` (GraphQL service layer)
 
-All modules in `src/lib/api/` call GraphQL via `executeQuery`/`executeMutation`.
+Modules under `src/lib/api/` call GraphQL via `executeQuery` / `executeMutation` from `src/lib/graphql/client.ts`.
 
-**Not REST** — folder name is historical. Operations from `src/lib/graphql/documents.ts`.
+Despite the folder name, this is **not REST**. Most operation documents live in `src/lib/graphql/documents.ts`; mappers often live in `src/lib/graphql/mappers.ts` or beside the API module.
 
 ```typescript
 // src/lib/api/orders.ts
@@ -94,46 +87,59 @@ export function getVendorOrders(storeId: string) {
 
 `src/lib/graphql/client.ts`:
 
-- `HttpLink` to `GRAPHQL_URL`
+- `HttpLink` to `GRAPHQL_URL` from `src/lib/config.ts`
+- Optional `GraphQLWsLink` (`graphql-ws`) for subscription operations; WS URL from `getGraphqlWsUrl()`
 - Auth header from cookies
-- `withAuthRetry` for 401
-- `ApolloProvider` in `providers.tsx`
+- Auth refresh retry on unauthorized responses
+- `ApolloProvider` in `src/lib/providers.tsx`
 
-Apollo is **not** the primary React data layer.
+Apollo is the transport; TanStack Query is the React cache for most screens. Notification unread polling uses Apollo HTTP `useQuery`, not a required browser WS setup in `.env.example`.
 
 ## Apollo hooks (exception)
 
-`src/lib/hooks/useNotifications.ts` — direct `useQuery` with polling.
+`src/lib/hooks/useNotifications.ts` — Apollo `useQuery` with polling (`pollInterval` 15s for unread tab).
 
-Used by admin/vendor notification pages. A TanStack Query version exists at `src/hooks/useNotifications.ts` but pages use the Apollo version.
+Admin and vendor notification pages import this file. A parallel TanStack Query API exists at `src/hooks/useNotifications.ts` but those pages do not use it.
 
-## GraphQL operations
+## GraphQL operations & codegen
 
-| Source         | Location                                                                    |
-| -------------- | --------------------------------------------------------------------------- |
-| Inline gql     | `src/lib/graphql/documents.ts` (majority of operations)                     |
-| .graphql files | `src/lib/graphql/operations/` (search, notifications, promotions, taxonomy) |
-| Generated      | `src/lib/graphql/generated/graphql.ts`                                      |
+| Source           | Location                                                                    |
+| ---------------- | --------------------------------------------------------------------------- |
+| Inline `gql`     | `src/lib/graphql/documents.ts` (majority of operations)                     |
+| `.graphql` files | `src/lib/graphql/operations/` — search, notifications, promotions, taxonomy |
+| Generated        | `src/lib/graphql/generated/graphql.ts`                                      |
 
-Codegen: `yarn graphql:codegen` (runs on `prebuild`, `pretype-check`).
+```bash
+yarn graphql:codegen   # ensure schema → codegen → duplicate check → Prettier
+yarn graphql:watch     # watch mode (codegen only)
+```
+
+`prebuild` and `pretype-check` both run `yarn graphql:codegen`.
+
+Schema resolution (`codegen.ts` + `scripts/ensure-graphql-schema.mjs`):
+
+1. `GRAPHQL_SCHEMA_PATH` if set
+2. Else local `../sopet-backend/src/schema.gql` or `sopet-backend/src/schema.gql`
+3. Else optional GitHub fetch in CI (see `.env.example` `GRAPHQL_SCHEMA_GITHUB_*`)
 
 ## Nav prefetch
 
-`src/lib/react-query/prefetch-dashboard-nav.ts` — prefetches route data on sidebar hover/focus.
+`src/lib/react-query/prefetch-dashboard-nav.ts` — prefetches route data on sidebar hover/focus (`DashboardShell`).
 
 ## Error handling
 
-- `getErrorMessage()` from `src/lib/api/errors.ts`
-- Thai messages from `src/lib/api/error-messages.ts`
-- `QueryErrorState` / `MutationErrorState` components
+| Helper / UI         | Location                               |
+| ------------------- | -------------------------------------- |
+| `getErrorMessage()` | `src/lib/api/errors.ts`                |
+| Thai message map    | `src/lib/api/error-messages.ts`        |
+| `QueryErrorState`   | `src/components/query-error-state.tsx` |
 
 ## External REST API
 
-Vendor product import API (`POST /api/v1/stores/:storeId/products`) is documented at `/vendor/api/docs` for external consumers. The admin app does not call it from `lib/api/`.
-
-`getApiBaseUrl()` in `config.ts` builds the URL for documentation display only.
+Vendor product import (`POST /api/v1/stores/:storeId/products`) is documented in-app at `/vendor/api/docs`. `getApiBaseUrl()` in `src/lib/config.ts` builds that base URL for docs display. Admin `lib/api/` modules do not call it.
 
 ## Related docs
 
-- [GraphQL operations](../../sopet-storefront/docs/graphql.md) (storefront pattern differs)
 - [Feature development](feature-development.md)
+- [Folder structure](folder-structure.md)
+- Storefront GraphQL ops differ: [../sopet-storefront/docs/graphql.md](../../sopet-storefront/docs/graphql.md)

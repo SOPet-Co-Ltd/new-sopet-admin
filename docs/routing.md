@@ -58,15 +58,17 @@ flowchart TD
 | `/admin/requests`                      | Store + vendor invite request center       |
 | `/admin/reactivation-requests`         | Suspended-store reactivation requests      |
 
-Nav defined in `src/components/admin/admin-layout.tsx`.
+Nav: `src/components/admin/admin-layout.tsx`.
+
+Post-login / unauthorized-vendor-away dashboard for admins is `/admin/stores` (`getDashboardPath`). The `/admin` index still redirects to analytics.
 
 ## Vendor routes (`src/app/vendor/`)
 
 | Route                            | Purpose                                                                    |
 | -------------------------------- | -------------------------------------------------------------------------- |
 | `/vendor`                        | Dashboard                                                                  |
-| `/vendor/stores`                 | Store settings                                                             |
-| `/vendor/orders`                 | Order fulfillment; action menu (detail dialog + copy public tracking link) |
+| `/vendor/stores`                 | Store hub (settings, requests, reactivation entry points)                  |
+| `/vendor/orders`                 | Order fulfillment; row actions (detail dialog + copy public tracking link) |
 | `/vendor/products`               | Product catalog                                                            |
 | `/vendor/products/new`           | Create product                                                             |
 | `/vendor/products/[id]/edit`     | Edit product                                                               |
@@ -80,40 +82,42 @@ Nav defined in `src/components/admin/admin-layout.tsx`.
 | `/vendor/promotions/[id]/edit`   | Edit promotion                                                             |
 | `/vendor/team`                   | Team (owners only in nav)                                                  |
 | `/vendor/api`                    | API keys                                                                   |
-| `/vendor/api/docs`               | REST API documentation                                                     |
+| `/vendor/api/docs`               | External vendor REST API documentation                                     |
 | `/vendor/settings`               | Store settings                                                             |
 | `/vendor/notifications`          | Notifications                                                              |
 | `/vendor/reactivation`           | Reactivation request for a suspended store                                 |
 | `/vendor/invitations/accept`     | Legacy invite link — redirects to `/invite/store?token=…`                  |
 | `/vendor/requests`               | Legacy route — redirects to `/vendor/stores`                               |
 
-Nav defined in `src/components/vendor/vendor-layout.tsx`. Role-gated items via `useIsStoreOwner()`, `useIsStoreManager()`.
+Nav: `src/components/vendor/vendor-layout.tsx`. Role-gated items via `useIsStoreOwner()`, `useIsStoreManager()`.
 
 ## Shared / auth routes (`src/app/`)
 
-| Route              | Purpose                                                        |
-| ------------------ | -------------------------------------------------------------- |
-| `/login`           | Email + password login (admin and vendor)                      |
-| `/register`        | Vendor self-registration (creates a new store request)         |
-| `/register/invite` | Accept a store team-member invitation (join an existing store) |
-| `/reset-password`  | Password reset flow                                            |
-| `/verify-email`    | Vendor email verification link landing page                    |
-| `/invite/store`    | Accept a store team-member invitation (token-based)            |
+| Route              | Purpose                                             |
+| ------------------ | --------------------------------------------------- |
+| `/`                | Client redirect to role dashboard or `/login`       |
+| `/login`           | Email + password login (admin and vendor)           |
+| `/register`        | Vendor self-registration (new store request)        |
+| `/register/invite` | Accept a store team-member invitation               |
+| `/reset-password`  | Password reset flow                                 |
+| `/verify-email`    | Vendor email verification link landing page         |
+| `/invite/store`    | Accept a store team-member invitation (token-based) |
 
 ## Auth protection
 
-1. **`src/proxy.ts`** — matcher `['/admin/:path*', '/vendor/:path*']`
-2. **`AuthGuard`** in each portal layout
+1. **`src/proxy.ts`** — matcher `/admin/*`, `/vendor/*`, `/register`, `/register/*`
+2. **`AuthGuard`** in each portal layout (`admin` / `vendor` role)
 
-## Root page
-
-`src/app/page.tsx` — redirects authenticated users to role dashboard.
+Details: [authentication.md](authentication.md).
 
 ## Error boundaries
 
-- `src/app/admin/error.tsx`
-- `src/app/vendor/error.tsx`
-- `src/app/error.tsx`, `global-error.tsx`
+| File                       | Scope         |
+| -------------------------- | ------------- |
+| `src/app/admin/error.tsx`  | Admin portal  |
+| `src/app/vendor/error.tsx` | Vendor portal |
+| `src/app/error.tsx`        | App           |
+| `src/app/global-error.tsx` | Root          |
 
 ## Related docs
 
