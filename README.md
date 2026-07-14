@@ -50,12 +50,13 @@ cp .env.example .env
 
 ## Environment setup
 
-| Variable                  | Default                           | Purpose                   |
-| ------------------------- | --------------------------------- | ------------------------- |
-| `NEXT_PUBLIC_GRAPHQL_URL` | `/graphql`                        | Browser GraphQL (proxied) |
-| `GRAPHQL_SSR_URL`         | `http://localhost:3002/graphql`   | Server-side GraphQL       |
-| `NEXT_PUBLIC_API_URL`     | `http://localhost:3002`           | Vendor REST API docs URL  |
-| `GRAPHQL_SCHEMA_PATH`     | `../sopet-backend/src/schema.gql` | Codegen schema source     |
+| Variable                  | Default                           | Purpose                                 |
+| ------------------------- | --------------------------------- | --------------------------------------- |
+| `NEXT_PUBLIC_GRAPHQL_URL` | `/graphql`                        | Browser GraphQL (proxied)               |
+| `GRAPHQL_SSR_URL`         | `http://localhost:3002/graphql`   | Server-side GraphQL                     |
+| `NEXT_PUBLIC_API_URL`     | `http://localhost:3002`           | Vendor REST API docs URL                |
+| `NEXT_PUBLIC_CDN_URL`     | _(unset)_                         | Public CDN base URL for uploaded images |
+| `GRAPHQL_SCHEMA_PATH`     | `../sopet-backend/src/schema.gql` | Codegen schema source                   |
 
 ## Running locally
 
@@ -70,7 +71,7 @@ Login after backend seed (`yarn db:seed:dev` in sopet-backend):
 | Admin  | `admin@sopet.org`  | `P@ssw0rd` |
 | Vendor | `vendor@sopet.org` | `P@ssw0rd` |
 
-Full stack setup: [workspace getting started](../new-sopet-workspace/docs/developer/getting-started.md).
+Requires backend at `http://localhost:3002` (sibling repo `../sopet-backend`).
 
 ## Build
 
@@ -136,8 +137,6 @@ src/
 | [Feature development](docs/feature-development.md) | End-to-end guide             |
 | [Coding conventions](docs/coding-conventions.md)   | Naming, testing, CI          |
 
-**Cross-repo:** [Workspace developer docs](../new-sopet-workspace/docs/developer/README.md)
-
 ## Common commands
 
 | Command                | Description                          |
@@ -169,4 +168,4 @@ Push to a deploy branch triggers `.github/workflows/deploy.yml`, which POSTs to 
 
 **Note:** `lib/api/` calls GraphQL, not REST. Vendor REST API is for external integrations (documented at `/vendor/api/docs`).
 
-Cross-repo features: [workspace cross-repo workflow](../new-sopet-workspace/docs/developer/cross-repo-workflow.md).
+Schema changes land in `../sopet-backend` first (`src/schema.gql`), then run `yarn graphql:codegen` here (and in `../sopet-storefront` if affected). Commit each repo separately.

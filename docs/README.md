@@ -17,11 +17,10 @@ Admin and vendor dashboard — single Next.js application.
 | [Feature development](feature-development.md) | Adding admin/vendor features       |
 | [Development guide](development-guide.md)     | Where to put new code              |
 
-## Cross-repo docs
+## Related repos
 
-- [Workspace developer docs](../../new-sopet-workspace/docs/developer/README.md)
-- [Returns and disputes](../../new-sopet-workspace/docs/developer/returns-and-disputes.md)
-- [Backend API](../../new-sopet/sopet-backend/docs/api.md)
+- [Backend API](../../sopet-backend/docs/api.md) — GraphQL schema owner (`../sopet-backend`)
+- Storefront lives in sibling repo `../sopet-storefront`
 
 ## Quick start
 

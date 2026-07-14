@@ -10,8 +10,8 @@ sequenceDiagram
   participant C as graphql/client.ts
   participant B as Backend
 
-  P->>H: useVendorOrders()
-  H->>A: fetchVendorOrders(storeId)
+  P->>H: useVendorOrders(storeId)
+  H->>A: getVendorOrders(storeId)
   A->>C: executeQuery(QUERY, vars)
   C->>B: POST /graphql
   B-->>C: JSON
@@ -30,12 +30,16 @@ Defaults:
 - `retry: 1`
 - `refetchOnWindowFocus: false`
 
-**Query keys:** `src/lib/react-query/keys.ts`
+**Query keys:** `src/lib/react-query/keys.ts` — one namespace per domain, e.g.:
 
 ```typescript
-export const orderKeys = {
-  all: ['orders'] as const,
-  vendor: (storeId: string) => [...orderKeys.all, 'vendor', storeId] as const,
+export const queryKeys = {
+  orders: {
+    all: ['orders'] as const,
+    vendorRoot: () => ['orders', 'vendor'] as const,
+    vendor: (storeId: string) => ['orders', 'vendor', storeId] as const,
+  },
+  // ...other domains
 };
 ```
 
@@ -43,13 +47,12 @@ export const orderKeys = {
 
 ```typescript
 // src/hooks/useVendorOrders.ts
-export function useVendorOrders() {
-  const storeId = useVendorStoreId();
+export function useVendorOrders(storeId?: string) {
   return useQuery({
-    queryKey: orderKeys.vendor(storeId),
-    queryFn: () => fetchVendorOrders(storeId),
+    staleTime: 0, // order status changes frequently
+    queryKey: queryKeys.orders.vendor(storeId ?? ''),
+    queryFn: () => getVendorOrders(storeId!),
     enabled: !!storeId,
-    staleTime: 0, // override for real-time orders
   });
 }
 ```
@@ -57,26 +60,33 @@ export function useVendorOrders() {
 **Mutations:**
 
 ```typescript
-return useMutation({
-  mutationFn: updateOrderStatus,
-  onSuccess: () => queryClient.invalidateQueries({ queryKey: orderKeys.vendor(storeId) }),
-  meta: { toastError: true },
-});
+// src/hooks/useVendorOrderWorkflow.ts
+export function useMarkVendorOrderPaid() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    meta: { toastError: true },
+    mutationFn: (orderId: string) => markVendorOrderPaid(orderId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendorRoot() }),
+  });
+}
 ```
 
 ## lib/api (GraphQL service layer)
 
-All 33 modules in `src/lib/api/` call GraphQL via `executeQuery`/`executeMutation`.
+All modules in `src/lib/api/` call GraphQL via `executeQuery`/`executeMutation`.
 
 **Not REST** — folder name is historical. Operations from `src/lib/graphql/documents.ts`.
 
 ```typescript
+// src/lib/api/orders.ts
 import { executeQuery } from '@/lib/graphql/client';
 import { VENDOR_ORDERS_QUERY } from '@/lib/graphql/documents';
+import { mapOrder } from '@/lib/graphql/mappers';
 
-export async function fetchVendorOrders(storeId: string) {
-  const data = await executeQuery(VendorOrdersQuery, { storeId });
-  return data.vendorOrders.map(mapOrder);
+export function getVendorOrders(storeId: string) {
+  return executeQuery(VENDOR_ORDERS_QUERY, { storeId }).then((data) =>
+    data.vendorOrders.map(mapOrder),
+  );
 }
 ```
 
@@ -99,24 +109,17 @@ Used by admin/vendor notification pages. A TanStack Query version exists at `src
 
 ## GraphQL operations
 
-| Source         | Location                                                          |
-| -------------- | ----------------------------------------------------------------- |
-| Inline gql     | `src/lib/graphql/documents.ts` (~2200 lines)                      |
-| .graphql files | `src/lib/graphql/operations/` (search, notifications, promotions) |
-| Generated      | `src/lib/graphql/generated/graphql.ts`                            |
+| Source         | Location                                                                    |
+| -------------- | --------------------------------------------------------------------------- |
+| Inline gql     | `src/lib/graphql/documents.ts` (majority of operations)                     |
+| .graphql files | `src/lib/graphql/operations/` (search, notifications, promotions, taxonomy) |
+| Generated      | `src/lib/graphql/generated/graphql.ts`                                      |
 
 Codegen: `yarn graphql:codegen` (runs on `prebuild`, `pretype-check`).
 
 ## Nav prefetch
 
 `src/lib/react-query/prefetch-dashboard-nav.ts` — prefetches route data on sidebar hover/focus.
-
-### Cache invalidation (disputes)
-
-`useResolveDispute` and `useMarkDisputeInProgress` invalidate:
-
-- `queryKeys.disputes.all`
-- `queryKeys.orders.vendorRoot()` — refreshes vendor order list badges after resolution changes order status to `refunded`
 
 ## Error handling
 
@@ -132,5 +135,5 @@ Vendor product import API (`POST /api/v1/stores/:storeId/products`) is documente
 
 ## Related docs
 
-- [GraphQL operations](../../new-sopet/sopet-storefront/docs/graphql.md) (storefront pattern differs)
+- [GraphQL operations](../../sopet-storefront/docs/graphql.md) (storefront pattern differs)
 - [Feature development](feature-development.md)

@@ -2,14 +2,14 @@
 
 ## Organization
 
-| Folder                   | Scope             | Examples                                               |
-| ------------------------ | ----------------- | ------------------------------------------------------ |
-| `components/ui/`         | Shared primitives | `button`, `dialog`, `data-table`, `image-upload-field` |
-| `components/admin/`      | Platform admin    | `admin-layout`, taxonomy tables, search forms          |
-| `components/vendor/`     | Vendor dashboard  | order workflow, product editor, review UI              |
-| `components/promotions/` | Both portals      | promotion form components                              |
-| `components/analytics/`  | Both portals      | `SalesOverTimeChart`, `BreakdownChart`                 |
-| `components/disputes/`   | Admin + vendor    | dispute queue, chat, resolution                        |
+| Folder                      | Scope             | Examples                                               |
+| --------------------------- | ----------------- | ------------------------------------------------------ |
+| `components/ui/`            | Shared primitives | `button`, `dialog`, `data-table`, `image-upload-field` |
+| `components/admin/`         | Platform admin    | `admin-layout`, taxonomy tables, search forms          |
+| `components/vendor/`        | Vendor dashboard  | order workflow, product editor, review UI              |
+| `components/promotions/`    | Both portals      | promotion form components                              |
+| `components/analytics/`     | Both portals      | `SalesOverTimeChart`, `BreakdownChart`                 |
+| `components/notifications/` | Both portals      | `NotificationCard`                                     |
 
 ## Naming
 
@@ -60,11 +60,9 @@ Thai copy throughout; `lang="th"` on `<html>`.
 
 Data for vendor dashboard comes from `computeStoreSalesOverTime` in `lib/orders/store-analytics.ts` (client-side from `vendorOrders`). Excludes `cancelled` and `refunded` orders.
 
-### Vendor orders + disputes
+### Vendor orders
 
-`/vendor/orders` shows **two badges** per row when applicable: order fulfillment status (`Badge`) and return status (`DisputeStatusBadge` from `useVendorDisputes`). Order detail dialog links to `/vendor/disputes/[id]`.
-
-See [workspace returns-and-disputes](../../new-sopet-workspace/docs/developer/returns-and-disputes.md).
+`/vendor/orders` renders a `Badge` per row for fulfillment status (`labelOrderStatus`) and a status filter (`Select`). Row actions (`VendorOrdersActionMenu`) open the order detail dialog (`VendorOrderDetailDialog`) or copy the public tracking link (`VendorOrderTrackingLinkDialog`).
 
 ## Error/loading states
 

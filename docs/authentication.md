@@ -97,5 +97,4 @@ Links in emails use `ADMIN_PANEL_URL` from the backend. Brand logo in mail is se
 
 ## Related docs
 
-- [Workspace authentication](../../new-sopet-workspace/docs/developer/authentication.md)
 - [Routing](routing.md)

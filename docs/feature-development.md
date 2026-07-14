@@ -103,7 +103,9 @@ Update `src/components/admin/admin-layout.tsx` nav sections.
 
 ## Cross-repo coordination
 
-See [workspace cross-repo workflow](../../new-sopet-workspace/docs/developer/cross-repo-workflow.md).
+1. Change API/schema in `../sopet-backend` and regenerate `src/schema.gql` (`yarn start:dev`).
+2. Run `yarn graphql:codegen` in this repo (and `../sopet-storefront` if the customer UI is affected).
+3. Implement UI/hooks here; commit each repo separately. Merge backend before frontend CI that depends on the new schema.
 
 ## Related docs
 

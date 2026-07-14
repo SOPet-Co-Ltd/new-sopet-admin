@@ -35,7 +35,7 @@ Root components: `auth-guard.tsx`, `dashboard-shell.tsx`, `query-error-state.tsx
 
 ## `src/hooks/`
 
-39 TanStack Query hooks. **Add new data hooks here.**
+TanStack Query hooks (one file per domain, e.g. `useVendorOrders.ts`, `useAdminStores.ts`). **Add new data hooks here.**
 
 Pattern: `useVendorOrders.ts` → calls `lib/api/orders.ts`
 
@@ -43,15 +43,18 @@ Pattern: `useVendorOrders.ts` → calls `lib/api/orders.ts`
 
 ## `src/lib/api/`
 
-33 modules — GraphQL service layer (despite "api" name, **not REST**).
+GraphQL service layer (despite "api" name, **not REST**) — one module per domain (`orders.ts`, `taxonomy.ts`, `admin-vendors.ts`, etc.).
 
 ```typescript
-// lib/api/orders.ts
+// src/lib/api/orders.ts
 import { executeQuery } from '@/lib/graphql/client';
 import { VENDOR_ORDERS_QUERY } from '@/lib/graphql/documents';
+import { mapOrder } from '@/lib/graphql/mappers';
 
-export async function fetchVendorOrders(storeId: string) {
-  return executeQuery(VENDOR_ORDERS_QUERY, { storeId });
+export function getVendorOrders(storeId: string) {
+  return executeQuery(VENDOR_ORDERS_QUERY, { storeId }).then((data) =>
+    data.vendorOrders.map(mapOrder),
+  );
 }
 ```
 
@@ -65,7 +68,7 @@ export async function fetchVendorOrders(storeId: string) {
 | ---------------------- | ------------------------------------------------------------ |
 | `client.ts`            | ApolloClient + `executeQuery`/`executeMutation` + auth retry |
 | `documents.ts`         | Inline `gql` strings (~majority of operations)               |
-| `operations/*.graphql` | Codegen source (search, notifications, promotions)           |
+| `operations/*.graphql` | Codegen source (search, notifications, promotions, taxonomy) |
 | `generated/graphql.ts` | Codegen output                                               |
 | `mappers.ts`           | GQL → domain type mapping                                    |
 | `tokens.ts`            | Cookie read/write for JWT                                    |
