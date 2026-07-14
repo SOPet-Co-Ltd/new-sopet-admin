@@ -217,7 +217,9 @@ export async function executeQuery<
     const result = await getApolloClient().query({
       query: document,
       ...(variables ? { variables } : {}),
-      fetchPolicy: options?.fetchPolicy ?? 'cache-first',
+      // TanStack Query owns UI freshness; Apollo must not serve stale InMemoryCache
+      // results after RQ invalidates and refetches (e.g. taxonomy skipCacheReset).
+      fetchPolicy: options?.fetchPolicy ?? 'network-only',
     });
     if (!result.data) {
       throw new ApiError({
@@ -257,7 +259,7 @@ export async function executeMutation<
     }
 
     if (!options?.skipCacheReset) {
-      getApolloClient().cache.reset();
+      await getApolloClient().cache.reset();
     }
     return result.data as TData;
   });
