@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { useAdminCustomers } from '@/hooks/useAdminCustomers';
 import type { AdminCustomer } from '@/types';
 
 export default function AdminCustomersPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -93,7 +95,12 @@ export default function AdminCustomersPage() {
 
       {!isLoading ? (
         <>
-          <DataTable columns={columns} data={customers} emptyMessage="ไม่พบลูกค้า" />
+          <DataTable
+            columns={columns}
+            data={customers}
+            emptyMessage="ไม่พบลูกค้า"
+            onRowClick={(customer) => router.push(`/admin/customers/${customer.id}`)}
+          />
           {pagination && pagination.totalPages > 1 ? (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">
               <span>

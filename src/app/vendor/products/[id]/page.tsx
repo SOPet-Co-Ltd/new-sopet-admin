@@ -34,8 +34,8 @@ function formatRating(value: number | undefined, reviewCount: number): string {
   return (value ?? 0).toFixed(1);
 }
 
-function formatPriceRange(prices: number[], fallback: number): string {
-  if (prices.length === 0) return formatCurrency(fallback);
+function formatPriceRange(prices: number[]): string {
+  if (prices.length === 0) return '—';
   const min = Math.min(...prices);
   const max = Math.max(...prices);
   if (min === max) return formatCurrency(min);
@@ -239,12 +239,8 @@ export default function VendorProductDetailPage() {
               <h2 className="font-display text-lg font-semibold text-ink">ราคา</h2>
             </CardHeader>
             <CardBody className="space-y-3 text-sm">
-              <DetailRow label="ราคาฐาน">{formatCurrency(product.basePrice)}</DetailRow>
-              <DetailRow label="ราคาขีดฆ่า">
-                {product.compareAtPrice != null ? formatCurrency(product.compareAtPrice) : '—'}
-              </DetailRow>
               <DetailRow label="ช่วงราคาตัวเลือก">
-                {variants.length > 0 ? formatPriceRange(variantPrices, product.basePrice) : '—'}
+                {variants.length > 0 ? formatPriceRange(variantPrices) : '—'}
               </DetailRow>
             </CardBody>
           </Card>
@@ -281,7 +277,7 @@ export default function VendorProductDetailPage() {
             </h2>
             {variants.length > 0 ? (
               <p className="text-sm text-muted">
-                สต็อกรวม {totalStock} · ราคา {formatPriceRange(variantPrices, product.basePrice)}
+                สต็อกรวม {totalStock} · ราคา {formatPriceRange(variantPrices)}
               </p>
             ) : null}
           </div>
