@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Stepper } from '@/components/ui/stepper';
 import { ProductDescriptionEditor } from '@/components/vendor/product-description-editor';
 import { useCreateProduct } from '@/hooks/useProductMutations';
 import { useSyncProductVariants } from '@/hooks/useSyncProductVariants';
@@ -22,6 +23,9 @@ import {
   type VariantOptionGroup,
 } from '@/lib/variants';
 import { productCreateSchema, type ProductCreateFormValues } from '@/lib/validations';
+import { PRODUCT_WIZARD_STEPS } from '@/lib/product-wizard';
+
+const LAST_FORM_STEP = 3;
 
 function emptyGroup(): VariantOptionGroup {
   return { name: '', values: [''] };
@@ -31,6 +35,7 @@ export default function NewProductPage() {
   const router = useRouter();
   const createMutation = useCreateProduct();
   const syncMutation = useSyncProductVariants();
+  const [step, setStep] = useState(1);
   const [groups, setGroups] = useState<VariantOptionGroup[]>([emptyGroup()]);
   const [variantError, setVariantError] = useState<string | null>(null);
 
@@ -56,6 +61,18 @@ export default function NewProductPage() {
   const itemCount = useMemo(() => countVariantItems(groups), [groups]);
   const isPending = createMutation.isPending || syncMutation.isPending;
   const error = createMutation.error ?? syncMutation.error;
+
+  async function handleNext() {
+    if (step === 1) {
+      const valid = await form.trigger('name');
+      if (!valid) return;
+    }
+    setStep((current) => Math.min(current + 1, LAST_FORM_STEP));
+  }
+
+  function handleBack() {
+    setStep((current) => Math.max(current - 1, 1));
+  }
 
   async function onSubmit(values: ProductCreateFormValues) {
     const normalizedGroups = groups
@@ -89,7 +106,7 @@ export default function NewProductPage() {
         productBasePrice: 0,
       });
 
-      router.push(`/vendor/products/${product.id}/variants`);
+      router.push(`/vendor/products/${product.id}/variants?fromWizard=1`);
     } catch {
       // surfaced via mutation state
     }
@@ -99,7 +116,7 @@ export default function NewProductPage() {
     <div className="mx-auto max-w-2xl">
       <PageHeader
         title="สร้างสินค้า"
-        description="ขั้นที่ 1 — รายละเอียดสินค้าและตัวเลือก · ขั้นถัดไปกำหนด SKU สต็อก และราคาแต่ละรายการ"
+        description={`ขั้นที่ ${step} จาก ${PRODUCT_WIZARD_STEPS.length} — ${PRODUCT_WIZARD_STEPS[step - 1].label}`}
         back={
           <Link
             href="/vendor/products"
@@ -111,108 +128,151 @@ export default function NewProductPage() {
         }
       />
 
+      <Stepper steps={PRODUCT_WIZARD_STEPS} currentStep={step} className="mb-8" />
+
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <h2 className="font-display font-medium text-ink">ข้อมูลสินค้า</h2>
-          </CardHeader>
-          <CardBody className="space-y-4">
-            <div>
-              <Label htmlFor="name" required>
-                ชื่อสินค้า
-              </Label>
-              <Input
-                id="name"
-                placeholder="อาหารสุนัขออร์แกนิก 5 กก."
-                aria-invalid={!!form.formState.errors.name}
-                aria-describedby={form.formState.errors.name ? 'name-error' : undefined}
-                {...form.register('name')}
-                className="mt-1.5"
+        {step === 1 ? (
+          <Card>
+            <CardHeader>
+              <h2 className="font-display font-medium text-ink">ข้อมูลพื้นฐาน</h2>
+              <p className="text-sm text-muted">ชื่อและรายละเอียดสินค้าที่ลูกค้าจะเห็น</p>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <div>
+                <Label htmlFor="name" required>
+                  ชื่อสินค้า
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="อาหารสุนัขออร์แกนิก 5 กก."
+                  aria-invalid={!!form.formState.errors.name}
+                  aria-describedby={form.formState.errors.name ? 'name-error' : undefined}
+                  {...form.register('name')}
+                  className="mt-1.5"
+                />
+                {form.formState.errors.name ? (
+                  <p id="name-error" className="mt-1 text-xs text-danger" role="alert">
+                    {form.formState.errors.name.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <Controller
+                name="description"
+                control={form.control}
+                render={({ field }) => (
+                  <ProductDescriptionEditor
+                    id="description"
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    placeholder="อธิบายสินค้า..."
+                    disabled={isPending}
+                  />
+                )}
               />
-              {form.formState.errors.name ? (
-                <p id="name-error" className="mt-1 text-xs text-danger" role="alert">
-                  {form.formState.errors.name.message}
+            </CardBody>
+          </Card>
+        ) : null}
+
+        {step === 2 ? (
+          <Card>
+            <CardHeader>
+              <h2 className="font-display font-medium text-ink">การจัดหมวดหมู่</h2>
+              <p className="text-sm text-muted">
+                ช่วยให้ลูกค้าค้นหาสินค้านี้เจอง่ายขึ้น (ไม่จำเป็น)
+              </p>
+            </CardHeader>
+            <CardBody>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <CategoryField
+                  value={form.watch('categoryId')}
+                  onChange={(categoryId) => form.setValue('categoryId', categoryId)}
+                />
+                <PetTypeField
+                  value={form.watch('petTypeId')}
+                  onChange={(petTypeId) => form.setValue('petTypeId', petTypeId)}
+                />
+                <BrandField
+                  value={form.watch('brandId')}
+                  onChange={(brandId) => form.setValue('brandId', brandId)}
+                />
+                <TagsField
+                  value={selectedTagIds}
+                  onChange={(tagIds) => form.setValue('tagIds', tagIds)}
+                />
+              </div>
+            </CardBody>
+          </Card>
+        ) : null}
+
+        {step === 3 ? (
+          <Card>
+            <CardHeader>
+              <h2 className="font-display font-medium text-ink">
+                ตัวเลือกสินค้า <span className="text-danger">*</span>
+              </h2>
+              <p className="text-sm text-muted">
+                กำหนดกลุ่มตัวเลือก เช่น สี หรือไซส์ — ขั้นถัดไปจะให้กำหนด SKU สต็อก
+                และราคาของแต่ละรายการ
+              </p>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <VariantOptionGroupsEditor groups={groups} onChange={handleGroupsChange} />
+              {itemCount > 0 ? (
+                <p className="text-sm text-muted">จะสร้าง {itemCount} รายการตัวเลือก</p>
+              ) : (
+                <p className="text-sm text-muted">ต้องมีอย่างน้อย 1 ตัวเลือก</p>
+              )}
+              {variantError ? (
+                <p className="text-xs text-danger" role="alert">
+                  {variantError}
                 </p>
               ) : null}
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <CategoryField
-                value={form.watch('categoryId')}
-                onChange={(categoryId) => form.setValue('categoryId', categoryId)}
-              />
-              <PetTypeField
-                value={form.watch('petTypeId')}
-                onChange={(petTypeId) => form.setValue('petTypeId', petTypeId)}
-              />
-              <BrandField
-                value={form.watch('brandId')}
-                onChange={(brandId) => form.setValue('brandId', brandId)}
-              />
-              <TagsField
-                value={selectedTagIds}
-                onChange={(tagIds) => form.setValue('tagIds', tagIds)}
-              />
-            </div>
-
-            <Controller
-              name="description"
-              control={form.control}
-              render={({ field }) => (
-                <ProductDescriptionEditor
-                  id="description"
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  placeholder="อธิบายสินค้า..."
-                  disabled={isPending}
-                />
-              )}
-            />
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <h2 className="font-display font-medium text-ink">
-              ตัวเลือกสินค้า <span className="text-danger">*</span>
-            </h2>
-          </CardHeader>
-          <CardBody className="space-y-4">
-            <VariantOptionGroupsEditor groups={groups} onChange={handleGroupsChange} />
-            {itemCount > 0 ? (
-              <p className="text-sm text-muted">จะสร้าง {itemCount} รายการตัวเลือก</p>
-            ) : (
-              <p className="text-sm text-muted">ต้องมีอย่างน้อย 1 ตัวเลือก</p>
-            )}
-            {variantError ? (
-              <p className="text-xs text-danger" role="alert">
-                {variantError}
-              </p>
-            ) : null}
-          </CardBody>
-        </Card>
+            </CardBody>
+          </Card>
+        ) : null}
 
         {error ? (
-          <p className="text-sm text-danger">
+          <p className="text-sm text-danger" role="alert">
             {error instanceof Error ? error.message : 'สร้างสินค้าไม่สำเร็จ'}
           </p>
         ) : null}
 
-        <div className="flex gap-3">
-          <Button type="button" variant="outline" asChild>
-            <Link href="/vendor/products">ยกเลิก</Link>
-          </Button>
-          <Button type="submit" disabled={isPending} aria-busy={isPending}>
-            {isPending ? (
-              'กำลังสร้าง...'
-            ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-3">
+            <Button type="button" variant="outline" asChild>
+              <Link href="/vendor/products">ยกเลิก</Link>
+            </Button>
+            {step > 1 ? (
+              <Button type="button" variant="outline" onClick={handleBack} disabled={isPending}>
+                <span className="inline-flex items-center gap-1">
+                  <HiArrowLeft className="size-4" aria-hidden="true" />
+                  ก่อนหน้า
+                </span>
+              </Button>
+            ) : null}
+          </div>
+
+          {step < LAST_FORM_STEP ? (
+            <Button type="button" onClick={handleNext}>
               <span className="inline-flex items-center gap-1">
-                ไปกำหนดตัวเลือก
+                ถัดไป
                 <HiArrowRight className="size-4" aria-hidden="true" />
               </span>
-            )}
-          </Button>
+            </Button>
+          ) : (
+            <Button type="submit" disabled={isPending} aria-busy={isPending}>
+              {isPending ? (
+                'กำลังสร้าง...'
+              ) : (
+                <span className="inline-flex items-center gap-1">
+                  สร้างสินค้าและไปกำหนดตัวเลือก
+                  <HiArrowRight className="size-4" aria-hidden="true" />
+                </span>
+              )}
+            </Button>
+          )}
         </div>
       </form>
     </div>

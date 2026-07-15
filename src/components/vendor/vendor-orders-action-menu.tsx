@@ -35,22 +35,28 @@ export function VendorOrdersActionMenu({
   }
 
   return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          ref={triggerRef}
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={`การดำเนินการ ${orderNumber}`}
-        >
-          <HiEllipsisHorizontal className="size-5" aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => onViewDetails(orderId)}>ดูรายละเอียด</DropdownMenuItem>
-        <DropdownMenuItem onSelect={handleCopyTrackingLink}>คัดลอกลิงก์ติดตาม</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div
+      className="flex justify-end"
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            ref={triggerRef}
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={`การดำเนินการ ${orderNumber}`}
+          >
+            <HiEllipsisHorizontal className="size-5" aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => onViewDetails(orderId)}>ดูรายละเอียด</DropdownMenuItem>
+          <DropdownMenuItem onSelect={handleCopyTrackingLink}>คัดลอกลิงก์ติดตาม</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

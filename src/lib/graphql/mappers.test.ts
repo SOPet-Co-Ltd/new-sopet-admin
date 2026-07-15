@@ -129,6 +129,58 @@ describe('mapOrder', () => {
     expect(order.guestPhone).toBeUndefined();
     expect(order.items).toHaveLength(1);
     expect(order.items[0].productName).toBe('Dog Food');
+    expect(order.items[0].variantOptions).toBeNull();
+  });
+
+  it('parses non-empty variantOptions JSON and omits empty/invalid snapshots', () => {
+    const order = mapOrder({
+      id: 'o1',
+      orderNumber: 'ORD-001',
+      status: 'pending',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      subtotal: 100,
+      shippingFee: 50,
+      discountAmount: 10,
+      total: 140,
+      paymentMethod: 'promptpay',
+      storeShippings: [],
+      items: [
+        {
+          id: 'i1',
+          storeId: 's1',
+          productName: 'Dog Food',
+          unitPrice: 100,
+          quantity: 1,
+          subtotal: 100,
+          fulfillmentStatus: 'pending',
+          variantOptions: JSON.stringify({ รสชาติ: 'ปลา', ขนาด: '1kg' }),
+        },
+        {
+          id: 'i2',
+          storeId: 's1',
+          productName: 'Cat Food',
+          unitPrice: 50,
+          quantity: 1,
+          subtotal: 50,
+          fulfillmentStatus: 'pending',
+          variantOptions: '{}',
+        },
+        {
+          id: 'i3',
+          storeId: 's1',
+          productName: 'Treat',
+          unitPrice: 20,
+          quantity: 1,
+          subtotal: 20,
+          fulfillmentStatus: 'pending',
+          variantOptions: 'not-json',
+        },
+      ],
+    });
+
+    expect(order.items[0].variantOptions).toEqual({ รสชาติ: 'ปลา', ขนาด: '1kg' });
+    expect(order.items[1].variantOptions).toBeNull();
+    expect(order.items[2].variantOptions).toBeNull();
   });
 });
 

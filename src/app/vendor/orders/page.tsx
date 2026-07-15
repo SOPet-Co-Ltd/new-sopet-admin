@@ -1,9 +1,8 @@
 'use client';
 
-import { Suspense, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
-import { VendorOrderDetailDialog } from '@/components/vendor/vendor-order-detail-dialog';
 import { VendorOrderTrackingLinkDialog } from '@/components/vendor/vendor-order-tracking-link-dialog';
 import { VendorOrdersActionMenu } from '@/components/vendor/vendor-orders-action-menu';
 import { Badge } from '@/components/ui/badge';
@@ -23,31 +22,18 @@ import { labelOrderStatus } from '@/lib/i18n/th';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Order } from '@/types';
 
-function VendorOrdersPageContent() {
-  const searchParams = useSearchParams();
+export default function VendorOrdersPage() {
+  const router = useRouter();
   const storeId = useVendorStoreId();
   const { data: orders = [], isLoading, error } = useVendorOrders(storeId);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [manualSelectedOrderId, setManualSelectedOrderId] = useState<string | null>(null);
-  const [dismissedUrlOrderId, setDismissedUrlOrderId] = useState<string | null>(null);
   const [trackingDialogOrderNumber, setTrackingDialogOrderNumber] = useState<string | null>(null);
   const menuTriggerRef = useRef<HTMLElement | null>(null);
-
-  const orderIdFromUrl = searchParams.get('orderId');
-  const selectedOrderId =
-    orderIdFromUrl && orderIdFromUrl !== dismissedUrlOrderId
-      ? orderIdFromUrl
-      : manualSelectedOrderId;
 
   const filteredOrders = useMemo(() => {
     if (statusFilter === 'all') return orders;
     return orders.filter((order) => order.status === statusFilter);
   }, [orders, statusFilter]);
-
-  const selectedOrder = useMemo(
-    () => orders.find((order) => order.id === selectedOrderId) ?? null,
-    [orders, selectedOrderId],
-  );
 
   const columns = useMemo<ColumnDef<Order>[]>(
     () => [
@@ -78,19 +64,17 @@ function VendorOrdersPageContent() {
         id: 'actions',
         header: '',
         cell: ({ row }) => (
-          <div className="flex justify-end">
-            <VendorOrdersActionMenu
-              orderId={row.original.id}
-              orderNumber={row.original.orderNumber}
-              onViewDetails={setManualSelectedOrderId}
-              onCopyTrackingLink={setTrackingDialogOrderNumber}
-              menuTriggerRef={menuTriggerRef}
-            />
-          </div>
+          <VendorOrdersActionMenu
+            orderId={row.original.id}
+            orderNumber={row.original.orderNumber}
+            onViewDetails={(orderId) => router.push(`/vendor/orders/${orderId}`)}
+            onCopyTrackingLink={setTrackingDialogOrderNumber}
+            menuTriggerRef={menuTriggerRef}
+          />
         ),
       },
     ],
-    [menuTriggerRef],
+    [router],
   );
 
   return (
@@ -131,20 +115,13 @@ function VendorOrdersPageContent() {
       ) : null}
 
       {!isLoading ? (
-        <DataTable columns={columns} data={filteredOrders} emptyMessage="ไม่พบคำสั่งซื้อ" />
+        <DataTable
+          columns={columns}
+          data={filteredOrders}
+          emptyMessage="ไม่พบคำสั่งซื้อ"
+          onRowClick={(order) => router.push(`/vendor/orders/${order.id}`)}
+        />
       ) : null}
-
-      <VendorOrderDetailDialog
-        order={selectedOrder}
-        storeId={storeId}
-        open={selectedOrderId !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            if (orderIdFromUrl) setDismissedUrlOrderId(orderIdFromUrl);
-            setManualSelectedOrderId(null);
-          }
-        }}
-      />
 
       <VendorOrderTrackingLinkDialog
         orderNumber={trackingDialogOrderNumber ?? ''}
@@ -155,13 +132,5 @@ function VendorOrdersPageContent() {
         menuTriggerRef={menuTriggerRef}
       />
     </div>
-  );
-}
-
-export default function VendorOrdersPage() {
-  return (
-    <Suspense fallback={<p className="text-muted">กำลังโหลดคำสั่งซื้อ...</p>}>
-      <VendorOrdersPageContent />
-    </Suspense>
   );
 }

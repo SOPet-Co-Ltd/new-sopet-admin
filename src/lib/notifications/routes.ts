@@ -58,7 +58,7 @@ export function getNotificationHref(
     case 'new_order':
     case 'order_status_changed': {
       const orderId = asString(parsedMetadata?.orderId);
-      return orderId ? `/vendor/orders?orderId=${encodeURIComponent(orderId)}` : '/vendor/orders';
+      return orderId ? `/vendor/orders/${encodeURIComponent(orderId)}` : '/vendor/orders';
     }
     case 'request_status_changed': {
       if (parsedMetadata?.type === 'store_request') {

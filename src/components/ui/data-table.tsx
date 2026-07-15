@@ -36,6 +36,8 @@ interface DataTableProps<TData> {
   data: TData[];
   emptyMessage?: string;
   className?: string;
+  onRowClick?: (row: TData) => void;
+  onRowMouseEnter?: (row: TData) => void;
 }
 
 export function DataTable<TData>({
@@ -43,6 +45,8 @@ export function DataTable<TData>({
   data,
   emptyMessage = 'ไม่พบข้อมูล',
   className,
+  onRowClick,
+  onRowMouseEnter,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -63,7 +67,7 @@ export function DataTable<TData>({
         className,
       )}
     >
-      <Table className="min-w-[640px]">
+      <Table className="min-w-0 md:min-w-[640px]">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className="bg-surface/60 hover:bg-surface/60">
@@ -86,7 +90,24 @@ export function DataTable<TData>({
         <TableBody>
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                className={onRowClick ? 'cursor-pointer' : undefined}
+                tabIndex={onRowClick ? 0 : undefined}
+                aria-label={onRowClick ? 'ดูรายละเอียด' : undefined}
+                onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                onMouseEnter={onRowMouseEnter ? () => onRowMouseEnter(row.original) : undefined}
+                onKeyDown={
+                  onRowClick
+                    ? (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onRowClick(row.original);
+                        }
+                      }
+                    : undefined
+                }
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id} className={cell.column.columnDef.meta?.className}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

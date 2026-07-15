@@ -48,6 +48,7 @@ type GqlOrderItem = {
   trackingNumber?: string | null;
   fulfillmentProvider?: string | null;
   trackingUrl?: string | null;
+  variantOptions?: string | null;
 };
 
 type GqlOrderShippingAddress = {
@@ -141,19 +142,45 @@ export function mapOrder(order: GqlOrder): Order {
         optionName: shipping.optionName,
         shippingFee: shipping.shippingFee,
       })) ?? [],
-    items: order.items.map((item) => ({
-      id: item.id,
-      storeId: item.storeId,
-      productName: item.productName,
-      unitPrice: item.unitPrice,
-      quantity: item.quantity,
-      subtotal: item.subtotal,
-      fulfillmentStatus: item.fulfillmentStatus,
-      trackingNumber: item.trackingNumber ?? undefined,
-      fulfillmentProvider: item.fulfillmentProvider ?? undefined,
-      trackingUrl: item.trackingUrl ?? undefined,
-    })),
+    items: order.items.map((item) => {
+      const parsedOptions = parseOrderVariantOptions(item.variantOptions);
+      return {
+        id: item.id,
+        storeId: item.storeId,
+        productName: item.productName,
+        unitPrice: item.unitPrice,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+        fulfillmentStatus: item.fulfillmentStatus,
+        trackingNumber: item.trackingNumber ?? undefined,
+        fulfillmentProvider: item.fulfillmentProvider ?? undefined,
+        trackingUrl: item.trackingUrl ?? undefined,
+        variantOptions: parsedOptions,
+      };
+    }),
   };
+}
+
+/** Parse GraphQL JSON-string snapshot; null when empty/invalid (UI omits the line). */
+function parseOrderVariantOptions(variantOptions?: string | null): Record<string, string> | null {
+  if (variantOptions == null || variantOptions === '' || variantOptions === '{}') {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(variantOptions) as Record<string, unknown>;
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      return null;
+    }
+    const options: Record<string, string> = {};
+    for (const [key, value] of Object.entries(parsed)) {
+      if (value != null) {
+        options[key] = String(value);
+      }
+    }
+    return Object.keys(options).length > 0 ? options : null;
+  } catch {
+    return null;
+  }
 }
 
 type GqlProductImage = {
@@ -178,6 +205,7 @@ type GqlProduct = {
   slug: string;
   description?: string | null;
   basePrice: number;
+  compareAtPrice?: number | null;
   warning?: string | null;
   expiryDate?: string | null;
   thumbnailUrl?: string | null;
@@ -190,6 +218,9 @@ type GqlProduct = {
   tagIds?: string[] | null;
   images?: GqlProductImage[] | null;
   variants?: GqlProductVariant[] | null;
+  averageRating?: number | null;
+  reviewCount?: number | null;
+  soldCount?: number | null;
 };
 
 type GqlPagination = {
@@ -215,6 +246,7 @@ export function mapProduct(product: GqlProduct): Product {
     slug: product.slug,
     description: product.description ?? undefined,
     basePrice: product.basePrice,
+    compareAtPrice: product.compareAtPrice ?? undefined,
     warning: product.warning ?? undefined,
     expiryDate: product.expiryDate ?? undefined,
     thumbnailUrl: product.thumbnailUrl ?? undefined,
@@ -238,6 +270,9 @@ export function mapProduct(product: GqlProduct): Product {
       stockQuantity: variant.stockQuantity,
       optionsJson: variant.optionsJson,
     })),
+    averageRating: product.averageRating ?? undefined,
+    reviewCount: product.reviewCount ?? undefined,
+    soldCount: product.soldCount ?? undefined,
   };
 }
 
