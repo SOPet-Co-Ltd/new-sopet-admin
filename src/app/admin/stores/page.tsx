@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,7 @@ function storeStatusBadgeClass(status: string): string | undefined {
 }
 
 export default function AdminStoresPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StoreStatus | 'all'>('all');
@@ -198,6 +200,7 @@ export default function AdminStoresPage() {
           columns={columns}
           data={filteredStores}
           emptyMessage={search || statusFilter !== 'all' ? 'ไม่พบร้านค้า' : 'ไม่มีร้านค้า'}
+          onRowClick={(store) => router.push(`/admin/stores/${store.id}`)}
         />
       ) : null}
     </div>

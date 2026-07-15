@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import { useVendorCustomers } from '@/hooks/useVendorCustomers';
 import type { VendorCustomer } from '@/types';
 
 export default function VendorCustomersPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -97,6 +99,7 @@ export default function VendorCustomersPage() {
             columns={columns}
             data={customers}
             emptyMessage="ยังไม่มีลูกค้าที่สั่งซื้อจากร้านนี้"
+            onRowClick={(customer) => router.push(`/vendor/customers/${customer.id}`)}
           />
           {pagination && pagination.totalPages > 1 ? (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">

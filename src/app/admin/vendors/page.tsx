@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import type { AdminVendor } from '@/types';
 type StatusFilter = 'all' | 'active' | 'inactive';
 
 export default function AdminVendorsPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
@@ -127,6 +129,7 @@ export default function AdminVendorsPage() {
           columns={columns}
           data={filteredVendors}
           emptyMessage={search || statusFilter !== 'all' ? 'ไม่พบผู้ขาย' : 'ไม่มีผู้ขาย'}
+          onRowClick={(vendor) => router.push(`/admin/vendors/${vendor.id}`)}
         />
       ) : null}
     </div>
