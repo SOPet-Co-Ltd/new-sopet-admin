@@ -1,17 +1,8 @@
 import { NextResponse } from 'next/server';
 
-import { getApiBaseUrl } from '@/lib/config';
+import { resolvePublicApiBaseUrl } from '@/lib/config';
 
 export const revalidate = 86400;
-
-/** Avoid publishing local/dev backends into a public crawler document. */
-function resolvePublicApiBaseUrl(): string {
-  const url = getApiBaseUrl();
-  if (/localhost|127\.0\.0\.1/i.test(url)) {
-    return '{API_BASE_URL}';
-  }
-  return url;
-}
 
 function buildLlmsTxtContent(adminOrigin: string): string {
   const apiBaseUrl = resolvePublicApiBaseUrl();
