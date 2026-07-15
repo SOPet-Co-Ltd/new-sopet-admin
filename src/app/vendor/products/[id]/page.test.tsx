@@ -130,6 +130,10 @@ describe('VendorProductDetailPage', () => {
     expect(screen.getByText('ขอบคุณครับ')).toBeInTheDocument();
     expect(screen.queryByText('ไม่เกี่ยว')).not.toBeInTheDocument();
 
+    expect(screen.getByText('ช่วงราคาตัวเลือก')).toBeInTheDocument();
+    expect(screen.queryByText('ราคาฐาน')).not.toBeInTheDocument();
+    expect(screen.queryByText('ราคาขีดฆ่า')).not.toBeInTheDocument();
+
     expect(screen.getByRole('link', { name: 'แก้ไขข้อมูล' })).toHaveAttribute(
       'href',
       '/vendor/products/prod-1/edit',
