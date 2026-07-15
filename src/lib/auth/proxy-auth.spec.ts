@@ -50,6 +50,15 @@ describe('proxy-auth', () => {
     expect(getAuthRedirectPath('/vendor/products', 'vendor', token)).toBeNull();
   });
 
+  it('allows unauthenticated access to vendor API llms.txt', () => {
+    expect(getAuthRedirectPath('/vendor/api/llms.txt', null, undefined)).toBeNull();
+  });
+
+  it('still protects other vendor API pages', () => {
+    expect(getAuthRedirectPath('/vendor/api', null, undefined)).toBe('/login');
+    expect(getAuthRedirectPath('/vendor/api/docs', null, undefined)).toBe('/login');
+  });
+
   it('redirects authenticated users away from register', () => {
     const vendorToken = createFakeJwt({ role: 'vendor' });
     expect(getGuestOnlyRedirectPath('/register', 'vendor', vendorToken)).toBe('/vendor');
