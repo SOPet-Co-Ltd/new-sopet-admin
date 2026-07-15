@@ -60,9 +60,14 @@ export default function VendorApiDocsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeader title="เอกสาร API" description="คู่มือการเชื่อมต่อ REST API สำหรับร้านค้า" />
-        <Button type="button" variant="outline" asChild>
-          <Link href="/vendor/api">กลับไปจัดการ API Keys</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" asChild>
+            <Link href="/vendor/api">กลับไปจัดการ API Keys</Link>
+          </Button>
+          <Button type="button" variant="outline" asChild>
+            <Link href="/vendor/api/llms.txt">llms.txt</Link>
+          </Button>
+        </div>
       </div>
 
       <Card>

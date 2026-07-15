@@ -25,11 +25,20 @@ export function getGuestOnlyRedirectPath(
   return getDashboardPathForRole(role);
 }
 
+/** Public LLM / crawler docs — must stay readable without a vendor session. */
+export function isPublicVendorApiDocPath(pathname: string): boolean {
+  return pathname === '/vendor/api/llms.txt';
+}
+
 export function getAuthRedirectPath(
   pathname: string,
   role: AuthRole | null,
   accessToken?: string,
 ): string | null {
+  if (isPublicVendorApiDocPath(pathname)) {
+    return null;
+  }
+
   const isProtectedRoute = pathname.startsWith('/admin') || pathname.startsWith('/vendor');
   if (!isProtectedRoute) {
     return null;
