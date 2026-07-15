@@ -35,6 +35,8 @@ export const ERROR_MESSAGES = {
   CATEGORY_NOT_FOUND: 'ไม่พบหมวดหมู่',
   TAG_NOT_FOUND: 'ไม่พบแท็ก',
   BRAND_NOT_FOUND: 'ไม่พบแบรนด์',
+  VARIANT_REMOVAL_BLOCKED:
+    'ไม่สามารถลบ SKU ได้ เพราะมีประวัติคำสั่งซื้อ และ/หรือ อยู่ในตะกร้าสินค้า',
 } as const;
 
 export type ErrorMessageCode = keyof typeof ERROR_MESSAGES;

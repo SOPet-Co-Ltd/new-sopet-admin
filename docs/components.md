@@ -54,7 +54,7 @@ Vendor dashboard series come from `computeStoreSalesOverTime` in `lib/orders/sto
 
 ### Vendor orders
 
-`/vendor/orders` shows a fulfillment-status `Badge` (`labelOrderStatus`) and a status filter (`Select`). Row actions (`VendorOrdersActionMenu`) open `VendorOrderDetailDialog` or copy the public tracking link (`VendorOrderTrackingLinkDialog`).
+`/vendor/orders` shows a fulfillment-status `Badge` (`labelOrderStatus`) and a status filter (`Select`). Row click and "ดูรายละเอียด" navigate to `/vendor/orders/[id]`; the action menu can also copy the public tracking link (`VendorOrderTrackingLinkDialog`).
 
 ## Error / loading states
 

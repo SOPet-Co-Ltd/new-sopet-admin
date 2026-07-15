@@ -8,13 +8,22 @@ import type { VariantOptionGroup } from '@/lib/variants';
 interface VariantOptionGroupsEditorProps {
   groups: VariantOptionGroup[];
   onChange: (groups: VariantOptionGroup[]) => void;
+  label?: string;
+  helperText?: string;
+  addLabel?: string;
 }
 
 function emptyGroup(): VariantOptionGroup {
   return { name: '', values: [''] };
 }
 
-export function VariantOptionGroupsEditor({ groups, onChange }: VariantOptionGroupsEditorProps) {
+export function VariantOptionGroupsEditor({
+  groups,
+  onChange,
+  label = 'ตัวเลือก (กลุ่มคุณสมบัติ)',
+  helperText = 'เช่น สี → แดง, น้ำเงิน, เขียว · ไซส์ → xs, s, m, l, xl · แต่ละชุดจะกลายเป็น 1 รายการ',
+  addLabel = 'เพิ่มตัวเลือก',
+}: VariantOptionGroupsEditorProps) {
   function updateGroup(index: number, patch: Partial<VariantOptionGroup>) {
     onChange(groups.map((group, i) => (i === index ? { ...group, ...patch } : group)));
   }
@@ -26,19 +35,17 @@ export function VariantOptionGroupsEditor({ groups, onChange }: VariantOptionGro
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label>ตัวเลือก (กลุ่มคุณสมบัติ)</Label>
+        <Label>{label}</Label>
         <Button
           type="button"
           variant="secondary"
           size="sm"
           onClick={() => onChange([...groups, emptyGroup()])}
         >
-          เพิ่มตัวเลือก
+          {addLabel}
         </Button>
       </div>
-      <p className="text-xs text-muted">
-        เช่น สี → แดง, น้ำเงิน, เขียว · ไซส์ → xs, s, m, l, xl · แต่ละชุดจะกลายเป็น 1 รายการ
-      </p>
+      <p className="text-xs text-muted">{helperText}</p>
 
       {groups.map((group, index) => (
         <div

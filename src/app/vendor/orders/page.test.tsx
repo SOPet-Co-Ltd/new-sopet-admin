@@ -4,8 +4,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Order } from '@/types';
 import VendorOrdersPage from './page';
 
+const pushMock = vi.fn();
+
 vi.mock('next/navigation', () => ({
-  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: pushMock }),
 }));
 
 vi.mock('@/hooks/useVendorOrders', () => ({
@@ -14,13 +16,6 @@ vi.mock('@/hooks/useVendorOrders', () => ({
 
 vi.mock('@/hooks/useVendorStoreId', () => ({
   useVendorStoreId: vi.fn(),
-}));
-
-vi.mock('@/components/vendor/vendor-order-detail-dialog', () => ({
-  VendorOrderDetailDialog: ({ open, order }: { open: boolean; order: Order | null }) =>
-    open && order ? (
-      <div data-testid="vendor-order-detail-dialog" aria-label={order.orderNumber} />
-    ) : null,
 }));
 
 vi.mock('@/components/vendor/vendor-order-tracking-link-dialog', () => ({
@@ -85,14 +80,14 @@ describe('VendorOrdersPage', () => {
   });
 
   /**
-   * AC: AC-011 — Detail dialog opens from action menu with unchanged behavior (regression smoke).
-   * Behavior: Render vendor orders page → open menu → select view details → detail dialog visible
-   * with correct order number
+   * AC: AC-011 — View details from action menu navigates to order detail page.
+   * Behavior: Render vendor orders page → open menu → select view details → router.push to
+   * `/vendor/orders/{id}`
    * @category: integration
    * @lane: integration
-   * @dependency: VendorOrdersPage, VendorOrdersActionMenu, VendorOrderDetailDialog mock
+   * @dependency: VendorOrdersPage, VendorOrdersActionMenu
    */
-  it('opens detail dialog when view details menu item is selected', async () => {
+  it('navigates to order detail page when view details menu item is selected', async () => {
     mockVendorOrdersPage();
     render(<VendorOrdersPage />);
 
@@ -101,10 +96,28 @@ describe('VendorOrdersPage', () => {
     );
     await userEvent.click(screen.getByRole('menuitem', { name: 'ดูรายละเอียด' }));
 
-    expect(screen.getByTestId('vendor-order-detail-dialog')).toHaveAttribute(
-      'aria-label',
-      MOCK_ORDER.orderNumber,
+    expect(pushMock).toHaveBeenCalledWith(`/vendor/orders/${MOCK_ORDER.id}`);
+  });
+
+  it('navigates to order detail page when order row is clicked', async () => {
+    mockVendorOrdersPage();
+    render(<VendorOrdersPage />);
+
+    await userEvent.click(screen.getByText(MOCK_ORDER.orderNumber));
+
+    expect(pushMock).toHaveBeenCalledWith(`/vendor/orders/${MOCK_ORDER.id}`);
+  });
+
+  it('does not navigate when action menu trigger is clicked', async () => {
+    mockVendorOrdersPage();
+    render(<VendorOrdersPage />);
+
+    await userEvent.click(
+      screen.getByRole('button', { name: `การดำเนินการ ${MOCK_ORDER.orderNumber}` }),
     );
+
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(screen.getByRole('menuitem', { name: 'ดูรายละเอียด' })).toBeInTheDocument();
   });
 
   /**

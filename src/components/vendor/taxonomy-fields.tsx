@@ -76,15 +76,18 @@ export function CategoryField({ value, onChange, error }: CategoryFieldProps) {
   return (
     <div>
       <div className="flex items-center justify-between gap-2">
-        <Label htmlFor="category">หมวดหมู่</Label>
+        <Label htmlFor="category" className="truncate">
+          หมวดหมู่
+        </Label>
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="h-auto px-2 py-1 text-xs"
+          className="h-auto shrink-0 whitespace-nowrap px-2 py-1 text-xs"
           onClick={() => setDialogOpen(true)}
+          aria-label="เสนอหมวดหมู่ใหม่"
         >
-          เสนอหมวดหมู่ใหม่
+          เสนอใหม่
         </Button>
       </div>
       <Select value={value ?? ''} onValueChange={onChange} disabled={isLoading}>
@@ -219,15 +222,18 @@ export function TagsField({ value, onChange }: TagsFieldProps) {
   return (
     <div>
       <div className="flex items-center justify-between gap-2">
-        <Label htmlFor="tags">แท็ก</Label>
+        <Label htmlFor="tags" className="truncate">
+          แท็ก
+        </Label>
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="h-auto px-2 py-1 text-xs"
+          className="h-auto shrink-0 whitespace-nowrap px-2 py-1 text-xs"
           onClick={() => setDialogOpen(true)}
+          aria-label="เสนอแท็กใหม่"
         >
-          เสนอแท็กใหม่
+          เสนอใหม่
         </Button>
       </div>
       <DropdownMenu>

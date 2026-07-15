@@ -222,6 +222,26 @@ export interface OrderItem {
   trackingNumber?: string | null;
   fulfillmentProvider?: string | null;
   trackingUrl?: string | null;
+  /** Parsed snapshot options from GraphQL JSON string; omit/empty when absent. */
+  variantOptions?: Record<string, string> | null;
+}
+
+export type VariantRemovalBlockReason = 'HAS_ORDERS' | 'HAS_OPEN_CARTS';
+
+export interface ProductVariantSyncImpactRemoved {
+  id: string;
+  sku: string;
+  optionKey: string;
+  optionsJson?: string | null;
+  reasons: VariantRemovalBlockReason[];
+}
+
+export interface ProductVariantSyncImpact {
+  kept: number;
+  new: number;
+  removed: number;
+  blocked: boolean;
+  removedVariants: ProductVariantSyncImpactRemoved[];
 }
 
 export interface OrderShippingAddress {
@@ -320,6 +340,7 @@ export interface Product {
   slug: string;
   description?: string;
   basePrice: number;
+  compareAtPrice?: number;
   warning?: string;
   expiryDate?: string;
   thumbnailUrl?: string;
@@ -332,12 +353,18 @@ export interface Product {
   tagIds?: string[];
   images?: ProductImage[];
   variants?: ProductVariant[];
+  averageRating?: number;
+  reviewCount?: number;
+  soldCount?: number;
 }
 
 export interface ProductsQueryParams {
   search?: string;
   storeId?: string;
   category?: string;
+  tag?: string;
+  petTypeIds?: string[];
+  brandIds?: string[];
   page?: number;
   limit?: number;
 }

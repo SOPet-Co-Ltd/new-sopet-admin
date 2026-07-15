@@ -158,6 +158,7 @@ export const VENDOR_ORDERS_QUERY = gql`
         trackingNumber
         fulfillmentProvider
         trackingUrl
+        variantOptions
       }
       storeShippings {
         storeId
@@ -379,6 +380,10 @@ export const PRODUCT_QUERY = gql`
   query Product($id: String!) {
     vendorProduct(id: $id) {
       ${PRODUCT_LIST_FIELDS}
+      averageRating
+      reviewCount
+      soldCount
+      compareAtPrice
     }
   }
 `;
@@ -409,10 +414,21 @@ export const VENDOR_PRODUCTS_QUERY = gql`
   query VendorProducts(
     $search: String
     $category: String
+    $tag: String
+    $petTypeIds: [String!]
+    $brandIds: [String!]
     $page: Int
     $limit: Int
   ) {
-    vendorProducts(search: $search, category: $category, page: $page, limit: $limit) {
+    vendorProducts(
+      search: $search
+      category: $category
+      tag: $tag
+      petTypeIds: $petTypeIds
+      brandIds: $brandIds
+      page: $page
+      limit: $limit
+    ) {
       items {
         ${PRODUCT_LIST_FIELDS}
       }
@@ -434,6 +450,36 @@ export const SYNC_PRODUCT_VARIANTS = gql`
       price
       stockQuantity
       optionsJson
+    }
+  }
+`;
+
+export const UPDATE_PRODUCT_VARIANT = gql`
+  mutation UpdateProductVariant($variantId: String!, $input: UpdateProductVariantInput!) {
+    updateProductVariant(variantId: $variantId, input: $input) {
+      id
+      sku
+      price
+      stockQuantity
+      optionsJson
+    }
+  }
+`;
+
+export const PRODUCT_VARIANT_SYNC_IMPACT = gql`
+  query ProductVariantSyncImpact($productId: String!, $variants: [SyncProductVariantItemInput!]!) {
+    productVariantSyncImpact(productId: $productId, variants: $variants) {
+      kept
+      new
+      removed
+      blocked
+      removedVariants {
+        id
+        sku
+        optionKey
+        optionsJson
+        reasons
+      }
     }
   }
 `;
@@ -1765,7 +1811,7 @@ export const VENDOR_CUSTOMER_DETAIL_QUERY = gql`
 `;
 
 export const STORE_API_KEYS_QUERY = gql`
-  query StoreApiKeys($storeId: ID!) {
+  query StoreApiKeys($storeId: String!) {
     storeApiKeys(storeId: $storeId) {
       id
       name
@@ -1778,7 +1824,7 @@ export const STORE_API_KEYS_QUERY = gql`
 `;
 
 export const CREATE_STORE_API_KEY = gql`
-  mutation CreateStoreApiKey($storeId: ID!, $name: String!) {
+  mutation CreateStoreApiKey($storeId: String!, $name: String!) {
     createStoreApiKey(storeId: $storeId, name: $name) {
       apiKey {
         id
@@ -1793,7 +1839,7 @@ export const CREATE_STORE_API_KEY = gql`
 `;
 
 export const REVOKE_STORE_API_KEY = gql`
-  mutation RevokeStoreApiKey($storeId: ID!, $id: ID!) {
+  mutation RevokeStoreApiKey($storeId: String!, $id: String!) {
     revokeStoreApiKey(storeId: $storeId, id: $id)
   }
 `;

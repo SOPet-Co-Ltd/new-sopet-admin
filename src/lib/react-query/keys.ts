@@ -27,6 +27,8 @@ export const queryKeys = {
     list: (params: ProductsQueryParams) => ['products', 'list', params] as const,
     detail: (id: string) => ['products', 'detail', id] as const,
     publishChecklist: (id: string) => ['products', 'publishChecklist', id] as const,
+    variantSyncImpact: (productId: string, payloadKey: string) =>
+      ['products', 'variantSyncImpact', productId, payloadKey] as const,
   },
   analytics: {
     all: ['analytics'] as const,

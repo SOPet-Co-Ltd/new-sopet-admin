@@ -1,12 +1,17 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { HiOutlineTrash } from 'react-icons/hi2';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { formatCombinationLabel, type VariantItem } from '@/lib/variants';
 
 interface VariantItemsSpreadsheetProps {
   items: VariantItem[];
   onChange: (items: VariantItem[]) => void;
+  emptyMessage?: string;
 }
 
 type ColumnKey = 'sku' | 'stockQuantity' | 'price';
@@ -37,8 +42,18 @@ function coerce(column: ColumnDef, raw: string): string | number {
   return raw;
 }
 
-export function VariantItemsSpreadsheet({ items, onChange }: VariantItemsSpreadsheetProps) {
+function rowKey(item: VariantItem, index: number): string {
+  return item.id ?? `${item.sku}-${index}`;
+}
+
+export function VariantItemsSpreadsheet({
+  items,
+  onChange,
+  emptyMessage = 'สินค้านี้ยังไม่มีรายการตัวเลือก — เพิ่มกลุ่มตัวเลือกด้านบนเพื่อสร้างรายการ',
+}: VariantItemsSpreadsheetProps) {
   const inputsRef = useRef<Map<string, HTMLInputElement>>(new Map());
+  const [bulkStock, setBulkStock] = useState('');
+  const [bulkPrice, setBulkPrice] = useState('');
 
   const registerInput = useCallback(
     (row: number, col: number) => (el: HTMLInputElement | null) => {
@@ -66,6 +81,10 @@ export function VariantItemsSpreadsheet({ items, onChange }: VariantItemsSpreads
     onChange(items.map((item, i) => (i === index ? { ...item, ...patch } : item)));
   }
 
+  function removeItem(index: number) {
+    onChange(items.filter((_, i) => i !== index));
+  }
+
   function setCellValue(row: number, col: number, raw: string, draft?: VariantItem[]) {
     const column = COLUMNS[col];
     const value = coerce(column, raw);
@@ -74,6 +93,28 @@ export function VariantItemsSpreadsheet({ items, onChange }: VariantItemsSpreads
       return;
     }
     updateItem(row, { [column.key]: value } as Partial<VariantItem>);
+  }
+
+  function applyBulkValues() {
+    const nextStock = bulkStock.trim() === '' ? undefined : Math.max(0, Number(bulkStock));
+    const nextPrice = bulkPrice.trim() === '' ? undefined : Math.max(0, Number(bulkPrice));
+    if (
+      (nextStock === undefined || !Number.isFinite(nextStock)) &&
+      (nextPrice === undefined || !Number.isFinite(nextPrice))
+    ) {
+      return;
+    }
+    onChange(
+      items.map((item) => ({
+        ...item,
+        ...(nextStock !== undefined && Number.isFinite(nextStock)
+          ? { stockQuantity: nextStock }
+          : {}),
+        ...(nextPrice !== undefined && Number.isFinite(nextPrice) ? { price: nextPrice } : {}),
+      })),
+    );
+    setBulkStock('');
+    setBulkPrice('');
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>, row: number, col: number) {
@@ -147,14 +188,124 @@ export function VariantItemsSpreadsheet({ items, onChange }: VariantItemsSpreads
   if (items.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-border bg-surface/50 p-8 text-center text-sm text-muted">
-        สินค้านี้ยังไม่มีรายการตัวเลือก — กลุ่มตัวเลือกจะถูกกำหนดตอนสร้างสินค้า
+        {emptyMessage}
       </p>
     );
   }
 
   return (
-    <div className="space-y-2">
-      <div className="overflow-x-auto rounded-xl border border-border bg-white shadow-[var(--shadow-card)]">
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-dashed border-border bg-surface/40 p-3">
+        <div>
+          <Label htmlFor="bulk-stock" className="text-xs text-muted">
+            สต็อก (ทุกรายการ)
+          </Label>
+          <Input
+            id="bulk-stock"
+            type="number"
+            inputMode="decimal"
+            min={0}
+            placeholder="เช่น 50"
+            value={bulkStock}
+            onChange={(e) => setBulkStock(e.target.value)}
+            className="mt-1.5 h-9 w-28"
+          />
+        </div>
+        <div>
+          <Label htmlFor="bulk-price" className="text-xs text-muted">
+            ราคา (ทุกรายการ)
+          </Label>
+          <Input
+            id="bulk-price"
+            type="number"
+            inputMode="decimal"
+            min={0}
+            step="0.01"
+            placeholder="เช่น 199"
+            value={bulkPrice}
+            onChange={(e) => setBulkPrice(e.target.value)}
+            className="mt-1.5 h-9 w-28"
+          />
+        </div>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          disabled={bulkStock.trim() === '' && bulkPrice.trim() === ''}
+          onClick={applyBulkValues}
+        >
+          ใช้กับทุกรายการ
+        </Button>
+        <p className="text-xs text-muted">กรอกเฉพาะช่องที่ต้องการตั้งค่าเดียวกันทั้งหมด</p>
+      </div>
+
+      <div className="space-y-2 sm:hidden">
+        {items.map((item, rowIndex) => (
+          <div
+            key={rowKey(item, rowIndex)}
+            className="rounded-xl border border-border bg-white p-4 shadow-[var(--shadow-card)]"
+          >
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-ink">
+                {formatCombinationLabel(item.options) || 'ตัวเลือกเดียว'}
+              </p>
+              <button
+                type="button"
+                aria-label={`ลบรายการ ${formatCombinationLabel(item.options) || rowIndex + 1}`}
+                onClick={() => removeItem(rowIndex)}
+                className="rounded-md p-1.5 text-muted transition-colors hover:bg-danger-bg hover:text-danger"
+              >
+                <HiOutlineTrash className="size-4" aria-hidden="true" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <Label className="text-xs text-muted">SKU</Label>
+                <Input
+                  value={item.sku}
+                  onChange={(e) => updateItem(rowIndex, { sku: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs text-muted">สต็อก</Label>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    value={item.stockQuantity}
+                    onChange={(e) =>
+                      updateItem(rowIndex, {
+                        stockQuantity: coerce(COLUMNS[1], e.target.value) as number,
+                      })
+                    }
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted">ราคา (บาท)</Label>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step="0.01"
+                    value={item.price}
+                    onChange={(e) =>
+                      updateItem(rowIndex, {
+                        price: coerce(COLUMNS[2], e.target.value) as number,
+                      })
+                    }
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-xl border border-border bg-white shadow-[var(--shadow-card)] sm:block">
         <table className="min-w-full border-collapse text-sm">
           <thead className="bg-surface/70 text-left text-muted">
             <tr>
@@ -170,11 +321,14 @@ export function VariantItemsSpreadsheet({ items, onChange }: VariantItemsSpreads
                   {column.label}
                 </th>
               ))}
+              <th className="border-b border-l border-border px-3 py-3 font-semibold">
+                <span className="sr-only">ลบ</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             {items.map((item, rowIndex) => (
-              <tr key={item.id ?? `${item.sku}-${rowIndex}`}>
+              <tr key={rowKey(item, rowIndex)}>
                 <td className="border-b border-border px-4 py-2 whitespace-nowrap text-ink">
                   {formatCombinationLabel(item.options) || '—'}
                 </td>
@@ -199,13 +353,24 @@ export function VariantItemsSpreadsheet({ items, onChange }: VariantItemsSpreads
                     />
                   </td>
                 ))}
+                <td className="border-b border-l border-border px-2 text-center">
+                  <button
+                    type="button"
+                    aria-label={`ลบรายการ ${formatCombinationLabel(item.options) || rowIndex + 1}`}
+                    onClick={() => removeItem(rowIndex)}
+                    className="rounded-md p-1.5 text-muted transition-colors hover:bg-danger-bg hover:text-danger"
+                  >
+                    <HiOutlineTrash className="size-4" aria-hidden="true" />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       <p className="text-xs text-muted">
-        ใช้ Tab / Enter / ลูกศร เพื่อเลื่อนระหว่างช่อง และวาง (paste) จากสเปรดชีตได้โดยตรง
+        ใช้ Tab / Enter / ลูกศร เพื่อเลื่อนระหว่างช่อง และวาง (paste) จากสเปรดชีตได้โดยตรง —
+        ลบรายการที่ไม่ต้องการขายได้ทันที
       </p>
     </div>
   );

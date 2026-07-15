@@ -16,8 +16,8 @@ function notification(overrides: Partial<Notification> = {}): Notification {
 }
 
 describe('getNotificationHref', () => {
-  it('routes vendor order notifications to vendor orders page', () => {
-    expect(getNotificationHref(notification(), 'vendor')).toBe('/vendor/orders?orderId=order-1');
+  it('routes vendor order notifications to vendor order detail page', () => {
+    expect(getNotificationHref(notification(), 'vendor')).toBe('/vendor/orders/order-1');
   });
 
   it('routes admin store requests to admin requests page', () => {

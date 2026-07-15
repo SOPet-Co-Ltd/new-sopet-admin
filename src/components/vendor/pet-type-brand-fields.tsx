@@ -68,15 +68,18 @@ export function PetTypeField({ value, onChange, error }: PetTypeFieldProps) {
   return (
     <div>
       <div className="flex items-center justify-between gap-2">
-        <Label htmlFor="pet-type">ประเภทสัตว์เลี้ยง</Label>
+        <Label htmlFor="pet-type" className="truncate">
+          ประเภทสัตว์เลี้ยง
+        </Label>
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="h-auto px-2 py-1 text-xs"
+          className="h-auto shrink-0 whitespace-nowrap px-2 py-1 text-xs"
           onClick={() => setDialogOpen(true)}
+          aria-label="เสนอประเภทสัตว์เลี้ยงใหม่"
         >
-          เสนอประเภทสัตว์เลี้ยงใหม่
+          เสนอใหม่
         </Button>
       </div>
       <Select value={value ?? ''} onValueChange={onChange} disabled={isLoading}>
@@ -199,15 +202,18 @@ export function BrandField({ value, onChange, error }: BrandFieldProps) {
   return (
     <div>
       <div className="flex items-center justify-between gap-2">
-        <Label htmlFor="brand">แบรนด์</Label>
+        <Label htmlFor="brand" className="truncate">
+          แบรนด์
+        </Label>
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="h-auto px-2 py-1 text-xs"
+          className="h-auto shrink-0 whitespace-nowrap px-2 py-1 text-xs"
           onClick={() => setDialogOpen(true)}
+          aria-label="เสนอแบรนด์ใหม่"
         >
-          เสนอแบรนด์ใหม่
+          เสนอใหม่
         </Button>
       </div>
       <Select value={value ?? ''} onValueChange={onChange} disabled={isLoading}>
