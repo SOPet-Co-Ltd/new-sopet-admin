@@ -27,18 +27,46 @@ export function getGraphqlWsUrl(): string {
   return url.toString();
 }
 
+function stripTrailingSlash(url: string): string {
+  return url.replace(/\/$/, '');
+}
+
+function originFromGraphqlUrl(graphqlUrl: string): string {
+  return graphqlUrl.replace(/\/graphql\/?$/, '') || DEFAULT_API_BASE_URL;
+}
+
+function isLocalApiHost(url: string): boolean {
+  return /localhost|127\.0\.0\.1/i.test(url);
+}
+
 /** Direct REST API base URL (no trailing slash). Vendor public API is not proxied like GraphQL. */
 export function getApiBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
+    return stripTrailingSlash(process.env.NEXT_PUBLIC_API_URL);
   }
 
   if (typeof window === 'undefined') {
     const ssrGraphqlUrl = process.env.GRAPHQL_SSR_URL ?? DEFAULT_SERVER_GRAPHQL_URL;
-    return ssrGraphqlUrl.replace(/\/graphql\/?$/, '') || DEFAULT_API_BASE_URL;
+    return originFromGraphqlUrl(ssrGraphqlUrl);
+  }
+
+  if (process.env.NEXT_PUBLIC_GRAPHQL_BACKEND_ORIGIN) {
+    return stripTrailingSlash(process.env.NEXT_PUBLIC_GRAPHQL_BACKEND_ORIGIN);
   }
 
   return DEFAULT_API_BASE_URL;
+}
+
+/**
+ * API base URL safe for vendor docs / public crawler text.
+ * Prefer the configured public host; never advertise local/dev backends.
+ */
+export function resolvePublicApiBaseUrl(): string {
+  const url = getApiBaseUrl();
+  if (isLocalApiHost(url)) {
+    return '{API_BASE_URL}';
+  }
+  return url;
 }
 
 export const ACCESS_TOKEN = 'accessToken';

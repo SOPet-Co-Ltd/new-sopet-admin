@@ -50,13 +50,13 @@ cp .env.example .env
 
 ## Environment setup
 
-| Variable                  | Default                           | Purpose                                    |
-| ------------------------- | --------------------------------- | ------------------------------------------ |
-| `NEXT_PUBLIC_GRAPHQL_URL` | `/graphql`                        | Browser GraphQL (proxied via Next rewrite) |
-| `GRAPHQL_SSR_URL`         | `http://localhost:3002/graphql`   | Server-side GraphQL                        |
-| `NEXT_PUBLIC_API_URL`     | `http://localhost:3002`           | Vendor REST API docs base URL              |
-| `NEXT_PUBLIC_CDN_URL`     | _(unset)_                         | Public CDN base URL for uploaded images    |
-| `GRAPHQL_SCHEMA_PATH`     | `../sopet-backend/src/schema.gql` | Codegen schema source                      |
+| Variable                  | Default                           | Purpose                                                          |
+| ------------------------- | --------------------------------- | ---------------------------------------------------------------- |
+| `NEXT_PUBLIC_GRAPHQL_URL` | `/graphql`                        | Browser GraphQL (proxied via Next rewrite)                       |
+| `GRAPHQL_SSR_URL`         | `http://localhost:3002/graphql`   | Server-side GraphQL                                              |
+| `NEXT_PUBLIC_API_URL`     | `https://api.sopet.org`           | Public vendor REST API base (docs / llms.txt; no trailing slash) |
+| `NEXT_PUBLIC_CDN_URL`     | _(unset)_                         | Public CDN base URL for uploaded images                          |
+| `GRAPHQL_SCHEMA_PATH`     | `../sopet-backend/src/schema.gql` | Codegen schema source                                            |
 
 Optional CI/schema-fetch vars are documented in `.env.example` (`GRAPHQL_SCHEMA_GITHUB_*`).
 
