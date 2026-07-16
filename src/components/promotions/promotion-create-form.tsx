@@ -89,9 +89,9 @@ export function PromotionCreateForm({
         }
       />
 
-      <Card className="overflow-hidden">
+      <Card>
         <CardBody className="p-0">
-          <div className="flex flex-wrap items-center gap-2 border-b border-border bg-surface/60 px-5 py-3.5 md:px-6">
+          <div className="flex flex-wrap items-center gap-2 rounded-t-xl border-b border-border bg-surface/60 px-5 py-3.5 md:px-6">
             <span className="text-sm text-muted-foreground">ประเภท</span>
             <Badge status="draft">{meta.label}</Badge>
           </div>
