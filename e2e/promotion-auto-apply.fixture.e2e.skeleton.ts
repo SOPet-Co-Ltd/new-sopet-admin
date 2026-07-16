@@ -5,6 +5,7 @@
 // ADR: ADR-0008-promotion-auto-apply-checkout.md
 // Parent pattern: e2e/promotion-logged-in-only.fixture.e2e.skeleton.ts
 // Implement target: e2e/promotion-auto-apply.fixture.e2e.spec.ts
+// Promoted: e2e/promotion-auto-apply.fixture.e2e.spec.ts (Phase 1 Task 1.4)
 // Generated: 2026-07-16 | Budget Used: integration 0/3, fixture-e2e 1/3 (admin journey),
 // service-e2e 0/2
 //
@@ -56,5 +57,5 @@
 // - Normative Thai: section description + checkbox label + off-hint (AC-024 / UI-AA-003)
 // - Control is labeled checkbox — no Switch (UI-AA-001)
 // - Checkbox on → create/update payload autoApply: true (AC-003)
-// - Edit autoApply true → checkbox checked; save off → autoApply: false (AC-002)
+// - Optional: Edit autoApply true → checkbox checked; save off → autoApply: false (AC-002)
 // - List badge ใช้อัตโนมัติ when saved true (AC-004 regression)
