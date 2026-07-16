@@ -99,9 +99,9 @@ export function PetTypeField({ value, onChange, error }: PetTypeFieldProps) {
           ))}
         </SelectContent>
       </Select>
-      {notice ? <p className="mt-1 text-xs text-muted">{notice}</p> : null}
+      {notice ? <p className="mt-1 text-xs text-muted-foreground">{notice}</p> : null}
       {loadError ? (
-        <p className="mt-1 text-xs text-muted">
+        <p className="mt-1 text-xs text-muted-foreground">
           ยังโหลดประเภทสัตว์เลี้ยงไม่ได้ — ลองใหม่เมื่อ API พร้อม
         </p>
       ) : null}
@@ -233,9 +233,11 @@ export function BrandField({ value, onChange, error }: BrandFieldProps) {
           ))}
         </SelectContent>
       </Select>
-      {notice ? <p className="mt-1 text-xs text-muted">{notice}</p> : null}
+      {notice ? <p className="mt-1 text-xs text-muted-foreground">{notice}</p> : null}
       {loadError ? (
-        <p className="mt-1 text-xs text-muted">ยังโหลดแบรนด์ไม่ได้ — ลองใหม่เมื่อ API พร้อม</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          ยังโหลดแบรนด์ไม่ได้ — ลองใหม่เมื่อ API พร้อม
+        </p>
       ) : null}
       {error ? (
         <p id="brand-error" className="mt-1 text-xs text-danger" role="alert">

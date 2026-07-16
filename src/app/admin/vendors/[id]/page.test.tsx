@@ -114,7 +114,7 @@ describe('AdminVendorEditPage', () => {
     expect(screen.getByText('vendor@example.com')).toBeInTheDocument();
     expect(screen.getByText('ใช้งานอยู่')).toBeInTheDocument();
     expect(screen.getByText('ยืนยันอีเมลแล้ว')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'ภาพรวม' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /ภาพรวมผู้ขาย/ })).toBeInTheDocument();
     expect(screen.getByText('จำนวนร้านค้า')).toBeInTheDocument();
     expect(screen.getByText('รายได้รวม')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'การดำเนินการบัญชี' })).toBeInTheDocument();

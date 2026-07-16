@@ -170,7 +170,7 @@ export function VendorProductFilters({
             <span aria-hidden="true">ตัวกรอง</span>
             {activeCount > 0 ? (
               <span
-                className="inline-flex min-w-5 items-center justify-center rounded-md bg-brand-tint px-1.5 text-xs font-semibold text-brand"
+                className="inline-flex min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-xs font-semibold text-primary-foreground"
                 aria-hidden="true"
               >
                 {activeCount}
@@ -189,10 +189,10 @@ export function VendorProductFilters({
               onClick={filter.onClear}
               disabled={disabled}
               aria-label={`ลบตัวกรอง ${filter.label}: ${filter.valueLabel}`}
-              className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-ink transition-colors hover:border-brand/40 hover:bg-brand-tint disabled:pointer-events-none disabled:opacity-50"
+              className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-medium text-ink transition-colors duration-150 hover:border-border hover:bg-surface focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
             >
               <span className="truncate" aria-hidden="true">
-                <span className="text-muted">{filter.label}: </span>
+                <span className="text-muted-foreground">{filter.label}: </span>
                 {filter.valueLabel}
               </span>
               <HiXMark className="size-3.5 shrink-0 text-muted" aria-hidden="true" />
@@ -204,7 +204,7 @@ export function VendorProductFilters({
       {open ? (
         <div
           id={panelId}
-          className="rounded-xl border border-border bg-surface/60 p-4 sm:p-5"
+          className="rounded-xl border border-border bg-white p-4 sm:p-5"
           role="region"
           aria-label="ตัวเลือกตัวกรอง"
         >
@@ -213,7 +213,7 @@ export function VendorProductFilters({
               <div key={field.key} className="min-w-0">
                 <label
                   htmlFor={field.triggerId}
-                  className="mb-1.5 block text-xs font-medium text-muted"
+                  className="mb-1.5 block text-xs font-medium text-muted-foreground"
                 >
                   {field.label}
                 </label>

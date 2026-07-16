@@ -1,128 +1,150 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardBody, CardHeader } from '@/components/ui/card';
-import { StatCard } from '@/components/vendor/stat-card';
-import { useRequestPayout, useStorePayoutSummary, useStorePayouts } from '@/hooks/usePayouts';
-import { PAYOUT_STATUS_LABELS } from '@/lib/payouts/status-labels';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { Card, CardBody } from '@/components/ui/card';
+import { useRequestPayout, useStorePayoutSummary } from '@/hooks/usePayouts';
+import { formatCurrency } from '@/lib/utils';
+
+function blockerMessage(summary: {
+  availableBalance: number;
+  minimumPayoutAmount: number;
+  pendingPayoutAmount: number;
+  canRequestPayout: boolean;
+}): string | null {
+  if (summary.canRequestPayout && summary.pendingPayoutAmount > 0) {
+    return 'มีรายการที่ยังไม่ได้ส่งไประบบโอนเงิน — กดเพื่อส่งอีกครั้งหลังบัญชีพร้อมรับเงิน';
+  }
+  if (summary.canRequestPayout) return null;
+  if (summary.pendingPayoutAmount > 0) {
+    return 'มีรายการ payout ที่รอดำเนินการอยู่ โปรดรอให้โอนเสร็จก่อนขอครั้งถัดไป';
+  }
+  if (summary.availableBalance <= 0) {
+    return 'ยังไม่มียอดพร้อมถอนจากคำสั่งซื้อที่ชำระแล้ว';
+  }
+  if (summary.availableBalance < summary.minimumPayoutAmount) {
+    return `ยอดพร้อมถอนต้องอย่างน้อย ${formatCurrency(summary.minimumPayoutAmount)}`;
+  }
+  return null;
+}
+
+function BalanceSkeleton() {
+  return (
+    <div className="space-y-4 p-5 sm:p-6" aria-busy="true" aria-live="polite">
+      <div className="h-4 w-28 animate-pulse rounded bg-surface motion-reduce:animate-none" />
+      <div className="h-9 w-48 animate-pulse rounded bg-surface motion-reduce:animate-none" />
+      <div className="h-4 w-64 animate-pulse rounded bg-surface motion-reduce:animate-none" />
+      <div className="grid gap-4 pt-2 sm:grid-cols-3">
+        <div className="h-14 animate-pulse rounded-lg bg-surface motion-reduce:animate-none" />
+        <div className="h-14 animate-pulse rounded-lg bg-surface motion-reduce:animate-none" />
+        <div className="h-14 animate-pulse rounded-lg bg-surface motion-reduce:animate-none" />
+      </div>
+      <span className="sr-only">กำลังโหลดยอดเงิน...</span>
+    </div>
+  );
+}
 
 export function VendorPayoutBalancePanel() {
-  const { data: summary, isLoading: summaryLoading } = useStorePayoutSummary();
-  const { data: payouts = [], isLoading: historyLoading } = useStorePayouts();
+  const { data: summary, isLoading } = useStorePayoutSummary();
   const requestMutation = useRequestPayout();
 
-  const isLoading = summaryLoading || historyLoading;
-  const unpaidBalance = summary ? Math.max(0, summary.grossRevenue - summary.totalPaidOut) : 0;
+  const hint = summary ? blockerMessage(summary) : null;
+  const isRetry = Boolean(summary?.canRequestPayout && summary.pendingPayoutAmount > 0);
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <h2 className="font-display font-medium text-ink">ยอดเงินรับ payout</h2>
-          <p className="mt-1 text-sm text-muted">ยอดที่ถอนได้และยอดที่ระบบยังไม่ได้โอนให้ร้าน</p>
-        </CardHeader>
-        <CardBody>
-          {isLoading ? (
-            <p className="text-muted">กำลังโหลด...</p>
-          ) : summary ? (
-            <div className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <StatCard
-                  label="ยอดที่ถอนได้"
-                  value={formatCurrency(summary.availableBalance)}
-                  hint={`ขั้นต่ำ ${formatCurrency(summary.minimumPayoutAmount)}`}
-                />
-                <StatCard
-                  label="โอนแล้ว"
-                  value={formatCurrency(summary.totalPaidOut)}
-                  hint={`จากรายได้รวม ${formatCurrency(summary.grossRevenue)}`}
-                />
-                <StatCard
-                  label="ยังไม่ได้รับจากระบบ"
-                  value={formatCurrency(unpaidBalance)}
-                  hint={
-                    summary.pendingPayoutAmount > 0
-                      ? `รอโอน ${formatCurrency(summary.pendingPayoutAmount)}`
-                      : 'ยอดคงเหลือที่ยังไม่ถูกโอน'
-                  }
-                />
+    <Card>
+      <CardBody className="p-0">
+        {isLoading ? (
+          <BalanceSkeleton />
+        ) : summary ? (
+          <div className="divide-y divide-border">
+            <div className="flex flex-col gap-6 p-5 sm:p-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-muted-foreground">ยอดพร้อมถอน</p>
+                <p className="mt-1 break-words font-display text-2xl font-medium tracking-tight text-ink tabular-nums sm:text-3xl">
+                  {formatCurrency(summary.availableBalance)}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  ขั้นต่ำ {formatCurrency(summary.minimumPayoutAmount)}
+                </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex w-full flex-col gap-2 lg:w-auto lg:min-w-[16rem] lg:items-end">
                 <Button
                   type="button"
+                  className="h-11 w-full px-6 lg:w-auto"
                   onClick={() => requestMutation.mutate()}
                   disabled={!summary.canRequestPayout || requestMutation.isPending}
                   aria-busy={requestMutation.isPending}
                 >
-                  {requestMutation.isPending ? 'กำลังส่งคำขอ...' : 'ขอรับเงิน payout'}
+                  {requestMutation.isPending
+                    ? 'กำลังส่งคำขอ...'
+                    : isRetry
+                      ? 'ส่งคำขอโอนเงินอีกครั้ง'
+                      : 'ขอรับเงิน'}
                 </Button>
-                {!summary.canRequestPayout ? (
-                  <p className="text-sm text-muted">
-                    {summary.pendingPayoutAmount > 0
-                      ? 'มีรายการ payout ที่รอดำเนินการอยู่'
-                      : summary.availableBalance < summary.minimumPayoutAmount
-                        ? `ยอดถอนได้ต้องไม่ต่ำกว่า ${formatCurrency(summary.minimumPayoutAmount)}`
-                        : 'ไม่มียอดที่ถอนได้ในขณะนี้'}
-                  </p>
+                {hint ? (
+                  <p className="text-sm text-muted-foreground lg:text-right">{hint}</p>
                 ) : null}
               </div>
-
-              {requestMutation.isError ? (
-                <p className="text-sm text-danger" role="alert">
-                  {requestMutation.error instanceof Error
-                    ? requestMutation.error.message
-                    : 'ส่งคำขอ payout ไม่สำเร็จ'}
-                </p>
-              ) : null}
-              {requestMutation.isSuccess ? (
-                <p className="text-sm text-emerald-700" role="status">
-                  ส่งคำขอ payout สำเร็จ ระบบกำลังดำเนินการโอนเงิน
-                </p>
-              ) : null}
             </div>
-          ) : (
-            <p className="text-muted">ไม่พบข้อมูล payout</p>
-          )}
-        </CardBody>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <h3 className="font-display font-medium text-ink">ประวัติ payout</h3>
-        </CardHeader>
-        <CardBody>
-          {historyLoading ? (
-            <p className="text-muted">กำลังโหลด...</p>
-          ) : payouts.length === 0 ? (
-            <p className="text-sm text-muted">ยังไม่มีประวัติ payout</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-muted">
-                    <th className="px-2 py-2 font-medium">วันที่</th>
-                    <th className="px-2 py-2 font-medium">จำนวนเงิน</th>
-                    <th className="px-2 py-2 font-medium">สถานะ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payouts.map((payout) => (
-                    <tr key={payout.id} className="border-b border-border/60">
-                      <td className="px-2 py-2">{formatDateTime(payout.createdAt)}</td>
-                      <td className="px-2 py-2">{formatCurrency(payout.amount)}</td>
-                      <td className="px-2 py-2">
-                        {PAYOUT_STATUS_LABELS[payout.status] ?? payout.status}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardBody>
-      </Card>
-    </div>
+            {summary.pendingPayoutAmount > 0 ? (
+              <div
+                className="flex flex-col gap-1 bg-warning-bg px-5 py-3 text-sm text-warning-text sm:flex-row sm:items-center sm:justify-between sm:px-6"
+                role="status"
+              >
+                <p className="font-medium">
+                  กำลังรอโอน {formatCurrency(summary.pendingPayoutAmount)}
+                </p>
+                <p className="opacity-90">
+                  {isRetry ? 'ยังไม่ได้สร้างคำขอโอนเงิน' : 'ระบบกำลังดำเนินการโอนเข้าบัญชีของคุณ'}
+                </p>
+              </div>
+            ) : null}
+
+            <dl className="grid min-w-0 gap-4 px-5 py-4 sm:grid-cols-3 sm:px-6">
+              <div className="min-w-0">
+                <dt className="text-xs text-muted-foreground">รายได้รวม</dt>
+                <dd className="mt-1 break-words font-display text-lg font-medium text-ink tabular-nums">
+                  {formatCurrency(summary.grossRevenue)}
+                </dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="text-xs text-muted-foreground">กำลังดำเนินการ</dt>
+                <dd className="mt-1 break-words font-display text-lg font-medium text-ink tabular-nums">
+                  {formatCurrency(summary.pendingPayoutAmount)}
+                </dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="text-xs text-muted-foreground">ขอรับแล้ว (รวมรอดำเนินการ)</dt>
+                <dd className="mt-1 break-words font-display text-lg font-medium text-ink tabular-nums">
+                  {formatCurrency(summary.totalPaidOut)}
+                </dd>
+              </div>
+            </dl>
+
+            {requestMutation.isError ? (
+              <p className="px-5 py-3 text-sm text-danger sm:px-6" role="alert">
+                {requestMutation.error instanceof Error
+                  ? requestMutation.error.message
+                  : 'ส่งคำขอ payout ไม่สำเร็จ'}
+              </p>
+            ) : null}
+            {requestMutation.isSuccess ? (
+              <p className="px-5 py-3 text-sm text-success sm:px-6" role="status">
+                ส่งคำขอสำเร็จ ระบบกำลังดำเนินการโอนเงิน
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <div className="p-6">
+            <p className="text-sm font-medium text-ink">ไม่พบข้อมูล payout</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              ลองโหลดหน้าใหม่ หรือติดต่อทีมสนับสนุนหากปัญหายังอยู่
+            </p>
+          </div>
+        )}
+      </CardBody>
+    </Card>
   );
 }

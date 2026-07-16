@@ -14,8 +14,10 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <Card>
       <CardBody>
-        <p className="text-sm text-muted">{label}</p>
-        <p className="mt-2 font-display text-2xl font-semibold text-ink">{value}</p>
+        <p className="min-w-0 text-sm text-muted">{label}</p>
+        <p className="mt-2 break-words font-display text-xl font-semibold tabular-nums text-ink sm:text-2xl">
+          {value}
+        </p>
       </CardBody>
     </Card>
   );
@@ -48,9 +50,9 @@ function QueryTable({
             {rows.map((row) => (
               <li
                 key={row.query}
-                className="flex items-center justify-between gap-4 rounded-lg border border-border px-4 py-3"
+                className="flex min-w-0 items-center justify-between gap-4 rounded-lg border border-border px-4 py-3"
               >
-                <span className="truncate">{row.query}</span>
+                <span className="min-w-0 truncate">{row.query}</span>
                 <span className="shrink-0 text-sm text-muted">
                   {row.searchCount} ครั้ง · เฉลี่ย {row.avgResultCount.toFixed(1)} ผลลัพธ์
                 </span>
@@ -98,7 +100,7 @@ export default function AdminSearchAnalyticsPage() {
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <PageHeader
         title="วิเคราะห์การค้นหา"
         description="สรุปการใช้งาน Smart Search 7 วันล่าสุด"
@@ -119,7 +121,7 @@ export default function AdminSearchAnalyticsPage() {
       ) : null}
 
       {summary ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard label="การค้นหาทั้งหมด" value={summary.totalSearches} />
           <StatCard label="คำค้นหาไม่ซ้ำ" value={summary.uniqueQueries} />
           <StatCard
@@ -130,7 +132,7 @@ export default function AdminSearchAnalyticsPage() {
         </div>
       ) : null}
 
-      <div className="mt-8 grid gap-6 xl:grid-cols-2">
+      <div className="mt-8 grid min-w-0 gap-6 xl:grid-cols-2">
         <QueryTable
           title="คำค้นหายอดนิยม"
           rows={topQueries}
@@ -145,8 +147,8 @@ export default function AdminSearchAnalyticsPage() {
         />
       </div>
 
-      <div className="mt-6">
-        <Card>
+      <div className="mt-6 min-w-0">
+        <Card className="min-w-0">
           <CardHeader>
             <h2 className="font-display text-lg font-semibold text-ink">
               CTR คำแนะนำตาม prefix bucket
@@ -167,10 +169,10 @@ export default function AdminSearchAnalyticsPage() {
                 {suggestionCtr.map((row) => (
                   <li
                     key={row.prefixBucket}
-                    className="flex items-center justify-between gap-4 rounded-lg border border-border px-4 py-3"
+                    className="flex min-w-0 items-center justify-between gap-4 rounded-lg border border-border px-4 py-3"
                   >
-                    <span>{row.prefixBucket}</span>
-                    <span className="text-sm text-muted">
+                    <span className="min-w-0 truncate">{row.prefixBucket}</span>
+                    <span className="shrink-0 text-right text-sm text-muted">
                       {row.impressions} impressions · {(row.ctr * 100).toFixed(1)}% CTR
                     </span>
                   </li>

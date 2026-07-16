@@ -107,9 +107,11 @@ export function CategoryField({ value, onChange, error }: CategoryFieldProps) {
           ))}
         </SelectContent>
       </Select>
-      {notice ? <p className="mt-1 text-xs text-muted">{notice}</p> : null}
+      {notice ? <p className="mt-1 text-xs text-muted-foreground">{notice}</p> : null}
       {loadError ? (
-        <p className="mt-1 text-xs text-muted">ยังโหลดหมวดหมู่ไม่ได้ — ลองใหม่เมื่อ API พร้อม</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          ยังโหลดหมวดหมู่ไม่ได้ — ลองใหม่เมื่อ API พร้อม
+        </p>
       ) : null}
       {error ? (
         <p id="category-error" className="mt-1 text-xs text-danger" role="alert">
@@ -242,8 +244,10 @@ export function TagsField({ value, onChange }: TagsFieldProps) {
             id="tags"
             type="button"
             className={cn(
-              'mt-1.5 flex h-10 w-full items-center justify-between rounded-lg border border-border bg-white px-3 py-2 text-sm shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:cursor-not-allowed disabled:opacity-50',
-              selectedTagNames.length === 0 ? 'text-muted' : 'text-ink',
+              'mt-1.5 flex h-10 w-full items-center justify-between rounded-lg border border-border bg-white px-3 py-2 text-sm shadow-sm',
+              'focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20',
+              'disabled:cursor-not-allowed disabled:opacity-50',
+              selectedTagNames.length === 0 ? 'text-muted-foreground' : 'text-ink',
             )}
             aria-label="เลือกแท็ก"
           >
@@ -256,7 +260,7 @@ export function TagsField({ value, onChange }: TagsFieldProps) {
           className="max-h-60 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto"
         >
           {tags.length === 0 && !isLoading ? (
-            <p className="px-2 py-1.5 text-sm text-muted">ยังไม่มีแท็กที่อนุมัติ</p>
+            <p className="px-2 py-1.5 text-sm text-muted-foreground">ยังไม่มีแท็กที่อนุมัติ</p>
           ) : null}
           {tags.map((tag) => (
             <DropdownMenuCheckboxItem
@@ -270,9 +274,11 @@ export function TagsField({ value, onChange }: TagsFieldProps) {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      {notice ? <p className="mt-1 text-xs text-muted">{notice}</p> : null}
+      {notice ? <p className="mt-1 text-xs text-muted-foreground">{notice}</p> : null}
       {loadError ? (
-        <p className="mt-1 text-xs text-muted">ยังโหลดแท็กไม่ได้ — ลองใหม่เมื่อ API พร้อม</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          ยังโหลดแท็กไม่ได้ — ลองใหม่เมื่อ API พร้อม
+        </p>
       ) : null}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

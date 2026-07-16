@@ -74,7 +74,7 @@ describe('VendorOrderTrackingLinkDialog', () => {
     renderDialog();
 
     expect(screen.getByRole('heading', { name: 'ลิงก์ติดตามคำสั่งซื้อ' })).toBeInTheDocument();
-    expect(screen.getByText(ORDER_NUMBER)).toBeInTheDocument();
+    expect(screen.getByRole('dialog').textContent).toContain(ORDER_NUMBER);
   });
 
   /**
@@ -94,7 +94,7 @@ describe('VendorOrderTrackingLinkDialog', () => {
 
     renderDialog();
 
-    expect(screen.getByText('กำลังโหลด...')).toBeInTheDocument();
+    expect(screen.getByText('กำลังโหลดลิงก์...')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'คัดลอกลิงก์ติดตาม' })).toBeDisabled();
   });
 
@@ -160,7 +160,7 @@ describe('VendorOrderTrackingLinkDialog', () => {
 
     renderDialog();
 
-    expect(screen.getByText('โหลดไม่สำเร็จ')).toBeInTheDocument();
+    expect(screen.getByText('โหลดลิงก์ไม่สำเร็จ ลองใหม่อีกครั้ง')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'คัดลอกลิงก์ติดตาม' })).toBeDisabled();
   });
 

@@ -37,7 +37,7 @@ const mockedUseVendorStoreId = vi.mocked(useVendorStoreId);
 const MOCK_ORDER: Order = {
   id: 'order-abc-123',
   orderNumber: 'ORD-MRFTYF80-PSFE',
-  status: 'pending',
+  status: 'pending_payment',
   createdAt: '2026-07-11T10:00:00.000Z',
   subtotal: 1000,
   shippingFee: 50,
@@ -64,6 +64,8 @@ describe('VendorOrderDetailPage', () => {
     render(<VendorOrderDetailPage />);
 
     expect(screen.getByRole('heading', { name: MOCK_ORDER.orderNumber })).toBeInTheDocument();
+    expect(screen.getByText(/พร้อมเพย์/)).toBeInTheDocument();
+    expect(screen.getAllByText('รอชำระเงิน').length).toBeGreaterThan(0);
     expect(screen.getByRole('link', { name: /กลับรายการคำสั่งซื้อ/ })).toHaveAttribute(
       'href',
       '/vendor/orders',
@@ -72,6 +74,19 @@ describe('VendorOrderDetailPage', () => {
       'aria-label',
       MOCK_ORDER.orderNumber,
     );
+  });
+
+  it('shows loading skeleton while orders fetch', () => {
+    mockedUseVendorStoreId.mockReturnValue('store-1');
+    mockedUseVendorOrders.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+    } as ReturnType<typeof useVendorOrders>);
+
+    render(<VendorOrderDetailPage />);
+
+    expect(screen.getByLabelText('กำลังโหลดคำสั่งซื้อ')).toBeInTheDocument();
   });
 
   it('shows not-found state when order is missing', () => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { type RefObject, useRef } from 'react';
-import { HiEllipsisHorizontal } from 'react-icons/hi2';
+import { HiEllipsisHorizontal, HiDocumentText, HiLink } from 'react-icons/hi2';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -47,14 +47,21 @@ export function VendorOrdersActionMenu({
             type="button"
             variant="ghost"
             size="icon"
+            className="size-11 shrink-0 rounded-full text-muted-foreground hover:bg-surface hover:text-ink"
             aria-label={`การดำเนินการ ${orderNumber}`}
           >
             <HiEllipsisHorizontal className="size-5" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => onViewDetails(orderId)}>ดูรายละเอียด</DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleCopyTrackingLink}>คัดลอกลิงก์ติดตาม</DropdownMenuItem>
+        <DropdownMenuContent align="end" className="min-w-44">
+          <DropdownMenuItem onSelect={() => onViewDetails(orderId)} className="gap-2">
+            <HiDocumentText className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            ดูรายละเอียด
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={handleCopyTrackingLink} className="gap-2">
+            <HiLink className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            คัดลอกลิงก์ติดตาม
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

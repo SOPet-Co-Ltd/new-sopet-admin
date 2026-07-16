@@ -1,14 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
-import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
+import { VendorPromotionListItem } from '@/components/vendor/vendor-promotion-list-item';
+import { VendorPromotionsEmptyState } from '@/components/vendor/vendor-promotions-empty-state';
+import { VendorPromotionsListSkeleton } from '@/components/vendor/vendor-promotions-list-skeleton';
 import { useDeletePromotion, useStorePromotions, useTogglePromotion } from '@/hooks/usePromotions';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
-import { labelPromotionType } from '@/lib/i18n/th';
-import { formatCurrency } from '@/lib/utils';
+import type { Promotion } from '@/types';
+
+function mutationErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export default function VendorPromotionsPage() {
   const storeId = useVendorStoreId();
@@ -16,101 +20,87 @@ export default function VendorPromotionsPage() {
   const deleteMutation = useDeletePromotion();
   const toggleMutation = useTogglePromotion();
 
-  const mutationPending = deleteMutation.isPending || toggleMutation.isPending;
+  function handleToggle(promo: Promotion) {
+    toggleMutation.mutate({ id: promo.id, isActive: !promo.isActive });
+  }
+
+  async function handleDelete(promo: Promotion) {
+    await deleteMutation.mutateAsync(promo.id);
+  }
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="โปรโมชัน"
-        description="จัดการโปรโมชันสำหรับร้านค้าของคุณ"
+        description="จัดการโค้ดส่วนลดและโปรโมชันของร้าน"
         action={
-          <Button disabled={!storeId} asChild>
-            <Link href="/vendor/promotions/new">สร้างโปรโมชัน</Link>
-          </Button>
+          storeId ? (
+            <Button asChild>
+              <Link href="/vendor/promotions/new">สร้างโปรโมชัน</Link>
+            </Button>
+          ) : undefined
         }
       />
 
       {!storeId ? (
-        <Card>
-          <CardBody>
-            <p className="text-sm text-muted">
-              กรุณาเลือกร้านค้าจาก{' '}
-              <Link href="/vendor/stores" className="text-brand underline">
-                ร้านค้าของฉัน
-              </Link>{' '}
-              ก่อนจัดการโปรโมชัน
-            </p>
+        <Card className="border-dashed">
+          <CardBody className="flex flex-col items-start gap-3 px-6 py-10 sm:items-center sm:text-center">
+            <div className="max-w-md space-y-1.5">
+              <h2 className="text-balance text-base font-medium text-ink">ยังไม่ได้เลือกร้านค้า</h2>
+              <p className="text-pretty text-sm text-muted-foreground">
+                เลือกร้านจากร้านค้าของฉันก่อน จึงจะดูและจัดการโปรโมชันได้
+              </p>
+            </div>
+            <Button variant="secondary" asChild>
+              <Link href="/vendor/stores">ไปที่ร้านค้าของฉัน</Link>
+            </Button>
           </CardBody>
         </Card>
       ) : null}
 
-      {isLoading ? <p className="text-muted">กำลังโหลด...</p> : null}
-      {error ? (
-        <p className="text-danger">{error instanceof Error ? error.message : 'โหลดไม่สำเร็จ'}</p>
+      {storeId && isLoading ? <VendorPromotionsListSkeleton /> : null}
+
+      {storeId && error ? (
+        <p className="text-sm text-danger" role="alert">
+          {mutationErrorMessage(error, 'โหลดโปรโมชันไม่สำเร็จ')}
+        </p>
       ) : null}
 
-      <ul className="space-y-3">
-        {promotions.map((promo) => (
-          <li key={promo.id}>
-            <Card>
-              <CardBody className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-ink">{promo.name}</p>
-                    <Badge status={promo.isActive ? 'published' : 'draft'}>
-                      {promo.isActive ? 'เปิดใช้งาน' : 'ปิด'}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted">
-                    {promo.code} · {labelPromotionType(promo.type)} ·{' '}
-                    {promo.type === 'percentage' || promo.type === 'percentage_shipping_discount'
-                      ? `${promo.discountValue}%`
-                      : formatCurrency(promo.discountValue)}
-                  </p>
-                  <p className="text-xs text-muted">
-                    ใช้แล้ว {promo.usageCount}
-                    {promo.usageLimit ? ` / ${promo.usageLimit}` : ''} ครั้ง
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={mutationPending}
-                    aria-busy={mutationPending}
-                    onClick={() =>
-                      toggleMutation.mutate({ id: promo.id, isActive: !promo.isActive })
-                    }
-                  >
-                    {promo.isActive ? 'ปิด' : 'เปิด'}
-                  </Button>
-                  <Button size="sm" variant="outline" disabled={mutationPending} asChild>
-                    <Link href={`/vendor/promotions/${promo.id}/edit`}>แก้ไข</Link>
-                  </Button>
-                  <ConfirmDeleteButton
-                    confirmLabel={promo.name}
-                    title="ลบโปรโมชัน"
-                    variant="destructive"
-                    disabled={mutationPending}
-                    isDeleting={deleteMutation.isPending}
-                    onConfirm={async () => {
-                      await deleteMutation.mutateAsync(promo.id);
-                    }}
-                  />
-                </div>
-              </CardBody>
-            </Card>
-          </li>
-        ))}
-      </ul>
+      {storeId && toggleMutation.error ? (
+        <p className="text-sm text-danger" role="alert">
+          {mutationErrorMessage(toggleMutation.error, 'เปลี่ยนสถานะโปรโมชันไม่สำเร็จ')}
+        </p>
+      ) : null}
 
-      {!isLoading && promotions.length === 0 && storeId ? (
-        <Card>
-          <CardBody>
-            <p className="text-sm text-muted">ยังไม่มีโปรโมชัน</p>
-          </CardBody>
-        </Card>
+      {storeId && deleteMutation.error ? (
+        <p className="text-sm text-danger" role="alert">
+          {mutationErrorMessage(deleteMutation.error, 'ลบโปรโมชันไม่สำเร็จ')}
+        </p>
+      ) : null}
+
+      {storeId && !isLoading && !error && promotions.length === 0 ? (
+        <VendorPromotionsEmptyState />
+      ) : null}
+
+      {storeId && !isLoading && !error && promotions.length > 0 ? (
+        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-white">
+          {promotions.map((promo) => {
+            const isToggling =
+              toggleMutation.isPending && toggleMutation.variables?.id === promo.id;
+            const isDeleting = deleteMutation.isPending && deleteMutation.variables === promo.id;
+
+            return (
+              <VendorPromotionListItem
+                key={promo.id}
+                promo={promo}
+                isToggling={isToggling}
+                isDeleting={isDeleting}
+                onToggle={handleToggle}
+                onDelete={handleDelete}
+              />
+            );
+          })}
+        </ul>
       ) : null}
     </div>
   );

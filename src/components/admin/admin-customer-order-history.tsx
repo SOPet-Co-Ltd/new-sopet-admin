@@ -56,12 +56,22 @@ export function AdminCustomerOrderHistory({
       {
         accessorKey: 'orderNumber',
         header: 'เลขคำสั่งซื้อ',
-        cell: ({ row }) => <span className="font-medium text-ink">{row.original.orderNumber}</span>,
+        cell: ({ row }) => (
+          <span className="font-medium whitespace-nowrap text-ink">{row.original.orderNumber}</span>
+        ),
+        meta: { className: 'whitespace-nowrap' },
       },
       {
         accessorKey: 'productSummary',
         header: 'สินค้า',
-        cell: ({ row }) => row.original.productSummary,
+        cell: ({ row }) => (
+          <span
+            className="line-clamp-2 max-w-[18rem] break-words text-ink"
+            title={row.original.productSummary}
+          >
+            {row.original.productSummary}
+          </span>
+        ),
       },
       {
         accessorKey: 'status',
@@ -89,8 +99,8 @@ export function AdminCustomerOrderHistory({
   return (
     <Card>
       <CardHeader>
-        <h2 className="font-display text-lg font-semibold text-ink">{title}</h2>
-        <p className="text-sm text-muted">{description}</p>
+        <h2 className="font-display text-lg font-semibold text-balance text-ink">{title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground text-pretty">{description}</p>
       </CardHeader>
       <CardBody>
         <DataTable columns={columns} data={rows} emptyMessage={emptyMessage} />

@@ -117,7 +117,7 @@ describe('VendorProductDetailPage', () => {
     expect(screen.getByText('DOG-ORG-5KG')).toBeInTheDocument();
     expect(screen.getByText('ขนาด: 5 กก.')).toBeInTheDocument();
 
-    expect(screen.getByText('คะแนนเฉลี่ย')).toBeInTheDocument();
+    expect(screen.getByText('คะแนน')).toBeInTheDocument();
     expect(screen.getByText('4.5')).toBeInTheDocument();
     expect(screen.getByText('ยอดขาย')).toBeInTheDocument();
     expect(screen.getByText('48')).toBeInTheDocument();
@@ -130,15 +130,19 @@ describe('VendorProductDetailPage', () => {
     expect(screen.getByText('ขอบคุณครับ')).toBeInTheDocument();
     expect(screen.queryByText('ไม่เกี่ยว')).not.toBeInTheDocument();
 
-    expect(screen.getByText('ช่วงราคาตัวเลือก')).toBeInTheDocument();
+    expect(screen.getByText('ช่วงราคาตามตัวเลือก')).toBeInTheDocument();
     expect(screen.queryByText('ราคาฐาน')).not.toBeInTheDocument();
     expect(screen.queryByText('ราคาขีดฆ่า')).not.toBeInTheDocument();
 
+    expect(screen.getByRole('link', { name: 'แก้ไขสินค้า' })).toHaveAttribute(
+      'href',
+      '/vendor/products/prod-1/edit',
+    );
     expect(screen.getByRole('link', { name: 'แก้ไขข้อมูล' })).toHaveAttribute(
       'href',
       '/vendor/products/prod-1/edit',
     );
-    expect(screen.getByRole('link', { name: 'แก้ไขสต็อก' })).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: 'แก้ไขสต็อก' })[0]).toHaveAttribute(
       'href',
       '/vendor/products/prod-1/stock',
     );

@@ -159,6 +159,18 @@ describe('EditProductPage', () => {
         },
       });
     });
+
+    expect(await screen.findByText('บันทึกแล้ว')).toBeInTheDocument();
+  });
+
+  it('shows section copy that explains autosave and customer-facing fields', () => {
+    renderWithQueryClient(<EditProductPage />);
+
+    expect(
+      screen.getByText('ชื่อและรายละเอียดสินค้าที่ลูกค้าจะเห็นบนหน้าร้าน'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('บันทึกอัตโนมัติเมื่อมีการเปลี่ยนแปลง')).toBeInTheDocument();
+    expect(screen.getByText('คำเตือนและวันหมดอายุ (ถ้ามี)')).toBeInTheDocument();
   });
 
   it('updates the publish checklist when the name field is cleared', async () => {

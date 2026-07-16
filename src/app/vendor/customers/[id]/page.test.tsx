@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import VendorCustomerDetailPage from './page';
 
 const mockCustomer = {
@@ -52,19 +52,25 @@ const mockCustomer = {
   },
 };
 
+const useVendorCustomerDetailMock = vi.fn();
+
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: 'cust-1' }),
 }));
 
 vi.mock('@/hooks/useVendorCustomers', () => ({
-  useVendorCustomerDetail: () => ({
-    data: mockCustomer,
-    isLoading: false,
-    error: null,
-  }),
+  useVendorCustomerDetail: (...args: unknown[]) => useVendorCustomerDetailMock(...args),
 }));
 
 describe('VendorCustomerDetailPage', () => {
+  beforeEach(() => {
+    useVendorCustomerDetailMock.mockReturnValue({
+      data: mockCustomer,
+      isLoading: false,
+      error: null,
+    });
+  });
+
   it('renders store-scoped customer insights and read-only profile', () => {
     render(<VendorCustomerDetailPage />);
 
@@ -73,7 +79,9 @@ describe('VendorCustomerDetailPage', () => {
     expect(screen.getByText('ยืนยันแล้ว')).toBeInTheDocument();
     expect(screen.getByText('ยอดใช้จ่ายที่ร้าน')).toBeInTheDocument();
     expect(screen.getByText('จำนวนคำสั่งซื้อที่ร้าน')).toBeInTheDocument();
-    expect(screen.getByText('กิจกรรมกับร้าน')).toBeInTheDocument();
+    expect(screen.getByText('ข้อมูลลูกค้า')).toBeInTheDocument();
+    expect(screen.getByText('สินค้าที่ชอบ')).toBeInTheDocument();
+    expect(screen.getByText('รีวิวที่เขียน')).toBeInTheDocument();
     expect(screen.getByText('ประวัติการสั่งซื้อที่ร้าน')).toBeInTheDocument();
     expect(screen.getByText('ORD-001')).toBeInTheDocument();
     expect(screen.getByText('รีวิวล่าสุดที่ร้าน')).toBeInTheDocument();
@@ -81,5 +89,37 @@ describe('VendorCustomerDetailPage', () => {
     expect(screen.getByText('สินค้าที่ชอบล่าสุด')).toBeInTheDocument();
     expect(screen.getByText('ขนมแมว')).toBeInTheDocument();
     expect(screen.getByText('0812345678')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'กลับรายการลูกค้า' })).toHaveAttribute(
+      'href',
+      '/vendor/customers',
+    );
+  });
+
+  it('shows a skeleton while loading', () => {
+    useVendorCustomerDetailMock.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+    });
+
+    render(<VendorCustomerDetailPage />);
+
+    expect(screen.getByLabelText('กำลังโหลดรายละเอียดลูกค้า')).toBeInTheDocument();
+  });
+
+  it('shows an error with a recovery link when the customer is missing', () => {
+    useVendorCustomerDetailMock.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: new Error('โหลดไม่สำเร็จ'),
+    });
+
+    render(<VendorCustomerDetailPage />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('โหลดไม่สำเร็จ');
+    expect(screen.getByRole('link', { name: 'กลับรายการลูกค้า' })).toHaveAttribute(
+      'href',
+      '/vendor/customers',
+    );
   });
 });

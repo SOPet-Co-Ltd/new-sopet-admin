@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { labelProductStatus } from '@/lib/i18n/th';
+import { cn } from '@/lib/utils';
 import type { ProductPublishChecklist, ProductStatus } from '@/types';
 
 const CHECKLIST_LABELS: Record<string, string> = {
@@ -34,7 +35,21 @@ type ProductPublishPanelProps = {
   canPublish: boolean;
   onPublish: () => void;
   publishPending: boolean;
+  statusDisabled?: boolean;
 };
+
+function ChecklistSkeleton() {
+  return (
+    <ul className="space-y-2" aria-hidden="true">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <li key={index} className="flex items-center gap-2">
+          <span className="size-4 shrink-0 animate-pulse rounded bg-surface motion-reduce:animate-none" />
+          <span className="h-3.5 w-40 max-w-full animate-pulse rounded bg-surface motion-reduce:animate-none" />
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function ProductPublishPanel({
   status,
@@ -45,12 +60,15 @@ export function ProductPublishPanel({
   canPublish,
   onPublish,
   publishPending,
+  statusDisabled = false,
 }: ProductPublishPanelProps) {
+  const controlsDisabled = statusDisabled || publishPending;
+
   return (
     <Card>
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display font-medium text-ink">การเผยแพร่</h2>
+          <h2 className="text-balance font-display font-medium text-ink">การเผยแพร่</h2>
           <Badge status={status}>{labelProductStatus(status)}</Badge>
         </div>
       </CardHeader>
@@ -59,6 +77,7 @@ export function ProductPublishPanel({
           <Label htmlFor="status">สถานะสินค้า</Label>
           <Select
             value={status}
+            disabled={controlsDisabled}
             onValueChange={(value) => {
               // Ignore the spurious empty callback Radix Select can emit while
               // its items register after hydration, which would otherwise wipe
@@ -67,7 +86,7 @@ export function ProductPublishPanel({
               onStatusChange(value as ProductStatus);
             }}
           >
-            <SelectTrigger id="status" className="mt-1.5">
+            <SelectTrigger id="status" className="mt-1.5" disabled={controlsDisabled}>
               <SelectValue placeholder="เลือกสถานะ" />
             </SelectTrigger>
             <SelectContent>
@@ -86,12 +105,12 @@ export function ProductPublishPanel({
               type="button"
               className="w-full"
               onClick={onPublish}
-              disabled={!canPublish}
+              disabled={!canPublish || controlsDisabled}
               aria-busy={publishPending}
             >
               {publishPending ? 'กำลังเผยแพร่...' : 'เผยแพร่สินค้า'}
             </Button>
-            {!canPublish && !checklistLoading ? (
+            {!canPublish && !checklistLoading && !publishPending ? (
               <p className="mt-2 text-center text-xs text-muted">
                 เติมรายการตรวจสอบด้านล่างให้ครบก่อนเผยแพร่
               </p>
@@ -100,11 +119,11 @@ export function ProductPublishPanel({
         ) : null}
 
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
-            รายการตรวจสอบก่อนเผยแพร่
-          </p>
+          <p className="mb-2 text-sm font-medium text-ink">รายการตรวจสอบก่อนเผยแพร่</p>
           {checklistLoading ? (
-            <p className="text-sm text-muted">กำลังตรวจสอบความพร้อม...</p>
+            <div aria-busy="true" aria-label="กำลังตรวจสอบความพร้อม">
+              <ChecklistSkeleton />
+            </div>
           ) : checklist ? (
             <>
               <ul className="space-y-2">
@@ -115,7 +134,7 @@ export function ProductPublishPanel({
                     ) : (
                       <HiXMark className="mt-0.5 size-4 shrink-0 text-danger" aria-hidden="true" />
                     )}
-                    <span className={item.complete ? 'text-ink' : 'text-muted'}>
+                    <span className={cn(item.complete ? 'text-ink' : 'text-muted')}>
                       {CHECKLIST_LABELS[item.key] ?? item.key}
                     </span>
                   </li>

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { VendorOrderWorkflow } from '@/components/vendor/vendor-order-workflow';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardBody } from '@/components/ui/card';
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { labelFulfillmentStatus, labelOrderStatus, labelPaymentMethod } from '@/lib/i18n/th';
+import { labelFulfillmentStatus, labelOrderStatus } from '@/lib/i18n/th';
 import {
   formatShippingAddress,
   getOrderCustomerEmail,
@@ -24,7 +24,7 @@ import {
   isGuestOrder,
   sumItemSubtotals,
 } from '@/lib/orders/display';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { formatCombinationLabel } from '@/lib/variants';
 import type { Order } from '@/types';
 
@@ -33,17 +33,67 @@ export interface VendorOrderDetailProps {
   storeId?: string;
 }
 
-function DetailField({ label, value }: { label: string; value: ReactNode }) {
+function DetailRow({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div>
-      <p className="text-xs text-muted">{label}</p>
-      <p className="mt-0.5 text-sm font-medium text-ink">{value}</p>
+    <div
+      className={cn(
+        'flex items-start justify-between gap-4 border-b border-border pb-3 last:border-b-0 last:pb-0',
+        className,
+      )}
+    >
+      <span className="shrink-0 text-sm text-muted">{label}</span>
+      <span className="min-w-0 text-right text-sm font-medium break-words text-ink">
+        {children}
+      </span>
     </div>
   );
 }
 
-function SectionTitle({ children }: { children: ReactNode }) {
-  return <h3 className="text-sm font-semibold text-ink">{children}</h3>;
+function MoneyRow({
+  label,
+  amount,
+  tone = 'muted',
+}: {
+  label: string;
+  amount: string;
+  tone?: 'muted' | 'success' | 'total';
+}) {
+  return (
+    <div
+      className={cn(
+        'flex items-baseline justify-between gap-4',
+        tone === 'total' && 'border-t border-border pt-3',
+      )}
+    >
+      <span
+        className={cn(
+          'text-sm',
+          tone === 'total' ? 'font-semibold text-ink' : 'text-muted',
+          tone === 'success' && 'text-success',
+        )}
+      >
+        {label}
+      </span>
+      <span
+        className={cn(
+          'tabular-nums text-sm',
+          tone === 'total' && 'text-base font-semibold text-ink',
+          tone === 'muted' && 'text-ink',
+          tone === 'success' && 'text-success',
+        )}
+      >
+        {amount}
+      </span>
+    </div>
+  );
 }
 
 export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
@@ -56,62 +106,33 @@ export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
   const customerEmail = getOrderCustomerEmail(order);
   const shippingAddress = formatShippingAddress(order);
   const hasMultipleStores = getUniqueStoreIds(order).length > 1;
+  const recipientName = order.shippingAddress?.fullName ?? getOrderCustomerName(order);
+  const recipientPhone = order.shippingAddress?.phone ?? customerPhone ?? '—';
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted">{formatDateTime(order.createdAt)}</p>
-        </div>
-        <Badge status={order.status}>{labelOrderStatus(order.status)}</Badge>
-      </div>
+    <div className="space-y-6">
+      {/* Next action first — Trust Desk: fulfillment before read-only facts */}
+      <VendorOrderWorkflow order={order} storeId={storeId} />
 
       <Card>
-        <CardBody className="space-y-4">
-          <SectionTitle>ลูกค้า</SectionTitle>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <DetailField
-              label="ชื่อ"
-              value={
-                <span className="inline-flex items-center gap-2">
-                  {getOrderCustomerName(order)}
-                  {isGuestOrder(order) ? (
-                    <Badge status="draft" className="font-normal">
-                      ลูกค้าทั่วไป
-                    </Badge>
-                  ) : (
-                    <Badge status="published" className="font-normal">
-                      สมาชิก
-                    </Badge>
-                  )}
-                </span>
-              }
-            />
-            <DetailField label="เบอร์โทรศัพท์" value={customerPhone ?? '—'} />
-            {customerEmail ? <DetailField label="อีเมล" value={customerEmail} /> : null}
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">สินค้าในร้านของคุณ</h2>
+            <p className="mt-0.5 text-sm text-muted">
+              {storeItems.length} รายการ · สถานะคำสั่งซื้อ {labelOrderStatus(order.status)}
+            </p>
           </div>
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardBody className="space-y-4">
-          <SectionTitle>การชำระเงิน</SectionTitle>
-          <DetailField label="ช่องทาง" value={labelPaymentMethod(order.paymentMethod)} />
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardBody className="space-y-4">
-          <SectionTitle>สินค้าในร้านของคุณ</SectionTitle>
-          <div className="overflow-hidden rounded-lg border border-border">
+        </CardHeader>
+        <CardBody className="p-0">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-surface/60 hover:bg-surface/60">
-                  <TableHead>สินค้า</TableHead>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="pl-5">สินค้า</TableHead>
                   <TableHead className="text-right">ราคา</TableHead>
                   <TableHead className="text-right">จำนวน</TableHead>
-                  <TableHead className="hidden sm:table-cell">สถานะ</TableHead>
-                  <TableHead className="text-right">รวม</TableHead>
+                  <TableHead>สถานะ</TableHead>
+                  <TableHead className="pr-5 text-right">รวม</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -122,24 +143,26 @@ export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
                       : '';
                   return (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium text-ink">
+                      <TableCell className="pl-5 font-medium text-ink">
                         <div>
-                          <div>{item.productName}</div>
+                          <div className="text-wrap">{item.productName}</div>
                           {optionsLabel ? (
                             <div className="text-xs font-normal text-muted">{optionsLabel}</div>
                           ) : null}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right text-muted">
+                      <TableCell className="text-right tabular-nums text-muted">
                         {formatCurrency(item.unitPrice)}
                       </TableCell>
-                      <TableCell className="text-right text-muted">{item.quantity}</TableCell>
-                      <TableCell className="hidden sm:table-cell">
+                      <TableCell className="text-right tabular-nums text-muted">
+                        {item.quantity}
+                      </TableCell>
+                      <TableCell>
                         <Badge status={item.fulfillmentStatus}>
                           {labelFulfillmentStatus(item.fulfillmentStatus)}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-medium text-ink">
+                      <TableCell className="pr-5 text-right font-medium tabular-nums text-ink">
                         {formatCurrency(item.subtotal)}
                       </TableCell>
                     </TableRow>
@@ -151,58 +174,74 @@ export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
         </CardBody>
       </Card>
 
-      <Card>
-        <CardBody className="space-y-4">
-          <SectionTitle>การจัดส่ง</SectionTitle>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <DetailField
-              label="ผู้รับ"
-              value={order.shippingAddress?.fullName ?? getOrderCustomerName(order)}
-            />
-            <DetailField
-              label="เบอร์โทรผู้รับ"
-              value={order.shippingAddress?.phone ?? customerPhone ?? '—'}
-            />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <h2 className="font-display text-lg font-semibold text-ink">ลูกค้า</h2>
+          </CardHeader>
+          <CardBody className="space-y-3">
+            <DetailRow label="ชื่อ">
+              <span className="inline-flex flex-wrap items-center justify-end gap-2">
+                {getOrderCustomerName(order)}
+                {isGuestOrder(order) ? (
+                  <Badge status="draft" className="font-normal">
+                    ลูกค้าทั่วไป
+                  </Badge>
+                ) : (
+                  <Badge status="published" className="font-normal">
+                    สมาชิก
+                  </Badge>
+                )}
+              </span>
+            </DetailRow>
+            <DetailRow label="เบอร์โทรศัพท์">{customerPhone ?? '—'}</DetailRow>
+            {customerEmail ? <DetailRow label="อีเมล">{customerEmail}</DetailRow> : null}
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <h2 className="font-display text-lg font-semibold text-ink">การจัดส่ง</h2>
+          </CardHeader>
+          <CardBody className="space-y-3">
+            <DetailRow label="ผู้รับ">{recipientName}</DetailRow>
+            <DetailRow label="เบอร์โทรผู้รับ">{recipientPhone}</DetailRow>
             {storeShipping ? (
               <>
-                <DetailField label="วิธีจัดส่ง" value={storeShipping.optionName} />
-                <DetailField
-                  label="ค่าจัดส่ง (ร้านของคุณ)"
-                  value={formatCurrency(storeShipping.shippingFee)}
-                />
+                <DetailRow label="วิธีจัดส่ง">{storeShipping.optionName}</DetailRow>
+                <DetailRow label="ค่าจัดส่ง">
+                  <span className="tabular-nums">{formatCurrency(storeShipping.shippingFee)}</span>
+                </DetailRow>
               </>
             ) : null}
-          </div>
-          {shippingAddress ? <DetailField label="ที่อยู่จัดส่ง" value={shippingAddress} /> : null}
-        </CardBody>
-      </Card>
+            {shippingAddress ? (
+              <DetailRow label="ที่อยู่">
+                <span className="max-w-[28ch] text-pretty">{shippingAddress}</span>
+              </DetailRow>
+            ) : null}
+          </CardBody>
+        </Card>
+      </div>
 
       <Card>
-        <CardBody className="space-y-3 text-sm">
-          <SectionTitle>สรุปยอด (ร้านของคุณ)</SectionTitle>
-          <div className="flex justify-between text-muted">
-            <span>ยอดสินค้า</span>
-            <span>{formatCurrency(storeSubtotal)}</span>
-          </div>
+        <CardHeader>
+          <h2 className="font-display text-lg font-semibold text-ink">สรุปยอดร้านของคุณ</h2>
+        </CardHeader>
+        <CardBody className="space-y-2.5">
+          <MoneyRow label="ยอดสินค้า" amount={formatCurrency(storeSubtotal)} />
           {storeShipping ? (
-            <div className="flex justify-between text-muted">
-              <span>ค่าจัดส่ง</span>
-              <span>{formatCurrency(storeShipping.shippingFee)}</span>
-            </div>
+            <MoneyRow label="ค่าจัดส่ง" amount={formatCurrency(storeShipping.shippingFee)} />
           ) : null}
           {storeDiscount > 0 ? (
-            <div className="flex justify-between text-success">
-              <span>ส่วนลด</span>
-              <span>-{formatCurrency(storeDiscount)}</span>
-            </div>
+            <MoneyRow label="ส่วนลด" amount={`-${formatCurrency(storeDiscount)}`} tone="success" />
           ) : null}
-          <div className="flex justify-between border-t border-border pt-3 font-semibold text-ink">
-            <span>รวม (ร้านของคุณ)</span>
-            <span>{formatCurrency(storeTotal)}</span>
-          </div>
+          <MoneyRow label="รวมสุทธิ" amount={formatCurrency(storeTotal)} tone="total" />
           {hasMultipleStores ? (
-            <p className="text-xs text-muted">
-              คำสั่งซื้อนี้มีสินค้าจากหลายร้าน ยอดรวมทั้งคำสั่งซื้อ {formatCurrency(order.total)}
+            <p className="pt-1 text-xs text-muted text-pretty">
+              คำสั่งซื้อนี้มีสินค้าจากหลายร้าน ยอดรวมทั้งคำสั่งซื้อ{' '}
+              <span className="tabular-nums font-medium text-ink">
+                {formatCurrency(order.total)}
+              </span>
               {order.discountAmount > 0
                 ? ` (ส่วนลดทั้งคำสั่งซื้อ ${formatCurrency(order.discountAmount)})`
                 : null}
@@ -213,8 +252,6 @@ export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
           ) : null}
         </CardBody>
       </Card>
-
-      <VendorOrderWorkflow order={order} storeId={storeId} />
     </div>
   );
 }

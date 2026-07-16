@@ -26,6 +26,14 @@ import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
 import type { CreateCategoryInput, TaxonomyItem } from '@/types';
 import type { UseMutationResult } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
+
+function taxonomyStatusClass(status: string): string {
+  if (status === 'approved') return 'bg-success-bg text-success';
+  if (status === 'rejected') return 'bg-danger-bg text-danger';
+  if (status === 'pending') return 'bg-warning-bg text-warning-text';
+  return 'bg-surface text-muted-foreground';
+}
 
 function ProposeDialog<TInput>({
   title,
@@ -67,9 +75,9 @@ function ProposeDialog<TInput>({
     <>
       <Button
         type="button"
-        variant="ghost"
+        variant="outline"
         size="sm"
-        className="h-auto px-2 py-1 text-xs"
+        className="min-h-9"
         onClick={() => {
           mutation.reset();
           setOpen(true);
@@ -77,7 +85,11 @@ function ProposeDialog<TInput>({
       >
         {title}
       </Button>
-      {notice ? <p className="mt-1 text-xs text-muted">{notice}</p> : null}
+      {notice ? (
+        <p className="mt-1 text-xs text-success" role="status">
+          {notice}
+        </p>
+      ) : null}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
@@ -110,10 +122,20 @@ function ProposeDialog<TInput>({
               </p>
             ) : null}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-9"
+                onClick={() => setOpen(false)}
+              >
                 ยกเลิก
               </Button>
-              <Button type="submit" disabled={mutation.isPending} aria-busy={mutation.isPending}>
+              <Button
+                type="submit"
+                className="min-h-9"
+                disabled={mutation.isPending}
+                aria-busy={mutation.isPending}
+              >
                 {mutation.isPending ? 'กำลังส่ง...' : 'ส่งคำขอ'}
               </Button>
             </DialogFooter>
@@ -124,38 +146,56 @@ function ProposeDialog<TInput>({
   );
 }
 
+function ProposalListSkeleton() {
+  return (
+    <div className="space-y-2" aria-hidden="true">
+      <div className="h-9 animate-pulse rounded-lg bg-surface motion-reduce:animate-none" />
+      <div className="h-9 animate-pulse rounded-lg bg-surface motion-reduce:animate-none" />
+    </div>
+  );
+}
+
 function ProposalList({
   title,
   items,
   isLoading,
   emptyMessage,
+  emptyHint,
   action,
 }: {
   title: string;
   items: TaxonomyItem[];
   isLoading: boolean;
   emptyMessage: string;
+  emptyHint: string;
   action: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-2">
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-medium text-ink">{title}</h3>
         {action}
       </div>
       {isLoading ? (
-        <p className="text-sm text-muted">กำลังโหลด...</p>
+        <div aria-busy="true" aria-label={`กำลังโหลด${title}`}>
+          <ProposalListSkeleton />
+        </div>
       ) : items.length === 0 ? (
-        <p className="text-sm text-muted">{emptyMessage}</p>
+        <div className="rounded-lg bg-surface px-3 py-4" role="status">
+          <p className="text-sm font-medium text-ink">{emptyMessage}</p>
+          <p className="mt-1 text-sm text-muted-foreground text-pretty">{emptyHint}</p>
+        </div>
       ) : (
         <ul className="space-y-2">
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
+              className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5"
             >
               <span className="truncate text-sm text-ink">{item.name}</span>
-              <Badge status={item.status}>{labelTaxonomyStatus(item.status)}</Badge>
+              <Badge status={item.status} className={cn(taxonomyStatusClass(item.status))}>
+                {labelTaxonomyStatus(item.status)}
+              </Badge>
             </li>
           ))}
         </ul>
@@ -175,8 +215,8 @@ export function TaxonomyProposalsSection() {
       <CardHeader>
         <div>
           <h2 className="font-display text-lg font-medium text-ink">คำขอหมวดหมู่และแท็ก</h2>
-          <p className="text-sm text-muted">
-            สถานะคำขอเสนอหมวดหมู่และแท็กใหม่ของคุณ (รออนุมัติ / อนุมัติแล้ว / ปฏิเสธแล้ว)
+          <p className="mt-1 text-sm text-muted-foreground text-pretty">
+            เสนอหมวดหมู่หรือแท็กใหม่ — รออนุมัติก่อนแสดงในรายการสินค้า
           </p>
         </div>
       </CardHeader>
@@ -186,6 +226,7 @@ export function TaxonomyProposalsSection() {
           items={categories}
           isLoading={categoriesLoading}
           emptyMessage="ยังไม่มีคำขอหมวดหมู่"
+          emptyHint="เสนอเมื่อต้องการหมวดหมู่ที่ยังไม่มีในระบบ"
           action={
             <ProposeDialog
               title="เสนอหมวดหมู่ใหม่"
@@ -203,6 +244,7 @@ export function TaxonomyProposalsSection() {
           items={tags}
           isLoading={tagsLoading}
           emptyMessage="ยังไม่มีคำขอแท็ก"
+          emptyHint="เสนอเมื่อต้องการแท็กสำหรับจัดกลุ่มสินค้า"
           action={
             <ProposeDialog
               title="เสนอแท็กใหม่"

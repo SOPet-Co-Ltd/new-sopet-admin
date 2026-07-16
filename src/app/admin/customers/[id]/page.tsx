@@ -5,7 +5,13 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { HiArrowLeft } from 'react-icons/hi2';
+import {
+  BackToCustomersLink,
+  CustomerDetailSkeleton,
+  DetailRow,
+  formatCustomerOrderDate,
+  InsightFact,
+} from '@/components/customers/customer-detail-primitives';
 import { AdminCustomerOrderHistory } from '@/components/admin/admin-customer-order-history';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +19,6 @@ import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { StatCard } from '@/components/vendor/stat-card';
 import {
   useAdminCustomerDetail,
   useSetCustomerActive,
@@ -22,6 +27,23 @@ import {
 import { getMaxBirthday, MIN_BIRTHDAY } from '@/lib/datetime/calendarUtils';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { adminCustomerFormSchema, type AdminCustomerFormValues } from '@/lib/validations';
+
+function CustomerStatusBadges({
+  isActive,
+  isVerified,
+}: {
+  isActive: boolean;
+  isVerified: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      <Badge status={isActive ? 'published' : 'draft'}>{isActive ? 'ใช้งานอยู่' : 'ระงับ'}</Badge>
+      <Badge status={isVerified ? 'published' : 'draft'}>
+        {isVerified ? 'ยืนยันแล้ว' : 'ยังไม่ยืนยัน'}
+      </Badge>
+    </div>
+  );
+}
 
 export default function AdminCustomerEditPage() {
   const params = useParams<{ id: string }>();
@@ -62,66 +84,72 @@ export default function AdminCustomerEditPage() {
     }
   }
 
-  if (isLoading) return <p className="text-muted">กำลังโหลด...</p>;
+  if (isLoading) return <CustomerDetailSkeleton variant="admin" />;
+
   if (error || !customer) {
     return (
-      <p className="text-danger" role="alert">
-        {error instanceof Error ? error.message : 'ไม่พบลูกค้า'}
-      </p>
+      <div className="space-y-4">
+        <BackToCustomersLink href="/admin/customers" />
+        <p className="text-sm text-danger" role="alert">
+          {error instanceof Error ? error.message : 'ไม่พบลูกค้า'}
+        </p>
+      </div>
     );
   }
 
   const { insights } = customer;
   const mutationPending = updateMutation.isPending || setActiveMutation.isPending;
+  const displayName = customer.fullName?.trim() || customer.phone;
+  const headerDescription =
+    customer.fullName?.trim() && customer.phone !== displayName ? customer.phone : undefined;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
-        title={customer.fullName || customer.phone}
-        description={customer.phone}
-        back={
-          <Link
-            href="/admin/customers"
-            className="inline-flex items-center gap-1 text-sm text-muted hover:text-brand"
-          >
-            <HiArrowLeft className="size-3.5" aria-hidden="true" />
-            กลับรายการลูกค้า
-          </Link>
+        title={displayName}
+        description={headerDescription ?? 'แก้ไขข้อมูลและสถานะบัญชีลูกค้า'}
+        back={<BackToCustomersLink href="/admin/customers" />}
+        action={
+          <CustomerStatusBadges isActive={customer.isActive} isVerified={customer.isVerified} />
         }
       />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge status={customer.isActive ? 'published' : 'draft'}>
-          {customer.isActive ? 'ใช้งานอยู่' : 'ระงับ'}
-        </Badge>
-        {customer.isVerified ? (
-          <Badge status="published">ยืนยันแล้ว</Badge>
-        ) : (
-          <Badge status="draft">ยังไม่ยืนยัน</Badge>
-        )}
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="ยอดใช้จ่ายรวม" value={formatCurrency(insights.totalSpent)} />
-        <StatCard
-          label="จำนวนคำสั่งซื้อ"
-          value={insights.orderCount}
-          hint="ไม่รวมคำสั่งซื้อที่ยกเลิก คืนเงิน หรือรอชำระ"
-        />
-        <StatCard
-          label="ยอดเฉลี่ยต่อคำสั่งซื้อ"
-          value={formatCurrency(insights.averageOrderValue)}
-        />
-        <StatCard
-          label="สั่งซื้อล่าสุด"
-          value={insights.lastOrderAt ? formatDateTime(insights.lastOrderAt) : 'ยังไม่เคยสั่งซื้อ'}
-        />
-      </div>
+      <section aria-labelledby="customer-platform-insights">
+        <h2 id="customer-platform-insights" className="sr-only">
+          สรุปการซื้อทั้งแพลตฟอร์ม
+        </h2>
+        <Card>
+          <CardBody>
+            <dl className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              <InsightFact label="ยอดใช้จ่ายรวม">{formatCurrency(insights.totalSpent)}</InsightFact>
+              <InsightFact
+                label="จำนวนคำสั่งซื้อ"
+                hint="ไม่รวมคำสั่งซื้อที่ยกเลิก คืนเงิน หรือรอชำระ"
+              >
+                {insights.orderCount.toLocaleString('th-TH')}
+              </InsightFact>
+              <InsightFact label="ยอดเฉลี่ยต่อคำสั่งซื้อ">
+                {formatCurrency(insights.averageOrderValue)}
+              </InsightFact>
+              <InsightFact label="สั่งซื้อล่าสุด">
+                {insights.lastOrderAt
+                  ? formatCustomerOrderDate(insights.lastOrderAt)
+                  : 'ยังไม่เคยสั่งซื้อ'}
+              </InsightFact>
+            </dl>
+          </CardBody>
+        </Card>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <Card>
           <CardHeader>
-            <h2 className="font-display text-lg font-semibold text-ink">แก้ไขข้อมูลลูกค้า</h2>
+            <h2 className="font-display text-lg font-semibold text-ink text-balance">
+              แก้ไขข้อมูลลูกค้า
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              อัปเดตข้อมูลติดต่อและจัดการสถานะบัญชี
+            </p>
           </CardHeader>
           <CardBody>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -144,11 +172,14 @@ export default function AdminCustomerEditPage() {
                   placeholder="0812345678"
                   autoComplete="tel"
                   aria-invalid={!!form.formState.errors.phone}
+                  aria-describedby={
+                    form.formState.errors.phone ? 'customer-phone-error' : undefined
+                  }
                   {...form.register('phone')}
                   className="mt-1.5"
                 />
                 {form.formState.errors.phone ? (
-                  <p className="mt-1 text-xs text-danger" role="alert">
+                  <p id="customer-phone-error" className="mt-1 text-xs text-danger" role="alert">
                     {form.formState.errors.phone.message}
                   </p>
                 ) : null}
@@ -161,11 +192,14 @@ export default function AdminCustomerEditPage() {
                   placeholder="email@example.com"
                   autoComplete="email"
                   aria-invalid={!!form.formState.errors.email}
+                  aria-describedby={
+                    form.formState.errors.email ? 'customer-email-error' : undefined
+                  }
                   {...form.register('email')}
                   className="mt-1.5"
                 />
                 {form.formState.errors.email ? (
-                  <p className="mt-1 text-xs text-danger" role="alert">
+                  <p id="customer-email-error" className="mt-1 text-xs text-danger" role="alert">
                     {form.formState.errors.email.message}
                   </p>
                 ) : null}
@@ -189,6 +223,20 @@ export default function AdminCustomerEditPage() {
                   )}
                 />
               </div>
+              {updateMutation.isError ? (
+                <p className="text-sm text-danger" role="alert">
+                  {updateMutation.error instanceof Error
+                    ? updateMutation.error.message
+                    : 'บันทึกไม่สำเร็จ'}
+                </p>
+              ) : null}
+              {setActiveMutation.isError ? (
+                <p className="text-sm text-danger" role="alert">
+                  {setActiveMutation.error instanceof Error
+                    ? setActiveMutation.error.message
+                    : 'เปลี่ยนสถานะบัญชีไม่สำเร็จ'}
+                </p>
+              ) : null}
               <div className="flex flex-wrap gap-3">
                 <Button
                   type="submit"
@@ -218,31 +266,24 @@ export default function AdminCustomerEditPage() {
 
         <Card>
           <CardHeader>
-            <h2 className="font-display text-lg font-semibold text-ink">ข้อมูลบัญชี</h2>
+            <h2 className="font-display text-lg font-semibold text-ink text-balance">
+              ข้อมูลบัญชี
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">กิจกรรมและข้อมูลที่บันทึกในระบบ</p>
           </CardHeader>
           <CardBody className="space-y-3 text-sm">
-            <div className="flex items-start justify-between gap-4 border-b border-border pb-3">
-              <span className="text-muted">สมัครเมื่อ</span>
-              <span className="text-right text-ink">
-                {customer.createdAt ? formatDateTime(customer.createdAt) : '—'}
-              </span>
-            </div>
-            <div className="flex items-start justify-between gap-4 border-b border-border pb-3">
-              <span className="text-muted">เข้าสู่ระบบล่าสุด</span>
-              <span className="text-right text-ink">
-                {customer.lastLoginAt
-                  ? formatDateTime(customer.lastLoginAt)
-                  : 'ยังไม่เคยเข้าสู่ระบบ'}
-              </span>
-            </div>
-            <div className="flex items-start justify-between gap-4 border-b border-border pb-3">
-              <span className="text-muted">ที่อยู่ที่บันทึก</span>
-              <span className="text-right text-ink">{insights.addressCount} รายการ</span>
-            </div>
-            <div className="flex items-start justify-between gap-4">
-              <span className="text-muted">สินค้าที่ชอบ</span>
-              <span className="text-right text-ink">{insights.favoriteCount} รายการ</span>
-            </div>
+            <DetailRow label="สมัครเมื่อ">
+              {customer.createdAt ? formatDateTime(customer.createdAt) : '—'}
+            </DetailRow>
+            <DetailRow label="เข้าสู่ระบบล่าสุด">
+              {customer.lastLoginAt ? formatDateTime(customer.lastLoginAt) : 'ยังไม่เคยเข้าสู่ระบบ'}
+            </DetailRow>
+            <DetailRow label="ที่อยู่ที่บันทึก">
+              {insights.addressCount.toLocaleString('th-TH')} รายการ
+            </DetailRow>
+            <DetailRow label="สินค้าที่ชอบ">
+              {insights.favoriteCount.toLocaleString('th-TH')} รายการ
+            </DetailRow>
           </CardBody>
         </Card>
       </div>

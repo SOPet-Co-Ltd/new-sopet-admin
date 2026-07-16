@@ -16,8 +16,55 @@ import {
   useRevokeAdminInvitation,
   useSetAdminActive,
 } from '@/hooks/useAdminTeam';
-import { labelInvitationStatus } from '@/lib/i18n/th';
+import { isApiError } from '@/lib/api/errors';
+import { adminAccessDescription, labelInvitationStatus } from '@/lib/i18n/th';
 import { inviteAdminSchema, type InviteAdminFormValues } from '@/lib/validations';
+
+function ListRowSkeleton({ rows = 2 }: { rows?: number }) {
+  return (
+    <div className="space-y-3" aria-busy="true">
+      {Array.from({ length: rows }, (_, i) => (
+        <div
+          key={i}
+          className="h-18 animate-pulse rounded-lg border border-border bg-surface motion-reduce:animate-none"
+        />
+      ))}
+      <span className="sr-only">กำลังโหลด...</span>
+    </div>
+  );
+}
+
+function invitationStatusBadge(status: string): { label: string; className: string } {
+  const label = labelInvitationStatus(status);
+  if (status === 'pending') {
+    return { label, className: 'bg-warning-bg text-warning-text' };
+  }
+  if (status === 'accepted') {
+    return { label, className: 'bg-success-bg text-success' };
+  }
+  return { label, className: 'border border-border bg-surface text-muted-foreground' };
+}
+
+function memberStatusBadge(isActive: boolean): { label: string; className: string } {
+  if (isActive) {
+    return { label: 'ใช้งานอยู่', className: 'bg-success-bg text-success' };
+  }
+  return { label: 'ปิดใช้งาน', className: 'border border-border bg-surface text-muted-foreground' };
+}
+
+function formatInviteExpiry(value: string): string {
+  return new Date(value).toLocaleDateString('th-TH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function mutationErrorMessage(error: unknown, fallback: string): string {
+  if (isApiError(error)) return error.message;
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
 
 export default function AdminTeamPage() {
   const { user: currentUser } = useCurrentUser();
@@ -32,6 +79,8 @@ export default function AdminTeamPage() {
     defaultValues: { email: '' },
   });
 
+  const invitePending = inviteMutation.isPending;
+
   async function onInvite(values: InviteAdminFormValues) {
     try {
       await inviteMutation.mutateAsync(values);
@@ -41,21 +90,27 @@ export default function AdminTeamPage() {
     }
   }
 
-  const mutationPending =
-    inviteMutation.isPending || revokeMutation.isPending || setActiveMutation.isPending;
+  const pendingInvites = invitations.filter((invitation) => invitation.status === 'pending');
 
   return (
     <div className="space-y-6">
-      <PageHeader title="ทีมผู้ดูแล" description="จัดการผู้ดูแลระบบและคำเชิญ" />
+      <PageHeader
+        title="ทีมผู้ดูแล"
+        description="เชิญผู้ดูแล เปิด/ปิดการใช้งาน และยกเลิกคำเชิญที่ยังไม่ตอบรับ"
+      />
 
       <Card>
-        <CardHeader>
-          <h2 className="font-display font-medium text-ink">เชิญผู้ดูแลใหม่</h2>
+        <CardHeader className="space-y-1">
+          <h2 className="font-display font-medium text-balance text-ink">เชิญผู้ดูแลใหม่</h2>
+          <p className="text-sm text-pretty text-muted-foreground">
+            ส่งคำเชิญทางอีเมล — ผู้รับต้องตั้งรหัสผ่านและเข้าสู่ระบบก่อนจึงจะเป็นผู้ดูแล
+          </p>
         </CardHeader>
-        <CardBody>
+        <CardBody className="space-y-5">
           <form
             onSubmit={form.handleSubmit(onInvite)}
-            className="grid gap-4 sm:grid-cols-[1fr_auto]"
+            className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start"
+            noValidate
           >
             <div>
               <Label htmlFor="invite-admin-email" required>
@@ -66,6 +121,7 @@ export default function AdminTeamPage() {
                 type="email"
                 autoComplete="email"
                 placeholder="admin@example.com"
+                disabled={invitePending}
                 aria-invalid={!!form.formState.errors.email}
                 aria-describedby={
                   form.formState.errors.email ? 'invite-admin-email-error' : undefined
@@ -79,117 +135,168 @@ export default function AdminTeamPage() {
                 </p>
               ) : null}
             </div>
-            <div className="flex items-end">
+            <div className="flex sm:pt-6.5">
               <Button
                 type="submit"
-                disabled={inviteMutation.isPending}
-                aria-busy={inviteMutation.isPending}
+                className="w-full sm:w-auto"
+                disabled={invitePending}
+                aria-busy={invitePending}
               >
-                {inviteMutation.isPending ? 'กำลังส่ง...' : 'ส่งคำเชิญ'}
+                {invitePending ? 'กำลังส่ง...' : 'ส่งคำเชิญ'}
               </Button>
             </div>
           </form>
+
           {inviteMutation.isError ? (
-            <p role="alert" className="mt-2 text-sm text-danger">
-              {inviteMutation.error instanceof Error
-                ? inviteMutation.error.message
-                : 'ส่งคำเชิญไม่สำเร็จ'}
+            <p role="alert" className="text-sm text-danger">
+              {mutationErrorMessage(inviteMutation.error, 'ส่งคำเชิญไม่สำเร็จ')}
+            </p>
+          ) : null}
+
+          <div className="space-y-2 rounded-lg bg-surface px-4 py-3">
+            <Badge className="border-0 bg-brand-tint text-brand">ผู้ดูแลระบบ</Badge>
+            <p className="text-xs text-pretty text-muted-foreground">{adminAccessDescription}</p>
+            <p className="text-xs text-pretty text-muted-foreground">
+              ปิดใช้งานจะทำให้ผู้ดูแลเข้าสู่ระบบไม่ได้ — ไม่ลบบัญชี
+            </p>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="font-display font-medium text-balance text-ink">
+            ผู้ดูแลระบบ ({membersLoading ? '…' : members.length})
+          </h2>
+        </CardHeader>
+        <CardBody className="space-y-3">
+          {membersLoading ? (
+            <ListRowSkeleton rows={2} />
+          ) : members.length === 0 ? (
+            <p className="text-sm text-pretty text-muted-foreground">
+              ยังไม่มีผู้ดูแลระบบ — ส่งคำเชิญด้านบนเพื่อเพิ่มทีม
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {members.map((member) => {
+                const isSelf = member.id === currentUser?.id;
+                const displayName = member.fullName || member.email;
+                const statusBadge = memberStatusBadge(member.isActive);
+                const togglingActive =
+                  setActiveMutation.isPending && setActiveMutation.variables?.userId === member.id;
+
+                return (
+                  <li
+                    key={member.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors duration-200 motion-reduce:transition-none"
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate font-medium text-ink">{displayName}</p>
+                        <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
+                        {isSelf ? (
+                          <Badge className="border-0 bg-brand-tint text-brand">คุณ</Badge>
+                        ) : null}
+                      </div>
+                      {member.fullName ? (
+                        <p className="truncate text-sm text-muted-foreground">{member.email}</p>
+                      ) : null}
+                    </div>
+                    {!isSelf ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={togglingActive || setActiveMutation.isPending}
+                        aria-busy={togglingActive}
+                        onClick={() =>
+                          setActiveMutation.mutate({
+                            userId: member.id,
+                            isActive: !member.isActive,
+                          })
+                        }
+                      >
+                        {member.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน'}
+                      </Button>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {setActiveMutation.isError ? (
+            <p role="alert" className="text-sm text-danger">
+              {mutationErrorMessage(setActiveMutation.error, 'เปลี่ยนสถานะผู้ดูแลไม่สำเร็จ')}
             </p>
           ) : null}
         </CardBody>
       </Card>
 
       <Card>
-        <CardHeader>
-          <h2 className="font-display font-medium text-ink">ผู้ดูแลระบบ ({members.length})</h2>
-        </CardHeader>
-        <CardBody className="space-y-3">
-          {membersLoading ? (
-            <p className="text-sm text-muted">กำลังโหลด...</p>
-          ) : members.length === 0 ? (
-            <p className="text-sm text-muted">ยังไม่มีผู้ดูแลระบบ</p>
-          ) : (
-            members.map((member) => {
-              const isSelf = member.id === currentUser?.id;
-              return (
-                <div
-                  key={member.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-4 py-3"
-                >
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-ink">{member.fullName || member.email}</p>
-                      <Badge status={member.isActive ? 'published' : 'draft'}>
-                        {member.isActive ? 'ใช้งานอยู่' : 'ปิดใช้งาน'}
-                      </Badge>
-                      {isSelf ? <Badge status="published">คุณ</Badge> : null}
-                    </div>
-                    <p className="text-sm text-muted">{member.email}</p>
-                  </div>
-                  {!isSelf ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={mutationPending}
-                      aria-busy={setActiveMutation.isPending}
-                      onClick={() =>
-                        setActiveMutation.mutate({
-                          userId: member.id,
-                          isActive: !member.isActive,
-                        })
-                      }
-                    >
-                      {member.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน'}
-                    </Button>
-                  ) : null}
-                </div>
-              );
-            })
-          )}
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <h2 className="font-display font-medium text-ink">คำเชิญที่รอตอบรับ</h2>
+        <CardHeader className="space-y-1">
+          <h2 className="font-display font-medium text-balance text-ink">
+            คำเชิญที่รอตอบรับ
+            {!invitationsLoading && pendingInvites.length > 0
+              ? ` (${pendingInvites.length})`
+              : null}
+          </h2>
+          <p className="text-sm text-pretty text-muted-foreground">
+            ยกเลิกได้ก่อนที่ผู้รับจะตอบรับคำเชิญ
+          </p>
         </CardHeader>
         <CardBody className="space-y-3">
           {invitationsLoading ? (
-            <p className="text-sm text-muted">กำลังโหลด...</p>
+            <ListRowSkeleton rows={1} />
           ) : invitations.length === 0 ? (
-            <p className="text-sm text-muted">ไม่มีคำเชิญที่รอตอบรับ</p>
+            <p className="text-sm text-pretty text-muted-foreground">
+              ยังไม่มีคำเชิญค้างอยู่ — ส่งคำเชิญด้านบนเพื่อเชิญผู้ดูแล
+            </p>
           ) : (
-            invitations.map((invitation) => (
-              <div
-                key={invitation.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-4 py-3"
-              >
-                <div>
-                  <p className="font-medium text-ink">{invitation.email}</p>
-                  <p className="text-sm text-muted">
-                    {labelInvitationStatus(invitation.status)} · หมดอายุ{' '}
-                    {new Date(invitation.expiresAt).toLocaleDateString('th-TH')}
-                  </p>
-                </div>
-                {invitation.status === 'pending' ? (
-                  <ConfirmDeleteButton
-                    confirmLabel={invitation.email}
-                    title="ยกเลิกคำเชิญ"
-                    confirmButtonLabel="ยกเลิก"
-                    description={`จะยกเลิกคำเชิญไปยัง ${invitation.email}`}
-                    disabled={mutationPending}
-                    isDeleting={revokeMutation.isPending}
-                    onConfirm={async () => {
-                      await revokeMutation.mutateAsync(invitation.id);
-                    }}
+            <ul className="space-y-3">
+              {invitations.map((invitation) => {
+                const statusBadge = invitationStatusBadge(invitation.status);
+                const revoking =
+                  revokeMutation.isPending && revokeMutation.variables === invitation.id;
+
+                return (
+                  <li
+                    key={invitation.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors duration-200 motion-reduce:transition-none"
                   >
-                    ยกเลิกคำเชิญ
-                  </ConfirmDeleteButton>
-                ) : null}
-              </div>
-            ))
+                    <div className="min-w-0 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate font-medium text-ink">{invitation.email}</p>
+                        <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        หมดอายุ {formatInviteExpiry(invitation.expiresAt)}
+                      </p>
+                    </div>
+                    {invitation.status === 'pending' ? (
+                      <ConfirmDeleteButton
+                        confirmLabel={invitation.email}
+                        title="ยกเลิกคำเชิญ"
+                        confirmButtonLabel="ยกเลิก"
+                        description={`จะยกเลิกคำเชิญไปยัง ${invitation.email} — ลิงก์เชิญจะใช้ไม่ได้ทันที`}
+                        disabled={revokeMutation.isPending}
+                        isDeleting={revoking}
+                        onConfirm={async () => {
+                          await revokeMutation.mutateAsync(invitation.id);
+                        }}
+                      >
+                        ยกเลิกคำเชิญ
+                      </ConfirmDeleteButton>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
           )}
+          {revokeMutation.isError ? (
+            <p role="alert" className="text-sm text-danger">
+              {mutationErrorMessage(revokeMutation.error, 'ยกเลิกคำเชิญไม่สำเร็จ')}
+            </p>
+          ) : null}
         </CardBody>
       </Card>
     </div>

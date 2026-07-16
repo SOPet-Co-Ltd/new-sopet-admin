@@ -80,7 +80,7 @@ describe('VendorStoresPage', () => {
 
     render(<VendorStoresPage />);
 
-    expect(screen.queryByText('เสนอหมวดหมู่และแท็ก')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'คำขอและการเสนอ' })).toBeInTheDocument();
     expect(screen.queryByTestId('taxonomy-proposals-section')).not.toBeInTheDocument();
     expect(screen.getByTestId('store-request-section')).toBeInTheDocument();
   });
@@ -90,7 +90,6 @@ describe('VendorStoresPage', () => {
 
     render(<VendorStoresPage />);
 
-    expect(screen.queryByText('เสนอหมวดหมู่และแท็ก')).not.toBeInTheDocument();
     expect(screen.queryByTestId('taxonomy-proposals-section')).not.toBeInTheDocument();
   });
 
@@ -99,7 +98,7 @@ describe('VendorStoresPage', () => {
 
     render(<VendorStoresPage />);
 
-    expect(screen.getByText('เสนอหมวดหมู่และแท็ก')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'คำขอและการเสนอ' })).toBeInTheDocument();
     expect(screen.getByTestId('taxonomy-proposals-section')).toBeInTheDocument();
   });
 });

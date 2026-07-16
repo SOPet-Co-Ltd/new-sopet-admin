@@ -3,11 +3,18 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { HiArrowLeft, HiShoppingBag, HiStar } from 'react-icons/hi2';
+import { HiArrowLeft, HiStar } from 'react-icons/hi2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
-import { StatCard } from '@/components/vendor/stat-card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useProduct } from '@/hooks/useProduct';
 import { useStoreProductReviews } from '@/hooks/useReviews';
 import { useApprovedBrands, useApprovedPetTypes } from '@/hooks/useTaxonomy';
@@ -23,8 +30,43 @@ const RECENT_REVIEWS_LIMIT = 5;
 function DetailRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-b-0 last:pb-0">
-      <span className="shrink-0 text-muted">{label}</span>
+      <span className="shrink-0 text-muted-foreground">{label}</span>
       <span className="text-right font-medium text-ink">{children}</span>
+    </div>
+  );
+}
+
+function SectionTitle({ children }: { children: ReactNode }) {
+  return <h2 className="font-display text-balance font-medium text-ink">{children}</h2>;
+}
+
+function Fact({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 text-sm font-medium tabular-nums text-ink">{value}</dd>
+      {hint ? <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p> : null}
+    </div>
+  );
+}
+
+function ProductDetailSkeleton() {
+  return (
+    <div className="space-y-6" aria-busy="true" aria-label="กำลังโหลดสินค้า">
+      <div className="space-y-3">
+        <div className="h-4 w-36 animate-pulse rounded-md bg-surface" />
+        <div className="h-8 w-64 max-w-full animate-pulse rounded-md bg-surface" />
+        <div className="h-4 w-48 animate-pulse rounded-md bg-surface" />
+      </div>
+      <div className="h-20 animate-pulse rounded-xl bg-surface" />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <div className="aspect-square animate-pulse rounded-xl bg-surface" />
+        <div className="space-y-4">
+          <div className="h-48 animate-pulse rounded-xl bg-surface" />
+          <div className="h-28 animate-pulse rounded-xl bg-surface" />
+        </div>
+      </div>
+      <div className="h-40 animate-pulse rounded-xl bg-surface" />
     </div>
   );
 }
@@ -54,14 +96,23 @@ export default function VendorProductDetailPage() {
   );
 
   if (isLoading) {
-    return <p className="text-muted">กำลังโหลดสินค้า...</p>;
+    return <ProductDetailSkeleton />;
   }
 
   if (error || !product) {
     return (
-      <p className="text-sm text-danger" role="alert">
-        {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
-      </p>
+      <div className="space-y-4">
+        <Link
+          href="/vendor/products"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-brand"
+        >
+          <HiArrowLeft className="size-3.5" aria-hidden="true" />
+          กลับไปรายการสินค้า
+        </Link>
+        <p className="text-sm text-danger" role="alert">
+          {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
+        </p>
+      </div>
     );
   }
 
@@ -90,6 +141,16 @@ export default function VendorProductDetailPage() {
     (variant) => variant.stockQuantity > 0 && variant.stockQuantity <= LOW_STOCK_THRESHOLD,
   ).length;
   const outOfStockCount = variants.filter((variant) => variant.stockQuantity <= 0).length;
+  const stockHint =
+    variants.length > 0
+      ? [
+          lowStockCount > 0 ? `ใกล้หมด ${lowStockCount}` : null,
+          outOfStockCount > 0 ? `หมดสต็อก ${outOfStockCount}` : null,
+        ]
+          .filter(Boolean)
+          .join(' · ') || `${variants.length} ตัวเลือก`
+      : 'ยังไม่มีตัวเลือก';
+  const hasStockAlert = lowStockCount > 0 || outOfStockCount > 0;
 
   return (
     <div className="space-y-6">
@@ -99,58 +160,80 @@ export default function VendorProductDetailPage() {
         back={
           <Link
             href="/vendor/products"
-            className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-brand"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-brand"
           >
             <HiArrowLeft className="size-3.5" aria-hidden="true" />
             กลับไปรายการสินค้า
           </Link>
         }
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/vendor/products/${product.id}/stock`}>แก้ไขสต็อก</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link href={`/vendor/products/${product.id}/edit`}>แก้ไขสินค้า</Link>
+            </Button>
+          </div>
+        }
       />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Badge status={status}>{labelProductStatus(status)}</Badge>
-        {product.slug ? (
-          <span className="rounded-md bg-surface px-2 py-1 font-mono text-xs text-muted">
-            {product.slug}
-          </span>
-        ) : null}
-      </div>
+      <Card>
+        <CardBody className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge status={status}>{labelProductStatus(status)}</Badge>
+            {product.slug ? (
+              <span className="rounded-md bg-surface px-2 py-1 font-mono text-xs text-muted-foreground">
+                {product.slug}
+              </span>
+            ) : null}
+            {hasStockAlert ? (
+              <span className="rounded-md bg-warning-bg px-2 py-1 text-xs font-medium text-warning-text">
+                {stockHint}
+              </span>
+            ) : null}
+          </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="คะแนนเฉลี่ย"
-          value={formatRating(product.averageRating, reviewCount)}
-          hint={reviewCount > 0 ? `จาก ${reviewCount} รีวิว` : 'ยังไม่มีรีวิว'}
-          icon={<HiStar className="size-4 text-brand" aria-hidden="true" />}
-        />
-        <StatCard label="จำนวนรีวิว" value={reviewCount} hint="รีวิวจากลูกค้าที่ซื้อสินค้านี้" />
-        <StatCard
-          label="ยอดขาย"
-          value={soldCount}
-          hint="จำนวนชิ้นที่ขายได้"
-          icon={<HiShoppingBag className="size-4 text-brand" aria-hidden="true" />}
-        />
-        <StatCard
-          label="สต็อกรวม"
-          value={variants.length > 0 ? totalStock : '—'}
-          hint={
-            variants.length > 0
-              ? [
-                  lowStockCount > 0 ? `ใกล้หมด ${lowStockCount}` : null,
-                  outOfStockCount > 0 ? `หมดสต็อก ${outOfStockCount}` : null,
-                ]
-                  .filter(Boolean)
-                  .join(' · ') || `${variants.length} ตัวเลือก`
-              : 'ยังไม่มีตัวเลือกสินค้า'
-          }
-        />
-      </div>
+          <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Fact
+              label="ราคา"
+              value={variants.length > 0 ? formatPriceRange(variantPrices) : '—'}
+              hint={variants.length > 0 ? 'ช่วงราคาตามตัวเลือก' : 'ยังไม่มีตัวเลือก'}
+            />
+            <Fact
+              label="สต็อกรวม"
+              value={variants.length > 0 ? totalStock : '—'}
+              hint={stockHint}
+            />
+            <Fact label="ยอดขาย" value={soldCount} hint="จำนวนชิ้นที่ขายได้" />
+            <Fact
+              label="คะแนน"
+              value={
+                <span className="inline-flex items-center gap-1">
+                  {reviewCount > 0 ? (
+                    <HiStar className="size-3.5 text-brand" aria-hidden="true" />
+                  ) : null}
+                  {formatRating(product.averageRating, reviewCount)}
+                </span>
+              }
+              hint={reviewCount > 0 ? `จาก ${reviewCount} รีวิว` : 'ยังไม่มีรีวิว'}
+            />
+          </dl>
+        </CardBody>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <Card>
-          <CardHeader>
-            <h2 className="font-display text-lg font-semibold text-ink">รูปภาพ</h2>
-            <p className="text-sm text-muted">{images.length} รูป</p>
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+            <div>
+              <SectionTitle>รูปภาพ</SectionTitle>
+              <p className="mt-0.5 text-sm text-muted-foreground">{images.length} รูป</p>
+            </div>
+            {images.length === 0 ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/vendor/products/${product.id}/edit`}>เพิ่มรูปภาพ</Link>
+              </Button>
+            ) : null}
           </CardHeader>
           <CardBody className="space-y-4">
             {heroImage ? (
@@ -162,8 +245,11 @@ export default function VendorProductDetailPage() {
                 />
               </div>
             ) : (
-              <div className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-border bg-surface/60 text-sm text-muted">
-                ยังไม่มีรูปภาพ
+              <div className="flex aspect-square flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface px-4 text-center">
+                <p className="text-sm text-muted-foreground">ยังไม่มีรูปภาพ</p>
+                <p className="text-xs text-muted-foreground">
+                  เพิ่มอย่างน้อย 1 รูปก่อนเผยแพร่ในหน้าร้าน
+                </p>
               </div>
             )}
             {images.length > 1 ? (
@@ -171,7 +257,10 @@ export default function VendorProductDetailPage() {
                 {images.map((image) => (
                   <li
                     key={image.id}
-                    className="relative overflow-hidden rounded-md border border-border"
+                    className={cn(
+                      'relative overflow-hidden rounded-md border border-border',
+                      image.isThumbnail && 'ring-2 ring-brand/40',
+                    )}
                   >
                     <img
                       src={image.imageUrl}
@@ -179,7 +268,7 @@ export default function VendorProductDetailPage() {
                       className="aspect-square w-full object-cover"
                     />
                     {image.isThumbnail ? (
-                      <span className="absolute inset-x-0 bottom-0 bg-ink/70 px-1 py-0.5 text-center text-[10px] text-white">
+                      <span className="absolute inset-x-0 bottom-0 bg-ink/70 px-1 py-0.5 text-center text-xs text-white">
                         หน้าปก
                       </span>
                     ) : null}
@@ -187,69 +276,53 @@ export default function VendorProductDetailPage() {
                 ))}
               </ul>
             ) : null}
-            {images.length === 0 ? (
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/vendor/products/${product.id}/edit`}>เพิ่มรูปภาพ</Link>
-              </Button>
-            ) : null}
           </CardBody>
         </Card>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-lg font-semibold text-ink">ข้อมูลสินค้า</h2>
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/vendor/products/${product.id}/edit`}>แก้ไขข้อมูล</Link>
-              </Button>
-            </CardHeader>
-            <CardBody className="space-y-3 text-sm">
-              <DetailRow label="Slug">{product.slug}</DetailRow>
-              <DetailRow label="หมวดหมู่">{product.category ?? '—'}</DetailRow>
-              <DetailRow label="ประเภทสัตว์เลี้ยง">{petTypeName ?? '—'}</DetailRow>
-              <DetailRow label="แบรนด์">{brandName ?? '—'}</DetailRow>
-              <DetailRow label="แท็ก">
-                {product.tags.length > 0 ? (
-                  <span className="flex flex-wrap justify-end gap-1.5">
-                    {product.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-md bg-brand-tint px-2 py-0.5 text-xs font-medium text-brand"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </span>
-                ) : (
-                  '—'
-                )}
-              </DetailRow>
-              <DetailRow label="วันหมดอายุ">
-                {product.expiryDate
-                  ? new Intl.DateTimeFormat('th-TH', { dateStyle: 'medium' }).format(
-                      new Date(product.expiryDate),
-                    )
-                  : '—'}
-              </DetailRow>
-            </CardBody>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <h2 className="font-display text-lg font-semibold text-ink">ราคา</h2>
-            </CardHeader>
-            <CardBody className="space-y-3 text-sm">
-              <DetailRow label="ช่วงราคาตัวเลือก">
-                {variants.length > 0 ? formatPriceRange(variantPrices) : '—'}
-              </DetailRow>
-            </CardBody>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+            <SectionTitle>ข้อมูลสินค้า</SectionTitle>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/vendor/products/${product.id}/edit`}>แก้ไขข้อมูล</Link>
+            </Button>
+          </CardHeader>
+          <CardBody className="space-y-3 text-sm">
+            <DetailRow label="หมวดหมู่">{product.category ?? '—'}</DetailRow>
+            <DetailRow label="ประเภทสัตว์เลี้ยง">{petTypeName ?? '—'}</DetailRow>
+            <DetailRow label="แบรนด์">{brandName ?? '—'}</DetailRow>
+            <DetailRow label="แท็ก">
+              {product.tags.length > 0 ? (
+                <span className="flex flex-wrap justify-end gap-1.5">
+                  {product.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-md bg-brand-tint px-2 py-0.5 text-xs font-medium text-brand"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </span>
+              ) : (
+                '—'
+              )}
+            </DetailRow>
+            <DetailRow label="วันหมดอายุ">
+              {product.expiryDate
+                ? new Intl.DateTimeFormat('th-TH', { dateStyle: 'medium' }).format(
+                    new Date(product.expiryDate),
+                  )
+                : '—'}
+            </DetailRow>
+            <DetailRow label="ช่วงราคา">
+              {variants.length > 0 ? formatPriceRange(variantPrices) : '—'}
+            </DetailRow>
+          </CardBody>
+        </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <h2 className="font-display text-lg font-semibold text-ink">รายละเอียด</h2>
+          <SectionTitle>รายละเอียด</SectionTitle>
         </CardHeader>
         <CardBody className="space-y-4">
           {product.description?.trim() ? (
@@ -258,12 +331,17 @@ export default function VendorProductDetailPage() {
               regionLabel="รายละเอียดสินค้า"
             />
           ) : (
-            <p className="text-sm text-muted">ไม่มีรายละเอียด</p>
+            <div className="rounded-lg bg-surface px-4 py-3">
+              <p className="text-sm text-muted-foreground">ยังไม่มีรายละเอียดสินค้า</p>
+              <Button variant="outline" size="sm" className="mt-3" asChild>
+                <Link href={`/vendor/products/${product.id}/edit`}>เพิ่มรายละเอียด</Link>
+              </Button>
+            </div>
           )}
           {product.warning?.trim() ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
+            <div className="rounded-lg border border-warning-text/20 bg-warning-bg p-3 text-sm">
               <p className="mb-1 font-medium text-ink">คำเตือน</p>
-              <p className="whitespace-pre-wrap text-muted">{product.warning}</p>
+              <p className="whitespace-pre-wrap text-pretty text-warning-text">{product.warning}</p>
             </div>
           ) : null}
         </CardBody>
@@ -272,14 +350,16 @@ export default function VendorProductDetailPage() {
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-lg font-semibold text-ink">
-              ตัวเลือกสินค้า ({variants.length})
-            </h2>
+            <SectionTitle>ตัวเลือกสินค้า ({variants.length})</SectionTitle>
             {variants.length > 0 ? (
-              <p className="text-sm text-muted">
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 สต็อกรวม {totalStock} · ราคา {formatPriceRange(variantPrices)}
               </p>
-            ) : null}
+            ) : (
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                ต้องมีอย่างน้อย 1 ตัวเลือกก่อนเผยแพร่
+              </p>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
@@ -292,41 +372,55 @@ export default function VendorProductDetailPage() {
         </CardHeader>
         <CardBody>
           {variants.length === 0 ? (
-            <p className="text-sm text-muted">ยังไม่มีตัวเลือก</p>
+            <div className="rounded-lg bg-surface px-4 py-3">
+              <p className="text-sm text-muted-foreground">ยังไม่มีตัวเลือกสินค้า</p>
+              <Button variant="outline" size="sm" className="mt-3" asChild>
+                <Link href={`/vendor/products/${product.id}/variants`}>เพิ่มตัวเลือก</Link>
+              </Button>
+            </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[480px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
-                    <th className="px-3 py-2 font-semibold">ตัวเลือก</th>
-                    <th className="px-3 py-2 font-semibold">SKU</th>
-                    <th className="px-3 py-2 font-semibold">ราคา</th>
-                    <th className="px-3 py-2 font-semibold">สต็อก</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="overflow-hidden rounded-lg border border-border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-surface/60 hover:bg-surface/60">
+                    <TableHead className="normal-case tracking-normal text-muted-foreground">
+                      ตัวเลือก
+                    </TableHead>
+                    <TableHead className="normal-case tracking-normal text-muted-foreground">
+                      SKU
+                    </TableHead>
+                    <TableHead className="normal-case tracking-normal text-muted-foreground">
+                      ราคา
+                    </TableHead>
+                    <TableHead className="normal-case tracking-normal text-muted-foreground">
+                      สต็อก
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {variants.map((variant) => {
                     const options = Object.entries(variant.options);
                     const isOutOfStock = variant.stockQuantity <= 0;
                     const isLowStock =
                       !isOutOfStock && variant.stockQuantity <= LOW_STOCK_THRESHOLD;
                     return (
-                      <tr
-                        key={variant.id ?? variant.sku}
-                        className="border-b border-border last:border-0"
-                      >
-                        <td className="px-3 py-2.5 text-ink">
+                      <TableRow key={variant.id ?? variant.sku}>
+                        <TableCell className="font-medium text-ink">
                           {options.length > 0
                             ? options.map(([key, value]) => `${key}: ${value}`).join(' · ')
                             : '—'}
-                        </td>
-                        <td className="px-3 py-2.5 text-muted">{variant.sku || '—'}</td>
-                        <td className="px-3 py-2.5 text-ink">{formatCurrency(variant.price)}</td>
-                        <td
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {variant.sku || '—'}
+                        </TableCell>
+                        <TableCell className="tabular-nums text-ink">
+                          {formatCurrency(variant.price)}
+                        </TableCell>
+                        <TableCell
                           className={cn(
-                            'px-3 py-2.5 font-medium',
+                            'font-medium tabular-nums',
                             isOutOfStock && 'text-danger',
-                            isLowStock && 'text-amber-700',
+                            isLowStock && 'text-warning-text',
                             !isOutOfStock && !isLowStock && 'text-ink',
                           )}
                         >
@@ -337,12 +431,12 @@ export default function VendorProductDetailPage() {
                           {isLowStock ? (
                             <span className="ml-2 text-xs font-normal">ใกล้หมด</span>
                           ) : null}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardBody>
@@ -351,8 +445,8 @@ export default function VendorProductDetailPage() {
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-lg font-semibold text-ink">รีวิวล่าสุด</h2>
-            <p className="text-sm text-muted">
+            <SectionTitle>รีวิวล่าสุด</SectionTitle>
+            <p className="mt-0.5 text-sm text-muted-foreground">
               {reviewCount > 0
                 ? `คะแนนเฉลี่ย ${formatRating(product.averageRating, reviewCount)} จาก ${reviewCount} รีวิว`
                 : 'ยังไม่มีรีวิวสำหรับสินค้านี้'}
@@ -362,41 +456,51 @@ export default function VendorProductDetailPage() {
             <Link href="/vendor/reviews">ดูรีวิวทั้งหมด</Link>
           </Button>
         </CardHeader>
-        <CardBody className="space-y-3">
+        <CardBody>
           {reviewsLoading ? (
-            <p className="text-sm text-muted">กำลังโหลดรีวิว...</p>
+            <div className="space-y-3" aria-busy="true" aria-label="กำลังโหลดรีวิว">
+              {Array.from({ length: 2 }).map((_, index) => (
+                <div key={index} className="h-20 animate-pulse rounded-lg bg-surface" />
+              ))}
+            </div>
           ) : recentReviews.length === 0 ? (
-            <p className="text-sm text-muted">ยังไม่มีรีวิวจากลูกค้า</p>
+            <p className="text-sm text-muted-foreground">ยังไม่มีรีวิวจากลูกค้า</p>
           ) : (
-            recentReviews.map((review) => (
-              <div key={review.id} className="rounded-lg border border-border p-3 text-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-medium text-ink">
-                      {review.customerName?.trim() || 'ลูกค้า'}
-                    </p>
-                    <p className="mt-0.5 inline-flex items-center gap-1 text-brand">
-                      <HiStar className="size-3.5" aria-hidden="true" />
-                      {review.rating}/5
-                    </p>
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {recentReviews.map((review) => (
+                <li key={review.id} className="px-4 py-3 text-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-ink">
+                        {review.customerName?.trim() || 'ลูกค้า'}
+                      </p>
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-brand">
+                        <HiStar className="size-3.5" aria-hidden="true" />
+                        <span className="tabular-nums">{review.rating}/5</span>
+                      </p>
+                    </div>
+                    {review.createdAt ? (
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {formatDateTime(review.createdAt)}
+                      </span>
+                    ) : null}
                   </div>
-                  {review.createdAt ? (
-                    <span className="shrink-0 text-xs text-muted">
-                      {formatDateTime(review.createdAt)}
-                    </span>
+                  {review.comment ? (
+                    <p className="mt-2 whitespace-pre-wrap text-pretty text-muted-foreground">
+                      {review.comment}
+                    </p>
                   ) : null}
-                </div>
-                {review.comment ? (
-                  <p className="mt-2 whitespace-pre-wrap text-muted">{review.comment}</p>
-                ) : null}
-                {review.reply?.body ? (
-                  <div className="mt-3 rounded-md bg-surface/80 p-2 text-xs text-muted">
-                    <p className="mb-1 font-medium text-ink">ตอบกลับจากร้าน</p>
-                    <p className="whitespace-pre-wrap">{review.reply.body}</p>
-                  </div>
-                ) : null}
-              </div>
-            ))
+                  {review.reply?.body ? (
+                    <div className="mt-3 rounded-md bg-surface px-3 py-2 text-xs">
+                      <p className="mb-1 font-medium text-ink">ตอบกลับจากร้าน</p>
+                      <p className="whitespace-pre-wrap text-pretty text-muted-foreground">
+                        {review.reply.body}
+                      </p>
+                    </div>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
           )}
         </CardBody>
       </Card>

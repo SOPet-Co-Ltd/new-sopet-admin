@@ -10,7 +10,11 @@ interface BreakdownChartProps {
 
 export function BreakdownChart({ data, valueKey = 'revenue' }: BreakdownChartProps) {
   if (data.length === 0) {
-    return <p className="text-sm text-muted">ยังไม่มีข้อมูล</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        ยังไม่มีข้อมูลในหมวดนี้ — ข้อมูลจะปรากฏเมื่อมีคำสั่งซื้อที่สำเร็จ
+      </p>
+    );
   }
 
   const maxValue = Math.max(...data.map((item) => item[valueKey]), 1);
@@ -23,15 +27,15 @@ export function BreakdownChart({ data, valueKey = 'revenue' }: BreakdownChartPro
 
         return (
           <li key={item.label}>
-            <div className="mb-1 flex items-center justify-between gap-3 text-sm">
-              <span className="truncate font-medium text-ink">{item.label}</span>
-              <span className="shrink-0 text-muted">
+            <div className="mb-1 flex min-w-0 items-center justify-between gap-3 text-sm">
+              <span className="min-w-0 truncate font-medium text-ink">{item.label}</span>
+              <span className="shrink-0 tabular-nums text-muted-foreground">
                 {valueKey === 'revenue' ? formatCurrency(value) : `${value} คำสั่งซื้อ`}
               </span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-surface">
               <div
-                className="h-full rounded-full bg-brand transition-all"
+                className="h-full rounded-full bg-secondary transition-[width] duration-200 motion-reduce:transition-none"
                 style={{ width: `${width}%` }}
               />
             </div>

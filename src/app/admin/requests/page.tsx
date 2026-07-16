@@ -1,16 +1,24 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { PendingTagRow } from '@/components/admin/requests/pending-tag-row';
+import { RequestsQueueSummary } from '@/components/admin/requests/requests-queue-summary';
+import {
+  RequestsEmptyState,
+  RequestsListSkeleton,
+  RequestsTabSwitchButton,
+} from '@/components/admin/requests/requests-states';
+import { RequestsTabBar, type RequestsTab } from '@/components/admin/requests/requests-tab-bar';
+import { StoreRequestRow } from '@/components/admin/requests/store-request-row';
 import { PendingCategoryRow } from '@/components/admin/taxonomy/pending-category-row';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
 import {
   useApproveStoreRequest,
   usePendingStoreRequests,
@@ -25,35 +33,26 @@ import {
   useRejectCategory,
   useRejectTag,
 } from '@/hooks/useTaxonomy';
-import { labelInvitationStatus, labelStoreRequestStatus, labelTaxonomyStatus } from '@/lib/i18n/th';
+import { labelInvitationStatus } from '@/lib/i18n/th';
 import { inviteVendorSchema, type InviteVendorFormValues } from '@/lib/validations';
 
-type Tab = 'stores' | 'taxonomy' | 'invitations';
-
-function parseTab(value: string | null): Tab {
+function parseTab(value: string | null): RequestsTab {
   if (value === 'taxonomy' || value === 'invitations') return value;
   return 'stores';
 }
 
 function AdminRequestsPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const highlightRequestId = searchParams.get('requestId');
-  const [tab, setTab] = useState<Tab>(() => parseTab(searchParams.get('tab')));
-  const [rejectingId, setRejectingId] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState('');
+  const tab = parseTab(searchParams.get('tab'));
 
   const { data: storeRequests = [], isLoading: loadingStores } = usePendingStoreRequests();
   const approveStore = useApproveStoreRequest();
   const rejectStore = useRejectStoreRequest();
 
-  useEffect(() => {
-    if (!highlightRequestId || loadingStores) return;
-    const element = document.getElementById(`store-request-${highlightRequestId}`);
-    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [highlightRequestId, loadingStores, storeRequests]);
-
-  const { data: categories = [] } = usePendingCategories();
-  const { data: tags = [] } = usePendingTags();
+  const { data: categories = [], isLoading: loadingCategories } = usePendingCategories();
+  const { data: tags = [], isLoading: loadingTags } = usePendingTags();
   const approveCategory = useApproveCategory();
   const rejectCategory = useRejectCategory();
   const approveTag = useApproveTag();
@@ -67,6 +66,34 @@ function AdminRequestsPageContent() {
     defaultValues: { email: '' },
   });
 
+  const tabCounts = useMemo(
+    () => ({
+      stores: storeRequests.length,
+      taxonomy: categories.length + tags.length,
+      invitations: invitations.length,
+    }),
+    [storeRequests.length, categories.length, tags.length, invitations.length],
+  );
+
+  const setActiveTab = useCallback(
+    (next: RequestsTab) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', next);
+      if (next !== 'stores') {
+        params.delete('requestId');
+      }
+      const query = params.toString();
+      router.replace(query ? `/admin/requests?${query}` : '/admin/requests', { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  useEffect(() => {
+    if (!highlightRequestId || loadingStores || tab !== 'stores') return;
+    const element = document.getElementById(`store-request-${highlightRequestId}`);
+    element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [highlightRequestId, loadingStores, storeRequests, tab]);
+
   async function onInvite(values: InviteVendorFormValues) {
     try {
       await inviteMutation.mutateAsync(values);
@@ -76,208 +103,173 @@ function AdminRequestsPageContent() {
     }
   }
 
-  async function handleRejectStore(id: string) {
-    await rejectStore.mutateAsync({ id, reason: rejectReason || undefined });
-    setRejectingId(null);
-    setRejectReason('');
-  }
+  const taxonomyBusy =
+    approveCategory.isPending ||
+    rejectCategory.isPending ||
+    approveTag.isPending ||
+    rejectTag.isPending;
 
-  const taxonomyPending = categories.length + tags.length;
+  const nextStoreRequestId =
+    highlightRequestId ??
+    (storeRequests.length > 0 && tabCounts.stores > 0 ? storeRequests[0]?.id : null);
+
+  const nextTaxonomyId =
+    categories.length > 0 ? categories[0]?.id : tags.length > 0 ? tags[0]?.id : null;
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="ศูนย์คำขอ" description="อนุมัติคำขอเปิดร้าน หมวดหมู่ และเชิญผู้ขาย" />
+    <div className="min-w-0 space-y-6">
+      <PageHeader
+        title="ศูนย์คำขอ"
+        description="อนุมัติคำขอเปิดร้าน หมวดหมู่/แท็ก และเชิญผู้ขาย — เริ่มจากรายการที่เน้นไว้"
+      />
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant={tab === 'stores' ? 'default' : 'outline'}
-          onClick={() => setTab('stores')}
-        >
-          คำขอเปิดร้าน ({storeRequests.length})
-        </Button>
-        <Button
-          type="button"
-          variant={tab === 'taxonomy' ? 'default' : 'outline'}
-          onClick={() => setTab('taxonomy')}
-        >
-          หมวดหมู่/แท็ก ({taxonomyPending})
-        </Button>
-        <Button
-          type="button"
-          variant={tab === 'invitations' ? 'default' : 'outline'}
-          onClick={() => setTab('invitations')}
-        >
-          เชิญผู้ขาย ({invitations.length})
-        </Button>
-      </div>
+      <RequestsQueueSummary counts={tabCounts} activeTab={tab} onGoToNext={setActiveTab} />
+
+      <RequestsTabBar tab={tab} counts={tabCounts} onTabChange={setActiveTab} />
 
       {tab === 'stores' ? (
-        <Card>
-          <CardHeader>
-            <h2 className="font-display font-medium text-ink">คำขอเปิดร้านรออนุมัติ</h2>
-          </CardHeader>
-          <CardBody className="space-y-3">
-            {loadingStores ? (
-              <p className="text-sm text-muted">กำลังโหลด...</p>
-            ) : storeRequests.length === 0 ? (
-              <p className="text-sm text-muted">ไม่มีคำขอรออนุมัติ</p>
-            ) : (
-              storeRequests.map((req) => (
-                <div
-                  key={req.id}
-                  id={`store-request-${req.id}`}
-                  className={cn(
-                    'rounded-lg border px-4 py-3 transition-colors',
-                    highlightRequestId === req.id
-                      ? 'border-brand bg-brand-tint/30'
-                      : 'border-border',
-                  )}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="font-medium text-ink">{req.name}</p>
-                      <p className="text-sm text-muted">
-                        {req.contactEmail ?? ''} {req.contactPhone ?? ''}
-                      </p>
-                    </div>
-                    <Badge>{labelStoreRequestStatus(req.status)}</Badge>
-                  </div>
-                  {req.description ? (
-                    <p className="mt-1 text-sm text-muted">{req.description}</p>
-                  ) : null}
-                  {rejectingId === req.id ? (
-                    <div className="mt-3 flex flex-wrap items-end gap-2">
-                      <div className="flex-1">
-                        <Label htmlFor={`reason-${req.id}`}>เหตุผลการปฏิเสธ</Label>
-                        <Input
-                          id={`reason-${req.id}`}
-                          value={rejectReason}
-                          placeholder="ระบุเหตุผล (ไม่บังคับ)"
-                          autoComplete="off"
-                          onChange={(e) => setRejectReason(e.target.value)}
-                          className="mt-1.5"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="destructive"
-                        disabled={rejectStore.isPending}
-                        aria-busy={rejectStore.isPending}
-                        onClick={() => handleRejectStore(req.id)}
-                      >
-                        ยืนยันปฏิเสธ
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setRejectingId(null)}
-                      >
-                        ยกเลิก
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="mt-3 flex gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        disabled={approveStore.isPending}
-                        aria-busy={approveStore.isPending}
-                        onClick={() => approveStore.mutate(req.id)}
-                      >
-                        อนุมัติ
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => setRejectingId(req.id)}
-                      >
-                        ปฏิเสธ
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </CardBody>
-        </Card>
+        <div role="tabpanel" id="requests-panel-stores" aria-labelledby="requests-tab-stores">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="font-display font-medium text-balance text-ink">
+                  คำขอเปิดร้านรออนุมัติ
+                </h2>
+                {!loadingStores && tabCounts.stores > 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {tabCounts.stores.toLocaleString('th-TH')} รายการ — เรียงตามลำดับที่ส่ง
+                  </p>
+                ) : null}
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              {loadingStores ? (
+                <RequestsListSkeleton rows={3} />
+              ) : storeRequests.length === 0 ? (
+                <RequestsEmptyState
+                  variant="success"
+                  title="ไม่มีคำขอเปิดร้านรออนุมัติ"
+                  description="คิวว่างแล้ว — คำขอใหม่จากผู้ขายจะปรากฏที่นี่ทันที"
+                  action={
+                    tabCounts.taxonomy > 0 ? (
+                      <RequestsTabSwitchButton
+                        label="ไปตรวจหมวดหมู่/แท็ก"
+                        onClick={() => setActiveTab('taxonomy')}
+                      />
+                    ) : undefined
+                  }
+                />
+              ) : (
+                storeRequests.map((request) => (
+                  <StoreRequestRow
+                    key={request.id}
+                    request={request}
+                    highlighted={highlightRequestId === request.id}
+                    isNextUp={nextStoreRequestId === request.id}
+                    approvePending={approveStore.isPending}
+                    rejectPending={rejectStore.isPending}
+                    onApprove={(id) => approveStore.mutate(id)}
+                    onReject={(id, reason) => rejectStore.mutateAsync({ id, reason })}
+                  />
+                ))
+              )}
+            </CardBody>
+          </Card>
+        </div>
       ) : null}
 
       {tab === 'taxonomy' ? (
-        <div className="space-y-4">
+        <div role="tabpanel" id="requests-panel-taxonomy" aria-labelledby="requests-tab-taxonomy">
           <Card>
-            <CardBody className="space-y-4">
-              <div>
-                <h3 className="font-medium text-ink">หมวดหมู่ ({categories.length})</h3>
-                <ul className="mt-2 space-y-2">
-                  {categories.length === 0 ? (
-                    <li className="text-sm text-muted">ไม่มีรายการรออนุมัติ</li>
+            <CardHeader>
+              <h2 className="font-display font-medium text-balance text-ink">
+                หมวดหมู่และแท็กรออนุมัติ
+              </h2>
+              <p className="mt-1 text-sm text-pretty text-muted-foreground">
+                หมวดหมู่ต้องมีรูปภาพก่อนอนุมัติ — แท็กอนุมัติได้ทันที
+              </p>
+            </CardHeader>
+            <CardBody className="space-y-6">
+              <section aria-labelledby="pending-categories-heading">
+                <h3 id="pending-categories-heading" className="font-medium text-ink">
+                  หมวดหมู่ ({categories.length.toLocaleString('th-TH')})
+                </h3>
+                <ul className="mt-3 space-y-2">
+                  {loadingCategories ? (
+                    <RequestsListSkeleton rows={2} />
+                  ) : categories.length === 0 ? (
+                    <li>
+                      <RequestsEmptyState
+                        title="ไม่มีหมวดหมู่รออนุมัติ"
+                        description="หมวดหมู่ใหม่จากผู้ขายจะปรากฏที่นี่"
+                      />
+                    </li>
                   ) : (
                     categories.map((item) => (
                       <PendingCategoryRow
                         key={item.id}
                         item={item}
-                        disabled={
-                          approveCategory.isPending ||
-                          rejectCategory.isPending ||
-                          rejectTag.isPending
-                        }
+                        isNextUp={nextTaxonomyId === item.id}
+                        disabled={taxonomyBusy}
                         onApprove={(id) => approveCategory.mutate(id)}
                         onReject={(id) => rejectCategory.mutate(id)}
                       />
                     ))
                   )}
                 </ul>
-              </div>
-              <div>
-                <h3 className="font-medium text-ink">แท็ก ({tags.length})</h3>
-                <ul className="mt-2 space-y-2">
-                  {tags.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex items-center justify-between gap-4 rounded-lg border border-border px-3 py-2"
-                    >
-                      <span className="text-sm">
-                        {item.name} · {labelTaxonomyStatus(item.status)}
-                      </span>
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          disabled={approveTag.isPending}
-                          aria-busy={approveTag.isPending}
-                          onClick={() => approveTag.mutate(item.id)}
-                        >
-                          อนุมัติ
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="destructive"
-                          disabled={rejectTag.isPending}
-                          aria-busy={rejectTag.isPending}
-                          onClick={() => rejectTag.mutate(item.id)}
-                        >
-                          ปฏิเสธ
-                        </Button>
-                      </div>
+              </section>
+
+              <section
+                aria-labelledby="pending-tags-heading"
+                className="border-t border-border pt-6"
+              >
+                <h3 id="pending-tags-heading" className="font-medium text-ink">
+                  แท็ก ({tags.length.toLocaleString('th-TH')})
+                </h3>
+                <ul className="mt-3 space-y-2">
+                  {loadingTags ? (
+                    <RequestsListSkeleton rows={2} />
+                  ) : tags.length === 0 ? (
+                    <li>
+                      <RequestsEmptyState
+                        title="ไม่มีแท็กรออนุมัติ"
+                        description="แท็กใหม่จากผู้ขายจะปรากฏที่นี่"
+                      />
                     </li>
-                  ))}
+                  ) : (
+                    tags.map((item) => (
+                      <PendingTagRow
+                        key={item.id}
+                        item={item}
+                        isNextUp={categories.length === 0 && nextTaxonomyId === item.id}
+                        disabled={taxonomyBusy}
+                        approvePending={approveTag.isPending}
+                        rejectPending={rejectTag.isPending}
+                        onApprove={(id) => approveTag.mutate(id)}
+                        onReject={(id) => rejectTag.mutate(id)}
+                      />
+                    ))
+                  )}
                 </ul>
-              </div>
+              </section>
             </CardBody>
           </Card>
         </div>
       ) : null}
 
       {tab === 'invitations' ? (
-        <div className="space-y-4">
+        <div
+          className="space-y-4"
+          role="tabpanel"
+          id="requests-panel-invitations"
+          aria-labelledby="requests-tab-invitations"
+        >
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">เชิญผู้ขายใหม่</h2>
+              <h2 className="font-display font-medium text-balance text-ink">เชิญผู้ขายใหม่</h2>
+              <p className="mt-1 text-sm text-pretty text-muted-foreground">
+                ส่งคำเชิญทางอีเมล — ผู้ขายจะตั้งรหัสผ่านเมื่อตอบรับ
+              </p>
             </CardHeader>
             <CardBody>
               <form
@@ -319,21 +311,33 @@ function AdminRequestsPageContent() {
 
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">คำเชิญที่รอตอบรับ</h2>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="font-display font-medium text-balance text-ink">
+                  คำเชิญที่รอตอบรับ
+                </h2>
+                {!loadingInvitations && invitations.length > 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {invitations.length.toLocaleString('th-TH')} รายการ
+                  </p>
+                ) : null}
+              </div>
             </CardHeader>
             <CardBody className="space-y-3">
               {loadingInvitations ? (
-                <p className="text-sm text-muted">กำลังโหลด...</p>
+                <RequestsListSkeleton rows={2} />
               ) : invitations.length === 0 ? (
-                <p className="text-sm text-muted">ไม่มีคำเชิญ</p>
+                <RequestsEmptyState
+                  title="ไม่มีคำเชิญที่รอตอบรับ"
+                  description="ส่งคำเชิญด้านบนเพื่อเพิ่มผู้ขายใหม่"
+                />
               ) : (
-                invitations.map((inv) => (
+                invitations.map((invitation) => (
                   <div
-                    key={inv.id}
-                    className="flex items-center justify-between gap-4 rounded-lg border border-border px-4 py-3"
+                    key={invitation.id}
+                    className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3"
                   >
-                    <p className="font-medium text-ink">{inv.email}</p>
-                    <Badge>{labelInvitationStatus(inv.status)}</Badge>
+                    <p className="min-w-0 truncate font-medium text-ink">{invitation.email}</p>
+                    <Badge status="processing">{labelInvitationStatus(invitation.status)}</Badge>
                   </div>
                 ))
               )}
@@ -347,7 +351,7 @@ function AdminRequestsPageContent() {
 
 export default function AdminRequestsPage() {
   return (
-    <Suspense fallback={<p className="text-muted">กำลังโหลด...</p>}>
+    <Suspense fallback={<RequestsListSkeleton rows={2} />}>
       <AdminRequestsPageContent />
     </Suspense>
   );

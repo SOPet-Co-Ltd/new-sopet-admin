@@ -12,7 +12,7 @@ import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Stepper } from '@/components/ui/stepper';
 import { useProduct } from '@/hooks/useProduct';
 import { PRODUCT_WIZARD_STEPS } from '@/lib/product-wizard';
-import { formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import {
   buildCombinationsFromGroups,
   extractOptionGroups,
@@ -45,6 +45,29 @@ function formatPriceRange(prices: number[]): string {
   return `${formatCurrency(min)} – ${formatCurrency(max)}`;
 }
 
+function VariantsPageSkeleton() {
+  return (
+    <div aria-busy="true" aria-live="polite" className="space-y-6">
+      <p className="sr-only">กำลังโหลดสินค้า...</p>
+      <div className="space-y-3">
+        <div className="h-4 w-40 animate-pulse rounded bg-surface motion-reduce:animate-none" />
+        <div className="h-8 w-64 max-w-full animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
+        <div className="h-4 w-80 max-w-full animate-pulse rounded bg-surface motion-reduce:animate-none" />
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="space-y-6">
+          <div className="h-52 animate-pulse rounded-xl bg-surface motion-reduce:animate-none" />
+          <div className="h-72 animate-pulse rounded-xl bg-surface motion-reduce:animate-none" />
+        </div>
+        <div className="space-y-6">
+          <div className="h-40 animate-pulse rounded-xl bg-surface motion-reduce:animate-none" />
+          <div className="h-36 animate-pulse rounded-xl bg-surface motion-reduce:animate-none" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProductVariantsPage() {
   const params = useParams<{ id: string }>();
   const productId = params.id;
@@ -65,10 +88,12 @@ export default function ProductVariantsPage() {
     setGroups(extractOptionGroups(initialItems));
   }
 
-  const pendingCombinations = useMemo(
-    () => buildCombinationsFromGroups(normalizeGroups(groups), items, product?.slug ?? 'sku'),
-    [groups, items, product?.slug],
-  );
+  const pendingCombinations = useMemo(() => {
+    const normalized = normalizeGroups(groups);
+    // Empty option groups → no SKU grid (avoids a phantom empty combo).
+    if (normalized.length === 0) return [];
+    return buildCombinationsFromGroups(normalized, items, product?.slug ?? 'sku');
+  }, [groups, items, product?.slug]);
 
   const outOfSync = useMemo(() => {
     const currentKeys = optionKeySet(items);
@@ -95,18 +120,27 @@ export default function ProductVariantsPage() {
   }
 
   if (isLoading) {
-    return <p className="text-muted">กำลังโหลดสินค้า...</p>;
+    return <VariantsPageSkeleton />;
   }
 
   if (error || !product) {
     return (
-      <p className="text-sm text-danger" role="alert">
-        {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
-      </p>
+      <div className="rounded-xl border border-border bg-danger-bg/40 p-6" role="alert">
+        <p className="text-sm font-medium text-danger">
+          {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
+        </p>
+        <Link
+          href="/vendor/products"
+          className="mt-3 inline-flex text-sm font-medium text-brand underline-offset-2 hover:underline"
+        >
+          กลับไปรายการสินค้า
+        </Link>
+      </div>
     );
   }
 
   const totalStock = items.reduce((sum, item) => sum + item.stockQuantity, 0);
+  const outOfStockCount = items.filter((item) => item.stockQuantity <= 0).length;
   const priceRange = formatPriceRange(items.map((item) => item.price));
   const canSave = items.length > 0 && !outOfSync;
 
@@ -122,7 +156,7 @@ export default function ProductVariantsPage() {
         back={
           <Link
             href={`/vendor/products/${product.id}`}
-            className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-brand"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-150 hover:text-brand"
           >
             <HiArrowLeft className="size-3.5" aria-hidden="true" />
             กลับไปรายละเอียดสินค้า
@@ -138,10 +172,12 @@ export default function ProductVariantsPage() {
         <div className="space-y-6 lg:order-1">
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">กลุ่มตัวเลือกสินค้า</h2>
-              <p className="text-sm text-muted">
-                เพิ่ม แก้ไข หรือลบตัวเลือกได้ทุกเมื่อ — ระบบจะจับคู่ SKU สต็อก
-                และราคาเดิมให้อัตโนมัติเมื่อค่าตรงกัน
+              <h2 className="font-display text-base font-medium text-ink text-balance">
+                กลุ่มตัวเลือกสินค้า
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                เพิ่ม แก้ไข หรือลบตัวเลือกได้ทุกเมื่อ — ระบบจับคู่ SKU สต็อก
+                และราคาเดิมเมื่อค่าตรงกัน
               </p>
             </CardHeader>
             <CardBody className="space-y-4">
@@ -152,10 +188,14 @@ export default function ProductVariantsPage() {
               />
 
               {outOfSync ? (
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-brand/40 bg-brand-tint/40 p-3">
-                  <p className="text-sm text-ink">
-                    ตัวเลือกมีการเปลี่ยนแปลง — อัปเดตแล้วจะได้ {pendingCombinations.length} รายการ
-                    ด้านล่าง (SKU ที่ตรงกับตัวเลือกเดิมจะไม่ถูกแก้ไข)
+                <div
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[color-mix(in_srgb,var(--warning-text)_28%,var(--border))] bg-warning-bg/80 p-3"
+                  role="status"
+                >
+                  <p className="text-sm text-ink text-pretty">
+                    ตัวเลือกมีการเปลี่ยนแปลง — อัปเดตแล้วจะได้{' '}
+                    <span className="font-medium tabular-nums">{pendingCombinations.length}</span>{' '}
+                    รายการด้านล่าง (SKU ที่ตรงกับตัวเลือกเดิมจะไม่ถูกแก้ไข)
                   </p>
                   <Button type="button" size="sm" onClick={handleApplyGroups}>
                     <HiArrowPath className="size-3.5" aria-hidden="true" />
@@ -163,15 +203,19 @@ export default function ProductVariantsPage() {
                   </Button>
                 </div>
               ) : (
-                <p className="text-xs text-muted">รายการ SKU ด้านล่างตรงกับตัวเลือกปัจจุบันแล้ว</p>
+                <p className="text-xs text-muted-foreground">
+                  รายการ SKU ด้านล่างตรงกับตัวเลือกปัจจุบันแล้ว
+                </p>
               )}
             </CardBody>
           </Card>
 
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">รายการ SKU ({items.length})</h2>
-              <p className="text-sm text-muted">
+              <h2 className="font-display text-base font-medium text-ink text-balance">
+                รายการ SKU ({items.length})
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground text-pretty">
                 แก้ไข SKU สต็อก และราคาแต่ละรายการ หรือลบรายการที่ไม่ต้องการขายได้ทันที
               </p>
             </CardHeader>
@@ -181,46 +225,77 @@ export default function ProductVariantsPage() {
           </Card>
         </div>
 
-        <div className="space-y-6 lg:order-2">
+        <div className="space-y-6 lg:order-2 lg:sticky lg:top-4">
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">สรุปตัวเลือก</h2>
+              <h2 className="font-display text-base font-medium text-ink">สรุปตัวเลือก</h2>
             </CardHeader>
-            <CardBody className="space-y-3 text-sm">
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <span className="text-muted">จำนวนรายการ</span>
-                <span className="font-medium text-ink">{items.length}</span>
-              </div>
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <span className="text-muted">สต็อกรวม</span>
-                <span className="font-medium text-ink">{totalStock}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted">ช่วงราคา</span>
-                <span className="font-medium text-ink">{priceRange}</span>
-              </div>
+            <CardBody className="space-y-0 text-sm">
+              <dl className="space-y-0">
+                <div className="flex items-center justify-between border-b border-border py-3 first:pt-0">
+                  <dt className="text-muted-foreground">จำนวนรายการ</dt>
+                  <dd className="font-medium tabular-nums text-ink">{items.length}</dd>
+                </div>
+                <div className="flex items-center justify-between border-b border-border py-3">
+                  <dt className="text-muted-foreground">สต็อกรวม</dt>
+                  <dd className="font-medium tabular-nums text-ink">{totalStock}</dd>
+                </div>
+                <div className="flex items-center justify-between border-b border-border py-3">
+                  <dt className="text-muted-foreground">หมดสต็อก</dt>
+                  <dd
+                    className={cn(
+                      'font-medium tabular-nums',
+                      outOfStockCount > 0 ? 'text-danger' : 'text-ink',
+                    )}
+                  >
+                    {outOfStockCount}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between pt-3">
+                  <dt className="text-muted-foreground">ช่วงราคา</dt>
+                  <dd className="font-medium tabular-nums text-ink">{priceRange}</dd>
+                </div>
+              </dl>
             </CardBody>
           </Card>
 
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">เคล็ดลับ</h2>
+              <h2 className="font-display text-base font-medium text-ink">วิธีใช้งาน</h2>
             </CardHeader>
-            <CardBody className="space-y-2 text-sm text-muted">
-              <p>· เพิ่มหรือลบค่าตัวเลือกด้านบนได้ตลอด ไม่ได้ถูกล็อกไว้ตั้งแต่สร้างสินค้า</p>
-              <p>· ใช้ช่อง &quot;ใช้กับทุกรายการ&quot; เพื่อตั้งราคา/สต็อกให้หลาย SKU พร้อมกัน</p>
-              <p>· วาง (paste) ข้อมูลจากสเปรดชีตลงในตารางได้โดยตรง</p>
-              <p>· ลบรายการที่ไม่ขายแล้วได้ทันทีโดยไม่ต้องแก้กลุ่มตัวเลือก</p>
+            <CardBody className="space-y-2.5 text-sm text-muted-foreground">
+              <p className="text-pretty">
+                เพิ่มหรือลบค่าตัวเลือกด้านบนได้ตลอด — ไม่ได้ถูกล็อกตั้งแต่สร้างสินค้า
+              </p>
+              <p className="text-pretty">
+                ใช้ &quot;ใช้กับทุกรายการ&quot; เพื่อตั้งราคา/สต็อกหลาย SKU พร้อมกัน
+              </p>
+              <p className="text-pretty">วางข้อมูลจากสเปรดชีตลงในตารางได้โดยตรง</p>
+              <p className="text-pretty">ลบแถวที่ไม่ขายแล้วได้ทันที โดยไม่ต้องแก้กลุ่มตัวเลือก</p>
             </CardBody>
           </Card>
         </div>
       </div>
 
-      <div className="sticky bottom-4 z-10 mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card/95 px-5 py-3.5 shadow-[var(--shadow-elevated)] backdrop-blur">
-        <p className="text-xs text-muted">
+      <div
+        className={cn(
+          'sticky bottom-4 z-10 mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-5 py-3.5 shadow-[var(--shadow-elevated)] backdrop-blur-md transition-colors duration-150',
+          outOfSync
+            ? 'border-[color-mix(in_srgb,var(--warning-text)_28%,var(--border))] bg-warning-bg/95'
+            : 'border-border bg-card/95',
+        )}
+      >
+        <p
+          className={cn(
+            'text-xs text-pretty',
+            outOfSync ? 'font-medium text-ink' : 'text-muted-foreground',
+          )}
+        >
           {outOfSync
-            ? 'อัปเดตรายการตัวเลือกก่อนเพื่อให้ SKU ตรงกับตัวเลือกล่าสุด'
-            : `${items.length} รายการพร้อมบันทึก`}
+            ? 'อัปเดตรายการตัวเลือกก่อน เพื่อให้ SKU ตรงกับตัวเลือกล่าสุด'
+            : items.length === 0
+              ? 'เพิ่มกลุ่มตัวเลือกแล้วอัปเดตรายการก่อนบันทึก'
+              : `${items.length} รายการพร้อมบันทึก`}
         </p>
         <div className="flex gap-3">
           <Button type="button" variant="outline" asChild>

@@ -1,20 +1,15 @@
 import type { Metadata } from 'next';
-import { Noto_Sans_Thai, Noto_Serif_Thai } from 'next/font/google';
+import { Mitr } from 'next/font/google';
 import Script from 'next/script';
 import { AppProviders } from '@/lib/providers';
 import { getThemeInitScript } from '@/lib/theme';
 import './globals.css';
 
-const notoSansThai = Noto_Sans_Thai({
-  variable: '--font-noto-sans-thai',
-  subsets: ['thai', 'latin'],
+const mitr = Mitr({
+  variable: '--font-mitr',
+  subsets: ['latin', 'thai'],
   weight: ['300', '400', '500', '600', '700'],
-});
-
-const notoSerifThai = Noto_Serif_Thai({
-  variable: '--font-noto-serif-thai',
-  subsets: ['thai', 'latin'],
-  weight: ['400', '500', '600', '700'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -28,11 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="th"
-      className={`${notoSansThai.variable} ${notoSerifThai.variable} h-full`}
-      suppressHydrationWarning
-    >
+    <html lang="th" className={`${mitr.variable} h-full`} suppressHydrationWarning>
       <body className="flex min-h-full flex-col">
         <Script id="theme-init" strategy="beforeInteractive">
           {getThemeInitScript()}
