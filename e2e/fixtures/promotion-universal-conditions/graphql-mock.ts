@@ -9,6 +9,13 @@
  * - Vendor: `authenticateAsVendor(page)` + localStorage `sopet-vendor-store` activeStoreId
  * Storefront guest vs logged-in auth is documented in storefront fixtures (useAuth mocks),
  * not in this Playwright admin harness.
+ *
+ * Rule L5 / loggedInOnly capture (promotion-logged-in-only Phase 1 fixture-e2e):
+ * Reuse `installPromotionUniversalConditionsGraphQLMocks(page, { onCreatePromotion })`.
+ * CreatePromotion handler already captures `variables.input.conditions` as String into
+ * `CreatePromotionCapture.conditionsRaw` + parsed `conditionsParsed` (includes
+ * `loggedInOnly: { enabled: true }` when present). Assert Rule L5 against
+ * `expectedLoggedInOnlyConditions` from `./data`.
  */
 import type { Page, Route } from '@playwright/test';
 import { fulfillGraphQL, getGraphQLOperation } from '../graphql-route';

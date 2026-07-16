@@ -2,6 +2,12 @@
  * Admin/Vendor Playwright fixtures for Promotion Universal Conditions create journey.
  * ADR-0007 Decision 4 (A): platform Products query — storeId optional (not required);
  * vendor catalog remains store-scoped (VendorProducts / storeId on Products when used).
+ *
+ * Logged-in-only (Rule L5) reuse — promotion-logged-in-only Phase 0 / Phase 1 fixture-e2e:
+ * - GraphQL mock capture: `CreatePromotionCapture.conditionsRaw` / `.conditionsParsed`
+ *   from `graphql-mock.ts` (`onCreatePromotion`) — asserts `variables.input.conditions` String
+ * - Golden ON shape: `expectedLoggedInOnlyConditions` / `buildAdminLoggedInOnlyConditions()`
+ * - Both-keys / newCustomer-only helpers for AC-010 / AC-011 config asserts
  */
 
 export const PROMOTION_UC_VENDOR_STORE_ID = 'store-promo-uc-vendor-1';
@@ -10,6 +16,8 @@ export const PROMOTION_UC_VENDOR_PRODUCT_ID = 'prod-promo-uc-vendor-1';
 export const NEW_CUSTOMER_SEED_N_DAYS = 30;
 
 export type PromotionConditionsPayload = {
+  /** Rule L5 — when on, exactly `{ enabled: true }` (omit key when off). */
+  loggedInOnly?: { enabled: true };
   newCustomer?: { enabled: true; nDays: number };
   productId?: string;
   buyQuantity?: number;
@@ -20,6 +28,24 @@ export function buildAdminNewCustomerConditions(
   nDays: number = NEW_CUSTOMER_SEED_N_DAYS,
 ): Pick<PromotionConditionsPayload, 'newCustomer'> {
   return { newCustomer: { enabled: true, nDays } };
+}
+
+/** Rule L5 ON — persist exactly `loggedInOnly: { enabled: true }` (no nested extras). */
+export function buildAdminLoggedInOnlyConditions(): Pick<
+  PromotionConditionsPayload,
+  'loggedInOnly'
+> {
+  return { loggedInOnly: { enabled: true } };
+}
+
+/** Both keys on — independent toggles (AC-011 config); AND on evaluate. */
+export function buildAdminLoggedInOnlyAndNewCustomerConditions(
+  nDays: number = NEW_CUSTOMER_SEED_N_DAYS,
+): Pick<PromotionConditionsPayload, 'loggedInOnly' | 'newCustomer'> {
+  return {
+    ...buildAdminLoggedInOnlyConditions(),
+    ...buildAdminNewCustomerConditions(nDays),
+  };
 }
 
 export function buildAdminBxGyConditions(
@@ -79,6 +105,19 @@ export const expectedCreatePromotionConditions: PromotionConditionsPayload = {
   ...buildAdminNewCustomerConditions(),
 };
 
+/**
+ * Rule L5 golden — members-only ON (loggedInOnly only; no newCustomer).
+ * Capture asserts: parse `conditionsRaw` → exactly `{ loggedInOnly: { enabled: true } }`.
+ */
+export const expectedLoggedInOnlyConditions: PromotionConditionsPayload = {
+  ...buildAdminLoggedInOnlyConditions(),
+};
+
+/** Both keys — members-only + new-customer (AC-011 config). */
+export const expectedLoggedInOnlyAndNewCustomerConditions: PromotionConditionsPayload = {
+  ...buildAdminLoggedInOnlyAndNewCustomerConditions(),
+};
+
 export const sampleCreatedPromotion = {
   id: 'promo-uc-created-1',
   storeId: null as string | null,
@@ -102,8 +141,23 @@ export const sampleCreatedPromotion = {
   createdAt: '2026-07-16T00:00:00.000Z',
 };
 
-/** Soft/chip fixture labels for list assertions (UI Spec AC-034). */
+/**
+ * Sample list/create response when journey saves members-only (Rule L5).
+ * Reuse with CreatePromotion capture → conditions echo.
+ */
+export const sampleLoggedInOnlyCreatedPromotion = {
+  ...sampleCreatedPromotion,
+  id: 'promo-lio-created-1',
+  code: 'MEMBER10',
+  name: 'สมาชิกเท่านั้น 10%',
+  type: 'percentage',
+  discountValue: 10,
+  conditions: JSON.stringify(expectedLoggedInOnlyConditions),
+};
+
+/** Soft/chip fixture labels for list assertions (UI Spec AC-034 / logged-in-only UI-L-004). */
 export const LIST_CHIP_FIXTURE_LABELS = {
+  loggedInOnly: 'สมาชิกเท่านั้น',
   newCustomer: `ลูกค้าใหม่ ≤ ${NEW_CUSTOMER_SEED_N_DAYS} วัน`,
   bxgy: (x: number, y: number, productLabel: string) => `ซื้อ ${x} แถม ${y} · ${productLabel}`,
 } as const;
