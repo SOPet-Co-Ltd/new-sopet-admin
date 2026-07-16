@@ -34,10 +34,7 @@ export default function AdminPromotionCreatePage({
       listHref="/admin/promotions"
       isPending={createMutation.isPending}
       onSubmit={async (input) => {
-        await createMutation.mutateAsync({
-          ...input,
-          scope: 'platform',
-        });
+        await createMutation.mutateAsync(input);
       }}
     />
   );

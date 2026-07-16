@@ -80,7 +80,6 @@ export default function VendorPromotionCreatePage({
       onSubmit={async (input) => {
         await createMutation.mutateAsync({
           ...input,
-          scope: 'store',
           storeId,
         });
       }}
