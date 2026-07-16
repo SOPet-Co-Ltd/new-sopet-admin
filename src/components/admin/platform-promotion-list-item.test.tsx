@@ -109,7 +109,7 @@ describe('PlatformPromotionListItem', () => {
     );
   });
 
-  it('shows new-customer and BxGy condition chips from conditions JSON (AC-034)', () => {
+  it('shows members-only, new-customer, and BxGy chips in normative order (AC-020 / AC-034)', () => {
     render(
       <ul>
         <PlatformPromotionListItem
@@ -118,6 +118,7 @@ describe('PlatformPromotionListItem', () => {
             type: 'buy_x_get_y',
             discountValue: 0,
             conditions: JSON.stringify({
+              loggedInOnly: { enabled: true },
               newCustomer: { enabled: true, nDays: 30 },
               productId: 'prod-cat-food',
               buyQuantity: 2,
@@ -131,8 +132,13 @@ describe('PlatformPromotionListItem', () => {
     );
 
     const chips = screen.getByLabelText('เงื่อนไขโปรโมชัน');
-    expect(chips).toHaveTextContent('ลูกค้าใหม่ ≤ 30 วัน');
-    expect(chips).toHaveTextContent('ซื้อ 2 แถม 1 · prod-cat-food');
+    // Badge children order: members-only → new-customer → BxGy (UI-L-001)
+    const badgeTexts = Array.from(chips.children).map((el) => el.textContent);
+    expect(badgeTexts).toEqual([
+      'สมาชิกเท่านั้น',
+      'ลูกค้าใหม่ ≤ 30 วัน',
+      'ซื้อ 2 แถม 1 · prod-cat-food',
+    ]);
   });
 
   it('omits chips when conditions are missing or invalid', () => {
@@ -151,10 +157,11 @@ describe('PlatformPromotionListItem', () => {
 });
 
 describe('formatPromotionConditionChips', () => {
-  it('formats new-customer and BxGy chip strings exactly', () => {
+  it('formats members-only, new-customer, and BxGy chip strings in normative order (AC-020)', () => {
     expect(
       formatPromotionConditionChips(
         JSON.stringify({
+          loggedInOnly: { enabled: true },
           newCustomer: { enabled: true, nDays: 14 },
           productId: 'p1',
           buyQuantity: 3,
@@ -162,6 +169,27 @@ describe('formatPromotionConditionChips', () => {
         }),
         { productName: 'ขนมสุนัข' },
       ),
-    ).toEqual(['ลูกค้าใหม่ ≤ 14 วัน', 'ซื้อ 3 แถม 1 · ขนมสุนัข']);
+    ).toEqual(['สมาชิกเท่านั้น', 'ลูกค้าใหม่ ≤ 14 วัน', 'ซื้อ 3 แถม 1 · ขนมสุนัข']);
+  });
+
+  it('emits only สมาชิกเท่านั้น when members-only is enabled alone (UI-L-004)', () => {
+    expect(
+      formatPromotionConditionChips(JSON.stringify({ loggedInOnly: { enabled: true } })),
+    ).toEqual(['สมาชิกเท่านั้น']);
+  });
+
+  it('soft-omits all chips when conditions JSON fails to parse', () => {
+    expect(formatPromotionConditionChips('{not-json')).toEqual([]);
+    expect(formatPromotionConditionChips(null)).toEqual([]);
+    expect(formatPromotionConditionChips(undefined)).toEqual([]);
+  });
+
+  it('omits members-only chip when loggedInOnly is off or absent', () => {
+    expect(
+      formatPromotionConditionChips(JSON.stringify({ newCustomer: { enabled: true, nDays: 7 } })),
+    ).toEqual(['ลูกค้าใหม่ ≤ 7 วัน']);
+    expect(
+      formatPromotionConditionChips(JSON.stringify({ loggedInOnly: { enabled: false } })),
+    ).toEqual([]);
   });
 });

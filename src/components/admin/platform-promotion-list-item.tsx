@@ -34,13 +34,21 @@ function formatUsage(promo: Promotion): string {
   return `${used} ครั้ง`;
 }
 
-/** AC-034 list chips from conditions JSON. Soft-omits chips when parse yields nothing useful. */
+/**
+ * AC-034 / AC-020 list chips from conditions JSON.
+ * Normative order (UI-L-001): members-only → new-customer → BxGy.
+ * Soft-omits chips when parse yields nothing useful.
+ */
 export function formatPromotionConditionChips(
   conditions?: string | null,
   options?: { productName?: string },
 ): string[] {
   const parsed = parsePromotionConditions(conditions);
   const chips: string[] = [];
+
+  if (parsed.loggedInOnlyEnabled) {
+    chips.push('สมาชิกเท่านั้น');
+  }
 
   if (
     parsed.newCustomerOnly &&
