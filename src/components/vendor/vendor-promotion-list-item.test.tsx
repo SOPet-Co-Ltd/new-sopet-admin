@@ -122,4 +122,30 @@ describe('VendorPromotionListItem', () => {
       '/admin/promotions/promo-1/edit',
     );
   });
+
+  it('shows new-customer and BxGy condition chips from conditions JSON (AC-034)', () => {
+    render(
+      <ul>
+        <VendorPromotionListItem
+          promo={{
+            ...basePromo,
+            type: 'buy_x_get_y',
+            discountValue: 0,
+            conditions: JSON.stringify({
+              newCustomer: { enabled: true, nDays: 30 },
+              productId: 'prod-cat-food',
+              buyQuantity: 2,
+              getQuantity: 1,
+            }),
+          }}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    const chips = screen.getByLabelText('เงื่อนไขโปรโมชัน');
+    expect(chips).toHaveTextContent('ลูกค้าใหม่ ≤ 30 วัน');
+    expect(chips).toHaveTextContent('ซื้อ 2 แถม 1 · prod-cat-food');
+  });
 });

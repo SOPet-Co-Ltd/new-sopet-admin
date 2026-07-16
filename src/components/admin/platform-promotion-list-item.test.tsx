@@ -1,7 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { PlatformPromotionListItem } from './platform-promotion-list-item';
+import {
+  formatPromotionConditionChips,
+  PlatformPromotionListItem,
+} from './platform-promotion-list-item';
 import { PlatformPromotionsEmptyState } from './platform-promotions-empty-state';
 import type { Promotion } from '@/types';
 
@@ -104,5 +107,61 @@ describe('PlatformPromotionListItem', () => {
       'href',
       '/admin/promotions/promo-1/edit',
     );
+  });
+
+  it('shows new-customer and BxGy condition chips from conditions JSON (AC-034)', () => {
+    render(
+      <ul>
+        <PlatformPromotionListItem
+          promo={{
+            ...basePromo,
+            type: 'buy_x_get_y',
+            discountValue: 0,
+            conditions: JSON.stringify({
+              newCustomer: { enabled: true, nDays: 30 },
+              productId: 'prod-cat-food',
+              buyQuantity: 2,
+              getQuantity: 1,
+            }),
+          }}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    const chips = screen.getByLabelText('เงื่อนไขโปรโมชัน');
+    expect(chips).toHaveTextContent('ลูกค้าใหม่ ≤ 30 วัน');
+    expect(chips).toHaveTextContent('ซื้อ 2 แถม 1 · prod-cat-food');
+  });
+
+  it('omits chips when conditions are missing or invalid', () => {
+    render(
+      <ul>
+        <PlatformPromotionListItem
+          promo={{ ...basePromo, conditions: '{not-json' }}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    expect(screen.queryByLabelText('เงื่อนไขโปรโมชัน')).not.toBeInTheDocument();
+  });
+});
+
+describe('formatPromotionConditionChips', () => {
+  it('formats new-customer and BxGy chip strings exactly', () => {
+    expect(
+      formatPromotionConditionChips(
+        JSON.stringify({
+          newCustomer: { enabled: true, nDays: 14 },
+          productId: 'p1',
+          buyQuantity: 3,
+          getQuantity: 1,
+        }),
+        { productName: 'ขนมสุนัข' },
+      ),
+    ).toEqual(['ลูกค้าใหม่ ≤ 14 วัน', 'ซื้อ 3 แถม 1 · ขนมสุนัข']);
   });
 });

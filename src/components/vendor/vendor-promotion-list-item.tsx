@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { formatPromotionConditionChips } from '@/components/admin/platform-promotion-list-item';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
@@ -56,6 +57,7 @@ export function VendorPromotionListItem({
   const statusLabel = promo.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
   const toggleLabel = promo.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน';
   const href = editHref ?? `/vendor/promotions/${promo.id}/edit`;
+  const conditionChips = formatPromotionConditionChips(promo.conditions);
 
   return (
     <li
@@ -82,6 +84,15 @@ export function VendorPromotionListItem({
           {' · '}
           {formatDiscount(promo)}
         </p>
+        {conditionChips.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5" aria-label="เงื่อนไขโปรโมชัน">
+            {conditionChips.map((chip) => (
+              <Badge key={chip} className="bg-brand-tint text-brand border-0">
+                {chip}
+              </Badge>
+            ))}
+          </div>
+        ) : null}
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{formatUsage(promo)}</span>
           {validity ? <span>{validity}</span> : null}

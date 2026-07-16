@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { labelPromotionType } from '@/lib/i18n/th';
+import { parsePromotionConditions } from '@/lib/validations/promotions';
 import { cn, formatCurrency, formatDate } from '@/lib/utils';
 import type { Promotion } from '@/types';
 
@@ -33,6 +34,34 @@ function formatUsage(promo: Promotion): string {
   return `${used} ครั้ง`;
 }
 
+/** AC-034 list chips from conditions JSON. Soft-omits chips when parse yields nothing useful. */
+export function formatPromotionConditionChips(
+  conditions?: string | null,
+  options?: { productName?: string },
+): string[] {
+  const parsed = parsePromotionConditions(conditions);
+  const chips: string[] = [];
+
+  if (
+    parsed.newCustomerOnly &&
+    typeof parsed.newCustomerMaxAccountAgeDays === 'number' &&
+    parsed.newCustomerMaxAccountAgeDays > 0
+  ) {
+    chips.push(`ลูกค้าใหม่ ≤ ${parsed.newCustomerMaxAccountAgeDays} วัน`);
+  }
+
+  if (
+    typeof parsed.buyQuantity === 'number' &&
+    typeof parsed.getQuantity === 'number' &&
+    parsed.productId
+  ) {
+    const productLabel = options?.productName?.trim() || parsed.productId;
+    chips.push(`ซื้อ ${parsed.buyQuantity} แถม ${parsed.getQuantity} · ${productLabel}`);
+  }
+
+  return chips;
+}
+
 export type PlatformPromotionListItemProps = {
   promo: Promotion;
   isToggling?: boolean;
@@ -52,6 +81,7 @@ export function PlatformPromotionListItem({
   const busy = isToggling || isDeleting;
   const statusLabel = promo.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
   const toggleLabel = promo.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน';
+  const conditionChips = formatPromotionConditionChips(promo.conditions);
 
   return (
     <li
@@ -78,6 +108,15 @@ export function PlatformPromotionListItem({
           {' · '}
           {formatDiscount(promo)}
         </p>
+        {conditionChips.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5" aria-label="เงื่อนไขโปรโมชัน">
+            {conditionChips.map((chip) => (
+              <Badge key={chip} className="bg-brand-tint text-brand border-0">
+                {chip}
+              </Badge>
+            ))}
+          </div>
+        ) : null}
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{formatUsage(promo)}</span>
           {validity ? <span>{validity}</span> : null}

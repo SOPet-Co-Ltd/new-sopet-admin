@@ -10,6 +10,7 @@ import {
   type UseFormRegister,
   type UseFormSetValue,
 } from 'react-hook-form';
+import { BxGyProductPicker } from '@/components/promotions/bxgy-product-picker';
 import { NewCustomerConditionFields } from '@/components/promotions/new-customer-condition-fields';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,13 +24,13 @@ function formatBxgyRuleSummary(buyQuantity?: number, getQuantity?: number): stri
   const buy = typeof buyQuantity === 'number' && buyQuantity >= 1 ? buyQuantity : null;
   const get = typeof getQuantity === 'number' && getQuantity >= 1 ? getQuantity : null;
   if (buy !== null && get !== null) {
-    return `สรุปกฎ: ซื้อ ${buy} ชิ้น แถมฟรี ${get} ชิ้น`;
+    return `สรุปกฎ: ซื้อ ${buy} แถม ${get} — ต้องมีอย่างน้อย ${buy + get} ชิ้นของสินค้าที่เลือกเพื่อได้แถม ${get} ชิ้น`;
   }
   if (buy !== null) {
-    return `สรุปกฎ: ซื้อ ${buy} ชิ้น — ยังไม่ได้กำหนดจำนวนแถม`;
+    return `สรุปกฎ: ซื้อ ${buy} — ยังไม่ได้กำหนดจำนวนแถม`;
   }
   if (get !== null) {
-    return `สรุปกฎ: แถมฟรี ${get} ชิ้น — ยังไม่ได้กำหนดจำนวนที่ต้องซื้อ`;
+    return `สรุปกฎ: แถม ${get} — ยังไม่ได้กำหนดจำนวนที่ต้องซื้อ`;
   }
   return 'สรุปกฎ: กรอกจำนวนซื้อและจำนวนแถมเพื่อดูตัวอย่าง';
 }
@@ -145,6 +146,8 @@ export function PromotionFormFields({
   const isMoneyDiscount = meta.type === 'fixed_amount' || meta.type === 'fixed_shipping_discount';
   const buyQuantity = useWatch({ control, name: 'buyQuantity' });
   const getQuantity = useWatch({ control, name: 'getQuantity' });
+  const productId = useWatch({ control, name: 'productId' });
+  const productName = useWatch({ control, name: 'productName' });
 
   const fixedAmountDiscountLabel =
     meta.type === 'fixed_amount'
@@ -314,6 +317,18 @@ export function PromotionFormFields({
       >
         {isBxgy ? (
           <div className="space-y-4">
+            <BxGyProductPicker
+              scope={scope}
+              value={productId ?? ''}
+              initialLabel={productName}
+              error={errors.productId?.message}
+              idPrefix={idPrefix}
+              aria-invalid={!!errors.productId}
+              onChange={(id, label) => {
+                setValue('productId', id || undefined, { shouldValidate: true, shouldDirty: true });
+                setValue('productName', label || undefined, { shouldDirty: true });
+              }}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor={`${idPrefix}-buy`} required>
