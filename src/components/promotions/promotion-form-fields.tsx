@@ -10,6 +10,7 @@ import {
   type UseFormRegister,
   type UseFormSetValue,
 } from 'react-hook-form';
+import { AutoApplyFields } from '@/components/promotions/auto-apply-fields';
 import { BxGyProductPicker } from '@/components/promotions/bxgy-product-picker';
 import { LoggedInOnlyConditionFields } from '@/components/promotions/logged-in-only-condition-fields';
 import { NewCustomerConditionFields } from '@/components/promotions/new-customer-condition-fields';
@@ -627,6 +628,8 @@ export function PromotionFormFields({
           </div>
         </div>
       </FormSection>
+
+      <AutoApplyFields control={control} idPrefix={idPrefix} />
 
       <LoggedInOnlyConditionFields control={control} idPrefix={idPrefix} />
 

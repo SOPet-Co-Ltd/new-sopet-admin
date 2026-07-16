@@ -190,27 +190,29 @@ describe('LoggedInOnlyConditionFields', () => {
   });
 });
 
-describe('PromotionFormFields members-only placement (UI-L-001)', () => {
+describe('PromotionFormFields members-only placement (UI-L-001 / UI-AA-002)', () => {
   /**
-   * AC: UI-L-001 — Section order after จำกัดการใช้, before ลูกค้าใหม่, then ระยะเวลา.
-   * Behavior: Heading indices: usage + 1 = สมาชิกเท่านั้น; + 2 = ลูกค้าใหม่; + 3 = ระยะเวลา
+   * AC: UI-L-001 / UI-AA-002 — Section order: จำกัดการใช้ → ใช้อัตโนมัติ → สมาชิกเท่านั้น → ลูกค้าใหม่ → ระยะเวลา.
+   * Behavior: Heading indices include AutoApplyFields between usage limits and members-only
    * @category: core-functionality
    * @lane: integration
-   * @dependency: PromotionFormFields, LoggedInOnlyConditionFields, NewCustomerConditionFields
+   * @dependency: PromotionFormFields, AutoApplyFields, LoggedInOnlyConditionFields, NewCustomerConditionFields
    * @complexity: low
    * ROI: 94
    */
-  it('places สมาชิกเท่านั้น after จำกัดการใช้ and before ลูกค้าใหม่', () => {
+  it('places สมาชิกเท่านั้น after ใช้อัตโนมัติ and before ลูกค้าใหม่', () => {
     render(<FormFieldsHarness />);
 
     const headings = screen.getAllByRole('heading', { level: 3 }).map((el) => el.textContent);
     const usageIdx = headings.indexOf('จำกัดการใช้');
+    const autoApplyIdx = headings.indexOf('ใช้อัตโนมัติ');
     const membersIdx = headings.indexOf('สมาชิกเท่านั้น');
     const newCustomerIdx = headings.indexOf('ลูกค้าใหม่');
     const scheduleIdx = headings.indexOf('ระยะเวลา');
 
     expect(usageIdx).toBeGreaterThanOrEqual(0);
-    expect(membersIdx).toBe(usageIdx + 1);
+    expect(autoApplyIdx).toBe(usageIdx + 1);
+    expect(membersIdx).toBe(autoApplyIdx + 1);
     expect(newCustomerIdx).toBe(membersIdx + 1);
     expect(scheduleIdx).toBe(newCustomerIdx + 1);
   });
