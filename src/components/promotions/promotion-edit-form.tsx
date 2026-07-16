@@ -25,16 +25,19 @@ export function PromotionEditForm({
   listHref,
   isPending,
   onSubmit,
+  scope: scopeProp,
 }: {
   promotion: Promotion;
   listHref: string;
   isPending: boolean;
   onSubmit: (input: CreatePromotionInput) => Promise<void>;
+  scope?: 'platform' | 'store';
 }) {
   const router = useRouter();
   const type = promotion.type as PromotionTypeSlug;
   const meta = getPromotionTypeMeta(type)!;
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const scope = scopeProp ?? (listHref.startsWith('/vendor') ? 'store' : 'platform');
 
   const form = useForm<PromotionFormValues>({
     resolver: zodResolver(promotionFormSchema),
@@ -111,6 +114,9 @@ export function PromotionEditForm({
               control={form.control}
               errors={errors}
               meta={meta}
+              scope={scope}
+              setValue={form.setValue}
+              getValues={form.getValues}
               idPrefix="promo-edit"
             />
 

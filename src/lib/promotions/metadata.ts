@@ -62,13 +62,16 @@ export const promotionTypeMeta: Record<PromotionTypeSlug, PromotionTypeMeta> = {
   fixed_amount: {
     type: 'fixed_amount',
     label: 'ส่วนลดคงที่',
-    description: 'ลดราคาสินค้าเป็นจำนวนเงินคงที่ — ไม่ใช่เปอร์เซ็นต์',
-    discountLabel: 'ส่วนลด (฿)',
-    discountHint: 'หักจากยอดสินค้าตามจำนวนบาทที่ระบุ เมื่อครบขั้นต่ำ (ถ้ามี)',
+    description:
+      'ลดเป็นบาทจากยอดสินค้าทั้งออเดอร์ (แพลตฟอร์ม) หรือยอดสินค้าของร้านนี้ (ร้านค้า) — ไม่ใช่เปอร์เซ็นต์ และไม่ลดทีละชิ้น',
+    discountLabel: 'ส่วนลดทั้งออเดอร์/ร้าน (฿)',
+    discountHint: 'หักเป็นบาทจากยอดที่ใช้ได้ หากส่วนลดสูงกว่ายอด ระบบจะลดเท่าที่ยอด (ไม่ติดลบ)',
     discountPlaceholder: 'เช่น 50',
     showMaxDiscount: false,
     discountRequired: true,
     showBuyGetFields: false,
+    rulesSectionDescription:
+      'กำหนดจำนวนบาทที่หักจากยอดสินค้าทั้งออเดอร์/ร้าน (ไม่ใช่ต่อชิ้น) และยอดซื้อขั้นต่ำ (ถ้ามี)',
     minPurchaseLabel: 'ยอดซื้อขั้นต่ำก่อนได้ส่วนลด (฿)',
     minPurchaseHint: 'ยอดสินค้าขั้นต่ำก่อนใช้ส่วนลด เว้นว่างหรือ 0 = ไม่มีขั้นต่ำ',
     minPurchasePlaceholder: 'เช่น 300',
@@ -90,7 +93,7 @@ export const promotionTypeMeta: Record<PromotionTypeSlug, PromotionTypeMeta> = {
   buy_x_get_y: {
     type: 'buy_x_get_y',
     label: 'ซื้อ X แถม Y',
-    description: 'ลูกค้าซื้อครบจำนวนที่กำหนด รับสินค้าแถมฟรีตามจำนวนที่ตั้งไว้',
+    description: 'ซื้อครบ X ชิ้นของสินค้าที่เลือก แถมฟรี Y ชิ้นของสินค้าเดียวกัน (คิดเป็นชุด X+Y)',
     discountLabel: 'มูลค่าส่วนลด',
     showDiscountField: false,
     showMaxDiscount: false,
@@ -98,10 +101,10 @@ export const promotionTypeMeta: Record<PromotionTypeSlug, PromotionTypeMeta> = {
     showBuyGetFields: true,
     buyQuantityLabel: 'จำนวนที่ต้องซื้อ (ชิ้น)',
     getQuantityLabel: 'จำนวนที่แถมฟรี (ชิ้น)',
-    buyQuantityHint: 'เช่น 2 = ลูกค้าต้องมีอย่างน้อย 2 ชิ้นในตะกร้า',
+    buyQuantityHint: 'เช่น ซื้อ 2 แถม 1 ต้องมี 3 ชิ้นในตะกร้าจึงได้แถม 1',
     getQuantityHint: 'เช่น 1 = แถมฟรี 1 ชิ้นเมื่อครบเงื่อนไขซื้อ',
     buyGetRuleHint:
-      'เมื่อจำนวนชิ้นในตะกร้าร้านครบตามที่ซื้อ ระบบจะแถมฟรีตามจำนวนที่ตั้ง — ใช้กับสินค้าในร้านนี้ทั้งร้าน (ยังไม่รองรับเลือกสินค้าเฉพาะรายการ)',
+      'เลือกสินค้าหนึ่งรายการเท่านั้น ทุกตัวเลือกของสินค้านั้นนับรวมจำนวน ชิ้นแถมฟรี = floor(จำนวนในตะกร้า ÷ (X+Y)) × Y และเลือกหน่วยราคาถูกสุด',
     minPurchaseLabel: 'ยอดซื้อขั้นต่ำเพิ่มเติม (บาท)',
     minPurchaseHint: 'เงื่อนไขเงินเพิ่มนอกเหนือจากจำนวนชิ้น — เว้นว่างหรือ 0 = ใช้แค่จำนวนชิ้น',
     minPurchasePlaceholder: '0',

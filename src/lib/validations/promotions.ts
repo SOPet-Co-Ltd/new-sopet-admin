@@ -28,6 +28,11 @@ const commonFields = {
   expiresAt: z.string().optional(),
   buyQuantity: z.number().min(1, 'กรุณากรอกจำนวนที่ต้องซื้อ').optional(),
   getQuantity: z.number().min(1, 'กรุณากรอกจำนวนที่แถม').optional(),
+  newCustomerOnly: z.boolean().optional(),
+  newCustomerMaxAccountAgeDays: z.number().optional(),
+  productId: z.string().optional(),
+  /** Form-local display only — never emitted into conditions JSON. */
+  productName: z.string().optional(),
 };
 
 export const promotionFormSchema = z
@@ -112,6 +117,31 @@ export const promotionFormSchema = z
           message: 'จำนวนที่แถมต้องไม่เกิน 99 ชิ้น',
         });
       }
+
+      if (!data.productId?.trim()) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['productId'],
+          message: 'กรุณาเลือกสินค้าสำหรับโปรซื้อแถม',
+        });
+      }
+    }
+
+    if (data.newCustomerOnly) {
+      const nDays = data.newCustomerMaxAccountAgeDays;
+      if (nDays === undefined || nDays === null || nDays <= 0) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['newCustomerMaxAccountAgeDays'],
+          message: 'กรุณาระบุจำนวนวันเป็นจำนวนเต็มที่มากกว่า 0',
+        });
+      } else if (!Number.isInteger(nDays)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['newCustomerMaxAccountAgeDays'],
+          message: 'ต้องเป็นจำนวนเต็ม',
+        });
+      }
     }
   });
 
@@ -138,15 +168,43 @@ export function getPromotionFormDefaults(type: PromotionTypeSlug): PromotionForm
     priority: 0,
     buyQuantity: type === 'buy_x_get_y' ? 2 : undefined,
     getQuantity: type === 'buy_x_get_y' ? 1 : undefined,
+    newCustomerOnly: false,
+    newCustomerMaxAccountAgeDays: undefined,
+    productId: undefined,
+    productName: undefined,
   };
 }
 
+type ConditionsPayload = {
+  newCustomer?: { enabled: true; nDays: number };
+  productId?: string;
+  buyQuantity?: number;
+  getQuantity?: number;
+};
+
 export function buildPromotionConditions(values: PromotionFormValues): string | undefined {
-  if (values.type !== 'buy_x_get_y') return undefined;
-  return JSON.stringify({
-    buyQuantity: values.buyQuantity,
-    getQuantity: values.getQuantity,
-  });
+  const payload: ConditionsPayload = {};
+
+  if (values.newCustomerOnly && values.newCustomerMaxAccountAgeDays) {
+    payload.newCustomer = {
+      enabled: true,
+      nDays: values.newCustomerMaxAccountAgeDays,
+    };
+  }
+
+  if (values.type === 'buy_x_get_y') {
+    if (values.productId) {
+      payload.productId = values.productId;
+    }
+    payload.buyQuantity = values.buyQuantity;
+    payload.getQuantity = values.getQuantity;
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return undefined;
+  }
+
+  return JSON.stringify(payload);
 }
 
 export function getPromotionFormValuesFromPromotion(promotion: {
@@ -182,18 +240,33 @@ export function getPromotionFormValuesFromPromotion(promotion: {
     expiresAt: promotion.expiresAt?.slice(0, 16) ?? '',
     buyQuantity: conditions.buyQuantity,
     getQuantity: conditions.getQuantity,
+    newCustomerOnly: conditions.newCustomerOnly ?? false,
+    newCustomerMaxAccountAgeDays: conditions.newCustomerMaxAccountAgeDays,
+    productId: conditions.productId,
   };
 }
 
 export function parsePromotionConditions(
   conditions?: string | null,
-): Pick<PromotionFormValues, 'buyQuantity' | 'getQuantity'> {
+): Pick<
+  PromotionFormValues,
+  'buyQuantity' | 'getQuantity' | 'productId' | 'newCustomerOnly' | 'newCustomerMaxAccountAgeDays'
+> {
   if (!conditions) return {};
   try {
-    const parsed = JSON.parse(conditions) as { buyQuantity?: number; getQuantity?: number };
+    const parsed = JSON.parse(conditions) as {
+      buyQuantity?: number;
+      getQuantity?: number;
+      productId?: string;
+      newCustomer?: { enabled?: boolean; nDays?: number };
+    };
+    const newCustomerEnabled = parsed.newCustomer?.enabled === true;
     return {
       buyQuantity: parsed.buyQuantity,
       getQuantity: parsed.getQuantity,
+      productId: parsed.productId,
+      newCustomerOnly: newCustomerEnabled ? true : false,
+      newCustomerMaxAccountAgeDays: newCustomerEnabled ? parsed.newCustomer?.nDays : undefined,
     };
   } catch {
     return {};

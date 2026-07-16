@@ -6,8 +6,11 @@ import {
   useWatch,
   type Control,
   type FieldErrors,
+  type UseFormGetValues,
   type UseFormRegister,
+  type UseFormSetValue,
 } from 'react-hook-form';
+import { NewCustomerConditionFields } from '@/components/promotions/new-customer-condition-fields';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
@@ -119,12 +122,18 @@ export function PromotionFormFields({
   control,
   errors,
   meta,
+  scope,
+  setValue,
+  getValues,
   idPrefix = 'promo',
 }: {
   register: UseFormRegister<PromotionFormValues>;
   control: Control<PromotionFormValues>;
   errors: FieldErrors<PromotionFormValues>;
   meta: PromotionTypeMeta;
+  scope: 'platform' | 'store';
+  setValue: UseFormSetValue<PromotionFormValues>;
+  getValues: UseFormGetValues<PromotionFormValues>;
   idPrefix?: string;
 }) {
   const isProductPercentage = meta.type === 'percentage';
@@ -136,6 +145,13 @@ export function PromotionFormFields({
   const isMoneyDiscount = meta.type === 'fixed_amount' || meta.type === 'fixed_shipping_discount';
   const buyQuantity = useWatch({ control, name: 'buyQuantity' });
   const getQuantity = useWatch({ control, name: 'getQuantity' });
+
+  const fixedAmountDiscountLabel =
+    meta.type === 'fixed_amount'
+      ? scope === 'platform'
+        ? 'ส่วนลดทั้งออเดอร์ (฿)'
+        : 'ส่วนลดยอดร้าน (฿)'
+      : meta.discountLabel;
 
   const numberRegisterOptions = {
     setValueAs: (value: unknown) => {
@@ -369,7 +385,7 @@ export function PromotionFormFields({
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor={`${idPrefix}-discount`} required={meta.discountRequired}>
-                {meta.discountLabel}
+                {fixedAmountDiscountLabel}
               </Label>
               <AdornedNumberInput
                 id={`${idPrefix}-discount`}
@@ -595,6 +611,15 @@ export function PromotionFormFields({
           </div>
         </div>
       </FormSection>
+
+      <NewCustomerConditionFields
+        register={register}
+        control={control}
+        errors={errors}
+        setValue={setValue}
+        getValues={getValues}
+        idPrefix={idPrefix}
+      />
 
       <FormSection
         id={scheduleId}
