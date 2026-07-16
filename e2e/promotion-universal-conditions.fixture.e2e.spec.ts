@@ -52,7 +52,8 @@ test.describe('Promotion universal conditions admin create fixture-e2e', () => {
     await expect(nDaysInput).toHaveValue(String(NEW_CUSTOMER_SEED_N_DAYS));
 
     await fillRequiredBasics(page, 'FIXED100', 'ส่วนลดคงที่ 100 บาท');
-    await page.getByLabel('ส่วนลดทั้งออเดอร์/ร้าน (฿)').fill('100');
+    // Scope-aware fixed_amount label (admin = order-level; matches promotion-form-fields)
+    await page.getByLabel('ส่วนลดทั้งออเดอร์ (฿)').fill('100');
 
     await page.getByRole('button', { name: 'สร้างโปรโมชัน' }).click();
 
