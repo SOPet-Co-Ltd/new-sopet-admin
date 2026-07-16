@@ -605,7 +605,97 @@ describe('buildPromotionConditions / parsePromotionConditions', () => {
       getQuantity: 1,
       newCustomerOnly: false,
       newCustomerMaxAccountAgeDays: undefined,
+      loggedInOnlyEnabled: false,
     });
+  });
+
+  /**
+   * AC: AC-001 / AC-013–AC-014 — Emits loggedInOnly Rule L5 on percentage; omits when off.
+   * Behavior: enabled → { loggedInOnly: { enabled: true } }; off → undefined
+   * @category: core-functionality
+   * @lane: unit
+   * @dependency: buildPromotionConditions, parsePromotionConditions
+   * @complexity: medium
+   * ROI: 95
+   */
+  it('emits loggedInOnly Rule L5 when on and omits when off', () => {
+    const withLoggedInOnly = buildPromotionConditions({
+      ...getPromotionFormDefaults('percentage'),
+      code: 'MEMBER10',
+      name: 'Member 10%',
+      discountValue: 10,
+      loggedInOnlyEnabled: true,
+    });
+    expect(JSON.parse(withLoggedInOnly!)).toEqual({
+      loggedInOnly: { enabled: true },
+    });
+    expect(parsePromotionConditions(withLoggedInOnly)).toEqual({
+      newCustomerOnly: false,
+      newCustomerMaxAccountAgeDays: undefined,
+      loggedInOnlyEnabled: true,
+    });
+
+    const without = buildPromotionConditions({
+      ...getPromotionFormDefaults('percentage'),
+      code: 'SAVE10',
+      name: '10%',
+      discountValue: 10,
+      loggedInOnlyEnabled: false,
+    });
+    expect(without).toBeUndefined();
+  });
+
+  /**
+   * AC: AC-011 / Rule L4 — Both-on JSON may include newCustomer without coupling checkboxes.
+   * Behavior: loggedInOnly + newCustomer both present; toggling loggedInOnly does not clear newCustomer
+   * @category: core-functionality
+   * @lane: unit
+   * @dependency: buildPromotionConditions, parsePromotionConditions
+   * @complexity: medium
+   * ROI: 92
+   */
+  it('emits both loggedInOnly and newCustomer without coupling', () => {
+    const json = buildPromotionConditions({
+      ...getPromotionFormDefaults('percentage'),
+      code: 'BOTH10',
+      name: 'Both 10%',
+      discountValue: 10,
+      loggedInOnlyEnabled: true,
+      newCustomerOnly: true,
+      newCustomerMaxAccountAgeDays: 30,
+    });
+    expect(JSON.parse(json!)).toEqual({
+      loggedInOnly: { enabled: true },
+      newCustomer: { enabled: true, nDays: 30 },
+    });
+    expect(parsePromotionConditions(json)).toEqual({
+      newCustomerOnly: true,
+      newCustomerMaxAccountAgeDays: 30,
+      loggedInOnlyEnabled: true,
+    });
+  });
+
+  /**
+   * AC: AC-017 — parse maps enabled === true only; soft-off on parse failure.
+   * Behavior: enabled true → true; enabled false / absent → false; invalid JSON → {}
+   * @category: edge-case
+   * @lane: unit
+   * @dependency: parsePromotionConditions
+   * @complexity: low
+   * ROI: 88
+   */
+  it('parses loggedInOnly enabled===true only and soft-offs on parse failure', () => {
+    expect(parsePromotionConditions(JSON.stringify({ loggedInOnly: { enabled: true } }))).toEqual({
+      newCustomerOnly: false,
+      newCustomerMaxAccountAgeDays: undefined,
+      loggedInOnlyEnabled: true,
+    });
+    expect(parsePromotionConditions(JSON.stringify({ loggedInOnly: { enabled: false } }))).toEqual({
+      newCustomerOnly: false,
+      newCustomerMaxAccountAgeDays: undefined,
+      loggedInOnlyEnabled: false,
+    });
+    expect(parsePromotionConditions('{not-json').loggedInOnlyEnabled).toBeUndefined();
   });
 
   /**
@@ -691,6 +781,7 @@ describe('buildPromotionConditions / parsePromotionConditions', () => {
     ).toEqual({
       newCustomerOnly: true,
       newCustomerMaxAccountAgeDays: 14,
+      loggedInOnlyEnabled: false,
       productId: SAMPLE_PRODUCT_ID,
       buyQuantity: 3,
       getQuantity: 1,

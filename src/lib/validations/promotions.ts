@@ -30,6 +30,7 @@ const commonFields = {
   getQuantity: z.number().min(1, 'กรุณากรอกจำนวนที่แถม').optional(),
   newCustomerOnly: z.boolean().optional(),
   newCustomerMaxAccountAgeDays: z.number().optional(),
+  loggedInOnlyEnabled: z.boolean().optional(),
   productId: z.string().optional(),
   /** Form-local display only — never emitted into conditions JSON. */
   productName: z.string().optional(),
@@ -170,12 +171,14 @@ export function getPromotionFormDefaults(type: PromotionTypeSlug): PromotionForm
     getQuantity: type === 'buy_x_get_y' ? 1 : undefined,
     newCustomerOnly: false,
     newCustomerMaxAccountAgeDays: undefined,
+    loggedInOnlyEnabled: false,
     productId: undefined,
     productName: undefined,
   };
 }
 
 type ConditionsPayload = {
+  loggedInOnly?: { enabled: true };
   newCustomer?: { enabled: true; nDays: number };
   productId?: string;
   buyQuantity?: number;
@@ -184,6 +187,10 @@ type ConditionsPayload = {
 
 export function buildPromotionConditions(values: PromotionFormValues): string | undefined {
   const payload: ConditionsPayload = {};
+
+  if (values.loggedInOnlyEnabled) {
+    payload.loggedInOnly = { enabled: true };
+  }
 
   if (values.newCustomerOnly && values.newCustomerMaxAccountAgeDays) {
     payload.newCustomer = {
@@ -242,6 +249,7 @@ export function getPromotionFormValuesFromPromotion(promotion: {
     getQuantity: conditions.getQuantity,
     newCustomerOnly: conditions.newCustomerOnly ?? false,
     newCustomerMaxAccountAgeDays: conditions.newCustomerMaxAccountAgeDays,
+    loggedInOnlyEnabled: conditions.loggedInOnlyEnabled ?? false,
     productId: conditions.productId,
   };
 }
@@ -250,7 +258,12 @@ export function parsePromotionConditions(
   conditions?: string | null,
 ): Pick<
   PromotionFormValues,
-  'buyQuantity' | 'getQuantity' | 'productId' | 'newCustomerOnly' | 'newCustomerMaxAccountAgeDays'
+  | 'buyQuantity'
+  | 'getQuantity'
+  | 'productId'
+  | 'newCustomerOnly'
+  | 'newCustomerMaxAccountAgeDays'
+  | 'loggedInOnlyEnabled'
 > {
   if (!conditions) return {};
   try {
@@ -259,14 +272,17 @@ export function parsePromotionConditions(
       getQuantity?: number;
       productId?: string;
       newCustomer?: { enabled?: boolean; nDays?: number };
+      loggedInOnly?: { enabled?: boolean };
     };
     const newCustomerEnabled = parsed.newCustomer?.enabled === true;
+    const loggedInOnlyEnabled = parsed.loggedInOnly?.enabled === true;
     return {
       buyQuantity: parsed.buyQuantity,
       getQuantity: parsed.getQuantity,
       productId: parsed.productId,
       newCustomerOnly: newCustomerEnabled ? true : false,
       newCustomerMaxAccountAgeDays: newCustomerEnabled ? parsed.newCustomer?.nDays : undefined,
+      loggedInOnlyEnabled: loggedInOnlyEnabled ? true : false,
     };
   } catch {
     return {};
