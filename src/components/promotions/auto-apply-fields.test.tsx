@@ -9,6 +9,7 @@ import { PromotionFormFields } from './promotion-form-fields';
 import { getPromotionTypeMeta, type PromotionTypeSlug } from '@/lib/promotions/metadata';
 import {
   getPromotionFormDefaults,
+  getPromotionFormValuesFromPromotion,
   promotionFormSchema,
   type PromotionFormValues,
 } from '@/lib/validations/promotions';
@@ -94,14 +95,14 @@ function FormFieldsHarness({
 describe('AutoApplyFields', () => {
   /**
    * AC: AC-001 / AC-024 / UI-AA-001 / UI-AA-003 — Default off + normative Thai copy.
-   * Behavior: Create defaults → unchecked checkbox; section title/description/off-hint; no Switch
+   * Behavior: Create defaults → unchecked checkbox; section title/description/off-hint; aria-describedby → help ids; no Switch
    * @category: core-functionality
    * @lane: integration
    * @dependency: AutoApplyFields
    * @complexity: low
    * ROI: 94
    */
-  it('shows default-off checkbox with normative Thai help and no Switch', () => {
+  it('shows default-off checkbox with normative Thai help and aria-describedby', () => {
     render(<AutoApplyHarness />);
 
     expect(screen.getByRole('heading', { name: 'ใช้อัตโนมัติ' })).toBeInTheDocument();
@@ -112,33 +113,52 @@ describe('AutoApplyFields', () => {
     expect(checkbox).toHaveAttribute('type', 'checkbox');
     expect(checkbox.tagName).toBe('INPUT');
     expect(checkbox).not.toBeChecked();
-    expect(checkbox).toHaveAttribute('aria-describedby');
+    expect(checkbox).toHaveAttribute(
+      'aria-describedby',
+      'promo-auto-apply-description promo-auto-apply-off-hint',
+    );
+    expect(document.getElementById('promo-auto-apply-description')).toHaveTextContent(
+      SECTION_DESCRIPTION,
+    );
+    expect(document.getElementById('promo-auto-apply-off-hint')).toHaveTextContent(OFF_HINT);
     expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getByTestId('auto-apply-value')).toHaveTextContent('false');
   });
 
   /**
-   * AC: AC-002 — Edit partial state when autoApply true.
-   * Behavior: Prefill autoApply true → checked; off-hint hidden
+   * AC: AC-002 — Edit partial state when autoApply true (via promotion → form values).
+   * Behavior: Prefill autoApply true → checked; off-hint hidden; aria-describedby → description only
    * @category: core-functionality
    * @lane: integration
-   * @dependency: AutoApplyFields
+   * @dependency: AutoApplyFields, getPromotionFormValuesFromPromotion
    * @complexity: low
    * ROI: 92
    */
   it('prefills checked when autoApply is true and hides off hint', () => {
-    render(<AutoApplyHarness defaultValues={{ autoApply: true }} />);
+    const values = getPromotionFormValuesFromPromotion({
+      code: 'SAVE10',
+      name: '10%',
+      type: 'percentage',
+      discountValue: 10,
+      usagePerCustomer: 1,
+      autoApply: true,
+      priority: 0,
+    });
+
+    render(<AutoApplyHarness defaultValues={values} />);
 
     const checkbox = screen.getByLabelText(/ใช้อัตโนมัติที่หน้าชำระเงิน/);
     expect(checkbox).toBeChecked();
     expect(screen.queryByText(OFF_HINT)).not.toBeInTheDocument();
     expect(screen.getByText(SECTION_DESCRIPTION)).toBeInTheDocument();
+    expect(checkbox).toHaveAttribute('aria-describedby', 'promo-auto-apply-description');
     expect(screen.getByTestId('auto-apply-value')).toHaveTextContent('true');
   });
 
   /**
-   * AC: AC-003 — Toggle updates RHF autoApply (roundtrip to submit boundary).
-   * Behavior: Click checkbox → RHF value true
+   * Behavior: RHF-only — unchecked/false → click → checked/true; off-hint removed.
+   * Mutation/submit payload proof deferred to task-04 fixture-e2e.
    * @category: core-functionality
    * @lane: integration
    * @dependency: AutoApplyFields, RHF Controller
@@ -150,10 +170,14 @@ describe('AutoApplyFields', () => {
     render(<AutoApplyHarness />);
 
     const checkbox = screen.getByLabelText(/ใช้อัตโนมัติที่หน้าชำระเงิน/);
+    expect(checkbox).not.toBeChecked();
+    expect(screen.getByTestId('auto-apply-value')).toHaveTextContent('false');
+
     await user.click(checkbox);
 
     expect(checkbox).toBeChecked();
     expect(screen.queryByText(OFF_HINT)).not.toBeInTheDocument();
+    expect(checkbox).toHaveAttribute('aria-describedby', 'promo-auto-apply-description');
     expect(screen.getByTestId('auto-apply-value')).toHaveTextContent('true');
   });
 });
