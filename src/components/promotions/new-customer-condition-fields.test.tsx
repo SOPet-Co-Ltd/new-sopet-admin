@@ -169,26 +169,28 @@ describe('NewCustomerConditionFields', () => {
   });
 });
 
-describe('PromotionFormFields new-customer placement (UI-D-002)', () => {
+describe('PromotionFormFields new-customer placement (UI-D-002 / UI-L-001)', () => {
   /**
-   * AC: UI-D-002 — New-customer section lives after จำกัดการใช้ and before ระยะเวลา.
-   * Behavior: Heading order index usage + 1 = ลูกค้าใหม่; schedule follows
+   * AC: UI-D-002 / UI-L-001 — New-customer section after สมาชิกเท่านั้น and before ระยะเวลา.
+   * Behavior: Heading order: จำกัดการใช้ → สมาชิกเท่านั้น → ลูกค้าใหม่ → ระยะเวลา
    * @category: core-functionality
    * @lane: integration
-   * @dependency: PromotionFormFields, NewCustomerConditionFields
+   * @dependency: PromotionFormFields, NewCustomerConditionFields, LoggedInOnlyConditionFields
    * @complexity: low
    * ROI: 88
    */
-  it('places ลูกค้าใหม่ after จำกัดการใช้ and before ระยะเวลา', () => {
+  it('places ลูกค้าใหม่ after สมาชิกเท่านั้น and before ระยะเวลา', () => {
     render(<FormFieldsHarness />);
 
     const headings = screen.getAllByRole('heading', { level: 3 }).map((el) => el.textContent);
     const usageIdx = headings.indexOf('จำกัดการใช้');
+    const membersIdx = headings.indexOf('สมาชิกเท่านั้น');
     const newCustomerIdx = headings.indexOf('ลูกค้าใหม่');
     const scheduleIdx = headings.indexOf('ระยะเวลา');
 
     expect(usageIdx).toBeGreaterThanOrEqual(0);
-    expect(newCustomerIdx).toBe(usageIdx + 1);
+    expect(membersIdx).toBe(usageIdx + 1);
+    expect(newCustomerIdx).toBe(membersIdx + 1);
     expect(scheduleIdx).toBe(newCustomerIdx + 1);
   });
 

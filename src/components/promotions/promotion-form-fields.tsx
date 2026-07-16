@@ -11,6 +11,7 @@ import {
   type UseFormSetValue,
 } from 'react-hook-form';
 import { BxGyProductPicker } from '@/components/promotions/bxgy-product-picker';
+import { LoggedInOnlyConditionFields } from '@/components/promotions/logged-in-only-condition-fields';
 import { NewCustomerConditionFields } from '@/components/promotions/new-customer-condition-fields';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -626,6 +627,8 @@ export function PromotionFormFields({
           </div>
         </div>
       </FormSection>
+
+      <LoggedInOnlyConditionFields control={control} idPrefix={idPrefix} />
 
       <NewCustomerConditionFields
         register={register}
