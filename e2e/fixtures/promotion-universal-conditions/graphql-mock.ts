@@ -144,22 +144,16 @@ export function resolvePromotionUcOperation(
     query.includes('platformPromotions') ||
     query.includes('storePromotions')
   ) {
-    // Minimal list stub so post-create navigation does not hang; chips asserted in later tasks.
+    // List queries return Promotion arrays (not connection wrappers).
     return {
-      platformPromotions: {
-        items: [sampleCreatedPromotion],
-        pagination: productsPagination,
-      },
-      storePromotions: {
-        items: [
-          {
-            ...sampleCreatedPromotion,
-            scope: 'store',
-            storeId: options.vendorStoreId ?? PROMOTION_UC_VENDOR_STORE_ID,
-          },
-        ],
-        pagination: productsPagination,
-      },
+      platformPromotions: [sampleCreatedPromotion],
+      storePromotions: [
+        {
+          ...sampleCreatedPromotion,
+          scope: 'store',
+          storeId: options.vendorStoreId ?? PROMOTION_UC_VENDOR_STORE_ID,
+        },
+      ],
     };
   }
 
