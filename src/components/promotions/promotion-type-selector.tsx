@@ -2,7 +2,11 @@
 
 import Link from 'next/link';
 import { HiArrowRight } from 'react-icons/hi2';
-import { promotionTypeMeta, type PromotionTypeSlug } from '@/lib/promotions/metadata';
+import {
+  isAdminCreatablePromotionType,
+  promotionTypeMeta,
+  type PromotionTypeSlug,
+} from '@/lib/promotions/metadata';
 import { cn } from '@/lib/utils';
 
 const TYPE_GROUPS: ReadonlyArray<{
@@ -13,6 +17,7 @@ const TYPE_GROUPS: ReadonlyArray<{
   {
     id: 'product',
     label: 'ส่วนลดสินค้า',
+    // buy_x_get_y is vendor-only create; admin create is disabled (route 404).
     types: ['percentage', 'fixed_amount', 'buy_x_get_y'],
   },
   {
@@ -27,9 +32,14 @@ export function PromotionTypeSelector({
 }: {
   basePath: '/vendor/promotions/new' | '/admin/promotions/new';
 }) {
+  const isAdmin = basePath === '/admin/promotions/new';
+
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       {TYPE_GROUPS.map((group) => {
+        const types = isAdmin ? group.types.filter(isAdminCreatablePromotionType) : group.types;
+        if (types.length === 0) return null;
+
         const headingId = `promo-type-group-${group.id}`;
         return (
           <section key={group.id} aria-labelledby={headingId} className="space-y-3">
@@ -37,7 +47,7 @@ export function PromotionTypeSelector({
               {group.label}
             </h2>
             <ul className="space-y-2">
-              {group.types.map((type) => {
+              {types.map((type) => {
                 const meta = promotionTypeMeta[type];
                 return (
                   <li key={type}>

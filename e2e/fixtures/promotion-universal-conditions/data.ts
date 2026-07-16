@@ -71,23 +71,23 @@ export const productsPagination = {
 };
 
 /**
- * Expected successful createPromotion conditions (golden shape for capture asserts).
- * UI Spec chips: ลูกค้าใหม่ ≤ 30 วัน · ซื้อ 2 แถม 1
+ * Expected successful admin createPromotion conditions (golden shape for capture asserts).
+ * Admin cannot create buy_x_get_y — journey uses fixed_amount + new-customer.
+ * UI Spec chip: ลูกค้าใหม่ ≤ 30 วัน
  */
 export const expectedCreatePromotionConditions: PromotionConditionsPayload = {
   ...buildAdminNewCustomerConditions(),
-  ...buildAdminBxGyConditions(PROMOTION_UC_PLATFORM_PRODUCT_ID),
 };
 
 export const sampleCreatedPromotion = {
   id: 'promo-uc-created-1',
   storeId: null as string | null,
-  code: 'BUY2GET1',
-  name: 'ซื้อ 2 แถม 1',
+  code: 'FIXED100',
+  name: 'ส่วนลดคงที่ 100 บาท',
   description: null as string | null,
-  type: 'buy_x_get_y',
+  type: 'fixed_amount',
   scope: 'platform',
-  discountValue: 0,
+  discountValue: 100,
   minPurchaseAmount: null as number | null,
   maxDiscountAmount: null as number | null,
   usageLimit: null as number | null,

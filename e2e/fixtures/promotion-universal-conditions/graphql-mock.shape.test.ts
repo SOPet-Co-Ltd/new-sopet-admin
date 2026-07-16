@@ -5,7 +5,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   NEW_CUSTOMER_SEED_N_DAYS,
-  PROMOTION_UC_PLATFORM_PRODUCT_ID,
   expectedCreatePromotionConditions,
   platformPublishedProduct,
   vendorStoreScopedProduct,
@@ -17,14 +16,14 @@ import {
 } from './graphql-mock';
 
 describe('promotion-universal-conditions admin fixture stubs', () => {
-  it('expected create conditions include newCustomer and BxGy keys', () => {
+  it('expected admin create conditions include newCustomer only (no BxGy)', () => {
     expect(expectedCreatePromotionConditions.newCustomer).toEqual({
       enabled: true,
       nDays: NEW_CUSTOMER_SEED_N_DAYS,
     });
-    expect(expectedCreatePromotionConditions.productId).toBe(PROMOTION_UC_PLATFORM_PRODUCT_ID);
-    expect(expectedCreatePromotionConditions.buyQuantity).toBe(2);
-    expect(expectedCreatePromotionConditions.getQuantity).toBe(1);
+    expect(expectedCreatePromotionConditions.productId).toBeUndefined();
+    expect(expectedCreatePromotionConditions.buyQuantity).toBeUndefined();
+    expect(expectedCreatePromotionConditions.getQuantity).toBeUndefined();
   });
 
   it('platform Products mock does not require storeId', () => {
@@ -73,9 +72,9 @@ describe('promotion-universal-conditions admin fixture stubs', () => {
         operationName: 'CreatePromotion',
         variables: {
           input: {
-            code: 'BUY2GET1',
-            name: 'ซื้อ 2 แถม 1',
-            type: 'buy_x_get_y',
+            code: 'FIXED100',
+            name: 'ส่วนลดคงที่ 100 บาท',
+            type: 'fixed_amount',
             conditions,
           },
         },

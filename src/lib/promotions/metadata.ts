@@ -147,6 +147,11 @@ export function isPromotionType(value: string): value is PromotionTypeSlug {
   return PROMOTION_TYPES.includes(value as PromotionTypeSlug);
 }
 
+/** Platform admin cannot create buy_x_get_y (selector + create route). List/edit of existing still allowed. */
+export function isAdminCreatablePromotionType(type: PromotionTypeSlug): boolean {
+  return type !== 'buy_x_get_y';
+}
+
 export function getPromotionTypeMeta(type: string): PromotionTypeMeta | undefined {
   if (!isPromotionType(type)) return undefined;
   return promotionTypeMeta[type];

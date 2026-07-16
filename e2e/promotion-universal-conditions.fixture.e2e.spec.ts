@@ -4,8 +4,6 @@ import {
   expectedCreatePromotionConditions,
   LIST_CHIP_FIXTURE_LABELS,
   NEW_CUSTOMER_SEED_N_DAYS,
-  platformPublishedProduct,
-  PROMOTION_UC_PLATFORM_PRODUCT_ID,
 } from './fixtures/promotion-universal-conditions/data';
 import {
   installPromotionUniversalConditionsGraphQLMocks,
@@ -16,8 +14,8 @@ import {
  * Promotion Universal Conditions — Admin create journey (fixture-e2e).
  * Promoted from e2e/promotion-universal-conditions.fixture.e2e.skeleton.ts
  *
- * Journey AC: Operator create with new-customer + BxGy product validation
- * (AC-001, AC-017, AC-023, AC-030–032, AC-034, UI-D-001)
+ * Journey AC: Operator create with new-customer on fixed_amount
+ * (AC-001, AC-030–032, AC-034). Admin buy_x_get_y create is disabled.
  */
 
 async function fillRequiredBasics(page: Page, code: string, name: string) {
@@ -30,7 +28,7 @@ test.describe('Promotion universal conditions admin create fixture-e2e', () => {
     await authenticateAsAdmin(page);
   });
 
-  test('Journey: new-customer seeds N=30, BxGy requires product, save persists conditions + list chips', async ({
+  test('Journey: new-customer seeds N=30 on fixed_amount, save persists conditions + list chip', async ({
     page,
   }) => {
     // Ref object (not a bare `let`) — TS cannot narrow a `let` reassigned only inside a
@@ -43,7 +41,7 @@ test.describe('Promotion universal conditions admin create fixture-e2e', () => {
       },
     });
 
-    await page.goto('/admin/promotions/new/buy_x_get_y');
+    await page.goto('/admin/promotions/new/fixed_amount');
 
     await expect(page.getByRole('heading', { name: 'ลูกค้าใหม่' })).toBeVisible();
 
@@ -53,45 +51,29 @@ test.describe('Promotion universal conditions admin create fixture-e2e', () => {
     const nDaysInput = page.getByLabel('อายุบัญชีสูงสุด (วัน)');
     await expect(nDaysInput).toHaveValue(String(NEW_CUSTOMER_SEED_N_DAYS));
 
-    await fillRequiredBasics(page, 'BUY2GET1', 'ซื้อ 2 แถม 1');
-
-    // Submit without product → client Zod FieldError
-    await page.getByRole('button', { name: 'สร้างโปรโมชัน' }).click();
-    await expect(
-      page.getByRole('alert').filter({ hasText: /กรุณาเลือกสินค้าสำหรับโปรซื้อแถม/ }),
-    ).toBeVisible();
-    expect(lastCapture.value).toBeNull();
-
-    // Pick published platform product (storeId not required on mock)
-    const productSearch = page.getByRole('combobox', { name: /สินค้าที่ใช้โปรโมชัน/ });
-    await productSearch.focus();
-    await expect(page.getByRole('option', { name: platformPublishedProduct.name })).toBeVisible({
-      timeout: 10_000,
-    });
-    await page.getByRole('option', { name: platformPublishedProduct.name }).click();
+    await fillRequiredBasics(page, 'FIXED100', 'ส่วนลดคงที่ 100 บาท');
+    await page.getByLabel('ส่วนลดทั้งออเดอร์/ร้าน (฿)').fill('100');
 
     await page.getByRole('button', { name: 'สร้างโปรโมชัน' }).click();
 
     await expect.poll(() => lastCapture.value).not.toBeNull();
     expect(lastCapture.value?.conditionsParsed).toMatchObject({
       newCustomer: { enabled: true, nDays: NEW_CUSTOMER_SEED_N_DAYS },
-      productId: PROMOTION_UC_PLATFORM_PRODUCT_ID,
-      buyQuantity: expectedCreatePromotionConditions.buyQuantity,
-      getQuantity: expectedCreatePromotionConditions.getQuantity,
     });
+    expect(lastCapture.value?.conditionsParsed).toEqual(expectedCreatePromotionConditions);
 
-    // Successful create navigates to list; assert chips from mocked list payload
     await expect(page).toHaveURL(/\/admin\/promotions$/);
     await expect(page.getByText(LIST_CHIP_FIXTURE_LABELS.newCustomer)).toBeVisible();
-    await expect(
-      page.getByText(
-        LIST_CHIP_FIXTURE_LABELS.bxgy(
-          expectedCreatePromotionConditions.buyQuantity!,
-          expectedCreatePromotionConditions.getQuantity!,
-          PROMOTION_UC_PLATFORM_PRODUCT_ID,
-        ),
-      ),
-    ).toBeVisible();
+  });
+
+  test('buy_x_get_y create route is not available for admin', async ({ page }) => {
+    await installPromotionUniversalConditionsGraphQLMocks(page);
+    await page.goto('/admin/promotions/new');
+    await expect(page.getByRole('link', { name: /ซื้อ X แถม Y/ })).toHaveCount(0);
+
+    await page.goto('/admin/promotions/new/buy_x_get_y');
+    await expect(page.getByRole('button', { name: 'สร้างโปรโมชัน' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: /สร้างซื้อ X แถม Y/ })).toHaveCount(0);
   });
 
   test('fixed_amount create shows order/store-subtotal baht-off label (not per-product)', async ({
