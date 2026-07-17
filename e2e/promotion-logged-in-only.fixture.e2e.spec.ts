@@ -46,12 +46,14 @@ async function fillRequiredBasics(page: Page, code: string, name: string) {
 async function assertUiL001SectionOrder(page: Page) {
   const headings = await page.getByRole('heading', { level: 3 }).allTextContents();
   const usageIdx = headings.indexOf('จำกัดการใช้');
+  const autoApplyIdx = headings.indexOf('ใช้อัตโนมัติ');
   const membersIdx = headings.indexOf('สมาชิกเท่านั้น');
   const newCustomerIdx = headings.indexOf('ลูกค้าใหม่');
   const scheduleIdx = headings.indexOf('ระยะเวลา');
 
   expect(usageIdx).toBeGreaterThanOrEqual(0);
-  expect(membersIdx).toBe(usageIdx + 1);
+  expect(autoApplyIdx).toBe(usageIdx + 1);
+  expect(membersIdx).toBe(autoApplyIdx + 1);
   expect(newCustomerIdx).toBe(membersIdx + 1);
   expect(scheduleIdx).toBe(newCustomerIdx + 1);
 }

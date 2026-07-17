@@ -172,10 +172,10 @@ describe('NewCustomerConditionFields', () => {
 describe('PromotionFormFields new-customer placement (UI-D-002 / UI-L-001)', () => {
   /**
    * AC: UI-D-002 / UI-L-001 — New-customer section after สมาชิกเท่านั้น and before ระยะเวลา.
-   * Behavior: Heading order: จำกัดการใช้ → สมาชิกเท่านั้น → ลูกค้าใหม่ → ระยะเวลา
+   * Behavior: Heading order: จำกัดการใช้ → ใช้อัตโนมัติ → สมาชิกเท่านั้น → ลูกค้าใหม่ → ระยะเวลา
    * @category: core-functionality
    * @lane: integration
-   * @dependency: PromotionFormFields, NewCustomerConditionFields, LoggedInOnlyConditionFields
+   * @dependency: PromotionFormFields, AutoApplyFields, NewCustomerConditionFields, LoggedInOnlyConditionFields
    * @complexity: low
    * ROI: 88
    */
@@ -184,12 +184,14 @@ describe('PromotionFormFields new-customer placement (UI-D-002 / UI-L-001)', () 
 
     const headings = screen.getAllByRole('heading', { level: 3 }).map((el) => el.textContent);
     const usageIdx = headings.indexOf('จำกัดการใช้');
+    const autoApplyIdx = headings.indexOf('ใช้อัตโนมัติ');
     const membersIdx = headings.indexOf('สมาชิกเท่านั้น');
     const newCustomerIdx = headings.indexOf('ลูกค้าใหม่');
     const scheduleIdx = headings.indexOf('ระยะเวลา');
 
     expect(usageIdx).toBeGreaterThanOrEqual(0);
-    expect(membersIdx).toBe(usageIdx + 1);
+    expect(autoApplyIdx).toBe(usageIdx + 1);
+    expect(membersIdx).toBe(autoApplyIdx + 1);
     expect(newCustomerIdx).toBe(membersIdx + 1);
     expect(scheduleIdx).toBe(newCustomerIdx + 1);
   });
