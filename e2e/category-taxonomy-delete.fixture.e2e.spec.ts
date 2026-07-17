@@ -1,6 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { authenticateAsAdmin } from './fixtures/taxonomy/admin-auth';
 import { installTaxonomyGraphQLMocks } from './fixtures/taxonomy/graphql-mock';
+
+function cardByHeading(page: Page, name: string | RegExp) {
+  return page.locator('div.rounded-xl').filter({ has: page.getByRole('heading', { name }) });
+}
 
 test.describe('Category taxonomy fixture-e2e harness', () => {
   test.beforeEach(async ({ page }) => {
@@ -11,20 +15,16 @@ test.describe('Category taxonomy fixture-e2e harness', () => {
   test('loads /admin/taxonomy with mocked GraphQL data', async ({ page }) => {
     await page.goto('/admin/taxonomy');
 
-    await expect(
-      page.getByRole('heading', { name: 'หมวดหมู่ แท็ก ประเภทสัตว์เลี้ยง และแบรนด์' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'จัดการหมวดหมู่และแท็กสินค้า' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'สร้างหมวดหมู่' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /หมวดหมู่/ })).toBeVisible();
 
-    const approvedSection = page
-      .getByRole('heading', { name: 'หมวดหมู่ที่อนุมัติแล้ว' })
-      .locator('..');
+    const approvedSection = cardByHeading(page, 'หมวดหมู่ที่อนุมัติแล้ว');
     await expect(approvedSection.getByText('อาหารสัตว์')).toBeVisible();
     await expect(approvedSection.getByText('ของเล่นสัตว์')).toBeVisible();
 
-    const pendingSection = page.getByRole('heading', { name: 'หมวดหมู่รออนุมัติ' }).locator('..');
+    const pendingSection = cardByHeading(page, 'หมวดหมู่รออนุมัติ');
     await expect(pendingSection.getByText('ของเล่นสัตว์')).toBeVisible();
-    await expect(page.getByRole('button', { name: /หมวดหมู่ · รออนุมัติ/ })).toBeVisible();
   });
 
   test('shows rejected categories and tags with delete-only actions', async ({ page }) => {
@@ -33,14 +33,12 @@ test.describe('Category taxonomy fixture-e2e harness', () => {
     await expect(page.getByRole('heading', { name: 'หมวดหมู่ที่ปฏิเสธแล้ว' })).toBeVisible();
     await expect(page.getByText('หมวดที่ปฏิเสธ', { exact: true })).toBeVisible();
 
-    const categoryRejectedSection = page
-      .getByRole('heading', { name: 'หมวดหมู่ที่ปฏิเสธแล้ว' })
-      .locator('..');
+    const categoryRejectedSection = cardByHeading(page, 'หมวดหมู่ที่ปฏิเสธแล้ว');
     await expect(categoryRejectedSection.getByRole('button', { name: 'ลบ' })).toBeVisible();
     await expect(categoryRejectedSection.getByRole('button', { name: 'อนุมัติ' })).toHaveCount(0);
     await expect(categoryRejectedSection.getByRole('button', { name: 'ปฏิเสธ' })).toHaveCount(0);
 
-    await page.getByRole('button', { name: /แท็ก · รออนุมัติ/ }).click();
+    await page.getByRole('tab', { name: /แท็ก/ }).click();
     await expect(page.getByRole('heading', { name: 'แท็กที่ปฏิเสธแล้ว' })).toBeVisible();
     await expect(page.getByText('แท็กที่ปฏิเสธ', { exact: true })).toBeVisible();
   });

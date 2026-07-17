@@ -11,7 +11,7 @@ export function EmailVerificationNotice({ email }: { email: string }) {
   return (
     <div
       id="email-verification-banner"
-      className="mb-6 rounded-lg border border-warning/30 border-l-4 border-l-warning bg-warning-bg/40 px-4 py-3.5 text-sm text-ink"
+      className="mb-6 rounded-lg border border-warning/40 bg-warning-bg/40 px-4 py-3.5 text-sm text-ink"
       role="status"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

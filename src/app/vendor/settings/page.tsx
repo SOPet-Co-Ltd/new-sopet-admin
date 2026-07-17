@@ -1,22 +1,19 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
-import { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { Suspense, useEffect, useState } from 'react';
+import { HiOutlineCheckCircle } from 'react-icons/hi2';
 import { VendorShippingPanel } from '@/components/vendor/shipping-settings-panel';
+import { VendorPayoutAccountPanel } from '@/components/vendor/vendor-payout-account-panel';
 import { VendorPayoutBalancePanel } from '@/components/vendor/vendor-payout-balance-panel';
+import { VendorPayoutHistoryPanel } from '@/components/vendor/vendor-payout-history-panel';
 import { VendorStoreSettingsPanel } from '@/components/vendor/vendor-store-settings-panel';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { THAI_BANKS } from '@/lib/constants/thai-banks';
 import { useCurrentUser } from '@/hooks/useAuth';
 import { useIsStoreOwner } from '@/hooks/useMembershipRole';
@@ -36,37 +33,74 @@ import {
   type ProfileFormValues,
   type StoreInfoFormValues,
 } from '@/lib/validations';
+import { cn } from '@/lib/utils';
 
 type SettingsTab = keyof typeof settingsTabLabels;
 
-const OMISE_STATUS_INFO: Record<string, { label: string; className: string }> = {
-  not_connected: {
-    label: 'ยังไม่ได้เชื่อมต่อ Omise',
-    className: 'bg-muted/10 text-muted',
-  },
-  pending: {
-    label: 'รอการยืนยันจาก Omise',
-    className: 'bg-amber-100 text-amber-700',
-  },
-  active: {
-    label: 'เชื่อมต่อกับ Omise แล้ว',
-    className: 'bg-emerald-100 text-emerald-700',
-  },
-  failed: {
-    label: 'เชื่อมต่อ Omise ไม่สำเร็จ',
-    className: 'bg-danger/10 text-danger',
-  },
+const OWNER_ONLY_TABS: SettingsTab[] = ['store', 'payout', 'shipping'];
+
+const TAB_PANEL_IDS: Record<SettingsTab, string> = {
+  profile: 'settings-panel-profile',
+  store: 'settings-panel-store',
+  payout: 'settings-panel-payout',
+  shipping: 'settings-panel-shipping',
 };
 
-export default function VendorSettingsPage() {
+function parseSettingsTab(value: string | null): SettingsTab {
+  if (value && value in settingsTabLabels) {
+    return value as SettingsTab;
+  }
+  return 'profile';
+}
+
+function SettingsPageSkeleton() {
+  return (
+    <div className="space-y-6" aria-busy="true" aria-live="polite">
+      <div className="space-y-2">
+        <div className="h-8 w-32 animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
+        <div className="h-4 w-56 animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="h-10 w-24 animate-pulse rounded-lg bg-surface motion-reduce:animate-none"
+          />
+        ))}
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="h-64 animate-pulse rounded-xl border border-border bg-card motion-reduce:animate-none" />
+        <div className="h-40 animate-pulse rounded-xl border border-border bg-card motion-reduce:animate-none" />
+      </div>
+      <span className="sr-only">กำลังโหลด...</span>
+    </div>
+  );
+}
+
+function VendorSettingsPageContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user } = useCurrentUser();
   const { isOwner } = useIsStoreOwner();
-  const [tab, setTab] = useState<SettingsTab>('profile');
+  const requestedTab = parseSettingsTab(searchParams.get('tab'));
+  const tab = !isOwner && OWNER_ONLY_TABS.includes(requestedTab) ? 'profile' : requestedTab;
   const { data: store, isLoading: storeLoading } = useMyStore();
   const updateProfile = useUpdateUserProfile();
   const changePassword = useChangePassword();
   const updateStore = useUpdateStore();
   const updatePayout = useUpdateStorePayout();
+
+  function selectTab(next: SettingsTab) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === 'profile') {
+      params.delete('tab');
+    } else {
+      params.set('tab', next);
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -96,8 +130,15 @@ export default function VendorSettingsPage() {
     newPassword: '',
     confirmPassword: '',
   });
-  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [passwordFeedback, setPasswordFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
   const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [profileFeedback, setProfileFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -126,8 +167,29 @@ export default function VendorSettingsPage() {
     }
   }, [store, storeForm, payoutForm]);
 
+  useEffect(() => {
+    if (!profileFeedback || profileFeedback.type !== 'success') return;
+    const timer = window.setTimeout(() => setProfileFeedback(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [profileFeedback]);
+
+  useEffect(() => {
+    if (!passwordFeedback || passwordFeedback.type !== 'success') return;
+    const timer = window.setTimeout(() => setPasswordFeedback(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [passwordFeedback]);
+
   async function onProfileSubmit(values: ProfileFormValues) {
-    await updateProfile.mutateAsync({ fullName: values.fullName });
+    setProfileFeedback(null);
+    try {
+      await updateProfile.mutateAsync({ fullName: values.fullName });
+      setProfileFeedback({ type: 'success', message: 'บันทึกข้อมูลส่วนตัวแล้ว' });
+    } catch (err) {
+      setProfileFeedback({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ',
+      });
+    }
   }
 
   async function onStoreSubmit(values: StoreInfoFormValues) {
@@ -154,9 +216,13 @@ export default function VendorSettingsPage() {
 
   async function onPasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setPasswordMessage(null);
+    setPasswordFeedback(null);
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordFeedback({ type: 'error', message: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร' });
+      return;
+    }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordMessage('รหัสผ่านใหม่ไม่ตรงกัน');
+      setPasswordFeedback({ type: 'error', message: 'รหัสผ่านใหม่ไม่ตรงกัน' });
       return;
     }
     try {
@@ -164,38 +230,57 @@ export default function VendorSettingsPage() {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword,
       });
-      setPasswordMessage(message);
+      setPasswordFeedback({ type: 'success', message });
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
-      setPasswordMessage(err instanceof Error ? err.message : 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
+      setPasswordFeedback({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'เปลี่ยนรหัสผ่านไม่สำเร็จ',
+      });
     }
   }
+
+  const visibleTabs = (Object.keys(settingsTabLabels) as SettingsTab[]).filter((key) => {
+    if ((key === 'store' || key === 'payout' || key === 'shipping') && !isOwner) return false;
+    return true;
+  });
 
   return (
     <div>
       <PageHeader title="ตั้งค่า" description="ข้อมูลบัญชีและร้านค้า" />
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        {(Object.keys(settingsTabLabels) as SettingsTab[]).map((key) => {
-          if ((key === 'store' || key === 'payout' || key === 'shipping') && !isOwner) return null;
-          return (
-            <Button
-              key={key}
-              type="button"
-              variant={tab === key ? 'default' : 'outline'}
-              onClick={() => setTab(key)}
-            >
-              {settingsTabLabels[key]}
-            </Button>
-          );
-        })}
+      <div className="mb-6 flex flex-wrap gap-2" role="tablist" aria-label="หมวดตั้งค่า">
+        {visibleTabs.map((key) => (
+          <Button
+            key={key}
+            type="button"
+            role="tab"
+            id={`settings-tab-${key}`}
+            aria-selected={tab === key}
+            aria-controls={TAB_PANEL_IDS[key]}
+            variant={tab === key ? 'default' : 'outline'}
+            onClick={() => selectTab(key)}
+          >
+            {settingsTabLabels[key]}
+          </Button>
+        ))}
       </div>
 
       {tab === 'profile' ? (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div
+          id={TAB_PANEL_IDS.profile}
+          role="tabpanel"
+          aria-labelledby="settings-tab-profile"
+          className="grid gap-6 lg:grid-cols-2"
+        >
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">ข้อมูลส่วนตัว</h2>
+              <h2 className="font-display text-lg font-medium text-ink text-balance">
+                ข้อมูลส่วนตัว
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                ชื่อที่แสดงในระบบผู้ขาย — อีเมลใช้สำหรับเข้าสู่ระบบ
+              </p>
             </CardHeader>
             <CardBody>
               <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
@@ -230,8 +315,27 @@ export default function VendorSettingsPage() {
                     disabled
                     className="mt-1.5"
                   />
-                  <p className="mt-1 text-xs text-muted">ไม่สามารถเปลี่ยนอีเมลได้ในขณะนี้</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    ไม่สามารถเปลี่ยนอีเมลได้ในขณะนี้
+                  </p>
                 </div>
+                {profileFeedback ? (
+                  <div
+                    className={cn(
+                      'flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm',
+                      profileFeedback.type === 'success'
+                        ? 'border-success/25 bg-success-bg text-success'
+                        : 'border-danger/25 bg-danger-bg text-danger',
+                    )}
+                    role={profileFeedback.type === 'error' ? 'alert' : 'status'}
+                    aria-live="polite"
+                  >
+                    {profileFeedback.type === 'success' ? (
+                      <HiOutlineCheckCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                    ) : null}
+                    <p className="font-medium">{profileFeedback.message}</p>
+                  </div>
+                ) : null}
                 <Button
                   type="submit"
                   disabled={updateProfile.isPending}
@@ -244,9 +348,16 @@ export default function VendorSettingsPage() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="font-display font-medium text-ink">เปลี่ยนรหัสผ่าน</h2>
+            <CardHeader className={cn(!showPasswordSection && 'border-b-0')}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="font-display text-lg font-medium text-ink text-balance">
+                    เปลี่ยนรหัสผ่าน
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    ใช้รหัสผ่านที่แข็งแรงและไม่ใช้ร่วมกับบัญชีอื่น
+                  </p>
+                </div>
                 <Button
                   type="button"
                   variant="outline"
@@ -255,7 +366,7 @@ export default function VendorSettingsPage() {
                   onClick={() => {
                     setShowPasswordSection((prev) => !prev);
                     if (showPasswordSection) {
-                      setPasswordMessage(null);
+                      setPasswordFeedback(null);
                     }
                   }}
                 >
@@ -299,7 +410,12 @@ export default function VendorSettingsPage() {
                         }
                         className="mt-1.5"
                         required
+                        minLength={8}
+                        aria-describedby="newPassword-hint"
                       />
+                      <p id="newPassword-hint" className="mt-1 text-xs text-muted-foreground">
+                        อย่างน้อย 8 ตัวอักษร
+                      </p>
                     </div>
                     <div>
                       <Label htmlFor="confirmPassword" required>
@@ -318,10 +434,22 @@ export default function VendorSettingsPage() {
                         required
                       />
                     </div>
-                    {passwordMessage ? (
-                      <p className="text-sm text-muted" role="alert">
-                        {passwordMessage}
-                      </p>
+                    {passwordFeedback ? (
+                      <div
+                        className={cn(
+                          'flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm',
+                          passwordFeedback.type === 'success'
+                            ? 'border-success/25 bg-success-bg text-success'
+                            : 'border-danger/25 bg-danger-bg text-danger',
+                        )}
+                        role={passwordFeedback.type === 'error' ? 'alert' : 'status'}
+                        aria-live="polite"
+                      >
+                        {passwordFeedback.type === 'success' ? (
+                          <HiOutlineCheckCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                        ) : null}
+                        <p className="font-medium">{passwordFeedback.message}</p>
+                      </div>
                     ) : null}
                     <Button
                       type="submit"
@@ -339,144 +467,50 @@ export default function VendorSettingsPage() {
       ) : null}
 
       {tab === 'store' && isOwner ? (
-        <VendorStoreSettingsPanel
-          form={storeForm}
-          loading={storeLoading}
-          saving={updateStore.isPending}
-          onSubmit={onStoreSubmit}
-        />
-      ) : null}
-
-      {tab === 'payout' && isOwner ? (
-        <div className="space-y-6">
-          <VendorPayoutBalancePanel />
-          <Card className="max-w-2xl">
-            <CardHeader>
-              <h2 className="font-display font-medium text-ink">บัญชีรับเงิน Omise</h2>
-            </CardHeader>
-            <CardBody>
-              {storeLoading ? (
-                <p className="text-muted">กำลังโหลด...</p>
-              ) : (
-                <form onSubmit={payoutForm.handleSubmit(onPayoutSubmit)} className="space-y-4">
-                  {(() => {
-                    const status = store?.omiseRecipientStatus ?? 'not_connected';
-                    const info = OMISE_STATUS_INFO[status] ?? OMISE_STATUS_INFO.not_connected;
-                    return (
-                      <div
-                        className={`rounded-lg px-3 py-2 text-sm ${info.className}`}
-                        role="status"
-                      >
-                        <span className="font-medium">สถานะ: {info.label}</span>
-                        {status === 'failed' && store?.omiseRecipientFailureMessage ? (
-                          <p className="mt-1 text-xs">{store.omiseRecipientFailureMessage}</p>
-                        ) : null}
-                      </div>
-                    );
-                  })()}
-                  <div>
-                    <Label htmlFor="bankCode" required>
-                      ธนาคาร
-                    </Label>
-                    <Controller
-                      control={payoutForm.control}
-                      name="bankCode"
-                      render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger
-                            id="bankCode"
-                            aria-invalid={!!payoutForm.formState.errors.bankCode}
-                            aria-describedby={
-                              payoutForm.formState.errors.bankCode ? 'bankCode-error' : undefined
-                            }
-                            className="mt-1.5"
-                          >
-                            <SelectValue placeholder="เลือกธนาคาร" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {THAI_BANKS.map((bank) => (
-                              <SelectItem key={bank.code} value={bank.code}>
-                                {bank.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    {payoutForm.formState.errors.bankCode ? (
-                      <p id="bankCode-error" className="mt-1 text-xs text-danger" role="alert">
-                        {payoutForm.formState.errors.bankCode.message}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div>
-                    <Label htmlFor="bankAccountName" required>
-                      ชื่อบัญชี
-                    </Label>
-                    <Input
-                      id="bankAccountName"
-                      autoComplete="name"
-                      placeholder="ชื่อบัญชี"
-                      aria-invalid={!!payoutForm.formState.errors.bankAccountName}
-                      aria-describedby={
-                        payoutForm.formState.errors.bankAccountName
-                          ? 'bankAccountName-error'
-                          : undefined
-                      }
-                      {...payoutForm.register('bankAccountName')}
-                      className="mt-1.5"
-                    />
-                    {payoutForm.formState.errors.bankAccountName ? (
-                      <p
-                        id="bankAccountName-error"
-                        className="mt-1 text-xs text-danger"
-                        role="alert"
-                      >
-                        {payoutForm.formState.errors.bankAccountName.message}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div>
-                    <Label htmlFor="bankAccountNumber" required>
-                      เลขที่บัญชี
-                    </Label>
-                    <Input
-                      id="bankAccountNumber"
-                      placeholder="เลขที่บัญชีธนาคาร"
-                      aria-invalid={!!payoutForm.formState.errors.bankAccountNumber}
-                      aria-describedby={
-                        payoutForm.formState.errors.bankAccountNumber
-                          ? 'bankAccountNumber-error'
-                          : undefined
-                      }
-                      {...payoutForm.register('bankAccountNumber')}
-                      className="mt-1.5"
-                    />
-                    {payoutForm.formState.errors.bankAccountNumber ? (
-                      <p
-                        id="bankAccountNumber-error"
-                        className="mt-1 text-xs text-danger"
-                        role="alert"
-                      >
-                        {payoutForm.formState.errors.bankAccountNumber.message}
-                      </p>
-                    ) : null}
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={updatePayout.isPending}
-                    aria-busy={updatePayout.isPending}
-                  >
-                    {updatePayout.isPending ? 'กำลังบันทึก...' : 'บันทึกบัญชีรับเงิน'}
-                  </Button>
-                </form>
-              )}
-            </CardBody>
-          </Card>
+        <div id={TAB_PANEL_IDS.store} role="tabpanel" aria-labelledby="settings-tab-store">
+          <VendorStoreSettingsPanel
+            form={storeForm}
+            loading={storeLoading}
+            saving={updateStore.isPending}
+            onSubmit={onStoreSubmit}
+          />
         </div>
       ) : null}
 
-      {tab === 'shipping' && isOwner ? <VendorShippingPanel /> : null}
+      {tab === 'payout' && isOwner ? (
+        <div
+          id={TAB_PANEL_IDS.payout}
+          role="tabpanel"
+          aria-labelledby="settings-tab-payout"
+          className="space-y-6"
+        >
+          <VendorPayoutBalancePanel />
+          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+            <VendorPayoutAccountPanel
+              form={payoutForm}
+              store={store}
+              loading={storeLoading}
+              saving={updatePayout.isPending}
+              onSubmit={onPayoutSubmit}
+            />
+            <VendorPayoutHistoryPanel />
+          </div>
+        </div>
+      ) : null}
+
+      {tab === 'shipping' && isOwner ? (
+        <div id={TAB_PANEL_IDS.shipping} role="tabpanel" aria-labelledby="settings-tab-shipping">
+          <VendorShippingPanel />
+        </div>
+      ) : null}
     </div>
+  );
+}
+
+export default function VendorSettingsPage() {
+  return (
+    <Suspense fallback={<SettingsPageSkeleton />}>
+      <VendorSettingsPageContent />
+    </Suspense>
   );
 }

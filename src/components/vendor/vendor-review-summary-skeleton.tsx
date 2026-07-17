@@ -1,11 +1,17 @@
+function SkeletonBlock({ className }: { className?: string }) {
+  return (
+    <div
+      className={`animate-pulse rounded-xl bg-surface motion-reduce:animate-none ${className ?? ''}`}
+      aria-hidden="true"
+    />
+  );
+}
+
 export function VendorReviewSummarySkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      <div className="grid gap-4 sm:grid-cols-2 lg:col-span-2">
-        <div className="h-28 animate-pulse rounded-xl bg-surface" />
-        <div className="h-28 animate-pulse rounded-xl bg-surface" />
-      </div>
-      <div className="h-40 animate-pulse rounded-xl bg-surface lg:col-span-1" />
+    <div className="grid gap-4 lg:grid-cols-5" aria-busy="true" aria-label="กำลังโหลดสรุปรีวิว">
+      <SkeletonBlock className="h-28 lg:col-span-2" />
+      <SkeletonBlock className="h-40 lg:col-span-3" />
     </div>
   );
 }

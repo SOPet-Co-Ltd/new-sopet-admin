@@ -1,10 +1,19 @@
 import { cn } from '@/lib/utils';
 
-export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
+export function Card({
+  className,
+  children,
+  role,
+}: {
+  className?: string;
+  children: React.ReactNode;
+  role?: React.AriaRole;
+}) {
   return (
     <div
+      role={role}
       className={cn(
-        'rounded-xl border border-border bg-card shadow-[var(--shadow-card)]',
+        'min-w-0 rounded-xl border border-border bg-card shadow-[var(--shadow-card)]',
         className,
       )}
     >
@@ -48,9 +57,13 @@ export function PageHeader({
     <div className="mb-8">
       {back ? <div className="mb-3">{back}</div> : null}
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-ink">{title}</h1>
-          {description ? <p className="mt-1.5 text-sm text-muted">{description}</p> : null}
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl font-semibold text-balance break-words text-ink">
+            {title}
+          </h1>
+          {description ? (
+            <p className="mt-1.5 text-sm text-muted-foreground text-pretty">{description}</p>
+          ) : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>

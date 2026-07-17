@@ -62,8 +62,10 @@ export function AdminVendorActivityLog({ activities }: AdminVendorActivityLogPro
   return (
     <Card>
       <CardHeader>
-        <h2 className="font-display text-lg font-semibold text-ink">บันทึกกิจกรรม</h2>
-        <p className="text-sm text-muted">เหตุการณ์สำคัญจากบัญชี ร้านค้า และคำสั่งซื้อล่าสุด</p>
+        <h2 className="font-display text-lg font-semibold text-balance text-ink">บันทึกกิจกรรม</h2>
+        <p className="mt-1 text-sm text-muted-foreground text-pretty">
+          เหตุการณ์สำคัญจากบัญชี ร้านค้า และคำสั่งซื้อล่าสุด
+        </p>
       </CardHeader>
       <CardBody>
         <DataTable columns={columns} data={rows} emptyMessage="ยังไม่มีกิจกรรม" />

@@ -1,6 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { authenticateAsAdmin } from './fixtures/taxonomy/admin-auth';
 import { installTaxonomyGraphQLMocks } from './fixtures/taxonomy/graphql-mock';
+
+function cardByHeading(page: Page, name: string | RegExp) {
+  return page.locator('div.rounded-xl').filter({ has: page.getByRole('heading', { name }) });
+}
 
 test.describe('Search taxonomy fixture-e2e', () => {
   test.beforeEach(async ({ page }) => {
@@ -15,14 +19,12 @@ test.describe('Search taxonomy fixture-e2e', () => {
     await expect(page.getByText('หมวดที่ปฏิเสธ')).toBeVisible();
     await expect(page.getByText('ปฏิเสธแล้ว').first()).toBeVisible();
 
-    const categoryRejectedSection = page
-      .getByRole('heading', { name: 'หมวดหมู่ที่ปฏิเสธแล้ว' })
-      .locator('..');
+    const categoryRejectedSection = cardByHeading(page, 'หมวดหมู่ที่ปฏิเสธแล้ว');
     await expect(categoryRejectedSection.getByRole('button', { name: 'ลบ' })).toBeVisible();
     await expect(categoryRejectedSection.getByRole('button', { name: 'อนุมัติ' })).toHaveCount(0);
     await expect(categoryRejectedSection.getByRole('button', { name: 'ปฏิเสธ' })).toHaveCount(0);
 
-    await page.getByRole('button', { name: /แท็ก · รออนุมัติ/ }).click();
+    await page.getByRole('tab', { name: /แท็ก/ }).click();
     await expect(page.getByRole('heading', { name: 'แท็กที่ปฏิเสธแล้ว' })).toBeVisible();
     await expect(page.getByText('แท็กที่ปฏิเสธ', { exact: true })).toBeVisible();
   });
@@ -30,9 +32,7 @@ test.describe('Search taxonomy fixture-e2e', () => {
   test('Journey AC1: category delete wizard with replacement', async ({ page }) => {
     await page.goto('/admin/taxonomy');
 
-    const deleteButton = page
-      .getByRole('heading', { name: 'หมวดหมู่ที่อนุมัติแล้ว' })
-      .locator('..')
+    const deleteButton = cardByHeading(page, 'หมวดหมู่ที่อนุมัติแล้ว')
       .getByRole('button', { name: 'ลบ' })
       .first();
     await deleteButton.click();

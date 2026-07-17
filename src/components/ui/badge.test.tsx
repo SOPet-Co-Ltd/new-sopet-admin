@@ -26,6 +26,7 @@ describe('Badge', () => {
 
     const badge = screen.getByTestId('badge');
     expect(badge).toHaveClass('bg-surface');
+    expect(badge).toHaveClass('text-muted-foreground');
     expect(badge).toHaveClass('border');
     expect(badge).toHaveClass('border-border');
   });

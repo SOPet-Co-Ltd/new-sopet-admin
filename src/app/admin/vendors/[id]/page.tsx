@@ -6,20 +6,19 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import {
-  HiArrowLeft,
-  HiBanknotes,
-  HiBuildingStorefront,
-  HiEnvelope,
-  HiShoppingBag,
-} from 'react-icons/hi2';
 import { AdminCustomerOrderHistory } from '@/components/admin/admin-customer-order-history';
 import { AdminVendorActivityLog } from '@/components/admin/admin-vendor-activity-log';
+import {
+  BackToVendorsLink,
+  VendorDetailRow,
+  VendorDetailSkeleton,
+  VendorInsightFact,
+  VendorStatusBadges,
+} from '@/components/admin/admin-vendor-detail-primitives';
 import { AdminVendorMembershipsTable } from '@/components/admin/admin-vendor-memberships-table';
 import { AdminVendorStoresTable } from '@/components/admin/admin-vendor-stores-table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -30,7 +29,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { StatCard } from '@/components/vendor/stat-card';
 import {
   useAdminResendVendorEmailVerification,
   useAdminVendorDetail,
@@ -41,33 +39,6 @@ import { executeMutation } from '@/lib/graphql/client';
 import { ADMIN_TRIGGER_VENDOR_PASSWORD_RESET } from '@/lib/graphql/documents';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { adminVendorFormSchema, type AdminVendorFormValues } from '@/lib/validations';
-
-function getVendorInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return 'ผ';
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-}
-
-function VendorAvatar({ name }: { name: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-brand/15 bg-brand-tint font-display text-xl font-semibold text-brand sm:size-20 sm:text-2xl"
-    >
-      {getVendorInitials(name)}
-    </div>
-  );
-}
-
-function AccountInfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-b-0 last:pb-0">
-      <span className="text-muted">{label}</span>
-      <span className="text-right text-ink">{value}</span>
-    </div>
-  );
-}
 
 export default function AdminVendorEditPage() {
   const params = useParams<{ id: string }>();
@@ -141,62 +112,41 @@ export default function AdminVendorEditPage() {
     }
   }
 
-  if (isLoading) return <p className="text-muted">กำลังโหลด...</p>;
+  if (isLoading) return <VendorDetailSkeleton />;
+
   if (error || !vendor) {
     return (
-      <p className="text-danger" role="alert">
-        {error instanceof Error ? error.message : 'ไม่พบผู้ขาย'}
-      </p>
+      <div className="space-y-4">
+        <BackToVendorsLink />
+        <p className="text-sm text-danger" role="alert">
+          {error instanceof Error ? error.message : 'ไม่พบผู้ขาย'}
+        </p>
+      </div>
     );
   }
 
   const { insights } = vendor;
   const mutationPending = updateMutation.isPending;
   const verificationPending = resendVerificationMutation.isPending || verifyEmailMutation.isPending;
+  const isActive = vendor.isActive !== false;
 
   return (
     <div className="space-y-8">
-      <Link
-        href="/admin/vendors"
-        className="inline-flex items-center gap-1 text-sm text-muted hover:text-brand"
-      >
-        <HiArrowLeft className="size-3.5" aria-hidden="true" />
-        กลับรายการผู้ขาย
-      </Link>
-
-      <Card>
-        <CardBody>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
-            <VendorAvatar name={vendor.fullName} />
-            <div className="min-w-0 flex-1">
-              <h1 className="font-display text-2xl font-semibold text-ink">{vendor.fullName}</h1>
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-muted">
-                <HiEnvelope className="size-4 shrink-0" aria-hidden="true" />
-                <span className="truncate">{vendor.email}</span>
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Badge status={vendor.isActive !== false ? 'published' : 'draft'}>
-                  {vendor.isActive !== false ? 'ใช้งานอยู่' : 'ระงับ'}
-                </Badge>
-                {vendor.emailVerified ? (
-                  <Badge status="published">ยืนยันอีเมลแล้ว</Badge>
-                ) : (
-                  <Badge status="draft">ยังไม่ยืนยันอีเมล</Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
+      <PageHeader
+        title={vendor.fullName}
+        description={vendor.email}
+        back={<BackToVendorsLink />}
+        action={<VendorStatusBadges isActive={isActive} emailVerified={vendor.emailVerified} />}
+      />
 
       {!vendor.emailVerified ? (
         <Card className="border-warning-bg bg-warning-bg/40">
           <CardBody className="space-y-4">
             <div>
-              <h2 className="font-display text-base font-semibold text-warning-text">
+              <h2 className="font-display text-base font-semibold text-balance text-warning-text">
                 ยังไม่ยืนยันอีเมล
               </h2>
-              <p className="mt-1 text-sm text-muted">
+              <p className="mt-1 text-sm text-muted-foreground text-pretty">
                 ผู้ขายยังไม่ได้ยืนยันอีเมล{' '}
                 <span className="font-medium text-ink">{vendor.email}</span>{' '}
                 ส่งลิงก์ยืนยันอีกครั้งหรือยืนยันด้วยตนเองได้จากที่นี่
@@ -228,7 +178,7 @@ export default function AdminVendorEditPage() {
               </Button>
             </div>
             {verificationMessage ? (
-              <p className="text-sm text-muted" role="status">
+              <p className="text-sm text-muted-foreground" role="status">
                 {verificationMessage}
               </p>
             ) : null}
@@ -261,35 +211,39 @@ export default function AdminVendorEditPage() {
         </DialogContent>
       </Dialog>
 
-      <section className="space-y-4" aria-labelledby="vendor-overview-heading">
-        <h2 id="vendor-overview-heading" className="font-display text-lg font-semibold text-ink">
-          ภาพรวม
+      <section aria-labelledby="vendor-platform-insights">
+        <h2 id="vendor-platform-insights" className="sr-only">
+          ภาพรวมผู้ขาย
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <StatCard
-            label="จำนวนร้านค้า"
-            value={insights.storeCount}
-            icon={<HiBuildingStorefront className="size-5 text-brand" aria-hidden="true" />}
-          />
-          <StatCard
-            label="รายได้รวม"
-            value={formatCurrency(insights.totalRevenue)}
-            icon={<HiBanknotes className="size-5 text-brand" aria-hidden="true" />}
-          />
-          <StatCard
-            label="จำนวนคำสั่งซื้อ"
-            value={insights.orderCount}
-            hint="ไม่รวมคำสั่งซื้อที่ยกเลิก คืนเงิน หรือรอชำระ"
-            icon={<HiShoppingBag className="size-5 text-brand" aria-hidden="true" />}
-          />
-        </div>
+        <Card>
+          <CardBody>
+            <dl className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <VendorInsightFact label="จำนวนร้านค้า">
+                {insights.storeCount.toLocaleString('th-TH')}
+              </VendorInsightFact>
+              <VendorInsightFact label="รายได้รวม">
+                {formatCurrency(insights.totalRevenue)}
+              </VendorInsightFact>
+              <VendorInsightFact
+                label="จำนวนคำสั่งซื้อ"
+                hint="ไม่รวมคำสั่งซื้อที่ยกเลิก คืนเงิน หรือรอชำระ"
+              >
+                {insights.orderCount.toLocaleString('th-TH')}
+              </VendorInsightFact>
+            </dl>
+          </CardBody>
+        </Card>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <Card>
           <CardHeader>
-            <h2 className="font-display text-lg font-semibold text-ink">แก้ไขข้อมูลผู้ขาย</h2>
-            <p className="text-sm text-muted">อัปเดตชื่อและอีเมลสำหรับเข้าสู่ระบบ</p>
+            <h2 className="font-display text-lg font-semibold text-balance text-ink">
+              แก้ไขข้อมูลผู้ขาย
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground text-pretty">
+              อัปเดตชื่อและอีเมลสำหรับเข้าสู่ระบบ
+            </p>
           </CardHeader>
           <CardBody>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -302,11 +256,14 @@ export default function AdminVendorEditPage() {
                   placeholder="ชื่อ-นามสกุล"
                   autoComplete="name"
                   aria-invalid={!!form.formState.errors.fullName}
+                  aria-describedby={
+                    form.formState.errors.fullName ? 'vendor-fullName-error' : undefined
+                  }
                   {...form.register('fullName')}
                   className="mt-1.5"
                 />
                 {form.formState.errors.fullName ? (
-                  <p className="mt-1 text-xs text-danger" role="alert">
+                  <p id="vendor-fullName-error" className="mt-1 text-xs text-danger" role="alert">
                     {form.formState.errors.fullName.message}
                   </p>
                 ) : null}
@@ -321,15 +278,23 @@ export default function AdminVendorEditPage() {
                   placeholder="email@example.com"
                   autoComplete="email"
                   aria-invalid={!!form.formState.errors.email}
+                  aria-describedby={form.formState.errors.email ? 'vendor-email-error' : undefined}
                   {...form.register('email')}
                   className="mt-1.5"
                 />
                 {form.formState.errors.email ? (
-                  <p className="mt-1 text-xs text-danger" role="alert">
+                  <p id="vendor-email-error" className="mt-1 text-xs text-danger" role="alert">
                     {form.formState.errors.email.message}
                   </p>
                 ) : null}
               </div>
+              {updateMutation.isError ? (
+                <p className="text-sm text-danger" role="alert">
+                  {updateMutation.error instanceof Error
+                    ? updateMutation.error.message
+                    : 'บันทึกไม่สำเร็จ'}
+                </p>
+              ) : null}
               <div className="flex flex-wrap gap-3 pt-1">
                 <Button
                   type="submit"
@@ -349,60 +314,61 @@ export default function AdminVendorEditPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <h2 className="font-display text-lg font-semibold text-ink">ข้อมูลบัญชี</h2>
+              <h2 className="font-display text-lg font-semibold text-balance text-ink">
+                ข้อมูลบัญชี
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                กิจกรรมและข้อมูลที่บันทึกในระบบ
+              </p>
             </CardHeader>
             <CardBody className="space-y-3 text-sm">
-              <AccountInfoRow
-                label="สมัครเมื่อ"
-                value={vendor.createdAt ? formatDateTime(vendor.createdAt) : '—'}
-              />
-              <AccountInfoRow
-                label="เข้าสู่ระบบล่าสุด"
-                value={
-                  vendor.lastLoginAt ? formatDateTime(vendor.lastLoginAt) : 'ยังไม่เคยเข้าสู่ระบบ'
-                }
-              />
-              <AccountInfoRow
-                label="กิจกรรมล่าสุด"
-                value={
-                  insights.lastActivityAt
-                    ? formatDateTime(insights.lastActivityAt)
-                    : 'ยังไม่มีกิจกรรม'
-                }
-              />
-              <AccountInfoRow
-                label="ยอดเฉลี่ยต่อคำสั่งซื้อ"
-                value={formatCurrency(insights.averageOrderValue)}
-              />
-              <AccountInfoRow
-                label="คำสั่งซื้อล่าสุด"
-                value={
-                  insights.lastOrderAt ? formatDateTime(insights.lastOrderAt) : 'ยังไม่มีคำสั่งซื้อ'
-                }
-              />
-              <AccountInfoRow label="สมาชิกร้านอื่น" value={`${insights.membershipCount} ร้าน`} />
+              <VendorDetailRow label="สมัครเมื่อ">
+                {vendor.createdAt ? formatDateTime(vendor.createdAt) : '—'}
+              </VendorDetailRow>
+              <VendorDetailRow label="เข้าสู่ระบบล่าสุด">
+                {vendor.lastLoginAt ? formatDateTime(vendor.lastLoginAt) : 'ยังไม่เคยเข้าสู่ระบบ'}
+              </VendorDetailRow>
+              <VendorDetailRow label="กิจกรรมล่าสุด">
+                {insights.lastActivityAt
+                  ? formatDateTime(insights.lastActivityAt)
+                  : 'ยังไม่มีกิจกรรม'}
+              </VendorDetailRow>
+              <VendorDetailRow label="ยอดเฉลี่ยต่อคำสั่งซื้อ">
+                {formatCurrency(insights.averageOrderValue)}
+              </VendorDetailRow>
+              <VendorDetailRow label="คำสั่งซื้อล่าสุด">
+                {insights.lastOrderAt ? formatDateTime(insights.lastOrderAt) : 'ยังไม่มีคำสั่งซื้อ'}
+              </VendorDetailRow>
+              <VendorDetailRow label="สมาชิกร้านอื่น">
+                {insights.membershipCount.toLocaleString('th-TH')} ร้าน
+              </VendorDetailRow>
             </CardBody>
           </Card>
 
           <Card>
             <CardHeader>
-              <h2 className="font-display text-lg font-semibold text-ink">การดำเนินการบัญชี</h2>
-              <p className="text-sm text-muted">จัดการสถานะบัญชีและการเข้าสู่ระบบ</p>
+              <h2 className="font-display text-lg font-semibold text-balance text-ink">
+                การดำเนินการบัญชี
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                จัดการสถานะบัญชีและการเข้าสู่ระบบ
+              </p>
             </CardHeader>
             <CardBody className="space-y-3">
               <Button
                 type="button"
-                variant={vendor.isActive !== false ? 'destructive' : 'outline'}
+                variant={isActive ? 'destructive' : 'outline'}
                 className="w-full"
                 disabled={mutationPending}
+                aria-busy={updateMutation.isPending}
                 onClick={() =>
                   updateMutation.mutate({
                     id: params.id,
-                    input: { isActive: vendor.isActive === false },
+                    input: { isActive: !isActive },
                   })
                 }
               >
-                {vendor.isActive !== false ? 'ระงับบัญชี' : 'เปิดใช้งานบัญชี'}
+                {isActive ? 'ระงับบัญชี' : 'เปิดใช้งานบัญชี'}
               </Button>
               <Button
                 type="button"
@@ -416,7 +382,7 @@ export default function AdminVendorEditPage() {
                 {passwordResetMutation.isPending ? 'กำลังส่ง...' : 'ส่งอีเมลรีเซ็ตรหัสผ่าน'}
               </Button>
               {resetMessage ? (
-                <p className="text-sm text-muted" role="status">
+                <p className="text-sm text-muted-foreground" role="status">
                   {resetMessage}
                 </p>
               ) : null}
@@ -426,20 +392,18 @@ export default function AdminVendorEditPage() {
       </div>
 
       <section className="space-y-6" aria-labelledby="vendor-stores-heading">
-        <h2 id="vendor-stores-heading" className="font-display text-lg font-semibold text-ink">
+        <h2 id="vendor-stores-heading" className="sr-only">
           ร้านค้าและกิจกรรม
         </h2>
-        <div className="space-y-6">
-          <AdminVendorStoresTable stores={vendor.stores} />
-          <AdminVendorMembershipsTable memberships={insights.memberships} />
-          <AdminVendorActivityLog activities={insights.activities} />
-          <AdminCustomerOrderHistory
-            orders={insights.recentOrders}
-            title="คำสั่งซื้อล่าสุดของร้าน"
-            description="แสดงคำสั่งซื้อ 10 รายการล่าสุดจากร้านที่เป็นเจ้าของ"
-            emptyMessage="ยังไม่มีคำสั่งซื้อจากร้านของผู้ขาย"
-          />
-        </div>
+        <AdminVendorStoresTable stores={vendor.stores} />
+        <AdminVendorMembershipsTable memberships={insights.memberships} />
+        <AdminVendorActivityLog activities={insights.activities} />
+        <AdminCustomerOrderHistory
+          orders={insights.recentOrders}
+          title="คำสั่งซื้อล่าสุดของร้าน"
+          description="แสดงคำสั่งซื้อ 10 รายการล่าสุดจากร้านที่เป็นเจ้าของ"
+          emptyMessage="ยังไม่มีคำสั่งซื้อจากร้านของผู้ขาย"
+        />
       </section>
     </div>
   );

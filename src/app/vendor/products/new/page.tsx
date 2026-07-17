@@ -61,6 +61,7 @@ export default function NewProductPage() {
   const itemCount = useMemo(() => countVariantItems(groups), [groups]);
   const isPending = createMutation.isPending || syncMutation.isPending;
   const error = createMutation.error ?? syncMutation.error;
+  const currentStepMeta = PRODUCT_WIZARD_STEPS[step - 1];
 
   async function handleNext() {
     if (step === 1) {
@@ -116,11 +117,11 @@ export default function NewProductPage() {
     <div className="mx-auto max-w-2xl">
       <PageHeader
         title="สร้างสินค้า"
-        description={`ขั้นที่ ${step} จาก ${PRODUCT_WIZARD_STEPS.length} — ${PRODUCT_WIZARD_STEPS[step - 1].label}`}
+        description={`ขั้นที่ ${step} จาก ${PRODUCT_WIZARD_STEPS.length} — ${currentStepMeta.label}`}
         back={
           <Link
             href="/vendor/products"
-            className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-brand"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-brand focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             <HiArrowLeft className="size-3.5" aria-hidden="true" />
             กลับไปรายการสินค้า
@@ -130,14 +131,20 @@ export default function NewProductPage() {
 
       <Stepper steps={PRODUCT_WIZARD_STEPS} currentStep={step} className="mb-8" />
 
+      <p className="sr-only" aria-live="polite">
+        ขั้นที่ {step} จาก {PRODUCT_WIZARD_STEPS.length}: {currentStepMeta.label}
+      </p>
+
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {step === 1 ? (
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">ข้อมูลพื้นฐาน</h2>
-              <p className="text-sm text-muted">ชื่อและรายละเอียดสินค้าที่ลูกค้าจะเห็น</p>
+              <h2 className="text-balance font-display font-medium text-ink">ข้อมูลพื้นฐาน</h2>
+              <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                ชื่อและรายละเอียดสินค้าที่ลูกค้าจะเห็น
+              </p>
             </CardHeader>
-            <CardBody className="space-y-4">
+            <CardBody className="space-y-5">
               <div>
                 <Label htmlFor="name" required>
                   ชื่อสินค้า
@@ -151,7 +158,7 @@ export default function NewProductPage() {
                   className="mt-1.5"
                 />
                 {form.formState.errors.name ? (
-                  <p id="name-error" className="mt-1 text-xs text-danger" role="alert">
+                  <p id="name-error" className="mt-1.5 text-xs text-danger" role="alert">
                     {form.formState.errors.name.message}
                   </p>
                 ) : null}
@@ -178,13 +185,13 @@ export default function NewProductPage() {
         {step === 2 ? (
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">การจัดหมวดหมู่</h2>
-              <p className="text-sm text-muted">
+              <h2 className="text-balance font-display font-medium text-ink">การจัดหมวดหมู่</h2>
+              <p className="mt-1 text-sm text-muted-foreground text-pretty">
                 ช่วยให้ลูกค้าค้นหาสินค้านี้เจอง่ายขึ้น (ไม่จำเป็น)
               </p>
             </CardHeader>
             <CardBody>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-5 sm:grid-cols-2">
                 <CategoryField
                   value={form.watch('categoryId')}
                   onChange={(categoryId) => form.setValue('categoryId', categoryId)}
@@ -209,23 +216,35 @@ export default function NewProductPage() {
         {step === 3 ? (
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">
+              <h2 className="text-balance font-display font-medium text-ink">
                 ตัวเลือกสินค้า <span className="text-danger">*</span>
               </h2>
-              <p className="text-sm text-muted">
+              <p className="mt-1 text-sm text-muted-foreground text-pretty">
                 กำหนดกลุ่มตัวเลือก เช่น สี หรือไซส์ — ขั้นถัดไปจะให้กำหนด SKU สต็อก
                 และราคาของแต่ละรายการ
               </p>
             </CardHeader>
             <CardBody className="space-y-4">
-              <VariantOptionGroupsEditor groups={groups} onChange={handleGroupsChange} />
+              <VariantOptionGroupsEditor
+                groups={groups}
+                onChange={handleGroupsChange}
+                showIntro={false}
+              />
               {itemCount > 0 ? (
-                <p className="text-sm text-muted">จะสร้าง {itemCount} รายการตัวเลือก</p>
+                <p className="rounded-lg bg-surface px-3 py-2 text-sm text-muted-foreground">
+                  จะสร้าง <span className="font-medium tabular-nums text-ink">{itemCount}</span>{' '}
+                  รายการตัวเลือก
+                </p>
               ) : (
-                <p className="text-sm text-muted">ต้องมีอย่างน้อย 1 ตัวเลือก</p>
+                <p className="rounded-lg bg-surface px-3 py-2 text-sm text-muted-foreground">
+                  ต้องมีอย่างน้อย 1 ตัวเลือกที่มีชื่อและค่า
+                </p>
               )}
               {variantError ? (
-                <p className="text-xs text-danger" role="alert">
+                <p
+                  className="rounded-lg border border-danger/20 bg-danger-bg px-3 py-2 text-sm text-danger"
+                  role="alert"
+                >
                   {variantError}
                 </p>
               ) : null}
@@ -234,19 +253,28 @@ export default function NewProductPage() {
         ) : null}
 
         {error ? (
-          <p className="text-sm text-danger" role="alert">
+          <p
+            className="rounded-lg border border-danger/20 bg-danger-bg px-3 py-2 text-sm text-danger"
+            role="alert"
+          >
             {error instanceof Error ? error.message : 'สร้างสินค้าไม่สำเร็จ'}
           </p>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex gap-3">
-            <Button type="button" variant="outline" asChild>
+        <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-3">
+            <Button type="button" variant="outline" asChild className="min-w-24">
               <Link href="/vendor/products">ยกเลิก</Link>
             </Button>
             {step > 1 ? (
-              <Button type="button" variant="outline" onClick={handleBack} disabled={isPending}>
-                <span className="inline-flex items-center gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                disabled={isPending}
+                className="min-w-24"
+              >
+                <span className="inline-flex items-center gap-1.5">
                   <HiArrowLeft className="size-4" aria-hidden="true" />
                   ก่อนหน้า
                 </span>
@@ -255,20 +283,25 @@ export default function NewProductPage() {
           </div>
 
           {step < LAST_FORM_STEP ? (
-            <Button type="button" onClick={handleNext}>
-              <span className="inline-flex items-center gap-1">
+            <Button type="button" onClick={handleNext} className="w-full sm:w-auto">
+              <span className="inline-flex items-center gap-1.5">
                 ถัดไป
                 <HiArrowRight className="size-4" aria-hidden="true" />
               </span>
             </Button>
           ) : (
-            <Button type="submit" disabled={isPending} aria-busy={isPending}>
+            <Button
+              type="submit"
+              disabled={isPending}
+              aria-busy={isPending}
+              className="h-auto min-h-10 w-full whitespace-normal py-2.5 text-center sm:w-auto sm:max-w-xs"
+            >
               {isPending ? (
                 'กำลังสร้าง...'
               ) : (
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center justify-center gap-1.5">
                   สร้างสินค้าและไปกำหนดตัวเลือก
-                  <HiArrowRight className="size-4" aria-hidden="true" />
+                  <HiArrowRight className="size-4 shrink-0" aria-hidden="true" />
                 </span>
               )}
             </Button>

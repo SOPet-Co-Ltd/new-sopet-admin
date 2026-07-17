@@ -7,7 +7,8 @@ import VendorOrdersPage from './page';
 const pushMock = vi.fn();
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: pushMock }),
+  useRouter: () => ({ push: pushMock, replace: vi.fn() }),
+  useSearchParams: () => new URLSearchParams('queue=action'),
 }));
 
 vi.mock('@/hooks/useVendorOrders', () => ({
@@ -44,7 +45,7 @@ const mockedUseVendorStoreId = vi.mocked(useVendorStoreId);
 const MOCK_ORDER: Order = {
   id: 'order-abc-123',
   orderNumber: 'ORD-MRFTYF80-PSFE',
-  status: 'pending',
+  status: 'pending_payment',
   createdAt: '2026-07-11T10:00:00.000Z',
   subtotal: 1000,
   shippingFee: 50,
@@ -87,6 +88,13 @@ describe('VendorOrdersPage', () => {
    * @lane: integration
    * @dependency: VendorOrdersPage, VendorOrdersActionMenu
    */
+  it('shows inline workflow action for actionable orders', () => {
+    mockVendorOrdersPage();
+    render(<VendorOrdersPage />);
+
+    expect(screen.getByRole('link', { name: 'ยืนยันชำระเงิน' })).toBeInTheDocument();
+  });
+
   it('navigates to order detail page when view details menu item is selected', async () => {
     mockVendorOrdersPage();
     render(<VendorOrdersPage />);

@@ -61,9 +61,7 @@ test.describe('proxy auth gate', () => {
 
     await page.getByRole('link', { name: 'หมวดหมู่และแท็ก' }).click();
     await page.waitForURL(/\/admin\/taxonomy$/);
-    await expect(
-      page.getByRole('heading', { name: 'หมวดหมู่ แท็ก ประเภทสัตว์เลี้ยง และแบรนด์' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'จัดการหมวดหมู่และแท็กสินค้า' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'สร้างหมวดหมู่' })).toBeVisible();
     await expect(page.locator('body')).not.toContainText('กำลังโหลด...');
   });

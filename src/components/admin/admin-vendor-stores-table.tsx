@@ -31,7 +31,11 @@ export function AdminVendorStoresTable({ stores }: AdminVendorStoresTableProps) 
       {
         accessorKey: 'slug',
         header: 'Slug',
-        cell: ({ row }) => <span className="text-muted">{row.original.slug}</span>,
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-muted-foreground sm:text-sm">
+            {row.original.slug}
+          </span>
+        ),
         meta: { className: 'hidden md:table-cell' },
       },
       {
@@ -50,8 +54,12 @@ export function AdminVendorStoresTable({ stores }: AdminVendorStoresTableProps) 
   return (
     <Card>
       <CardHeader>
-        <h2 className="font-display text-lg font-semibold text-ink">ร้านค้าที่เป็นเจ้าของ</h2>
-        <p className="text-sm text-muted">ร้านค้าทั้งหมด {stores.length} ร้าน</p>
+        <h2 className="font-display text-lg font-semibold text-balance text-ink">
+          ร้านค้าที่เป็นเจ้าของ
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground text-pretty">
+          ร้านค้าทั้งหมด {stores.length.toLocaleString('th-TH')} ร้าน
+        </p>
       </CardHeader>
       <CardBody>
         <DataTable columns={columns} data={stores} emptyMessage="ยังไม่มีร้านค้า" />

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardBody } from '@/components/ui/card';
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -34,17 +34,21 @@ import {
   getVendorOrderWorkflowAction,
   vendorCancelWillRefund,
 } from '@/lib/orders/workflow';
+import { cn } from '@/lib/utils';
 import type { Order } from '@/types';
 
 const WORKFLOW_STEPS = [
   { key: 'pending_payment', label: 'รอชำระเงิน' },
-  { key: 'paid', label: 'ชำระเงินแล้ว' },
+  { key: 'paid', label: 'ชำระแล้ว' },
   { key: 'processing', label: 'กำลังดำเนินการ' },
   { key: 'shipped', label: 'จัดส่งแล้ว' },
-  { key: 'delivered', label: 'ส่งสำเร็จ' },
+  { key: 'delivered', label: 'ส่งถึงแล้ว' },
 ] as const;
 
 function getActiveStepIndex(order: Order): number {
+  if (order.status === 'cancelled' || order.status === 'refunded') {
+    return -1;
+  }
   const index = WORKFLOW_STEPS.findIndex((step) => step.key === order.status);
   return index >= 0 ? index : 0;
 }
@@ -83,6 +87,7 @@ export function VendorOrderWorkflow({ order, storeId }: VendorOrderWorkflowProps
     shipMutation.isPending ||
     cancelMutation.isPending;
   const activeStep = getActiveStepIndex(order);
+  const hasPrimaryAction = action === 'mark_paid' || action === 'acknowledge' || action === 'ship';
 
   const handleCancelConfirm = () => {
     cancelMutation.mutate(order.id, {
@@ -92,147 +97,165 @@ export function VendorOrderWorkflow({ order, storeId }: VendorOrderWorkflowProps
 
   return (
     <Card>
-      <CardBody className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold text-ink">ขั้นตอนคำสั่งซื้อ</h3>
-          <p className="mt-1 text-xs text-muted">
-            สถานะปัจุบัน: {labelOrderStatus(order.status)} — ดำเนินการตามลำดับเท่านั้น
-          </p>
+      <CardHeader>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">ขั้นตอนถัดไป</h2>
+            <p className="mt-0.5 text-sm text-muted">
+              สถานะปัจจุบัน: {labelOrderStatus(order.status)}
+              {activeStep >= 0 ? ' — ดำเนินการตามลำดับเท่านั้น' : null}
+            </p>
+          </div>
         </div>
 
-        <ol className="flex flex-wrap gap-2">
-          {WORKFLOW_STEPS.map((step, index) => {
-            const isComplete = index < activeStep;
-            const isCurrent = index === activeStep;
-            return (
-              <li
-                key={step.key}
-                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  isComplete
-                    ? 'bg-success-bg text-success'
-                    : isCurrent
-                      ? 'bg-brand-tint text-brand'
-                      : 'bg-surface text-muted'
-                }`}
-              >
-                {step.label}
-              </li>
-            );
-          })}
-        </ol>
-
-        {action === 'mark_paid' ? (
-          <div className="space-y-2">
-            <p className="text-sm text-muted">
-              ยืนยันว่าลูกค้าชำระเงินแล้ว (เช่น COD หรือโอนนอกระบบ) ก่อนเริ่มเตรียมสินค้า
-            </p>
-            <Button
-              type="button"
-              disabled={isPending}
-              onClick={() => markPaidMutation.mutate(order.id)}
-            >
-              ยืนยันชำระเงินแล้ว
-            </Button>
-          </div>
+        {activeStep >= 0 ? (
+          <ol className="mt-4 flex flex-wrap gap-2" aria-label="ลำดับสถานะคำสั่งซื้อ">
+            {WORKFLOW_STEPS.map((step, index) => {
+              const isComplete = index < activeStep;
+              const isCurrent = index === activeStep;
+              return (
+                <li
+                  key={step.key}
+                  aria-current={isCurrent ? 'step' : undefined}
+                  className={cn(
+                    'rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-150',
+                    isComplete && 'bg-success-bg text-success',
+                    isCurrent && 'bg-brand-tint text-brand ring-1 ring-brand/30',
+                    !isComplete && !isCurrent && 'bg-surface text-muted',
+                  )}
+                >
+                  {step.label}
+                </li>
+              );
+            })}
+          </ol>
         ) : null}
+      </CardHeader>
 
-        {action === 'acknowledge' ? (
-          <div className="space-y-2">
-            <p className="text-sm text-muted">
-              แจ้งลูกค้าว่าร้านได้รับคำสั่งซื้อแล้ว สถานะจะเปลี่ยนเป็นกำลังดำเนินการ
-            </p>
-            <Button
-              type="button"
-              disabled={isPending}
-              onClick={() => acknowledgeMutation.mutate(order.id)}
-            >
-              แจ้งลูกค้าว่ารับคำสั่งซื้อแล้ว
-            </Button>
-          </div>
-        ) : null}
-
-        {action === 'ship' ? (
-          <div className="space-y-3">
-            <p className="text-sm text-muted">
-              กรอกข้อมูลการจัดส่งเพื่อแจ้งลูกค้าว่าสินค้าออกจากร้านแล้ว
-            </p>
-
-            <div className="space-y-1.5">
-              <Label htmlFor={`ship-provider-${order.id}`} required>
-                ผู้ให้บริการขนส่ง
-              </Label>
-              <Select value={fulfillmentProvider} onValueChange={setFulfillmentProvider}>
-                <SelectTrigger id={`ship-provider-${order.id}`} aria-label="ผู้ให้บริการขนส่ง">
-                  <SelectValue placeholder="เลือกผู้ให้บริการขนส่ง" />
-                </SelectTrigger>
-                <SelectContent>
-                  {providers.map((provider) => (
-                    <SelectItem key={provider.id} value={provider.name}>
-                      {provider.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {providers.length === 0 ? (
-                <p className="text-xs text-muted">
-                  ยังไม่มีผู้ให้บริการขนส่งในระบบ กรุณาให้แอดมินเพิ่มที่เมนูจัดการขนส่ง
+      <CardBody className="space-y-4">
+        {hasPrimaryAction ? (
+          <div className="rounded-xl bg-surface px-4 py-4 space-y-3">
+            {action === 'mark_paid' ? (
+              <>
+                <p className="text-sm text-ink text-pretty">
+                  ยืนยันว่าลูกค้าชำระเงินแล้ว (เช่น COD หรือโอนนอกระบบ) ก่อนเริ่มเตรียมสินค้า
                 </p>
-              ) : null}
-            </div>
+                <Button
+                  type="button"
+                  disabled={isPending}
+                  aria-busy={markPaidMutation.isPending}
+                  onClick={() => markPaidMutation.mutate(order.id)}
+                >
+                  {markPaidMutation.isPending ? 'กำลังยืนยัน...' : 'ยืนยันชำระเงินแล้ว'}
+                </Button>
+              </>
+            ) : null}
 
-            <div className="space-y-1.5">
-              <Label htmlFor={`ship-tracking-${order.id}`} required>
-                เลขพัสดุ
-              </Label>
-              <Input
-                id={`ship-tracking-${order.id}`}
-                type="text"
-                placeholder="เช่น TH123456789"
-                value={trackingNumber}
-                onChange={(event) => setTrackingNumber(event.target.value)}
-              />
-            </div>
+            {action === 'acknowledge' ? (
+              <>
+                <p className="text-sm text-ink text-pretty">
+                  แจ้งลูกค้าว่าร้านได้รับคำสั่งซื้อแล้ว สถานะจะเปลี่ยนเป็นกำลังดำเนินการ
+                </p>
+                <Button
+                  type="button"
+                  disabled={isPending}
+                  aria-busy={acknowledgeMutation.isPending}
+                  onClick={() => acknowledgeMutation.mutate(order.id)}
+                >
+                  {acknowledgeMutation.isPending
+                    ? 'กำลังแจ้งลูกค้า...'
+                    : 'แจ้งลูกค้าว่ารับคำสั่งซื้อแล้ว'}
+                </Button>
+              </>
+            ) : null}
 
-            <div className="space-y-1.5">
-              <Label htmlFor={`ship-url-${order.id}`}>ลิงก์ติดตาม (ไม่บังคับ)</Label>
-              <Input
-                id={`ship-url-${order.id}`}
-                type="url"
-                inputMode="url"
-                placeholder="https://track.example.com/..."
-                value={trackingUrl}
-                onChange={(event) => setTrackingUrl(event.target.value)}
-              />
-            </div>
+            {action === 'ship' ? (
+              <div className="space-y-3">
+                <p className="text-sm text-ink text-pretty">
+                  กรอกข้อมูลการจัดส่งเพื่อแจ้งลูกค้าว่าสินค้าออกจากร้านแล้ว
+                </p>
 
-            <Button
-              type="button"
-              disabled={isPending || !canSubmitShipment}
-              onClick={() =>
-                shipMutation.mutate({
-                  orderId: order.id,
-                  trackingNumber: trackingNumber.trim(),
-                  fulfillmentProvider: fulfillmentProvider.trim(),
-                  trackingUrl: trackingUrl.trim() || null,
-                })
-              }
-            >
-              บันทึกและจัดส่ง
-            </Button>
+                <div className="space-y-1.5">
+                  <Label htmlFor={`ship-provider-${order.id}`} required>
+                    ผู้ให้บริการขนส่ง
+                  </Label>
+                  <Select value={fulfillmentProvider} onValueChange={setFulfillmentProvider}>
+                    <SelectTrigger id={`ship-provider-${order.id}`} aria-label="ผู้ให้บริการขนส่ง">
+                      <SelectValue placeholder="เลือกผู้ให้บริการขนส่ง" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {providers.map((provider) => (
+                        <SelectItem key={provider.id} value={provider.name}>
+                          {provider.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {providers.length === 0 ? (
+                    <p className="text-xs text-muted">
+                      ยังไม่มีผู้ให้บริการขนส่งในระบบ กรุณาให้แอดมินเพิ่มที่เมนูจัดการขนส่ง
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor={`ship-tracking-${order.id}`} required>
+                    เลขพัสดุ
+                  </Label>
+                  <Input
+                    id={`ship-tracking-${order.id}`}
+                    type="text"
+                    placeholder="เช่น TH123456789"
+                    value={trackingNumber}
+                    onChange={(event) => setTrackingNumber(event.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor={`ship-url-${order.id}`}>ลิงก์ติดตาม (ไม่บังคับ)</Label>
+                  <Input
+                    id={`ship-url-${order.id}`}
+                    type="url"
+                    inputMode="url"
+                    placeholder="https://track.example.com/..."
+                    value={trackingUrl}
+                    onChange={(event) => setTrackingUrl(event.target.value)}
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  disabled={isPending || !canSubmitShipment}
+                  aria-busy={shipMutation.isPending}
+                  onClick={() =>
+                    shipMutation.mutate({
+                      orderId: order.id,
+                      trackingNumber: trackingNumber.trim(),
+                      fulfillmentProvider: fulfillmentProvider.trim(),
+                      trackingUrl: trackingUrl.trim() || null,
+                    })
+                  }
+                >
+                  {shipMutation.isPending ? 'กำลังบันทึก...' : 'บันทึกและจัดส่ง'}
+                </Button>
+              </div>
+            ) : null}
           </div>
         ) : null}
 
         {action === 'awaiting_customer' ? (
-          <div className="space-y-2 text-sm text-muted">
-            <p>จัดส่งแล้ว — รอลูกค้ายืนยันการรับสินค้า</p>
+          <div className="space-y-2 rounded-xl bg-surface px-4 py-4 text-sm">
+            <p className="font-medium text-ink">จัดส่งแล้ว — รอลูกค้ายืนยันการรับสินค้า</p>
             {shipment?.fulfillmentProvider ? (
-              <p>
+              <p className="text-muted">
                 ขนส่ง: <span className="font-medium text-ink">{shipment.fulfillmentProvider}</span>
               </p>
             ) : null}
             {shipment?.trackingNumber ? (
-              <p>
-                เลขพัสดุ: <span className="font-medium text-ink">{shipment.trackingNumber}</span>
+              <p className="text-muted">
+                เลขพัสดุ:{' '}
+                <span className="font-medium tabular-nums text-ink">{shipment.trackingNumber}</span>
               </p>
             ) : null}
             {shipment?.trackingUrl ? (
@@ -240,7 +263,7 @@ export function VendorOrderWorkflow({ order, storeId }: VendorOrderWorkflowProps
                 href={shipment.trackingUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex text-brand hover:underline"
+                className="inline-flex text-brand transition-colors hover:underline"
               >
                 เปิดลิงก์ติดตามพัสดุ
               </a>
@@ -249,7 +272,9 @@ export function VendorOrderWorkflow({ order, storeId }: VendorOrderWorkflowProps
         ) : null}
 
         {action === 'completed' ? (
-          <p className="text-sm text-success">คำสั่งซื้อสำหรับร้านของคุณเสร็จสมบูรณ์แล้ว</p>
+          <p className="rounded-xl bg-success-bg px-4 py-3 text-sm font-medium text-success">
+            คำสั่งซื้อสำหรับร้านของคุณเสร็จสมบูรณ์แล้ว
+          </p>
         ) : null}
 
         {action === 'none' && order.status !== 'delivered' ? (
@@ -257,7 +282,13 @@ export function VendorOrderWorkflow({ order, storeId }: VendorOrderWorkflowProps
         ) : null}
 
         {canCancel ? (
-          <div className="border-t border-border pt-4">
+          <div
+            className={cn(
+              hasPrimaryAction || action === 'awaiting_customer'
+                ? 'border-t border-border pt-4'
+                : '',
+            )}
+          >
             <Button
               type="button"
               variant="destructive"
@@ -292,9 +323,14 @@ export function VendorOrderWorkflow({ order, storeId }: VendorOrderWorkflowProps
                 type="button"
                 variant="destructive"
                 disabled={cancelMutation.isPending}
+                aria-busy={cancelMutation.isPending}
                 onClick={handleCancelConfirm}
               >
-                {willRefund ? 'ยกเลิกและคืนเงิน' : 'ยืนยันยกเลิก'}
+                {cancelMutation.isPending
+                  ? 'กำลังยกเลิก...'
+                  : willRefund
+                    ? 'ยกเลิกและคืนเงิน'
+                    : 'ยืนยันยกเลิก'}
               </Button>
             </DialogFooter>
           </DialogContent>

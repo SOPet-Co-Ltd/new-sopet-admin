@@ -67,6 +67,8 @@ export function ProductDescriptionEditor({
 }: ProductDescriptionEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const helpId = `${id}-help`;
+  const describedBy = [ariaDescribedBy, helpId].filter(Boolean).join(' ') || undefined;
 
   function applyMarkdownAction(action: MarkdownInsertAction) {
     if (disabled) return;
@@ -85,7 +87,7 @@ export function ProductDescriptionEditor({
   }
 
   return (
-    <div className="mt-1.5">
+    <div>
       <div className="mb-2 flex items-center justify-between gap-3">
         <Label htmlFor={id}>รายละเอียด</Label>
         <Button
@@ -101,8 +103,12 @@ export function ProductDescriptionEditor({
 
       <div
         className={cn(
-          'rounded-lg border border-border bg-white shadow-sm transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20',
-          disabled && 'opacity-50',
+          'rounded-lg border bg-white transition-colors duration-150 ease-out',
+          'focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20',
+          ariaInvalid
+            ? 'border-danger focus-within:border-danger focus-within:ring-danger/20'
+            : 'border-border',
+          disabled && 'cursor-not-allowed bg-surface/80 opacity-60',
         )}
       >
         <div
@@ -117,7 +123,7 @@ export function ProductDescriptionEditor({
               type="button"
               variant="ghost"
               size="sm"
-              className="h-8 min-w-8 px-2"
+              className="h-9 min-w-9 px-2"
               disabled={disabled}
               aria-label={button.label}
               onClick={() => applyMarkdownAction(button.action)}
@@ -137,10 +143,14 @@ export function ProductDescriptionEditor({
           disabled={disabled}
           placeholder={placeholder}
           aria-invalid={ariaInvalid}
-          aria-describedby={ariaDescribedBy}
-          className="flex min-h-[88px] w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-muted/60 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed"
+          aria-describedby={describedBy}
+          className="flex min-h-[120px] w-full resize-y border-0 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-muted-foreground/80 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed"
         />
       </div>
+
+      <p id={helpId} className="mt-1.5 text-xs text-muted-foreground text-pretty">
+        ใช้แถบเครื่องมือเพื่อจัดรูปแบบ Markdown หรือพิมพ์เองได้
+      </p>
 
       <ProductDescriptionPreviewDialog
         open={previewOpen}

@@ -59,8 +59,12 @@ export function AdminVendorMembershipsTable({ memberships }: AdminVendorMembersh
   return (
     <Card>
       <CardHeader>
-        <h2 className="font-display text-lg font-semibold text-ink">สมาชิกร้านค้าอื่น</h2>
-        <p className="text-sm text-muted">ร้านที่ผู้ขายเข้าร่วมในฐานะพนักงานหรือผู้จัดการ</p>
+        <h2 className="font-display text-lg font-semibold text-balance text-ink">
+          สมาชิกร้านค้าอื่น
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground text-pretty">
+          ร้านที่ผู้ขายเข้าร่วมในฐานะพนักงานหรือผู้จัดการ
+        </p>
       </CardHeader>
       <CardBody>
         <DataTable columns={columns} data={memberships} emptyMessage="ไม่มีสมาชิกภาพอื่น" />

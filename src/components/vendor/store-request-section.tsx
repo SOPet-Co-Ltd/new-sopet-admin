@@ -22,6 +22,27 @@ import { useCurrentUser } from '@/hooks/useAuth';
 import { getErrorMessage } from '@/lib/api/errors';
 import { labelStoreRequestStatus } from '@/lib/i18n/th';
 import { storeRequestSchema, type StoreRequestFormValues } from '@/lib/validations';
+import { cn } from '@/lib/utils';
+
+function requestStatusClass(status: string): string {
+  if (status === 'approved') return 'bg-success-bg text-success';
+  if (status === 'rejected') return 'bg-danger-bg text-danger';
+  if (status === 'pending') return 'bg-warning-bg text-warning-text';
+  return 'bg-surface text-muted-foreground';
+}
+
+function RequestListSkeleton() {
+  return (
+    <div className="space-y-3" aria-hidden="true">
+      {Array.from({ length: 2 }).map((_, index) => (
+        <div
+          key={index}
+          className="h-16 animate-pulse rounded-lg bg-surface motion-reduce:animate-none"
+        />
+      ))}
+    </div>
+  );
+}
 
 export function StoreRequestSection({
   id = 'new-store-request',
@@ -83,7 +104,7 @@ export function StoreRequestSection({
   return (
     <div id={id} className="space-y-6">
       {!open && showTrigger ? (
-        <Button type="button" onClick={() => setOpen(true)}>
+        <Button type="button" className="min-h-9" onClick={() => setOpen(true)}>
           ขอเปิดร้านใหม่
         </Button>
       ) : null}
@@ -197,11 +218,11 @@ export function StoreRequestSection({
               ) : null}
             </div>
             {!isEmailVerified && user?.email ? (
-              <p className="sm:col-span-2 text-sm text-muted">
+              <p className="sm:col-span-2 text-sm text-muted-foreground">
                 กรุณายืนยันอีเมลก่อนส่งคำขอ —{' '}
                 <a
                   href="#email-verification-banner"
-                  className="font-medium text-brand underline-offset-2 hover:underline"
+                  className="font-medium text-secondary underline-offset-2 hover:underline"
                 >
                   ดูวิธียืนยัน
                 </a>
@@ -209,18 +230,19 @@ export function StoreRequestSection({
             ) : null}
             <div className="sm:col-span-2 flex flex-wrap gap-3">
               {submitMutation.error ? (
-                <p className="mb-2 w-full text-sm text-danger">
+                <p className="mb-2 w-full text-sm text-danger" role="alert">
                   {getErrorMessage(submitMutation.error, 'ส่งคำขอไม่สำเร็จ')}
                 </p>
               ) : null}
               <Button
                 type="submit"
+                className="min-h-9"
                 disabled={submitMutation.isPending || !isEmailVerified}
                 aria-busy={submitMutation.isPending}
               >
                 {submitMutation.isPending ? 'กำลังส่ง...' : 'ส่งคำขอเปิดร้าน'}
               </Button>
-              <Button type="button" variant="outline" onClick={handleCancel}>
+              <Button type="button" variant="outline" className="min-h-9" onClick={handleCancel}>
                 ยกเลิก
               </Button>
             </div>
@@ -230,32 +252,55 @@ export function StoreRequestSection({
 
       <Card>
         <CardHeader>
-          <h2 className="font-display font-medium text-ink">คำขอเปิดร้าน ({requests.length})</h2>
+          <div>
+            <h2 className="font-display text-lg font-medium text-ink">
+              คำขอเปิดร้าน ({requests.length})
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">สถานะคำขอเปิดร้านใหม่ที่คุณส่งไว้</p>
+          </div>
         </CardHeader>
         <CardBody className="space-y-3">
           {isLoading ? (
-            <p className="text-sm text-muted">กำลังโหลด...</p>
+            <div aria-busy="true" aria-label="กำลังโหลดคำขอเปิดร้าน">
+              <RequestListSkeleton />
+            </div>
           ) : error ? (
-            <p className="text-sm text-danger">
+            <p className="text-sm text-danger" role="alert">
               {error instanceof Error ? error.message : 'โหลดไม่สำเร็จ'}
             </p>
           ) : requests.length === 0 ? (
-            <p className="text-sm text-muted">ยังไม่มีคำขอ</p>
+            <div className="rounded-lg bg-surface px-4 py-6 text-center" role="status">
+              <p className="text-sm font-medium text-ink">ยังไม่มีคำขอ</p>
+              <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                กด “ขอเปิดร้านใหม่” ด้านบนเมื่อพร้อมส่งข้อมูลร้านให้ทีมงานตรวจสอบ
+              </p>
+            </div>
           ) : (
-            requests.map((req) => (
-              <div key={req.id} className="rounded-lg border border-border px-4 py-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-medium text-ink">{req.name}</p>
-                  <Badge>{labelStoreRequestStatus(req.status)}</Badge>
-                </div>
-                {req.description ? (
-                  <p className="mt-1 text-sm text-muted">{req.description}</p>
-                ) : null}
-                {req.rejectionReason ? (
-                  <p className="mt-2 text-sm text-danger">เหตุผล: {req.rejectionReason}</p>
-                ) : null}
-              </div>
-            ))
+            <ul className="space-y-2">
+              {requests.map((req) => (
+                <li
+                  key={req.id}
+                  className="rounded-lg border border-border bg-card px-4 py-3 transition-colors duration-150"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-medium text-ink">{req.name}</p>
+                    <Badge className={cn(requestStatusClass(req.status))}>
+                      {labelStoreRequestStatus(req.status)}
+                    </Badge>
+                  </div>
+                  {req.description ? (
+                    <p className="mt-1 text-sm text-muted-foreground text-pretty">
+                      {req.description}
+                    </p>
+                  ) : null}
+                  {req.rejectionReason ? (
+                    <p className="mt-2 text-sm text-danger" role="status">
+                      เหตุผล: {req.rejectionReason}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
           )}
         </CardBody>
       </Card>

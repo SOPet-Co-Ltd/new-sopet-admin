@@ -86,9 +86,12 @@ export function VendorReplyForm({ reviewId, reply, storeId, onSaveSuccess }: Ven
   }
 
   const labelId = `vendor-reply-label-${reviewId}`;
+  const counterId = `reply-counter-${reviewId}`;
+  const errorId = `reply-error-${reviewId}`;
+  const describedBy = [counterId, inlineError ? errorId : null].filter(Boolean).join(' ');
 
   return (
-    <div className="mt-4 space-y-2">
+    <div className="space-y-2">
       <p id={labelId} className="text-sm font-medium text-ink">
         ตอบกลับรีวิว
       </p>
@@ -106,27 +109,34 @@ export function VendorReplyForm({ reviewId, reply, storeId, onSaveSuccess }: Ven
         aria-labelledby={labelId}
         aria-invalid={isTooLong || Boolean(inlineError)}
         aria-busy={isPending}
-        aria-describedby={`reply-counter-${reviewId}`}
+        aria-describedby={describedBy}
         maxLength={REVIEW_REPLY_MAX_LENGTH}
+        className="bg-card"
+        disabled={isPending}
       />
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <p
-          id={`reply-counter-${reviewId}`}
-          className={`text-xs ${isTooLong ? 'text-danger' : 'text-muted'}`}
+          id={counterId}
+          className={`text-xs ${isTooLong ? 'text-danger' : 'text-muted-foreground'}`}
         >
           {isTooLong ? MAX_LENGTH_ERROR : `${draftBody.length}/${REVIEW_REPLY_MAX_LENGTH}`}
         </p>
-        <Button type="button" disabled={!canSubmit} onClick={handleSubmit}>
-          {reply?.id ? 'อัปเดตคำตอบ' : 'บันทึกคำตอบ'}
+        <Button
+          type="button"
+          disabled={!canSubmit}
+          onClick={handleSubmit}
+          className="min-h-9 transition-colors duration-150 motion-reduce:transition-none"
+        >
+          {isPending ? 'กำลังบันทึก...' : reply?.id ? 'อัปเดตคำตอบ' : 'บันทึกคำตอบ'}
         </Button>
       </div>
       {inlineError ? (
-        <p className="text-sm text-danger" aria-live="polite">
+        <p id={errorId} className="text-sm text-danger" role="alert">
           {inlineError}
         </p>
       ) : null}
       {successMessage ? (
-        <p className="text-sm text-muted" aria-live="polite">
+        <p className="text-sm text-success" aria-live="polite">
           {successMessage}
         </p>
       ) : null}

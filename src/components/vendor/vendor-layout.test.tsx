@@ -27,6 +27,14 @@ vi.mock('@/hooks/useMembershipRole', () => ({
   useIsStoreManager: vi.fn(),
 }));
 
+vi.mock('@/hooks/useVendorStoreId', () => ({
+  useVendorStoreId: vi.fn(),
+}));
+
+vi.mock('@/hooks/useStoreAnalytics', () => ({
+  useStoreAnalytics: vi.fn(),
+}));
+
 vi.mock('@/hooks/useTheme', () => ({
   useTheme: vi.fn(),
 }));
@@ -61,7 +69,9 @@ vi.mock('@/lib/react-query/prefetch-dashboard-nav', () => ({
 import { useCurrentUser, useLogout } from '@/hooks/useAuth';
 import { useMyStores } from '@/hooks/useMyStores';
 import { useIsStoreManager, useIsStoreOwner } from '@/hooks/useMembershipRole';
+import { useStoreAnalytics } from '@/hooks/useStoreAnalytics';
 import { useTheme } from '@/hooks/useTheme';
+import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 
 const mockedUseCurrentUser = vi.mocked(useCurrentUser);
 const mockedUseLogout = vi.mocked(useLogout);
@@ -69,6 +79,8 @@ const mockedUseMyStores = vi.mocked(useMyStores);
 const mockedUseIsStoreOwner = vi.mocked(useIsStoreOwner);
 const mockedUseIsStoreManager = vi.mocked(useIsStoreManager);
 const mockedUseTheme = vi.mocked(useTheme);
+const mockedUseVendorStoreId = vi.mocked(useVendorStoreId);
+const mockedUseStoreAnalytics = vi.mocked(useStoreAnalytics);
 
 function setupMocks({
   stores = [],
@@ -114,6 +126,10 @@ function setupMocks({
     membershipRole: isManager ? 'manager' : undefined,
     isLoading: false,
   });
+  mockedUseVendorStoreId.mockReturnValue('store-1');
+  mockedUseStoreAnalytics.mockReturnValue({
+    data: undefined,
+  } as ReturnType<typeof useStoreAnalytics>);
 }
 
 describe('buildVendorNavSections', () => {
@@ -130,6 +146,20 @@ describe('buildVendorNavSections', () => {
       expect.objectContaining({ href: '/vendor/notifications', label: 'การแจ้งเตือน' }),
       expect.objectContaining({ href: '/vendor/settings', label: 'ตั้งค่า' }),
     ]);
+  });
+
+  it('includes payout nav for store owners', () => {
+    const sections = buildVendorNavSections({ hasStores: true, isOwner: true, isManager: false });
+
+    const labels = sections.flatMap((section) => section.items.map((item) => item.label));
+    expect(labels).toContain('รับเงิน');
+  });
+
+  it('omits payout nav for non-owners', () => {
+    const sections = buildVendorNavSections({ hasStores: true, isOwner: false, isManager: false });
+
+    const labels = sections.flatMap((section) => section.items.map((item) => item.label));
+    expect(labels).not.toContain('รับเงิน');
   });
 
   it('returns full nav when vendor has stores', () => {
@@ -163,7 +193,7 @@ describe('VendorLayout sidebar nav', () => {
     vi.clearAllMocks();
   });
 
-  it('shows limited nav while stores are loading', () => {
+  it('shows full nav while stores are loading', () => {
     setupMocks({ isStoresLoading: true });
 
     render(
@@ -172,11 +202,9 @@ describe('VendorLayout sidebar nav', () => {
       </VendorLayout>,
     );
 
-    expect(screen.getByRole('link', { name: 'ร้านค้าของฉัน' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'การแจ้งเตือน' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'แดชบอร์ด' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'คำสั่งซื้อ' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ตั้งค่า' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'แดชบอร์ด' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'คำสั่งซื้อ' })).not.toBeInTheDocument();
   });
 
   it('shows limited nav when vendor has no stores', () => {
@@ -225,6 +253,7 @@ describe('VendorLayout sidebar nav', () => {
     expect(screen.getByRole('link', { name: 'ร้านค้าของฉัน' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'คำสั่งซื้อ' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'สินค้า' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'รับเงิน' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ตั้งค่า' })).toBeInTheDocument();
   });
 });

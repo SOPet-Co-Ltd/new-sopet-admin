@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  HiBanknotes,
   HiBell,
   HiBuildingStorefront,
   HiCodeBracket,
@@ -19,9 +20,10 @@ import { ActiveStoreDisplay } from '@/components/vendor/active-store-display';
 import { EmailVerificationBanner } from '@/components/vendor/email-verification-banner';
 import { SuspendedStoreBanner } from '@/components/vendor/suspended-store-banner';
 import { VendorStoreGuard } from '@/components/vendor/vendor-store-guard';
-import { useCurrentUser } from '@/hooks/useAuth';
 import { useIsStoreManager, useIsStoreOwner } from '@/hooks/useMembershipRole';
 import { useMyStores } from '@/hooks/useMyStores';
+import { useStoreAnalytics } from '@/hooks/useStoreAnalytics';
+import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { vendorHasStores } from '@/lib/vendor/vendor-store-access';
 
 const storeSection: DashboardNavSection = {
@@ -32,15 +34,20 @@ const storeSection: DashboardNavSection = {
   ],
 };
 
-const salesSection: DashboardNavSection = {
+const salesSection = (pendingOrderCount?: number): DashboardNavSection => ({
   title: 'ขาย',
   items: [
-    { href: '/vendor/orders', label: 'คำสั่งซื้อ', icon: HiShoppingBag },
+    {
+      href: '/vendor/orders?queue=action',
+      label: 'คำสั่งซื้อ',
+      icon: HiShoppingBag,
+      badge: pendingOrderCount,
+    },
     { href: '/vendor/products', label: 'สินค้า', icon: HiCube },
     { href: '/vendor/customers', label: 'ลูกค้า', icon: HiUsers },
     { href: '/vendor/reviews', label: 'รีวิว', icon: HiStar },
   ],
-};
+});
 
 const marketingSection: DashboardNavSection = {
   title: 'การตลาด',
@@ -57,13 +64,16 @@ const systemSection: DashboardNavSection = {
   items: [{ href: '/vendor/api', label: 'API', icon: HiCodeBracket }],
 };
 
-const accountSection: DashboardNavSection = {
+const accountSection = (isOwner: boolean): DashboardNavSection => ({
   title: 'บัญชี',
   items: [
+    ...(isOwner
+      ? [{ href: '/vendor/settings?tab=payout', label: 'รับเงิน', icon: HiBanknotes }]
+      : []),
     { href: '/vendor/notifications', label: 'การแจ้งเตือน', icon: HiBell },
     { href: '/vendor/settings', label: 'ตั้งค่า', icon: HiCog6Tooth },
   ],
-};
+});
 
 const noStoresNavSection: DashboardNavSection = {
   title: 'ร้านค้า',
@@ -74,52 +84,53 @@ export function buildVendorNavSections({
   hasStores,
   isOwner,
   isManager,
+  pendingOrderCount,
 }: {
   hasStores: boolean;
   isOwner: boolean;
   isManager: boolean;
+  pendingOrderCount?: number;
 }): DashboardNavSection[] {
   if (!hasStores) {
-    return [noStoresNavSection, accountSection];
+    return [noStoresNavSection, accountSection(isOwner)];
   }
 
   return [
     storeSection,
-    salesSection,
+    salesSection(pendingOrderCount),
     marketingSection,
     ...(isOwner ? [teamSection] : []),
     ...(isManager ? [systemSection] : []),
-    accountSection,
+    accountSection(isOwner),
   ];
 }
 
 export function VendorLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useCurrentUser();
   const { data: stores = [], isLoading: isStoresLoading } = useMyStores();
+  const storeId = useVendorStoreId();
+  const { data: analytics } = useStoreAnalytics(storeId);
   const { isOwner } = useIsStoreOwner();
   const { isManager } = useIsStoreManager();
 
   const hasStores = vendorHasStores(stores);
   const navSections = buildVendorNavSections({
-    hasStores: isStoresLoading ? false : hasStores,
+    hasStores: isStoresLoading || hasStores,
     isOwner,
     isManager,
+    pendingOrderCount: analytics?.pendingOrders,
   });
 
   const header = (
-    <>
-      {user ? <p className="mt-2 truncate text-sm text-muted">{user.fullName}</p> : null}
-      <div className="mt-4 rounded-lg bg-surface p-3">
-        <ActiveStoreDisplay />
-      </div>
-    </>
+    <div className="mt-4 rounded-lg bg-surface p-3">
+      <ActiveStoreDisplay />
+    </div>
   );
 
   return (
     <AuthGuard requiredRole="vendor">
       <DashboardShell
         brandHref="/vendor"
-        brandLabel="Vendor"
+        brandLabel="ผู้ขาย"
         navSections={navSections}
         header={header}
       >

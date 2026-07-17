@@ -23,8 +23,10 @@ import { useDeleteProduct, usePublishProduct, useUpdateProduct } from '@/hooks/u
 import { buildLivePublishChecklist } from '@/lib/products/publish-checklist';
 import { productFormSchema, type ProductFormValues } from '@/lib/validations';
 import type { ProductStatus } from '@/types';
+import { EditProductSkeleton } from './edit-product-skeleton';
 
 const TAXONOMY_DEBOUNCE_MS = 500;
+const SECTION_SAVED_MS = 2500;
 
 function toDateInputValue(value?: string | null): string {
   if (!value) return '';
@@ -56,6 +58,7 @@ function serializeTaxonomy(values: {
 }
 
 type TaxonomySaveState = 'idle' | 'saving' | 'saved' | 'error';
+type SectionSaveState = 'idle' | 'saved';
 
 export default function EditProductPage() {
   const params = useParams<{ id: string }>();
@@ -71,9 +74,13 @@ export default function EditProductPage() {
   const saveTaxonomy = updateTaxonomyMutation.mutateAsync;
 
   const [taxonomySaveState, setTaxonomySaveState] = useState<TaxonomySaveState>('idle');
+  const [basicSaveState, setBasicSaveState] = useState<SectionSaveState>('idle');
+  const [extrasSaveState, setExtrasSaveState] = useState<SectionSaveState>('idle');
   const initializedProductIdRef = useRef<string | null>(null);
   const taxonomyBaselineRef = useRef<string | null>(null);
   const taxonomyAutosaveReadyRef = useRef(false);
+  const basicSavedTimerRef = useRef<number | null>(null);
+  const extrasSavedTimerRef = useRef<number | null>(null);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -165,11 +172,24 @@ export default function EditProductPage() {
     return () => window.clearTimeout(timer);
   }, [product, watchedCategoryId, watchedPetTypeId, watchedBrandId, watchedTagIds, saveTaxonomy]);
 
+  function flashSectionSaved(
+    setState: (state: SectionSaveState) => void,
+    timerRef: { current: number | null },
+  ) {
+    setState('saved');
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => {
+      setState('idle');
+      timerRef.current = null;
+    }, SECTION_SAVED_MS);
+  }
+
   async function saveBasicInfo() {
     if (!product) return;
     const valid = await form.trigger(['name', 'description']);
     if (!valid) return;
     const values = form.getValues();
+    setBasicSaveState('idle');
     try {
       await updateBasicMutation.mutateAsync({
         id: product.id,
@@ -178,6 +198,7 @@ export default function EditProductPage() {
           description: values.description || undefined,
         },
       });
+      flashSectionSaved(setBasicSaveState, basicSavedTimerRef);
     } catch {
       // surfaced via mutation state
     }
@@ -188,6 +209,7 @@ export default function EditProductPage() {
     const valid = await form.trigger(['warning', 'expiryDate']);
     if (!valid) return;
     const values = form.getValues();
+    setExtrasSaveState('idle');
     try {
       await updateExtrasMutation.mutateAsync({
         id: product.id,
@@ -196,6 +218,7 @@ export default function EditProductPage() {
           expiryDate: values.expiryDate || undefined,
         },
       });
+      flashSectionSaved(setExtrasSaveState, extrasSavedTimerRef);
     } catch {
       // surfaced via mutation state
     }
@@ -234,14 +257,23 @@ export default function EditProductPage() {
   }, [product, watchedName, watchedCategoryId, watchedPetTypeId]);
 
   if (isLoading) {
-    return <p className="text-muted">กำลังโหลดสินค้า...</p>;
+    return <EditProductSkeleton />;
   }
 
   if (error || !product) {
     return (
-      <p className="text-sm text-danger" role="alert">
-        {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
-      </p>
+      <div className="space-y-4" role="alert">
+        <p className="text-sm text-danger">
+          {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
+        </p>
+        <Link
+          href="/vendor/products"
+          className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-brand focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+        >
+          <HiArrowLeft className="size-3.5" aria-hidden="true" />
+          กลับไปรายการสินค้า
+        </Link>
+      </div>
     );
   }
 
@@ -258,6 +290,7 @@ export default function EditProductPage() {
   const canPublish =
     formStatus === 'draft' && !!liveChecklist?.canPublish && !publishMutation.isPending;
   const pageError = updateStatusMutation.error ?? publishMutation.error ?? deleteMutation.error;
+  const descriptionError = form.formState.errors.description?.message;
 
   return (
     <div>
@@ -267,7 +300,7 @@ export default function EditProductPage() {
         back={
           <Link
             href={`/vendor/products/${productId}`}
-            className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-brand"
+            className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-brand focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
           >
             <HiArrowLeft className="size-3.5" aria-hidden="true" />
             กลับไปรายละเอียดสินค้า
@@ -279,7 +312,10 @@ export default function EditProductPage() {
         <div className="space-y-6 lg:order-1">
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">ข้อมูลพื้นฐาน</h2>
+              <h2 className="text-balance font-display font-medium text-ink">ข้อมูลพื้นฐาน</h2>
+              <p className="mt-1 text-sm text-muted">
+                ชื่อและรายละเอียดสินค้าที่ลูกค้าจะเห็นบนหน้าร้าน
+              </p>
             </CardHeader>
             <CardBody className="space-y-4">
               <div>
@@ -289,6 +325,7 @@ export default function EditProductPage() {
                 <Input
                   id="name"
                   placeholder="อาหารสุนัขออร์แกนิก 5 กก."
+                  disabled={updateBasicMutation.isPending || deleteMutation.isPending}
                   aria-invalid={!!form.formState.errors.name}
                   aria-describedby={form.formState.errors.name ? 'name-error' : undefined}
                   {...form.register('name')}
@@ -312,9 +349,16 @@ export default function EditProductPage() {
                     onBlur={field.onBlur}
                     placeholder="อธิบายสินค้า..."
                     disabled={anyPending}
+                    aria-invalid={!!descriptionError}
+                    aria-describedby={descriptionError ? 'description-error' : undefined}
                   />
                 )}
               />
+              {descriptionError ? (
+                <p id="description-error" className="-mt-2 text-xs text-danger" role="alert">
+                  {descriptionError}
+                </p>
+              ) : null}
 
               <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
                 {updateBasicMutation.error ? (
@@ -323,11 +367,15 @@ export default function EditProductPage() {
                       ? updateBasicMutation.error.message
                       : 'บันทึกไม่สำเร็จ'}
                   </p>
+                ) : basicSaveState === 'saved' ? (
+                  <p className="mr-auto text-xs text-success" role="status" aria-live="polite">
+                    บันทึกแล้ว
+                  </p>
                 ) : null}
                 <Button
                   type="button"
                   onClick={() => void saveBasicInfo()}
-                  disabled={updateBasicMutation.isPending}
+                  disabled={updateBasicMutation.isPending || deleteMutation.isPending}
                   aria-busy={updateBasicMutation.isPending}
                 >
                   {updateBasicMutation.isPending ? 'กำลังบันทึก...' : 'บันทึกส่วนนี้'}
@@ -338,8 +386,8 @@ export default function EditProductPage() {
 
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">รูปภาพสินค้า</h2>
-              <p className="text-sm text-muted">
+              <h2 className="text-balance font-display font-medium text-ink">รูปภาพสินค้า</h2>
+              <p className="mt-1 text-sm text-muted">
                 รูปแรก (หรือรูปที่ตั้งเป็นหน้าปก) จะแสดงเป็นภาพหลัก
               </p>
             </CardHeader>
@@ -351,7 +399,10 @@ export default function EditProductPage() {
           <Card>
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="font-display font-medium text-ink">การจัดหมวดหมู่</h2>
+                <div>
+                  <h2 className="text-balance font-display font-medium text-ink">การจัดหมวดหมู่</h2>
+                  <p className="mt-1 text-sm text-muted">บันทึกอัตโนมัติเมื่อมีการเปลี่ยนแปลง</p>
+                </div>
                 {taxonomySaveState === 'saving' ? (
                   <p className="text-xs text-muted" aria-live="polite">
                     กำลังบันทึก...
@@ -405,7 +456,10 @@ export default function EditProductPage() {
 
           <Card>
             <CardHeader>
-              <h2 className="font-display font-medium text-ink">รายละเอียดเพิ่มเติม</h2>
+              <h2 className="text-balance font-display font-medium text-ink">
+                รายละเอียดเพิ่มเติม
+              </h2>
+              <p className="mt-1 text-sm text-muted">คำเตือนและวันหมดอายุ (ถ้ามี)</p>
             </CardHeader>
             <CardBody className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -414,9 +468,17 @@ export default function EditProductPage() {
                   <Textarea
                     id="warning"
                     placeholder="ข้อความเตือนสำหรับลูกค้า (ถ้ามี)"
+                    disabled={updateExtrasMutation.isPending || deleteMutation.isPending}
+                    aria-invalid={!!form.formState.errors.warning}
+                    aria-describedby={form.formState.errors.warning ? 'warning-error' : undefined}
                     {...form.register('warning')}
                     className="mt-1.5"
                   />
+                  {form.formState.errors.warning ? (
+                    <p id="warning-error" className="mt-1 text-xs text-danger" role="alert">
+                      {form.formState.errors.warning.message}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
@@ -431,6 +493,7 @@ export default function EditProductPage() {
                         value={field.value ?? ''}
                         onChange={field.onChange}
                         placeholder="เลือกวันหมดอายุ"
+                        disabled={updateExtrasMutation.isPending || deleteMutation.isPending}
                         className="mt-1.5"
                       />
                     )}
@@ -445,11 +508,15 @@ export default function EditProductPage() {
                       ? updateExtrasMutation.error.message
                       : 'บันทึกไม่สำเร็จ'}
                   </p>
+                ) : extrasSaveState === 'saved' ? (
+                  <p className="mr-auto text-xs text-success" role="status" aria-live="polite">
+                    บันทึกแล้ว
+                  </p>
                 ) : null}
                 <Button
                   type="button"
                   onClick={() => void saveExtras()}
-                  disabled={updateExtrasMutation.isPending}
+                  disabled={updateExtrasMutation.isPending || deleteMutation.isPending}
                   aria-busy={updateExtrasMutation.isPending}
                 >
                   {updateExtrasMutation.isPending ? 'กำลังบันทึก...' : 'บันทึกส่วนนี้'}
@@ -459,7 +526,7 @@ export default function EditProductPage() {
           </Card>
         </div>
 
-        <div className="space-y-6 lg:order-2">
+        <div className="space-y-6 lg:sticky lg:top-4 lg:order-2 lg:self-start">
           <ProductPublishPanel
             status={formStatus}
             selectableStatuses={selectableStatuses}
@@ -469,11 +536,12 @@ export default function EditProductPage() {
             canPublish={canPublish}
             onPublish={() => void handlePublish()}
             publishPending={publishMutation.isPending}
+            statusDisabled={updateStatusMutation.isPending || deleteMutation.isPending}
           />
 
-          <Card className="border-danger/30">
+          <Card className="border-danger/30 bg-danger-bg/30">
             <CardHeader>
-              <h2 className="font-display font-medium text-danger">โซนอันตราย</h2>
+              <h2 className="text-balance font-display font-medium text-danger">โซนอันตราย</h2>
             </CardHeader>
             <CardBody className="space-y-3">
               <p className="text-sm text-muted">

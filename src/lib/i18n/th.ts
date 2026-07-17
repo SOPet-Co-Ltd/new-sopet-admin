@@ -40,6 +40,17 @@ export const membershipRoleBadgeLabels: Record<string, string> = {
   staff: 'พนักงาน',
 };
 
+/** Platform admin capabilities summary for admin team UI. */
+export const adminAccessDescription =
+  'อนุมัติร้านค้า จัดการข้อพิพาท ตั้งค่าแพลตฟอร์ม และเชิญผู้ดูแลคนอื่น';
+
+/** Short permission summaries for vendor team UI (invite + role change). */
+export const membershipRoleDescriptions: Record<string, string> = {
+  owner: 'จัดการทีม รับเงิน ตั้งค่าร้าน และสิทธิ์ทั้งหมด',
+  manager: 'จัดการ API และงานขายทั่วไป — ไม่จัดการทีมหรือรับเงิน',
+  staff: 'ทำงานขายทั่วไป เช่น สินค้า คำสั่งซื้อ และโปรโมชัน',
+};
+
 export const invitationStatusLabels: Record<string, string> = {
   pending: 'รอตอบรับ',
   accepted: 'ตอบรับแล้ว',
@@ -78,7 +89,7 @@ export const promotionTypeLabels: Record<string, string> = {
 export const settingsTabLabels = {
   profile: 'บัญชีผู้ใช้',
   store: 'ข้อมูลร้านค้า',
-  payout: 'บัญชีรับเงิน Omise',
+  payout: 'รับเงิน',
   shipping: 'การจัดส่ง',
 } as const;
 
@@ -158,4 +169,22 @@ export function labelVendorActivity(kind: string): string {
 
 export function labelPromotionType(type: string): string {
   return promotionTypeLabels[type] ?? type;
+}
+
+const notificationTypeLabels: Record<string, string> = {
+  new_order: 'คำสั่งซื้อใหม่',
+  order_status_changed: 'อัปเดตคำสั่งซื้อ',
+  store_status_changed: 'อัปเดตร้านค้า',
+  request_status_changed: 'อัปเดตคำขอ',
+  new_store_request: 'คำขอเปิดร้าน',
+  order_confirmation: 'ยืนยันคำสั่งซื้อ',
+  order_shipped: 'จัดส่งแล้ว',
+  order_delivered: 'ส่งถึงแล้ว',
+  promotion: 'โปรโมชัน',
+  review_request: 'ขอรีวิว',
+  dispute_update: 'อัปเดตข้อพิพาท',
+};
+
+export function labelNotificationType(type: string): string {
+  return notificationTypeLabels[type] ?? type;
 }

@@ -63,67 +63,69 @@ export function DataTable<TData>({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-xl border border-border bg-white shadow-[var(--shadow-card)]',
+        'rounded-xl border border-border bg-white shadow-[var(--shadow-card)]',
         className,
       )}
     >
-      <Table className="min-w-0 md:min-w-[640px]">
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="bg-surface/60 hover:bg-surface/60">
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className={cn(
-                    header.column.columnDef.meta?.className,
-                    header.column.columnDef.meta?.headerClassName,
-                  )}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className={onRowClick ? 'cursor-pointer' : undefined}
-                tabIndex={onRowClick ? 0 : undefined}
-                aria-label={onRowClick ? 'ดูรายละเอียด' : undefined}
-                onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-                onMouseEnter={onRowMouseEnter ? () => onRowMouseEnter(row.original) : undefined}
-                onKeyDown={
-                  onRowClick
-                    ? (event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          onRowClick(row.original);
-                        }
-                      }
-                    : undefined
-                }
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className={cell.column.columnDef.meta?.className}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+      <div className="overflow-x-auto">
+        <Table className="min-w-0 md:min-w-[640px]">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="bg-surface/60 hover:bg-surface/60">
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className={cn(
+                      header.column.columnDef.meta?.className,
+                      header.column.columnDef.meta?.headerClassName,
+                    )}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
                 ))}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-28 text-center text-muted">
-                {emptyMessage}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className={onRowClick ? 'cursor-pointer' : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  aria-label={onRowClick ? 'ดูรายละเอียด' : undefined}
+                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                  onMouseEnter={onRowMouseEnter ? () => onRowMouseEnter(row.original) : undefined}
+                  onKeyDown={
+                    onRowClick
+                      ? (event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onRowClick(row.original);
+                          }
+                        }
+                      : undefined
+                  }
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className={cell.column.columnDef.meta?.className}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-28 text-center text-muted">
+                  {emptyMessage}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

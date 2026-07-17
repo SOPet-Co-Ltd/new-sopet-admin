@@ -16,6 +16,7 @@ export type DashboardNavItem = {
   exact?: boolean;
   disabled?: boolean;
   icon?: ComponentType<{ className?: string }>;
+  badge?: number;
 };
 
 export type DashboardNavSection = {
@@ -65,9 +66,7 @@ export function DashboardShell({
             className={cn(sectionIndex > 0 && 'mt-3')}
           >
             {section.title ? (
-              <p className="px-3 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-muted">
-                {section.title}
-              </p>
+              <p className="px-3 pb-1 pt-1 text-sm font-medium text-muted">{section.title}</p>
             ) : null}
             <div className="space-y-1">
               {section.items.map((item) => {
@@ -79,17 +78,17 @@ export function DashboardShell({
                 const className = cn(
                   'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
                   item.disabled
-                    ? 'cursor-not-allowed border-l-[3px] border-transparent text-muted/60'
+                    ? 'cursor-not-allowed text-muted/60'
                     : active
-                      ? 'border-l-[3px] border-brand bg-brand-tint pl-[9px] text-brand'
-                      : 'border-l-[3px] border-transparent text-muted hover:bg-surface hover:text-ink',
+                      ? 'bg-brand-tint font-semibold text-brand'
+                      : 'text-muted hover:bg-surface hover:text-ink',
                 );
 
                 if (item.disabled) {
                   return (
                     <span key={item.href} className={className} aria-disabled="true">
                       {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
-                      <span>{item.label}</span>
+                      <span className="flex-1">{item.label}</span>
                     </span>
                   );
                 }
@@ -103,7 +102,12 @@ export function DashboardShell({
                     onFocus={prefetchHandlers.onFocus}
                   >
                     {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
-                    <span>{item.label}</span>
+                    <span className="flex-1">{item.label}</span>
+                    {item.badge && item.badge > 0 ? (
+                      <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-semibold text-primary-foreground">
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                    ) : null}
                   </Link>
                 );
               })}
@@ -148,7 +152,7 @@ export function DashboardShell({
   );
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-cream">
+    <div className="flex h-dvh overflow-hidden bg-background">
       <aside className="hidden w-64 shrink-0 border-r border-border bg-white md:block">
         {sidebar}
       </aside>
@@ -188,7 +192,9 @@ export function DashboardShell({
         </div>
 
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-10">{children}</div>
+          <div className="mx-auto min-w-0 max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-10">
+            {children}
+          </div>
         </main>
       </div>
     </div>

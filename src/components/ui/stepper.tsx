@@ -31,14 +31,14 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
         const isLast = index === steps.length - 1;
 
         return (
-          <li key={step.label} className={cn('flex items-start', !isLast && 'flex-1')}>
-            <div className="flex flex-col items-center gap-1.5">
+          <li key={step.label} className={cn('flex min-w-0 items-start', !isLast && 'flex-1')}>
+            <div className="flex w-full flex-col items-center gap-1.5">
               <span
                 className={cn(
-                  'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors',
+                  'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors duration-150 ease-out',
                   status === 'complete' && 'bg-brand text-white',
                   status === 'current' && 'border-2 border-brand bg-brand-tint text-brand',
-                  status === 'upcoming' && 'border border-border bg-surface text-muted',
+                  status === 'upcoming' && 'border border-border bg-card text-muted-foreground',
                 )}
                 aria-hidden="true"
               >
@@ -47,8 +47,10 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
               <span
                 aria-current={status === 'current' ? 'step' : undefined}
                 className={cn(
-                  'max-w-26 text-center text-xs font-medium sm:max-w-32 sm:text-sm',
-                  status === 'upcoming' ? 'text-muted' : 'text-ink',
+                  'max-w-20 text-center text-xs leading-tight font-medium text-pretty sm:max-w-28 sm:text-sm sm:leading-snug',
+                  status === 'upcoming' && 'text-muted-foreground',
+                  status === 'complete' && 'text-ink',
+                  status === 'current' && 'font-semibold text-ink',
                 )}
               >
                 {step.label}
@@ -57,7 +59,8 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
             {!isLast ? (
               <div
                 className={cn(
-                  'mx-2 mt-4 h-px flex-1 sm:mx-3',
+                  'mx-1.5 mt-4 h-px min-w-2 flex-1 sm:mx-3',
+                  'transition-colors duration-150 ease-out',
                   status === 'complete' ? 'bg-brand' : 'bg-border',
                 )}
                 aria-hidden="true"

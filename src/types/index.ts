@@ -499,7 +499,6 @@ export interface CreatePromotionInput {
   name: string;
   description?: string;
   type: PromotionType | string;
-  scope?: PromotionScope | string;
   storeId?: string;
   discountValue: number;
   minPurchaseAmount?: number;

@@ -2,16 +2,20 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
+import { HiOutlinePlus } from 'react-icons/hi2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
+import { ProductThumbnail } from '@/components/vendor/product-thumbnail';
 import { VendorProductFilters } from '@/components/vendor/vendor-product-filters';
 import { VendorProductsActionMenu } from '@/components/vendor/vendor-products-action-menu';
+import { VendorProductsEmptyState } from '@/components/vendor/vendor-products-empty-state';
+import { VendorProductsListSkeleton } from '@/components/vendor/vendor-products-list-skeleton';
 import { VendorProductsMobileList } from '@/components/vendor/vendor-products-mobile-list';
 import { useDeleteProduct } from '@/hooks/useProductMutations';
 import {
@@ -26,19 +30,34 @@ import {
   prefetchVendorProductDetail,
 } from '@/lib/react-query/prefetch-dashboard-nav';
 import { labelProductStatus } from '@/lib/i18n/th';
+import {
+  getProductListPriceLabel,
+  getProductListStockTotal,
+  getProductListThumbnailUrl,
+} from '@/lib/products/list-display';
 import type { Product } from '@/types';
 
 const ALL = 'all';
+const SEARCH_DEBOUNCE_MS = 300;
 
 export default function VendorProductsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState(ALL);
   const [petTypeId, setPetTypeId] = useState(ALL);
   const [brandId, setBrandId] = useState(ALL);
   const [tagId, setTagId] = useState(ALL);
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const { data: categories = [] } = useApprovedCategories();
   const { data: petTypes = [] } = useApprovedPetTypes();
@@ -65,7 +84,7 @@ export default function VendorProductsPage() {
     [search, categoryId, categorySlugById, petTypeId, brandId, tagId, page],
   );
 
-  const { data, isLoading, error } = useVendorProducts(queryParams);
+  const { data, isLoading, error, refetch, isFetching } = useVendorProducts(queryParams);
   const deleteMutation = useDeleteProduct();
 
   const petTypeNameById = useMemo(
@@ -77,17 +96,79 @@ export default function VendorProductsPage() {
     [brands],
   );
 
+  const hasActiveFilters =
+    Boolean(search) || categoryId !== ALL || petTypeId !== ALL || brandId !== ALL || tagId !== ALL;
+
+  const clearAllFilters = () => {
+    setSearchInput('');
+    setSearch('');
+    setCategoryId(ALL);
+    setPetTypeId(ALL);
+    setBrandId(ALL);
+    setTagId(ALL);
+    setPage(1);
+  };
+
   const columns = useMemo<ColumnDef<Product>[]>(
     () => [
       {
         accessorKey: 'name',
         header: ({ column }) => <SortableHeader column={column}>สินค้า</SortableHeader>,
         cell: ({ row }) => (
-          <div>
-            <p className="font-medium text-ink">{row.original.name}</p>
-            <p className="text-xs text-muted">{row.original.slug}</p>
+          <div className="flex min-w-0 items-center gap-3">
+            <ProductThumbnail
+              imageUrl={getProductListThumbnailUrl(row.original)}
+              alt={row.original.name}
+              size="sm"
+            />
+            <div className="min-w-0">
+              <p className="truncate font-medium text-ink">{row.original.name}</p>
+              <p className="truncate text-xs text-muted">{row.original.slug}</p>
+            </div>
           </div>
         ),
+      },
+      {
+        accessorKey: 'status',
+        header: 'สถานะ',
+        cell: ({ row }) => (
+          <Badge status={row.original.status}>{labelProductStatus(row.original.status)}</Badge>
+        ),
+      },
+      {
+        id: 'price',
+        header: 'ราคา',
+        cell: ({ row }) => (
+          <span className="tabular-nums text-sm text-ink">
+            {getProductListPriceLabel(row.original)}
+          </span>
+        ),
+        meta: { className: 'hidden sm:table-cell' },
+      },
+      {
+        id: 'stock',
+        header: 'สต็อก',
+        cell: ({ row }) => {
+          const stock = getProductListStockTotal(row.original);
+          return (
+            <span
+              className={
+                stock <= 0
+                  ? 'text-sm font-medium tabular-nums text-danger'
+                  : 'text-sm tabular-nums text-ink'
+              }
+            >
+              {stock}
+            </span>
+          );
+        },
+        meta: { className: 'hidden sm:table-cell' },
+      },
+      {
+        accessorKey: 'category',
+        header: 'หมวดหมู่',
+        cell: ({ row }) => row.original.category ?? '—',
+        meta: { className: 'hidden md:table-cell' },
       },
       {
         id: 'petType',
@@ -101,7 +182,7 @@ export default function VendorProductsPage() {
         header: 'แบรนด์',
         cell: ({ row }) =>
           row.original.brandId ? (brandNameById.get(row.original.brandId) ?? '—') : '—',
-        meta: { className: 'hidden lg:table-cell' },
+        meta: { className: 'hidden xl:table-cell' },
       },
       {
         id: 'tags',
@@ -113,42 +194,31 @@ export default function VendorProductsPage() {
           }
           return (
             <div className="flex flex-wrap gap-1">
-              {productTags.slice(0, 3).map((tag) => (
+              {productTags.slice(0, 2).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-md bg-brand-tint px-1.5 py-0.5 text-xs font-medium text-brand"
+                  className="rounded-md bg-surface px-1.5 py-0.5 text-xs font-medium text-muted-foreground"
                 >
                   {tag}
                 </span>
               ))}
-              {productTags.length > 3 ? (
-                <span className="text-xs text-muted">+{productTags.length - 3}</span>
+              {productTags.length > 2 ? (
+                <span className="text-xs text-muted">+{productTags.length - 2}</span>
               ) : null}
             </div>
           );
         },
-        meta: { className: 'hidden md:table-cell' },
+        meta: { className: 'hidden xl:table-cell' },
       },
       {
         id: 'variants',
         header: 'ตัวเลือก',
         cell: ({ row }) => (
-          <span className="text-sm text-muted">{row.original.variants?.length ?? 0}</span>
+          <span className="text-sm tabular-nums text-muted">
+            {row.original.variants?.length ?? 0}
+          </span>
         ),
-        meta: { className: 'hidden md:table-cell' },
-      },
-      {
-        accessorKey: 'status',
-        header: 'สถานะ',
-        cell: ({ row }) => (
-          <Badge status={row.original.status}>{labelProductStatus(row.original.status)}</Badge>
-        ),
-      },
-      {
-        accessorKey: 'category',
-        header: 'หมวดหมู่',
-        cell: ({ row }) => row.original.category ?? '—',
-        meta: { className: 'hidden xl:table-cell' },
+        meta: { className: 'hidden lg:table-cell' },
       },
       {
         id: 'actions',
@@ -166,6 +236,7 @@ export default function VendorProductsPage() {
             }}
           />
         ),
+        meta: { headerClassName: 'w-12' },
       },
     ],
     [brandNameById, deleteMutation, petTypeNameById, queryClient],
@@ -173,17 +244,28 @@ export default function VendorProductsPage() {
 
   const pagination = data?.pagination;
   const products = data?.items ?? [];
+  const isEmpty = !isLoading && products.length === 0;
 
   const resetPage = () => setPage(1);
+
+  const emptyState = (
+    <VendorProductsEmptyState
+      mode={hasActiveFilters ? 'filtered' : 'catalog'}
+      onClearFilters={hasActiveFilters ? clearAllFilters : undefined}
+    />
+  );
 
   return (
     <div>
       <PageHeader
         title="สินค้า"
-        description="ดูและจัดการสินค้าในร้าน กรองตามหมวดหมู่ ประเภทสัตว์เลี้ยง แบรนด์ และแท็ก"
+        description="ดูและจัดการสินค้าในร้าน — สถานะ ราคา และสต็อกที่สแกนได้ทันที"
         action={
           <Button asChild>
-            <Link href="/vendor/products/new">เพิ่มสินค้า</Link>
+            <Link href="/vendor/products/new">
+              <HiOutlinePlus className="size-4" aria-hidden="true" />
+              เพิ่มสินค้า
+            </Link>
           </Button>
         }
       />
@@ -194,12 +276,9 @@ export default function VendorProductsPage() {
             <Input
               type="search"
               aria-label="ค้นหาสินค้า"
-              placeholder="ค้นหาสินค้า..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                resetPage();
-              }}
+              placeholder="ค้นหาชื่อหรือ slug..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
           }
           categoryId={categoryId}
@@ -229,11 +308,18 @@ export default function VendorProductsPage() {
         />
       </div>
 
-      {isLoading ? <p className="text-muted">กำลังโหลดสินค้า...</p> : null}
       {error ? (
-        <p className="text-sm text-danger">
-          {error instanceof Error ? error.message : 'โหลดสินค้าไม่สำเร็จ'}
-        </p>
+        <div
+          className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-danger/20 bg-danger-bg px-4 py-3"
+          role="alert"
+        >
+          <p className="text-sm text-danger">
+            {error instanceof Error ? error.message : 'โหลดสินค้าไม่สำเร็จ'}
+          </p>
+          <Button type="button" variant="outline" size="sm" onClick={() => void refetch()}>
+            ลองอีกครั้ง
+          </Button>
+        </div>
       ) : null}
       {deleteMutation.error ? (
         <p className="mb-4 text-sm text-danger" role="alert">
@@ -243,39 +329,66 @@ export default function VendorProductsPage() {
         </p>
       ) : null}
 
-      {!isLoading ? (
+      {isLoading ? <VendorProductsListSkeleton /> : null}
+
+      {!isLoading && !error ? (
         <>
-          <VendorProductsMobileList
-            products={products}
-            emptyMessage="ไม่พบสินค้า"
-            isDeleting={deleteMutation.isPending}
-            petTypeNameById={petTypeNameById}
-            brandNameById={brandNameById}
-            onProductClick={(product) => router.push(`/vendor/products/${product.id}`)}
-            onProductPrefetch={(product) => prefetchVendorProductDetail(queryClient, product.id)}
-            editPrefetchHandlers={(productId) =>
-              createDetailPrefetchHandlers(() =>
-                prefetchVendorProductDetail(queryClient, productId),
-              )
-            }
-            onDelete={async (productId) => {
-              await deleteMutation.mutateAsync(productId);
-            }}
-          />
-          <div className="hidden md:block">
-            <DataTable
-              columns={columns}
-              data={products}
-              emptyMessage="ไม่พบสินค้า"
-              onRowClick={(product) => router.push(`/vendor/products/${product.id}`)}
-              onRowMouseEnter={(product) => prefetchVendorProductDetail(queryClient, product.id)}
-            />
-          </div>
+          {pagination ? (
+            <div className="mb-3 flex items-center justify-between gap-3 text-sm">
+              <p className="text-muted" aria-live="polite">
+                {isEmpty
+                  ? hasActiveFilters
+                    ? 'ไม่พบรายการที่ตรงเงื่อนไข'
+                    : 'ยังไม่มีสินค้า'
+                  : `แสดง ${products.length} จาก ${pagination.total} รายการ`}
+                {isFetching && !isLoading ? (
+                  <span className="ml-2 text-xs text-muted">กำลังอัปเดต…</span>
+                ) : null}
+              </p>
+            </div>
+          ) : null}
+
+          {isEmpty ? (
+            emptyState
+          ) : (
+            <>
+              <VendorProductsMobileList
+                products={products}
+                emptyState={emptyState}
+                isDeleting={deleteMutation.isPending}
+                petTypeNameById={petTypeNameById}
+                brandNameById={brandNameById}
+                onProductClick={(product) => router.push(`/vendor/products/${product.id}`)}
+                onProductPrefetch={(product) =>
+                  prefetchVendorProductDetail(queryClient, product.id)
+                }
+                editPrefetchHandlers={(productId) =>
+                  createDetailPrefetchHandlers(() =>
+                    prefetchVendorProductDetail(queryClient, productId),
+                  )
+                }
+                onDelete={async (productId) => {
+                  await deleteMutation.mutateAsync(productId);
+                }}
+              />
+              <div className="hidden md:block">
+                <DataTable
+                  columns={columns}
+                  data={products}
+                  emptyMessage="ไม่พบสินค้า"
+                  onRowClick={(product) => router.push(`/vendor/products/${product.id}`)}
+                  onRowMouseEnter={(product) =>
+                    prefetchVendorProductDetail(queryClient, product.id)
+                  }
+                />
+              </div>
+            </>
+          )}
+
           {pagination && pagination.totalPages > 1 ? (
             <div className="mt-4 flex items-center justify-between text-sm text-muted">
               <span>
-                หน้า {pagination.page} จาก {pagination.totalPages} (ทั้งหมด {pagination.total}{' '}
-                รายการ)
+                หน้า {pagination.page} จาก {pagination.totalPages}
               </span>
               <div className="flex gap-2">
                 <Button

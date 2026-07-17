@@ -15,7 +15,8 @@ export function VendorReviewProductBreakdown({
   return (
     <Card>
       <CardHeader>
-        <h2 className="font-display font-medium text-ink">รีวิวตามสินค้า</h2>
+        <h2 className="text-balance font-display font-medium text-ink">รีวิวตามสินค้า</h2>
+        <p className="mt-1 text-sm text-muted-foreground">เรียงจากจำนวนรีวิวมากไปน้อย</p>
       </CardHeader>
       <CardBody>
         <RankedList
@@ -24,11 +25,13 @@ export function VendorReviewProductBreakdown({
             primary: <p className="truncate font-medium text-ink">{item.productName}</p>,
             secondary: (
               <div className="flex flex-col items-end gap-1">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <StarRating rating={Math.round(item.averageRating)} iconClassName="size-3" />
-                  <span className="text-xs text-muted">{item.averageRating.toFixed(1)}</span>
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {item.averageRating.toFixed(1)}
+                  </span>
                 </div>
-                <p className="text-muted">{item.reviewCount} รีวิว</p>
+                <p className="text-sm text-muted-foreground">{item.reviewCount} รีวิว</p>
               </div>
             ),
           }))}

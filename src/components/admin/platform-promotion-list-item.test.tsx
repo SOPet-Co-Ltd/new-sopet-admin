@@ -1,0 +1,195 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  formatPromotionConditionChips,
+  PlatformPromotionListItem,
+} from './platform-promotion-list-item';
+import { PlatformPromotionsEmptyState } from './platform-promotions-empty-state';
+import type { Promotion } from '@/types';
+
+const basePromo: Promotion = {
+  id: 'promo-1',
+  code: 'PLATFORM10',
+  name: 'ลด 10% แพลตฟอร์ม',
+  type: 'percentage',
+  scope: 'platform',
+  discountValue: 10,
+  usagePerCustomer: 1,
+  usageCount: 12,
+  usageLimit: 500,
+  isActive: true,
+  autoApply: false,
+  priority: 2,
+  startsAt: '2026-01-01T00:00:00.000Z',
+  expiresAt: '2026-12-31T00:00:00.000Z',
+};
+
+describe('PlatformPromotionsEmptyState', () => {
+  it('teaches the next action with a create CTA', () => {
+    render(<PlatformPromotionsEmptyState />);
+
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'ยังไม่มีโปรโมชันแพลตฟอร์ม' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'สร้างโปรโมชัน' })).toHaveAttribute(
+      'href',
+      '/admin/promotions/new',
+    );
+  });
+});
+
+describe('PlatformPromotionListItem', () => {
+  it('shows unambiguous active status and toggle label', () => {
+    render(
+      <ul>
+        <PlatformPromotionListItem
+          promo={basePromo}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    expect(screen.getByLabelText('สถานะ: เปิดใช้งาน')).toHaveTextContent('เปิดใช้งาน');
+    expect(screen.getByRole('button', { name: /ปิดใช้งานโปรโมชัน/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByText('ลำดับ 2')).toBeInTheDocument();
+  });
+
+  it('uses coral secondary affordance when inactive can be turned on', () => {
+    render(
+      <ul>
+        <PlatformPromotionListItem
+          promo={{ ...basePromo, isActive: false }}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    const toggle = screen.getByRole('button', { name: /เปิดใช้งานโปรโมชัน/ });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(toggle.className).toMatch(/bg-secondary-tint/);
+  });
+
+  it('calls onToggle for the row', async () => {
+    const user = userEvent.setup();
+    const onToggle = vi.fn();
+
+    render(
+      <ul>
+        <PlatformPromotionListItem
+          promo={basePromo}
+          onToggle={onToggle}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /ปิดใช้งานโปรโมชัน/ }));
+    expect(onToggle).toHaveBeenCalledWith(basePromo);
+  });
+
+  it('links to the admin edit route', () => {
+    render(
+      <ul>
+        <PlatformPromotionListItem
+          promo={basePromo}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    expect(screen.getByRole('link', { name: 'แก้ไข' })).toHaveAttribute(
+      'href',
+      '/admin/promotions/promo-1/edit',
+    );
+  });
+
+  it('shows members-only, new-customer, and BxGy chips in normative order (AC-020 / AC-034)', () => {
+    render(
+      <ul>
+        <PlatformPromotionListItem
+          promo={{
+            ...basePromo,
+            type: 'buy_x_get_y',
+            discountValue: 0,
+            conditions: JSON.stringify({
+              loggedInOnly: { enabled: true },
+              newCustomer: { enabled: true, nDays: 30 },
+              productId: 'prod-cat-food',
+              buyQuantity: 2,
+              getQuantity: 1,
+            }),
+          }}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    const chips = screen.getByLabelText('เงื่อนไขโปรโมชัน');
+    // Badge children order: members-only → new-customer → BxGy (UI-L-001)
+    const badgeTexts = Array.from(chips.children).map((el) => el.textContent);
+    expect(badgeTexts).toEqual([
+      'สมาชิกเท่านั้น',
+      'ลูกค้าใหม่ ≤ 30 วัน',
+      'ซื้อ 2 แถม 1 · prod-cat-food',
+    ]);
+  });
+
+  it('omits chips when conditions are missing or invalid', () => {
+    render(
+      <ul>
+        <PlatformPromotionListItem
+          promo={{ ...basePromo, conditions: '{not-json' }}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    expect(screen.queryByLabelText('เงื่อนไขโปรโมชัน')).not.toBeInTheDocument();
+  });
+});
+
+describe('formatPromotionConditionChips', () => {
+  it('formats members-only, new-customer, and BxGy chip strings in normative order (AC-020)', () => {
+    expect(
+      formatPromotionConditionChips(
+        JSON.stringify({
+          loggedInOnly: { enabled: true },
+          newCustomer: { enabled: true, nDays: 14 },
+          productId: 'p1',
+          buyQuantity: 3,
+          getQuantity: 1,
+        }),
+        { productName: 'ขนมสุนัข' },
+      ),
+    ).toEqual(['สมาชิกเท่านั้น', 'ลูกค้าใหม่ ≤ 14 วัน', 'ซื้อ 3 แถม 1 · ขนมสุนัข']);
+  });
+
+  it('emits only สมาชิกเท่านั้น when members-only is enabled alone (UI-L-004)', () => {
+    expect(
+      formatPromotionConditionChips(JSON.stringify({ loggedInOnly: { enabled: true } })),
+    ).toEqual(['สมาชิกเท่านั้น']);
+  });
+
+  it('soft-omits all chips when conditions JSON fails to parse', () => {
+    expect(formatPromotionConditionChips('{not-json')).toEqual([]);
+    expect(formatPromotionConditionChips(null)).toEqual([]);
+    expect(formatPromotionConditionChips(undefined)).toEqual([]);
+  });
+
+  it('omits members-only chip when loggedInOnly is off or absent', () => {
+    expect(
+      formatPromotionConditionChips(JSON.stringify({ newCustomer: { enabled: true, nDays: 7 } })),
+    ).toEqual(['ลูกค้าใหม่ ≤ 7 วัน']);
+    expect(
+      formatPromotionConditionChips(JSON.stringify({ loggedInOnly: { enabled: false } })),
+    ).toEqual([]);
+  });
+});

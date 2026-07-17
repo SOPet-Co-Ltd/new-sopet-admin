@@ -28,6 +28,12 @@ const commonFields = {
   expiresAt: z.string().optional(),
   buyQuantity: z.number().min(1, 'กรุณากรอกจำนวนที่ต้องซื้อ').optional(),
   getQuantity: z.number().min(1, 'กรุณากรอกจำนวนที่แถม').optional(),
+  newCustomerOnly: z.boolean().optional(),
+  newCustomerMaxAccountAgeDays: z.number().optional(),
+  loggedInOnlyEnabled: z.boolean().optional(),
+  productId: z.string().optional(),
+  /** Form-local display only — never emitted into conditions JSON. */
+  productName: z.string().optional(),
 };
 
 export const promotionFormSchema = z
@@ -35,27 +41,40 @@ export const promotionFormSchema = z
     type: promotionTypeEnum,
     discountValue: z
       .number({ error: 'กรุณากรอกมูลค่าส่วนลด' })
-      .min(0, 'มูลค่าส่วนลดต้องไม่ต่ำกว่า 0'),
+      .min(0, 'มูลค่าส่วนลดต้องไม่ต่ำกว่า 0')
+      .optional(),
     ...commonFields,
   })
   .superRefine((data, ctx) => {
     const meta = getPromotionTypeMeta(data.type);
     if (!meta) return;
 
-    if (meta.discountRequired && data.discountValue <= 0) {
+    if (meta.discountRequired && (data.discountValue === undefined || data.discountValue <= 0)) {
       ctx.addIssue({
         code: 'custom',
         path: ['discountValue'],
-        message: 'กรุณากรอกมูลค่าส่วนลด',
+        message:
+          data.type === 'fixed_amount'
+            ? 'กรุณากรอกส่วนลดเป็นบาท (มากกว่า 0)'
+            : data.type === 'fixed_shipping_discount'
+              ? 'กรุณากรอกส่วนลดค่าจัดส่งเป็นบาท (มากกว่า 0)'
+              : data.type === 'percentage_shipping_discount'
+                ? 'กรุณากรอกเปอร์เซ็นต์ส่วนลดค่าจัดส่ง (1–100)'
+                : data.type === 'percentage'
+                  ? 'กรุณากรอกเปอร์เซ็นต์ส่วนลดสินค้า (1–100)'
+                  : 'กรุณากรอกมูลค่าส่วนลด',
       });
     }
 
     const isPercentage = data.type === 'percentage' || data.type === 'percentage_shipping_discount';
-    if (isPercentage && data.discountValue > 100) {
+    if (isPercentage && data.discountValue !== undefined && data.discountValue > 100) {
       ctx.addIssue({
         code: 'custom',
         path: ['discountValue'],
-        message: 'เปอร์เซ็นต์ส่วนลดต้องไม่เกิน 100',
+        message:
+          data.type === 'percentage_shipping_discount'
+            ? 'เปอร์เซ็นต์ส่วนลดค่าจัดส่งต้องไม่เกิน 100'
+            : 'เปอร์เซ็นต์ส่วนลดต้องไม่เกิน 100',
       });
     }
 
@@ -64,14 +83,64 @@ export const promotionFormSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['buyQuantity'],
-          message: 'กรุณากรอกจำนวนที่ต้องซื้อ',
+          message: 'กรุณากรอกจำนวนชิ้นที่ลูกค้าต้องซื้อ (อย่างน้อย 1)',
+        });
+      } else if (!Number.isInteger(data.buyQuantity)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['buyQuantity'],
+          message: 'จำนวนที่ต้องซื้อต้องเป็นจำนวนเต็ม',
+        });
+      } else if (data.buyQuantity > 99) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['buyQuantity'],
+          message: 'จำนวนที่ต้องซื้อต้องไม่เกิน 99 ชิ้น',
         });
       }
+
       if (!data.getQuantity || data.getQuantity < 1) {
         ctx.addIssue({
           code: 'custom',
           path: ['getQuantity'],
-          message: 'กรุณากรอกจำนวนที่แถม',
+          message: 'กรุณากรอกจำนวนชิ้นที่แถมฟรี (อย่างน้อย 1)',
+        });
+      } else if (!Number.isInteger(data.getQuantity)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['getQuantity'],
+          message: 'จำนวนที่แถมต้องเป็นจำนวนเต็ม',
+        });
+      } else if (data.getQuantity > 99) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['getQuantity'],
+          message: 'จำนวนที่แถมต้องไม่เกิน 99 ชิ้น',
+        });
+      }
+
+      if (!data.productId?.trim()) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['productId'],
+          message: 'กรุณาเลือกสินค้าสำหรับโปรซื้อแถม',
+        });
+      }
+    }
+
+    if (data.newCustomerOnly) {
+      const nDays = data.newCustomerMaxAccountAgeDays;
+      if (nDays === undefined || nDays === null || nDays <= 0) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['newCustomerMaxAccountAgeDays'],
+          message: 'กรุณาระบุจำนวนวันเป็นจำนวนเต็มที่มากกว่า 0',
+        });
+      } else if (!Number.isInteger(nDays)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['newCustomerMaxAccountAgeDays'],
+          message: 'ต้องเป็นจำนวนเต็ม',
         });
       }
     }
@@ -85,21 +154,64 @@ export function getPromotionFormDefaults(type: PromotionTypeSlug): PromotionForm
     name: '',
     description: '',
     type,
-    discountValue: type === 'free_shipping' || type === 'buy_x_get_y' ? 0 : 0,
+    // Empty for required amount/percent types so vendors must enter a value; free shipping / BxGy seed 0.
+    discountValue:
+      type === 'free_shipping' || type === 'buy_x_get_y'
+        ? 0
+        : type === 'fixed_amount' ||
+            type === 'fixed_shipping_discount' ||
+            type === 'percentage' ||
+            type === 'percentage_shipping_discount'
+          ? (undefined as unknown as number)
+          : 0,
     usagePerCustomer: 1,
     autoApply: false,
     priority: 0,
     buyQuantity: type === 'buy_x_get_y' ? 2 : undefined,
     getQuantity: type === 'buy_x_get_y' ? 1 : undefined,
+    newCustomerOnly: false,
+    newCustomerMaxAccountAgeDays: undefined,
+    loggedInOnlyEnabled: false,
+    productId: undefined,
+    productName: undefined,
   };
 }
 
+type ConditionsPayload = {
+  loggedInOnly?: { enabled: true };
+  newCustomer?: { enabled: true; nDays: number };
+  productId?: string;
+  buyQuantity?: number;
+  getQuantity?: number;
+};
+
 export function buildPromotionConditions(values: PromotionFormValues): string | undefined {
-  if (values.type !== 'buy_x_get_y') return undefined;
-  return JSON.stringify({
-    buyQuantity: values.buyQuantity,
-    getQuantity: values.getQuantity,
-  });
+  const payload: ConditionsPayload = {};
+
+  if (values.loggedInOnlyEnabled) {
+    payload.loggedInOnly = { enabled: true };
+  }
+
+  if (values.newCustomerOnly && values.newCustomerMaxAccountAgeDays) {
+    payload.newCustomer = {
+      enabled: true,
+      nDays: values.newCustomerMaxAccountAgeDays,
+    };
+  }
+
+  if (values.type === 'buy_x_get_y') {
+    if (values.productId) {
+      payload.productId = values.productId;
+    }
+    payload.buyQuantity = values.buyQuantity;
+    payload.getQuantity = values.getQuantity;
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return undefined;
+  }
+
+  return JSON.stringify(payload);
 }
 
 export function getPromotionFormValuesFromPromotion(promotion: {
@@ -135,18 +247,42 @@ export function getPromotionFormValuesFromPromotion(promotion: {
     expiresAt: promotion.expiresAt?.slice(0, 16) ?? '',
     buyQuantity: conditions.buyQuantity,
     getQuantity: conditions.getQuantity,
+    newCustomerOnly: conditions.newCustomerOnly ?? false,
+    newCustomerMaxAccountAgeDays: conditions.newCustomerMaxAccountAgeDays,
+    loggedInOnlyEnabled: conditions.loggedInOnlyEnabled ?? false,
+    productId: conditions.productId,
   };
 }
 
 export function parsePromotionConditions(
   conditions?: string | null,
-): Pick<PromotionFormValues, 'buyQuantity' | 'getQuantity'> {
+): Pick<
+  PromotionFormValues,
+  | 'buyQuantity'
+  | 'getQuantity'
+  | 'productId'
+  | 'newCustomerOnly'
+  | 'newCustomerMaxAccountAgeDays'
+  | 'loggedInOnlyEnabled'
+> {
   if (!conditions) return {};
   try {
-    const parsed = JSON.parse(conditions) as { buyQuantity?: number; getQuantity?: number };
+    const parsed = JSON.parse(conditions) as {
+      buyQuantity?: number;
+      getQuantity?: number;
+      productId?: string;
+      newCustomer?: { enabled?: boolean; nDays?: number };
+      loggedInOnly?: { enabled?: boolean };
+    };
+    const newCustomerEnabled = parsed.newCustomer?.enabled === true;
+    const loggedInOnlyEnabled = parsed.loggedInOnly?.enabled === true;
     return {
       buyQuantity: parsed.buyQuantity,
       getQuantity: parsed.getQuantity,
+      productId: parsed.productId,
+      newCustomerOnly: newCustomerEnabled ? true : false,
+      newCustomerMaxAccountAgeDays: newCustomerEnabled ? parsed.newCustomer?.nDays : undefined,
+      loggedInOnlyEnabled: loggedInOnlyEnabled ? true : false,
     };
   } catch {
     return {};
