@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 type AnalyticsPanelProps = {
   title: string;
-  description?: string;
+  description?: ReactNode;
   children: ReactNode;
   loading?: boolean;
   error?: Error | null;

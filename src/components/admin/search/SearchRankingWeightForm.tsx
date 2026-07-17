@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { SearchRankingWeights } from '@/lib/api/search';
 import type { UpdateSearchRankingWeightsInput } from '@/lib/graphql/generated/graphql';
+import { cn } from '@/lib/utils';
 
 type SearchRankingWeightFormProps = {
   initialWeights?: SearchRankingWeights;
@@ -19,33 +20,62 @@ type WeightField = {
   label: string;
   helper: string;
   step?: string;
+  min?: number;
+  max?: number;
 };
 
-const WEIGHT_FIELDS: WeightField[] = [
+const RANKING_FIELDS: WeightField[] = [
   {
     key: 'text',
-    label: 'Text relevance',
+    label: 'ความเกี่ยวข้องของข้อความ',
     helper: 'น้ำหนักการจับคู่ข้อความ (FTS rank)',
   },
   {
     key: 'prefixBoost',
-    label: 'Prefix boost',
+    label: 'บูสต์คำขึ้นต้น',
     helper: 'เพิ่มคะแนนเมื่อชื่อสินค้าขึ้นต้นด้วยคำค้น',
   },
   {
     key: 'soldCount',
-    label: 'Sold count',
-    helper: 'น้ำหนักยอดขายสะสม',
+    label: 'ยอดขายสะสม',
+    helper: 'น้ำหนักยอดขายสะสมของสินค้า',
   },
   {
     key: 'averageRating',
-    label: 'Average rating',
+    label: 'คะแนนรีวิวเฉลี่ย',
     helper: 'น้ำหนักคะแนนรีวิวเฉลี่ย',
   },
   {
     key: 'reviewCount',
-    label: 'Review count',
-    helper: 'น้ำหนักจำนวนรีวิว',
+    label: 'จำนวนรีวิว',
+    helper: 'น้ำหนักจำนวนรีวิวที่สะสม',
+  },
+];
+
+const ADVANCED_FIELDS: WeightField[] = [
+  {
+    key: 'personalizationCap',
+    label: 'เพดานการปรับตามพฤติกรรม',
+    helper: 'จำกัดการเลื่อนอันดับจากพฤติกรรมผู้ใช้ (0–0.20)',
+    step: '0.01',
+    min: 0,
+    max: 0.2,
+  },
+  {
+    key: 'trigramFallbackThreshold',
+    label: 'เกณฑ์เปิดใช้ trigram',
+    helper: 'จำนวนผลลัพธ์ต่ำกว่านี้จะเปิด fallback แบบ trigram',
+  },
+  {
+    key: 'trigramMinSimilarity',
+    label: 'ความคล้ายขั้นต่ำของ trigram',
+    helper: 'ค่า similarity ขั้นต่ำสำหรับการจับคู่ใกล้เคียง',
+    step: '0.01',
+  },
+  {
+    key: 'rrfK',
+    label: 'ค่าคงที่ RRF (k)',
+    helper: 'พารามิเตอร์ k ของ Reciprocal Rank Fusion',
   },
 ];
 
@@ -105,6 +135,74 @@ function validateValues(values: UpdateSearchRankingWeightsInput): FieldErrors {
   return errors;
 }
 
+function WeightFieldInput({
+  field,
+  value,
+  error,
+  disabled,
+  onChange,
+}: {
+  field: WeightField;
+  value: number | undefined;
+  error?: string;
+  disabled: boolean;
+  onChange: (rawValue: string) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={field.key}>{field.label}</Label>
+      <Input
+        id={field.key}
+        type="number"
+        min={field.min ?? 0}
+        max={field.max}
+        step={field.step ?? '1'}
+        value={value ?? ''}
+        disabled={disabled}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={`${field.key}-help${error ? ` ${field.key}-error` : ''}`}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      <p id={`${field.key}-help`} className="text-sm text-pretty text-muted-foreground">
+        {field.helper}
+      </p>
+      {error ? (
+        <p id={`${field.key}-error`} role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export function SearchRankingWeightFormSkeleton() {
+  return (
+    <div className="space-y-8" aria-busy="true" aria-label="กำลังโหลดน้ำหนักการจัดอันดับ">
+      <div className="grid gap-4 md:grid-cols-2">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <div className="h-4 w-28 max-w-full animate-pulse rounded bg-surface motion-reduce:animate-none" />
+            <div className="h-10 w-full animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
+            <div className="h-3 w-48 max-w-full animate-pulse rounded bg-surface motion-reduce:animate-none" />
+          </div>
+        ))}
+      </div>
+      <div className="border-t border-border pt-6">
+        <div className="mb-4 h-4 w-32 animate-pulse rounded bg-surface motion-reduce:animate-none" />
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="space-y-2">
+              <div className="h-4 w-36 max-w-full animate-pulse rounded bg-surface motion-reduce:animate-none" />
+              <div className="h-10 w-full animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <span className="sr-only">กำลังโหลดน้ำหนักการจัดอันดับ...</span>
+    </div>
+  );
+}
+
 export function SearchRankingWeightForm({
   initialWeights,
   loading = false,
@@ -114,6 +212,7 @@ export function SearchRankingWeightForm({
   const [values, setValues] = useState<UpdateSearchRankingWeightsInput>({});
   const [errors, setErrors] = useState<FieldErrors>({});
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [appliedWeights, setAppliedWeights] = useState<SearchRankingWeights | undefined>(undefined);
 
   if (initialWeights && initialWeights !== appliedWeights) {
@@ -123,6 +222,7 @@ export function SearchRankingWeightForm({
 
   const handleChange = (key: keyof UpdateSearchRankingWeightsInput, rawValue: string) => {
     setSavedMessage(null);
+    setSubmitError(null);
     setValues((current) => ({
       ...current,
       [key]: rawValue === '' ? undefined : Number(rawValue),
@@ -132,6 +232,7 @@ export function SearchRankingWeightForm({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSavedMessage(null);
+    setSubmitError(null);
 
     const nextErrors = validateValues(values);
     setErrors(nextErrors);
@@ -139,56 +240,72 @@ export function SearchRankingWeightForm({
       return;
     }
 
-    await onSubmit(values);
-    setSavedMessage('บันทึกการตั้งค่าแล้ว');
+    try {
+      await onSubmit(values);
+      setSavedMessage('บันทึกการตั้งค่าแล้ว');
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'บันทึกไม่สำเร็จ');
+    }
   };
 
+  const disabled = loading || saving;
+
   return (
-    <form className="space-y-6" noValidate onSubmit={handleSubmit}>
-      <div className="grid gap-4 md:grid-cols-2">
-        {WEIGHT_FIELDS.map((field) => (
-          <div key={field.key} className="space-y-2">
-            <Label htmlFor={field.key}>{field.label}</Label>
-            <Input
-              id={field.key}
-              type="number"
-              min={0}
-              step={field.step ?? '1'}
-              value={values[field.key] ?? ''}
-              disabled={loading || saving}
-              aria-invalid={errors[field.key] ? true : undefined}
-              onChange={(event) => handleChange(field.key, event.target.value)}
+    <form className="space-y-8" noValidate onSubmit={handleSubmit}>
+      <fieldset className="space-y-4" disabled={disabled}>
+        <legend className="sr-only">น้ำหนักการจัดอันดับหลัก</legend>
+        <div className="grid gap-5 md:grid-cols-2">
+          {RANKING_FIELDS.map((field) => (
+            <WeightFieldInput
+              key={field.key}
+              field={field}
+              value={values[field.key] ?? undefined}
+              error={errors[field.key]}
+              disabled={disabled}
+              onChange={(rawValue) => handleChange(field.key, rawValue)}
             />
-            <p className="text-sm text-muted">{field.helper}</p>
-            {errors[field.key] ? <p className="text-sm text-danger">{errors[field.key]}</p> : null}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </fieldset>
 
-      <div className="space-y-2">
-        <Label htmlFor="personalizationCap">Personalization cap (0–0.20)</Label>
-        <Input
-          id="personalizationCap"
-          type="number"
-          min={0}
-          max={0.2}
-          step="0.01"
-          value={values.personalizationCap ?? ''}
-          disabled={loading || saving}
-          aria-invalid={errors.personalizationCap ? true : undefined}
-          onChange={(event) => handleChange('personalizationCap', event.target.value)}
-        />
-        <p className="text-sm text-muted">เพดานการปรับอันดับจากพฤติกรรมผู้ใช้ (Phase 3)</p>
-        {errors.personalizationCap ? (
-          <p className="text-sm text-danger">{errors.personalizationCap}</p>
-        ) : null}
-      </div>
+      <fieldset className="space-y-4 border-t border-border pt-6" disabled={disabled}>
+        <legend className="mb-1 text-sm font-medium text-ink">การตั้งค่าขั้นสูง</legend>
+        <p className="text-sm text-pretty text-muted-foreground">
+          พารามิเตอร์ fallback และเพดานการปรับอันดับ — เปลี่ยนเมื่อเข้าใจผลกระทบต่อผลลัพธ์
+        </p>
+        <div className="grid gap-5 md:grid-cols-2">
+          {ADVANCED_FIELDS.map((field) => (
+            <WeightFieldInput
+              key={field.key}
+              field={field}
+              value={values[field.key] ?? undefined}
+              error={errors[field.key]}
+              disabled={disabled}
+              onChange={(rawValue) => handleChange(field.key, rawValue)}
+            />
+          ))}
+        </div>
+      </fieldset>
 
-      <div className="flex items-center gap-3">
-        <Button type="submit" disabled={loading || saving} aria-busy={saving}>
-          {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+      <div
+        className={cn(
+          'flex flex-wrap items-center gap-3 border-t border-border pt-6',
+          submitError || savedMessage ? 'items-start sm:items-center' : null,
+        )}
+      >
+        <Button type="submit" disabled={disabled} aria-busy={saving}>
+          {saving ? 'กำลังบันทึก...' : 'บันทึกน้ำหนัก'}
         </Button>
-        {savedMessage ? <p className="text-sm text-brand">{savedMessage}</p> : null}
+        {savedMessage ? (
+          <p role="status" className="text-sm text-success">
+            {savedMessage}
+          </p>
+        ) : null}
+        {submitError ? (
+          <p role="alert" className="text-sm text-danger">
+            {submitError}
+          </p>
+        ) : null}
       </div>
     </form>
   );

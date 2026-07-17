@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createSearchSynonym,
   deleteSearchSynonym,
@@ -99,21 +99,23 @@ export function useSearchAnalyticsSummary(fromDate?: string, toDate?: string) {
   });
 }
 
-export function useSearchAnalyticsTopQueries(fromDate?: string, toDate?: string, limit = 50) {
+export function useSearchAnalyticsTopQueries(fromDate?: string, toDate?: string, limit = 10) {
   return useQuery({
     queryKey: queryKeys.search.analyticsTopQueries(fromDate, toDate, limit),
     queryFn: () => getSearchAnalyticsTopQueries(fromDate, toDate, limit),
+    placeholderData: keepPreviousData,
   });
 }
 
 export function useSearchAnalyticsZeroResultQueries(
   fromDate?: string,
   toDate?: string,
-  limit = 50,
+  limit = 10,
 ) {
   return useQuery({
     queryKey: queryKeys.search.analyticsZeroResultQueries(fromDate, toDate, limit),
     queryFn: () => getSearchAnalyticsZeroResultQueries(fromDate, toDate, limit),
+    placeholderData: keepPreviousData,
   });
 }
 
