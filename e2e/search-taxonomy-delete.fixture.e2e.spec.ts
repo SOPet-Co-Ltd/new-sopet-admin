@@ -53,11 +53,12 @@ test.describe('Search taxonomy fixture-e2e', () => {
     await expect(dialog).toBeHidden();
   });
 
-  test('Journey AC3: requests taxonomy approve blocked without image', async ({ page }) => {
-    await page.goto('/admin/requests?tab=taxonomy');
+  test('Journey AC3: taxonomy pending category approve blocked without image', async ({ page }) => {
+    await page.goto('/admin/taxonomy');
 
-    const approveButton = page.getByRole('button', { name: 'อนุมัติ' }).first();
+    const pendingSection = cardByHeading(page, 'หมวดหมู่รออนุมัติ');
+    const approveButton = pendingSection.getByRole('button', { name: 'อนุมัติ' }).first();
     await expect(approveButton).toBeDisabled();
-    await expect(page.getByText('ต้องอัปโหลดรูปภาพก่อนอนุมัติ').first()).toBeVisible();
+    await expect(pendingSection.getByText('ต้องอัปโหลดรูปภาพก่อนอนุมัติ').first()).toBeVisible();
   });
 });
