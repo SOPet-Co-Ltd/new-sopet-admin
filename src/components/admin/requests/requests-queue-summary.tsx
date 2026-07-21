@@ -7,13 +7,11 @@ import type { RequestsTab, RequestsTabCounts } from './requests-tab-bar';
 
 const TAB_ACTION_LABELS: Record<RequestsTab, string> = {
   stores: 'อนุมัติคำขอเปิดร้าน',
-  taxonomy: 'ตรวจหมวดหมู่/แท็ก',
   invitations: 'เชิญผู้ขาย',
 };
 
 function getNextTab(counts: RequestsTabCounts): RequestsTab | null {
   if (counts.stores > 0) return 'stores';
-  if (counts.taxonomy > 0) return 'taxonomy';
   if (counts.invitations > 0) return 'invitations';
   return null;
 }
@@ -27,7 +25,7 @@ export function RequestsQueueSummary({
   activeTab: RequestsTab;
   onGoToNext: (tab: RequestsTab) => void;
 }) {
-  const total = counts.stores + counts.taxonomy + counts.invitations;
+  const total = counts.stores + counts.invitations;
   const nextTab = getNextTab(counts);
 
   if (total === 0) {
@@ -59,9 +57,7 @@ export function RequestsQueueSummary({
               ถัดไป: {TAB_ACTION_LABELS[nextTab]} ({nextCount.toLocaleString('th-TH')} รายการ)
               {nextTab === 'stores'
                 ? ' — เริ่มจากรายการแรกด้านล่าง'
-                : nextTab === 'taxonomy'
-                  ? ' — ตรวจรูปภาพก่อนอนุมัติหมวดหมู่'
-                  : ' — ส่งคำเชิญหรือติดตามสถานะ'}
+                : ' — ส่งคำเชิญหรือติดตามสถานะ'}
             </>
           ) : null}
         </p>

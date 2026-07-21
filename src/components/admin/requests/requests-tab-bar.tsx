@@ -4,17 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export type RequestsTab = 'stores' | 'taxonomy' | 'invitations';
+export type RequestsTab = 'stores' | 'invitations';
 
 export interface RequestsTabCounts {
   stores: number;
-  taxonomy: number;
   invitations: number;
 }
 
 const TAB_LABELS: Record<RequestsTab, string> = {
   stores: 'คำขอเปิดร้าน',
-  taxonomy: 'หมวดหมู่/แท็ก',
   invitations: 'เชิญผู้ขาย',
 };
 
@@ -27,7 +25,7 @@ export function RequestsTabBar({
   counts: RequestsTabCounts;
   onTabChange: (tab: RequestsTab) => void;
 }) {
-  const tabs: RequestsTab[] = ['stores', 'taxonomy', 'invitations'];
+  const tabs: RequestsTab[] = ['stores', 'invitations'];
 
   return (
     <div className="flex flex-wrap gap-2" role="tablist" aria-label="ประเภทคำขอ">

@@ -4,9 +4,7 @@ import {
   taxonomyListItemMetaClassName,
   taxonomyPendingRowClassName,
 } from '@/components/admin/taxonomy/taxonomy-hub-primitives';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { TaxonomyDeleteButton } from '@/components/admin/taxonomy/taxonomy-delete-button';
 import { useApproveCategory, useSetCategoryImage } from '@/hooks/useTaxonomy';
@@ -19,7 +17,6 @@ import type { TaxonomyItem } from '@/types';
 export interface PendingCategoryRowProps {
   item: TaxonomyItem;
   disabled?: boolean;
-  isNextUp?: boolean;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
 }
@@ -27,7 +24,6 @@ export interface PendingCategoryRowProps {
 export function PendingCategoryRow({
   item,
   disabled = false,
-  isNextUp = false,
   onApprove,
   onReject,
 }: PendingCategoryRowProps) {
@@ -70,20 +66,10 @@ export function PendingCategoryRow({
   }
 
   return (
-    <li
-      className={cn(
-        taxonomyPendingRowClassName,
-        isNextUp && 'border-brand/40 bg-brand-tint/50 ring-1 ring-brand/20',
-      )}
-    >
+    <li className={taxonomyPendingRowClassName}>
       <div className="min-w-0 flex-1 space-y-3">
         <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate font-medium text-ink">{item.name}</p>
-            {isNextUp ? (
-              <Badge className="border border-brand/20 bg-brand-tint text-brand">ถัดไป</Badge>
-            ) : null}
-          </div>
+          <p className="truncate font-medium text-ink">{item.name}</p>
           <p className={taxonomyListItemMetaClassName}>
             {item.slug} · {labelTaxonomyStatus(item.status)}
           </p>
@@ -115,7 +101,6 @@ export function PendingCategoryRow({
           disabled={!hasImage || rowPending}
           aria-busy={rowPending}
           aria-describedby={!hasImage ? approveHintId : undefined}
-          className={cn(isNextUp && hasImage && 'shadow-sm')}
           onClick={() => void handleApprove()}
         >
           อนุมัติ
