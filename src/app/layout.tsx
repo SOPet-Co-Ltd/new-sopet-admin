@@ -13,7 +13,10 @@ const mitr = Mitr({
 });
 
 export const metadata: Metadata = {
-  title: 'SOPet Admin',
+  title: {
+    default: 'SOPet',
+    template: '%s | SOPet',
+  },
   description: 'พอร์ทัลผู้ดูแลและผู้ขาย SOPet',
 };
 
