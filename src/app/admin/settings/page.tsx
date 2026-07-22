@@ -33,6 +33,7 @@ import {
 import type { PlatformAd, PlatformBanner, PlatformSponsor } from '@/types';
 import { AdsPanel } from './ads-panel';
 import { BannersPanel } from './banners-panel';
+import { LoginImagesPanel } from './login-images-panel';
 import { AdDialog, BannerDialog, SponsorDialog } from './platform-settings-dialogs';
 import { PLATFORM_SETTINGS_TAB_PANEL_IDS } from './platform-settings-primitives';
 import { SponsorsPanel } from './sponsors-panel';
@@ -329,26 +330,27 @@ export default function AdminPlatformSettingsPage() {
   const createActionLabel =
     tab === 'banners' ? 'เพิ่มแบนเนอร์' : tab === 'sponsors' ? 'เพิ่มสปอนเซอร์' : 'เพิ่มโฆษณา';
 
+  const headerAction =
+    tab === 'loginImages' ? undefined : tab === 'banners' ? (
+      <Button type="button" onClick={openCreateBanner}>
+        {createActionLabel}
+      </Button>
+    ) : tab === 'sponsors' ? (
+      <Button type="button" onClick={openCreateSponsor}>
+        {createActionLabel}
+      </Button>
+    ) : (
+      <Button type="button" onClick={openCreateAd}>
+        {createActionLabel}
+      </Button>
+    );
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="ตั้งค่าแพลตฟอร์ม"
         description="จัดการแบนเนอร์ สปอนเซอร์ และโฆษณาป๊อปอัพบนหน้าแรกร้านค้า"
-        action={
-          tab === 'banners' ? (
-            <Button type="button" onClick={openCreateBanner}>
-              {createActionLabel}
-            </Button>
-          ) : tab === 'sponsors' ? (
-            <Button type="button" onClick={openCreateSponsor}>
-              {createActionLabel}
-            </Button>
-          ) : (
-            <Button type="button" onClick={openCreateAd}>
-              {createActionLabel}
-            </Button>
-          )
-        }
+        action={headerAction}
       />
 
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="หมวดตั้งค่าแพลตฟอร์ม">
@@ -435,6 +437,16 @@ export default function AdminPlatformSettingsPage() {
               await deleteAd.mutateAsync(id);
             }}
           />
+        </div>
+      ) : null}
+
+      {tab === 'loginImages' ? (
+        <div
+          id={PLATFORM_SETTINGS_TAB_PANEL_IDS.loginImages}
+          role="tabpanel"
+          aria-labelledby="platform-settings-tab-loginImages"
+        >
+          <LoginImagesPanel />
         </div>
       ) : null}
 

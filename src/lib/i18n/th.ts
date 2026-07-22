@@ -97,6 +97,7 @@ export const platformSettingsTabLabels = {
   banners: 'แบนเนอร์',
   sponsors: 'สปอนเซอร์',
   ads: 'โฆษณาป๊อปอัพ',
+  loginImages: 'รูปหน้าเข้าสู่ระบบ',
 } as const;
 
 export const userRoleLabels: Record<string, string> = {
