@@ -128,6 +128,7 @@ export const queryKeys = {
     banners: () => ['platform', 'banners'] as const,
     sponsors: () => ['platform', 'sponsors'] as const,
     ads: () => ['platform', 'ads'] as const,
+    loginPageImages: () => ['platform', 'loginPageImages'] as const,
   },
   adminTeam: {
     all: ['adminTeam'] as const,

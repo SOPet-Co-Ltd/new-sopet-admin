@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   loginSchema,
+  loginImagesFormSchema,
   adminStoreFormSchema,
   payoutFormSchema,
   productFormSchema,
@@ -144,5 +145,37 @@ describe('adminStoreFormSchema', () => {
       ownerId: '11111111-1111-4111-8111-111111111111',
     });
     expect(result.success).toBe(true);
+  });
+});
+
+describe('loginImagesFormSchema', () => {
+  it('rejects empty desktop with exact TBD-03 message', () => {
+    const result = loginImagesFormSchema.safeParse({
+      desktopImageUrl: '',
+      mobileImageUrl: '',
+      altText: '',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe('ต้องมีรูปเดสก์ท็อป');
+    }
+  });
+
+  it('accepts desktop-only with empty mobile and alt', () => {
+    const result = loginImagesFormSchema.safeParse({
+      desktopImageUrl: 'https://cdn.example.com/login-images/desktop.webp',
+      mobileImageUrl: '',
+      altText: '',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects alt longer than 255', () => {
+    const result = loginImagesFormSchema.safeParse({
+      desktopImageUrl: 'https://cdn.example.com/login-images/desktop.webp',
+      mobileImageUrl: '',
+      altText: 'a'.repeat(256),
+    });
+    expect(result.success).toBe(false);
   });
 });

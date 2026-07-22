@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  clearLoginPageDesktopImage,
+  clearLoginPageMobileImage,
   createPlatformAd,
   createPlatformBanner,
   createPlatformSponsor,
@@ -11,13 +13,17 @@ import {
   getAllPlatformAds,
   getAllPlatformBanners,
   getAllPlatformSponsors,
+  getLoginPageImages,
+  loginImagesFormToUpdateInput,
   reorderPlatformBanners,
   reorderPlatformSponsors,
+  updateLoginPageImages,
   updatePlatformAd,
   updatePlatformBanner,
   updatePlatformSponsor,
 } from '@/lib/api/platform';
 import { queryKeys } from '@/lib/react-query/keys';
+import type { LoginImagesFormValues } from '@/lib/validations';
 import type {
   CreatePlatformAdInput,
   CreatePlatformBannerInput,
@@ -154,6 +160,44 @@ export function useDeletePlatformAd() {
     mutationFn: (id: string) => deletePlatformAd(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
+    },
+  });
+}
+
+export function useLoginPageImages() {
+  return useQuery({
+    queryKey: queryKeys.platform.loginPageImages(),
+    queryFn: getLoginPageImages,
+  });
+}
+
+export function useUpdateLoginPageImages() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (form: LoginImagesFormValues) =>
+      updateLoginPageImages(loginImagesFormToUpdateInput(form)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
+    },
+  });
+}
+
+export function useClearLoginPageDesktopImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => clearLoginPageDesktopImage(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
+    },
+  });
+}
+
+export function useClearLoginPageMobileImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => clearLoginPageMobileImage(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
     },
   });
 }

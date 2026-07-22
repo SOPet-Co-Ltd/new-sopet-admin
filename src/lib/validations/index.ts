@@ -254,3 +254,11 @@ export const adminProfileFormSchema = z.object({
 });
 
 export type AdminProfileFormValues = z.infer<typeof adminProfileFormSchema>;
+
+export const loginImagesFormSchema = z.object({
+  desktopImageUrl: z.string().min(1, 'ต้องมีรูปเดสก์ท็อป'),
+  mobileImageUrl: z.string(),
+  altText: z.string().max(255, 'ข้อความ alt ต้องไม่เกิน 255 ตัวอักษร'),
+});
+
+export type LoginImagesFormValues = z.infer<typeof loginImagesFormSchema>;

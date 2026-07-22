@@ -981,6 +981,19 @@ export interface UpdatePlatformAdInput {
   isActive?: boolean;
 }
 
+/** Singleton login page branding — not PlatformBanner (uses desktopImageUrl, not imageUrl). */
+export interface LoginPageImages {
+  desktopImageUrl: string | null;
+  mobileImageUrl: string | null;
+  altText: string | null;
+}
+
+export interface UpdateLoginPageImagesInput {
+  desktopImageUrl: string;
+  mobileImageUrl?: string | null;
+  altText?: string | null;
+}
+
 export interface AdminTeamMember {
   id: string;
   email: string;

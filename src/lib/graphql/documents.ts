@@ -1566,6 +1566,44 @@ export const DELETE_PLATFORM_AD = gql`
   }
 `;
 
+const LOGIN_PAGE_IMAGES_FIELDS = `
+  desktopImageUrl
+  mobileImageUrl
+  altText
+`;
+
+export const LOGIN_PAGE_IMAGES_QUERY = gql`
+  query LoginPageImages {
+    loginPageImages {
+      ${LOGIN_PAGE_IMAGES_FIELDS}
+    }
+  }
+`;
+
+export const UPDATE_LOGIN_PAGE_IMAGES = gql`
+  mutation UpdateLoginPageImages($input: UpdateLoginPageImagesInput!) {
+    updateLoginPageImages(input: $input) {
+      ${LOGIN_PAGE_IMAGES_FIELDS}
+    }
+  }
+`;
+
+export const CLEAR_LOGIN_PAGE_DESKTOP_IMAGE = gql`
+  mutation ClearLoginPageDesktopImage {
+    clearLoginPageDesktopImage {
+      ${LOGIN_PAGE_IMAGES_FIELDS}
+    }
+  }
+`;
+
+export const CLEAR_LOGIN_PAGE_MOBILE_IMAGE = gql`
+  mutation ClearLoginPageMobileImage {
+    clearLoginPageMobileImage {
+      ${LOGIN_PAGE_IMAGES_FIELDS}
+    }
+  }
+`;
+
 const ADMIN_TEAM_MEMBER_FIELDS = `
   id
   email
