@@ -8,6 +8,7 @@ import {
   HiCog6Tooth,
   HiCube,
   HiHome,
+  HiInboxArrowDown,
   HiShoppingBag,
   HiStar,
   HiTicket,
@@ -22,17 +23,25 @@ import { SuspendedStoreBanner } from '@/components/vendor/suspended-store-banner
 import { VendorStoreGuard } from '@/components/vendor/vendor-store-guard';
 import { useIsStoreManager, useIsStoreOwner } from '@/hooks/useMembershipRole';
 import { useMyStores } from '@/hooks/useMyStores';
+import { useMyStoreRequests } from '@/hooks/useStoreRequests';
 import { useStoreAnalytics } from '@/hooks/useStoreAnalytics';
+import { useMyPendingStoreInvitations } from '@/hooks/useTeam';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { vendorHasStores } from '@/lib/vendor/vendor-store-access';
 
-const storeSection: DashboardNavSection = {
+const storeSection = (pendingRequestCount?: number): DashboardNavSection => ({
   title: 'ร้านค้า',
   items: [
     { href: '/vendor', label: 'แดชบอร์ด', exact: true, icon: HiHome },
     { href: '/vendor/stores', label: 'ร้านค้าของฉัน', icon: HiBuildingStorefront },
+    {
+      href: '/vendor/requests',
+      label: 'คำเชิญ / คำขอ',
+      icon: HiInboxArrowDown,
+      badge: pendingRequestCount,
+    },
   ],
-};
+});
 
 const salesSection = (pendingOrderCount?: number): DashboardNavSection => ({
   title: 'ขาย',
@@ -75,28 +84,38 @@ const accountSection = (isOwner: boolean): DashboardNavSection => ({
   ],
 });
 
-const noStoresNavSection: DashboardNavSection = {
+const noStoresNavSection = (pendingRequestCount?: number): DashboardNavSection => ({
   title: 'ร้านค้า',
-  items: [{ href: '/vendor/stores', label: 'ร้านค้าของฉัน', icon: HiBuildingStorefront }],
-};
+  items: [
+    { href: '/vendor/stores', label: 'ร้านค้าของฉัน', icon: HiBuildingStorefront },
+    {
+      href: '/vendor/requests',
+      label: 'คำเชิญ / คำขอ',
+      icon: HiInboxArrowDown,
+      badge: pendingRequestCount,
+    },
+  ],
+});
 
 export function buildVendorNavSections({
   hasStores,
   isOwner,
   isManager,
   pendingOrderCount,
+  pendingRequestCount,
 }: {
   hasStores: boolean;
   isOwner: boolean;
   isManager: boolean;
   pendingOrderCount?: number;
+  pendingRequestCount?: number;
 }): DashboardNavSection[] {
   if (!hasStores) {
-    return [noStoresNavSection, accountSection(isOwner)];
+    return [noStoresNavSection(pendingRequestCount), accountSection(isOwner)];
   }
 
   return [
-    storeSection,
+    storeSection(pendingRequestCount),
     salesSection(pendingOrderCount),
     marketingSection,
     ...(isOwner ? [teamSection] : []),
@@ -109,15 +128,23 @@ export function VendorLayout({ children }: { children: React.ReactNode }) {
   const { data: stores = [], isLoading: isStoresLoading } = useMyStores();
   const storeId = useVendorStoreId();
   const { data: analytics } = useStoreAnalytics(storeId);
+  const { data: pendingInvitations = [] } = useMyPendingStoreInvitations();
+  const { data: storeRequests = [] } = useMyStoreRequests();
   const { isOwner } = useIsStoreOwner();
   const { isManager } = useIsStoreManager();
 
   const hasStores = vendorHasStores(stores);
+  const pendingStoreRequestCount = storeRequests.filter(
+    (request) => request.status === 'pending',
+  ).length;
+  const pendingRequestCount = pendingInvitations.length + pendingStoreRequestCount;
+
   const navSections = buildVendorNavSections({
     hasStores: isStoresLoading || hasStores,
     isOwner,
     isManager,
     pendingOrderCount: analytics?.pendingOrders,
+    pendingRequestCount: pendingRequestCount > 0 ? pendingRequestCount : undefined,
   });
 
   const header = (

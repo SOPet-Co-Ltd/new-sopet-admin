@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   acceptStoreInvitation,
   acceptStoreMemberInvitation,
+  declineStoreInvitation,
+  getMyPendingStoreInvitations,
   getStoreInvitationByToken,
   getStoreInvitations,
   getStoreMembers,
@@ -31,6 +33,13 @@ export function useStoreInvitations(enabled = true) {
     queryKey: queryKeys.team.invitations(),
     queryFn: getStoreInvitations,
     enabled,
+  });
+}
+
+export function useMyPendingStoreInvitations() {
+  return useQuery({
+    queryKey: queryKeys.team.myPendingInvitations(),
+    queryFn: getMyPendingStoreInvitations,
   });
 }
 
@@ -81,6 +90,17 @@ export function useAcceptStoreInvitation() {
     mutationFn: (token: string) => acceptStoreInvitation(token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.stores.myStores() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.team.all });
+    },
+  });
+}
+
+export function useDeclineStoreInvitation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (token: string) => declineStoreInvitation(token),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.team.myPendingInvitations() });
       queryClient.invalidateQueries({ queryKey: queryKeys.team.all });
     },
   });

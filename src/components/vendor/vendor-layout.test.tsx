@@ -35,6 +35,14 @@ vi.mock('@/hooks/useStoreAnalytics', () => ({
   useStoreAnalytics: vi.fn(),
 }));
 
+vi.mock('@/hooks/useTeam', () => ({
+  useMyPendingStoreInvitations: vi.fn(),
+}));
+
+vi.mock('@/hooks/useStoreRequests', () => ({
+  useMyStoreRequests: vi.fn(),
+}));
+
 vi.mock('@/hooks/useTheme', () => ({
   useTheme: vi.fn(),
 }));
@@ -70,6 +78,8 @@ import { useCurrentUser, useLogout } from '@/hooks/useAuth';
 import { useMyStores } from '@/hooks/useMyStores';
 import { useIsStoreManager, useIsStoreOwner } from '@/hooks/useMembershipRole';
 import { useStoreAnalytics } from '@/hooks/useStoreAnalytics';
+import { useMyStoreRequests } from '@/hooks/useStoreRequests';
+import { useMyPendingStoreInvitations } from '@/hooks/useTeam';
 import { useTheme } from '@/hooks/useTheme';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 
@@ -81,17 +91,23 @@ const mockedUseIsStoreManager = vi.mocked(useIsStoreManager);
 const mockedUseTheme = vi.mocked(useTheme);
 const mockedUseVendorStoreId = vi.mocked(useVendorStoreId);
 const mockedUseStoreAnalytics = vi.mocked(useStoreAnalytics);
+const mockedUseMyPendingStoreInvitations = vi.mocked(useMyPendingStoreInvitations);
+const mockedUseMyStoreRequests = vi.mocked(useMyStoreRequests);
 
 function setupMocks({
   stores = [],
   isStoresLoading = false,
   isOwner = false,
   isManager = false,
+  pendingInvitations = [],
+  storeRequests = [],
 }: {
   stores?: unknown[];
   isStoresLoading?: boolean;
   isOwner?: boolean;
   isManager?: boolean;
+  pendingInvitations?: unknown[];
+  storeRequests?: unknown[];
 } = {}) {
   mockedUseLogout.mockReturnValue(vi.fn());
   mockedUseTheme.mockReturnValue({
@@ -130,22 +146,44 @@ function setupMocks({
   mockedUseStoreAnalytics.mockReturnValue({
     data: undefined,
   } as ReturnType<typeof useStoreAnalytics>);
+  mockedUseMyPendingStoreInvitations.mockReturnValue({
+    data: pendingInvitations,
+  } as ReturnType<typeof useMyPendingStoreInvitations>);
+  mockedUseMyStoreRequests.mockReturnValue({
+    data: storeRequests,
+  } as ReturnType<typeof useMyStoreRequests>);
 }
 
 describe('buildVendorNavSections', () => {
-  it('returns ร้านค้าของฉัน, การแจ้งเตือน, and ตั้งค่า when vendor has no stores', () => {
+  it('returns ร้านค้าของฉัน, คำเชิญ / คำขอ, การแจ้งเตือน, and ตั้งค่า when vendor has no stores', () => {
     const sections = buildVendorNavSections({ hasStores: false, isOwner: false, isManager: false });
 
     expect(sections).toHaveLength(2);
     expect(sections[0].title).toBe('ร้านค้า');
     expect(sections[0].items).toEqual([
       expect.objectContaining({ href: '/vendor/stores', label: 'ร้านค้าของฉัน' }),
+      expect.objectContaining({ href: '/vendor/requests', label: 'คำเชิญ / คำขอ' }),
     ]);
     expect(sections[1].title).toBe('บัญชี');
     expect(sections[1].items).toEqual([
       expect.objectContaining({ href: '/vendor/notifications', label: 'การแจ้งเตือน' }),
       expect.objectContaining({ href: '/vendor/settings', label: 'ตั้งค่า' }),
     ]);
+  });
+
+  it('includes pending request badge on คำเชิญ / คำขอ', () => {
+    const sections = buildVendorNavSections({
+      hasStores: true,
+      isOwner: true,
+      isManager: true,
+      pendingRequestCount: 3,
+    });
+
+    const requestItem = sections
+      .flatMap((section) => section.items)
+      .find((item) => item.href === '/vendor/requests');
+
+    expect(requestItem?.badge).toBe(3);
   });
 
   it('includes payout nav for store owners', () => {
@@ -168,6 +206,7 @@ describe('buildVendorNavSections', () => {
     const labels = sections.flatMap((section) => section.items.map((item) => item.label));
     expect(labels).toContain('แดชบอร์ด');
     expect(labels).toContain('ร้านค้าของฉัน');
+    expect(labels).toContain('คำเชิญ / คำขอ');
     expect(labels).toContain('คำสั่งซื้อ');
     expect(labels).toContain('สินค้า');
     expect(labels).toContain('ลูกค้า');
@@ -217,6 +256,7 @@ describe('VendorLayout sidebar nav', () => {
     );
 
     expect(screen.getByRole('link', { name: 'ร้านค้าของฉัน' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'คำเชิญ / คำขอ' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'การแจ้งเตือน' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ตั้งค่า' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'แดชบอร์ด' })).not.toBeInTheDocument();
@@ -251,9 +291,31 @@ describe('VendorLayout sidebar nav', () => {
 
     expect(screen.getByRole('link', { name: 'แดชบอร์ด' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ร้านค้าของฉัน' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'คำเชิญ / คำขอ' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'คำสั่งซื้อ' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'สินค้า' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'รับเงิน' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ตั้งค่า' })).toBeInTheDocument();
+  });
+
+  it('shows badge count for pending invitations and store requests', () => {
+    setupMocks({
+      stores: [{ store: { id: 'store-1', name: 'Test Store' }, membershipRole: 'owner' }],
+      isOwner: true,
+      isManager: true,
+      pendingInvitations: [{ id: 'inv-1' }],
+      storeRequests: [
+        { id: 'req-1', status: 'pending' },
+        { id: 'req-2', status: 'approved' },
+      ],
+    });
+
+    render(
+      <VendorLayout>
+        <div>content</div>
+      </VendorLayout>,
+    );
+
+    expect(screen.getByRole('link', { name: /คำเชิญ \/ คำขอ/ })).toHaveTextContent('2');
   });
 });

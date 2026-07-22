@@ -2,8 +2,10 @@ import { executeMutation, executeQuery } from '@/lib/graphql/client';
 import {
   ACCEPT_STORE_INVITATION,
   ACCEPT_STORE_MEMBER_INVITATION,
+  DECLINE_STORE_INVITATION,
   GET_STORE_INVITATION_BY_TOKEN,
   INVITE_STORE_MEMBER,
+  MY_PENDING_STORE_INVITATIONS_QUERY,
   REMOVE_STORE_MEMBER,
   REVOKE_STORE_INVITATION,
   STORE_INVITATIONS_QUERY,
@@ -14,6 +16,7 @@ import { mapUser } from '@/lib/graphql/mappers';
 import type {
   InviteStoreMemberInput,
   LoginResult,
+  MyPendingStoreInvitation,
   StoreInvitationPreview,
   StoreMember,
   StoreMemberInvitation,
@@ -35,6 +38,16 @@ type GqlStoreInvitation = {
   role: string;
   status: string;
   expiresAt: string;
+};
+
+type GqlMyPendingStoreInvitation = {
+  id: string;
+  storeId: string;
+  storeName: string;
+  role: string;
+  status: string;
+  expiresAt: string;
+  token: string;
 };
 
 function mapStoreMember(member: GqlStoreMember): StoreMember {
@@ -59,6 +72,20 @@ function mapStoreInvitation(invitation: GqlStoreInvitation): StoreMemberInvitati
   };
 }
 
+function mapMyPendingStoreInvitation(
+  invitation: GqlMyPendingStoreInvitation,
+): MyPendingStoreInvitation {
+  return {
+    id: invitation.id,
+    storeId: invitation.storeId,
+    storeName: invitation.storeName,
+    role: invitation.role,
+    status: invitation.status,
+    expiresAt: invitation.expiresAt,
+    token: invitation.token,
+  };
+}
+
 export function getStoreMembers(): Promise<StoreMember[]> {
   return executeQuery<{ storeMembers: GqlStoreMember[] }>(STORE_MEMBERS_QUERY).then((data) =>
     data.storeMembers.map(mapStoreMember),
@@ -69,6 +96,12 @@ export function getStoreInvitations(): Promise<StoreMemberInvitation[]> {
   return executeQuery<{ storeInvitations: GqlStoreInvitation[] }>(STORE_INVITATIONS_QUERY).then(
     (data) => data.storeInvitations.map(mapStoreInvitation),
   );
+}
+
+export function getMyPendingStoreInvitations(): Promise<MyPendingStoreInvitation[]> {
+  return executeQuery<{ myPendingStoreInvitations: GqlMyPendingStoreInvitation[] }>(
+    MY_PENDING_STORE_INVITATIONS_QUERY,
+  ).then((data) => data.myPendingStoreInvitations.map(mapMyPendingStoreInvitation));
 }
 
 export function inviteStoreMember(input: InviteStoreMemberInput): Promise<StoreMemberInvitation> {
@@ -99,6 +132,12 @@ export function acceptStoreInvitation(token: string): Promise<StoreMember> {
   return executeMutation<{ acceptStoreInvitation: GqlStoreMember }>(ACCEPT_STORE_INVITATION, {
     token,
   }).then((data) => mapStoreMember(data.acceptStoreInvitation));
+}
+
+export function declineStoreInvitation(token: string): Promise<boolean> {
+  return executeMutation<{ declineStoreInvitation: boolean }>(DECLINE_STORE_INVITATION, {
+    token,
+  }).then((data) => data.declineStoreInvitation);
 }
 
 export function getStoreInvitationByToken(token: string): Promise<StoreInvitationPreview> {
