@@ -1351,6 +1351,17 @@ export type MutationVerifyEmailArgs = {
   input: VerifyEmailInput;
 };
 
+export type MyPendingStoreInvitationType = {
+  __typename?: 'MyPendingStoreInvitationType';
+  expiresAt: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  role: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  storeId: Scalars['String']['output'];
+  storeName: Scalars['String']['output'];
+  token: Scalars['String']['output'];
+};
+
 export type MyStoreType = {
   __typename?: 'MyStoreType';
   address?: Maybe<Scalars['String']['output']>;
@@ -1775,6 +1786,7 @@ export type Query = {
   me: MeResult;
   myBrandProposals: Array<BrandType>;
   myCategoryProposals: Array<CategoryType>;
+  myPendingStoreInvitations: Array<MyPendingStoreInvitationType>;
   myPetTypeProposals: Array<PetTypeType>;
   myReviews: Array<CustomerReviewType>;
   myStore: MyStoreType;

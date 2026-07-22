@@ -625,6 +625,26 @@ export const STORE_INVITATIONS_QUERY = gql`
   }
 `;
 
+export const MY_PENDING_STORE_INVITATIONS_QUERY = gql`
+  query MyPendingStoreInvitations {
+    myPendingStoreInvitations {
+      id
+      storeId
+      storeName
+      role
+      status
+      expiresAt
+      token
+    }
+  }
+`;
+
+export const DECLINE_STORE_INVITATION = gql`
+  mutation DeclineStoreInvitation($token: String!) {
+    declineStoreInvitation(token: $token)
+  }
+`;
+
 export const INVITE_STORE_MEMBER = gql`
   mutation InviteStoreMember($input: InviteStoreMemberInput!) {
     inviteStoreMember(input: $input) {

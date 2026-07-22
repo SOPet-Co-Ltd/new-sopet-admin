@@ -174,6 +174,16 @@ export interface StoreMemberInvitation {
   expiresAt: string;
 }
 
+export interface MyPendingStoreInvitation {
+  id: string;
+  storeId: string;
+  storeName: string;
+  role: StoreMemberRole | string;
+  status: string;
+  expiresAt: string;
+  token: string;
+}
+
 export interface InviteStoreMemberInput {
   email: string;
   role: StoreMemberRole | string;
