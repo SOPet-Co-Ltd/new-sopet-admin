@@ -7,6 +7,7 @@ export const PLATFORM_SETTINGS_TAB_PANEL_IDS = {
   banners: 'platform-settings-panel-banners',
   sponsors: 'platform-settings-panel-sponsors',
   ads: 'platform-settings-panel-ads',
+  loginImages: 'platform-settings-panel-loginImages',
 } as const;
 
 function queryErrorMessage(error: unknown, fallback: string): string {

@@ -52,6 +52,30 @@ vi.mock('@/hooks/usePlatformSettings', () => ({
   useAllPlatformBanners: () => useAllPlatformBanners(),
   useAllPlatformSponsors: () => useAllPlatformSponsors(),
   useAllPlatformAds: () => useAllPlatformAds(),
+  useLoginPageImages: () => ({
+    data: { desktopImageUrl: null, mobileImageUrl: null, altText: null },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useUpdateLoginPageImages: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    reset: vi.fn(),
+  }),
+  useClearLoginPageDesktopImage: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    reset: vi.fn(),
+  }),
+  useClearLoginPageMobileImage: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    reset: vi.fn(),
+  }),
   useCreatePlatformBanner: () => ({
     mutateAsync: vi.fn(),
     isPending: false,
@@ -168,6 +192,7 @@ describe('AdminPlatformSettingsPage', () => {
     expect(screen.getByRole('tab', { name: 'แบนเนอร์', selected: true })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'สปอนเซอร์' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'โฆษณาป๊อปอัพ' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'รูปหน้าเข้าสู่ระบบ' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /แบนเนอร์ \(1\)/ })).toBeInTheDocument();
     expect(screen.getByText('Summer Sale')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'เพิ่มแบนเนอร์' })).toBeInTheDocument();
@@ -241,5 +266,18 @@ describe('AdminPlatformSettingsPage', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'เพิ่มแบนเนอร์' })).toBeInTheDocument();
     expect(screen.getByLabelText('ชื่อแบนเนอร์ *')).toBeInTheDocument();
+  });
+
+  it('shows login images tab and hides header create action', async () => {
+    const user = userEvent.setup();
+    render(<AdminPlatformSettingsPage />);
+
+    await user.click(screen.getByRole('tab', { name: 'รูปหน้าเข้าสู่ระบบ' }));
+
+    expect(
+      screen.getByRole('tab', { name: 'รูปหน้าเข้าสู่ระบบ', selected: true }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'รูปหน้าเข้าสู่ระบบ' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /เพิ่ม/ })).not.toBeInTheDocument();
   });
 });

@@ -8,6 +8,7 @@ export const UPLOAD_FOLDERS = [
   'ads',
   'categories',
   'pet-types',
+  'login-images',
 ] as const;
 
 export type UploadFolder = (typeof UPLOAD_FOLDERS)[number];
@@ -73,6 +74,7 @@ export const FOLDER_UPLOAD_RULES: Record<UploadFolder, FolderUploadRules> = {
   },
   categories: DEFAULT_RULES,
   'pet-types': DEFAULT_RULES,
+  'login-images': DEFAULT_RULES,
 };
 
 export function getFolderUploadRules(folder: UploadFolder): FolderUploadRules {

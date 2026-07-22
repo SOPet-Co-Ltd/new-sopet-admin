@@ -597,6 +597,13 @@ export type InviteVendorInput = {
   email: Scalars['String']['input'];
 };
 
+export type LoginPageImagesType = {
+  __typename?: 'LoginPageImagesType';
+  altText?: Maybe<Scalars['String']['output']>;
+  desktopImageUrl?: Maybe<Scalars['String']['output']>;
+  mobileImageUrl?: Maybe<Scalars['String']['output']>;
+};
+
 export type MeResult = {
   __typename?: 'MeResult';
   customer?: Maybe<CustomerProfile>;
@@ -635,6 +642,8 @@ export type Mutation = {
   cancelVendorOrder: OrderType;
   changeCustomerPhone: CustomerAuthPayload;
   changePassword: MessagePayload;
+  clearLoginPageDesktopImage: LoginPageImagesType;
+  clearLoginPageMobileImage: LoginPageImagesType;
   confirmGuestOrderDelivered: OrderType;
   confirmOrderDelivered: OrderType;
   createAddress: SavedAddressType;
@@ -728,6 +737,7 @@ export type Mutation = {
   updateCartItem: CartType;
   updateCategory: CategoryType;
   updateCustomerAsAdmin: AdminCustomerType;
+  updateLoginPageImages: LoginPageImagesType;
   updateOrderStatus: OrderType;
   updatePetType: PetTypeType;
   updatePlatformAd: PlatformAdType;
@@ -1223,6 +1233,10 @@ export type MutationUpdateCategoryArgs = {
 
 export type MutationUpdateCustomerAsAdminArgs = {
   input: UpdateCustomerAsAdminInput;
+};
+
+export type MutationUpdateLoginPageImagesArgs = {
+  input: UpdateLoginPageImagesInput;
 };
 
 export type MutationUpdateOrderStatusArgs = {
@@ -1757,6 +1771,7 @@ export type Query = {
   health: HealthStatus;
   latestPurchaseProduct?: Maybe<ProductType>;
   latestPurchaseProducts: Array<ProductType>;
+  loginPageImages: LoginPageImagesType;
   me: MeResult;
   myBrandProposals: Array<BrandType>;
   myCategoryProposals: Array<CategoryType>;
@@ -2680,6 +2695,12 @@ export type UpdateCustomerAsAdminInput = {
   fullName?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   phone?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateLoginPageImagesInput = {
+  altText?: InputMaybe<Scalars['String']['input']>;
+  desktopImageUrl: Scalars['String']['input'];
+  mobileImageUrl?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateOrderStatusInput = {
