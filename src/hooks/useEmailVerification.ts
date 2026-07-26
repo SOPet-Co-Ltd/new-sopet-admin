@@ -57,14 +57,17 @@ export function useResendEmailVerification() {
 
 /** Refreshes auth user when the persisted profile may be stale (e.g. admin verified email). */
 export function useSyncEmailVerificationStatus() {
-  const user = useAuthStore((s) => s.user);
+  const userId = useAuthStore((s) => s.user?.id);
+  const emailVerified = useAuthStore((s) => s.user?.emailVerified);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
 
   useEffect(() => {
-    if (!hasHydrated || !isAuthenticated || !user || user.emailVerified === true) {
+    // Depend on primitives (id / emailVerified), not the user object — refreshAuthUser
+    // always setUser() with a new reference, which would infinite-loop Me while unverified.
+    if (!hasHydrated || !isAuthenticated || !userId || emailVerified === true) {
       return;
     }
     void refreshAuthUser();
-  }, [hasHydrated, isAuthenticated, user]);
+  }, [hasHydrated, isAuthenticated, userId, emailVerified]);
 }

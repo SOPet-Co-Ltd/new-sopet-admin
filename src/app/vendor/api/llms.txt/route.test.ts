@@ -30,11 +30,16 @@ describe('vendor api llms.txt route', () => {
     expect(body).toContain('https://admin.sopet.org/vendor/api/llms.txt');
     expect(body).toContain('https://api.sopet.org');
     expect(body).toContain('POST');
+    expect(body).toContain('PATCH');
     expect(body).toContain('/api/v1/stores/{storeId}/products');
+    expect(body).toContain('/variants/by-sku/');
     expect(body).toContain('Authorization: Bearer sopet_sk_...');
     expect(body).toContain('X-Api-Key: sopet_sk_...');
     expect(body).toContain('INVALID_API_KEY');
+    expect(body).toContain('PRODUCT_NOT_FOUND');
+    expect(body).toContain('VARIANT_NOT_FOUND');
     expect(body).toContain('draft');
+    expect(body).not.toMatch(/Listing, updating, deleting/);
   });
 
   it('does not expose localhost API hosts', async () => {

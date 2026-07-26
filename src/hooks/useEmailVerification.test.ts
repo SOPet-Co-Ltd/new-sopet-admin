@@ -4,9 +4,9 @@ import { createElement, type ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api/errors-core';
 import { resendEmailVerification } from '@/lib/api/emailVerification';
-import { syncEmailVerificationStatus } from '@/lib/auth-session';
+import { refreshAuthUser, syncEmailVerificationStatus } from '@/lib/auth-session';
 import { useAuthStore } from '@/stores/auth.store';
-import { useResendEmailVerification } from './useEmailVerification';
+import { useResendEmailVerification, useSyncEmailVerificationStatus } from './useEmailVerification';
 
 const startCooldownMock = vi.fn();
 
@@ -19,6 +19,7 @@ vi.mock('@/lib/auth-session', async () => {
   return {
     ...actual,
     syncEmailVerificationStatus: vi.fn(),
+    refreshAuthUser: vi.fn(),
   };
 });
 
@@ -40,19 +41,21 @@ function createWrapper() {
   };
 }
 
+const unverifiedVendor = {
+  id: '1',
+  email: 'vendor@test.com',
+  fullName: 'Vendor',
+  role: 'vendor' as const,
+  emailVerified: false,
+};
+
 describe('useResendEmailVerification', () => {
   beforeEach(() => {
     startCooldownMock.mockReset();
     vi.mocked(resendEmailVerification).mockResolvedValue('Email verification sent');
     vi.mocked(syncEmailVerificationStatus).mockResolvedValue();
     useAuthStore.setState({
-      user: {
-        id: '1',
-        email: 'vendor@test.com',
-        fullName: 'Vendor',
-        role: 'vendor',
-        emailVerified: false,
-      },
+      user: unverifiedVendor,
       isAuthenticated: true,
       hasHydrated: true,
     });
@@ -106,5 +109,54 @@ describe('useResendEmailVerification', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(syncEmailVerificationStatus).toHaveBeenCalledOnce();
     expect(startCooldownMock).toHaveBeenCalledOnce();
+  });
+});
+
+describe('useSyncEmailVerificationStatus', () => {
+  beforeEach(() => {
+    vi.mocked(refreshAuthUser).mockReset();
+    vi.mocked(refreshAuthUser).mockResolvedValue(null);
+    useAuthStore.setState({
+      user: unverifiedVendor,
+      isAuthenticated: true,
+      hasHydrated: true,
+    });
+  });
+
+  it('refreshes auth once for an unverified user', async () => {
+    renderHook(() => useSyncEmailVerificationStatus());
+
+    await waitFor(() => expect(refreshAuthUser).toHaveBeenCalledOnce());
+  });
+
+  it('does not re-refresh when setUser replaces user with same id and emailVerified', async () => {
+    renderHook(() => useSyncEmailVerificationStatus());
+    await waitFor(() => expect(refreshAuthUser).toHaveBeenCalledOnce());
+
+    act(() => {
+      useAuthStore.getState().setUser({ ...unverifiedVendor });
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(refreshAuthUser).toHaveBeenCalledOnce();
+  });
+
+  it('does not refresh when email is already verified', async () => {
+    useAuthStore.setState({
+      user: { ...unverifiedVendor, emailVerified: true },
+      isAuthenticated: true,
+      hasHydrated: true,
+    });
+
+    renderHook(() => useSyncEmailVerificationStatus());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(refreshAuthUser).not.toHaveBeenCalled();
   });
 });

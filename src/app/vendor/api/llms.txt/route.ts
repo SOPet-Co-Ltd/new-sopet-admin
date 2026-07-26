@@ -9,9 +9,9 @@ function buildLlmsTxtContent(adminOrigin: string): string {
 
   return `# SOPET Vendor Product API
 
-> REST API for approved SOPET stores to create product drafts from external systems (ERP, POS, inventory tools).
+> REST API for approved SOPET stores to create product drafts and update product info / variant stock·price from external systems (ERP, POS, inventory tools).
 
-> Managed in the vendor dashboard. API keys are store-scoped. Products created via this API are always saved as draft and must be reviewed/published in the vendor UI. Image upload is not supported on this endpoint.
+> Managed in the vendor dashboard. API keys are store-scoped. Products created via this API are always saved as draft and must be reviewed/published in the vendor UI. Image upload is not supported.
 
 ## Documentation
 
@@ -38,9 +38,7 @@ The key must belong to the same store as \`{storeId}\` in the URL. The store mus
 
 ## Store ID
 
-Use the UUID Store ID shown at ${adminOrigin}/vendor/api in every request path:
-
-\`/api/v1/stores/{storeId}/products\`
+Use the UUID Store ID shown at ${adminOrigin}/vendor/api in every request path under \`/api/v1/stores/{storeId}/...\`.
 
 ## Endpoints
 
@@ -49,7 +47,6 @@ Use the UUID Store ID shown at ${adminOrigin}/vendor/api in every request path:
 - Method: \`POST\`
 - Path: \`/api/v1/stores/{storeId}/products\`
 - Success: \`201\` with the created product object (status \`draft\`)
-- Content-Type: \`application/json\`
 
 #### Request body fields
 
@@ -66,71 +63,49 @@ Use the UUID Store ID shown at ${adminOrigin}/vendor/api in every request path:
 | variants | array | yes | Option groups / dimensions (≥ 1). No sku/stock/price here |
 | variantItems | array | yes | Purchasable combinations (≥ 1). Holds sku/stock/price |
 
-#### variants[] fields
+#### variants[] / variantItems[]
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| name | string | yes | Dimension name, e.g. "สี" or "ขนาด" |
-| values | string[] | yes | Allowed values for that dimension |
+| variants[].name | string | yes | Dimension name, e.g. "สี" |
+| variants[].values | string[] | yes | Allowed values |
+| variantItems[].sku | string | yes | Unique SKU |
+| variantItems[].stock | integer | yes | ≥ 0 |
+| variantItems[].price | number | yes | THB absolute price ≥ 0 |
+| variantItems[].options | object | yes | Map of every variants[].name → one of its values |
 
-#### variantItems[] fields
+Create rules: base price = min(variantItems[].price); always \`draft\`; taxonomy names must already be approved.
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| sku | string | yes | Unique SKU |
-| stock | integer | yes | ≥ 0 |
-| price | number | yes | THB absolute price ≥ 0 |
-| options | object | yes | Map of every variants[].name → one of its values |
+### Update product info
 
-#### Important rules
+- Method: \`PATCH\`
+- Path: \`/api/v1/stores/{storeId}/products/{productId}\`
+- Success: \`200\` with the updated product
+- Body: all fields optional; at least one required. Allowed: \`name\`, \`description\`, \`warning\`, \`expiryDate\`, \`category\`, \`tags\`, \`petType\`, \`brand\` (same name semantics as create).
+- Not allowed: stock, price, status, variants, images.
 
-- Two-level model: \`variants\` declare dimensions; \`variantItems\` are sellable combos.
-- Product base price is the minimum \`variantItems[].price\` (no \`basePrice\` field).
-- Always created as \`draft\` — publish from the vendor dashboard after review.
-- No image/media upload on this API.
-- category / tags / petType / brand must already exist and be approved; unknown names return 400.
-- Name matching for those fields is case-insensitive exact match on the display name.
+### Update variant stock / price (by id)
 
-#### Example
+- Method: \`PATCH\`
+- Path: \`/api/v1/stores/{storeId}/products/{productId}/variants/{variantId}\`
+- Success: \`200\` with the updated variant (\`price\` is absolute effective THB)
+- Body: \`stock\` (integer ≥ 0) and/or \`price\` (number ≥ 0 absolute THB); at least one required.
 
-\`\`\`json
-{
-  "name": "อาหารแมวออร์แกนิค 2kg",
-  "description": "อาหารแมวเกรดพรีเมียม",
-  "warning": "เก็บในที่แห้ง หลีกเลี่ยงแสงแดด",
-  "expiryDate": "2026-12-31",
-  "category": "อาหารแมว",
-  "tags": ["ออร์แกนิค", "เกรดพรีเมียม"],
-  "petType": "แมว",
-  "brand": "Royal Canin",
-  "variants": [
-    { "name": "รสชาติ", "values": ["ไก่", "ปลา"] },
-    { "name": "ขนาด", "values": ["2kg"] }
-  ],
-  "variantItems": [
-    {
-      "sku": "CAT-ORG-2KG-CHK",
-      "stock": 120,
-      "price": 499,
-      "options": { "รสชาติ": "ไก่", "ขนาด": "2kg" }
-    },
-    {
-      "sku": "CAT-ORG-2KG-FISH",
-      "stock": 80,
-      "price": 519,
-      "options": { "รสชาติ": "ปลา", "ขนาด": "2kg" }
-    }
-  ]
-}
-\`\`\`
+### Update variant stock / price (by SKU)
 
-#### Example curl
+- Method: \`PATCH\`
+- Path: \`/api/v1/stores/{storeId}/variants/by-sku/{sku}\`
+- Same body as by-id. SKU lookup is store-scoped.
+
+Price rule: REST \`price\` is absolute; stored as \`priceAdjustment = price - product.basePrice\` (sibling variants / basePrice are not recomputed).
+
+#### Example curl (update stock by SKU)
 
 \`\`\`bash
-curl -X POST "${apiBaseUrl}/api/v1/stores/{storeId}/products" \\
+curl -X PATCH "${apiBaseUrl}/api/v1/stores/{storeId}/variants/by-sku/CAT-ORG-2KG-CHK" \\
   -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
   -H "Content-Type: application/json" \\
-  -d @product.json
+  -d '{"stock":100,"price":529}'
 \`\`\`
 
 ## Error responses
@@ -149,21 +124,21 @@ Shape:
 | --- | --- | --- |
 | 401 | INVALID_API_KEY | Missing, invalid, revoked, or wrong-store key |
 | 403 | STORE_SUSPENDED | Store not approved or suspended |
-| 400 | VALIDATION_ERROR | Request body failed validation |
-| 400 | VARIANTS_REQUIRED | Missing/empty variants |
-| 400 | VARIANT_ITEMS_REQUIRED | Missing/empty variantItems |
+| 400 | VALIDATION_ERROR | Request body failed validation / empty PATCH |
+| 400 | VARIANTS_REQUIRED | Missing/empty variants (create) |
+| 400 | VARIANT_ITEMS_REQUIRED | Missing/empty variantItems (create) |
 | 400 | INVALID_VARIANT_OPTIONS | options missing a group or using undeclared values |
-| 400 | CATEGORY_NOT_FOUND | Unknown or unapproved category name |
-| 400 | TAG_NOT_FOUND | Unknown or unapproved tag name(s) |
-| 400 | PET_TYPE_NOT_FOUND | Unknown or unapproved pet type name |
-| 400 | BRAND_NOT_FOUND | Unknown or unapproved brand name |
-| 400 | SKU_EXISTS | SKU already exists |
+| 400 | CATEGORY_NOT_FOUND / TAG_NOT_FOUND / PET_TYPE_NOT_FOUND / BRAND_NOT_FOUND | Unknown or unapproved taxonomy name |
+| 400 | SKU_EXISTS | SKU already exists (create) |
+| 404 | PRODUCT_NOT_FOUND | Missing product or wrong store |
+| 404 | VARIANT_NOT_FOUND | Missing variant, wrong store, or not under productId |
 
 ## Out of scope
 
-- Listing, updating, deleting, or publishing products via REST
+- Listing, deleting, or publishing products via REST
 - Image upload
-- Orders, inventory sync beyond create-draft, GraphQL, or admin JWT flows
+- Creating new variants after product create
+- Orders or GraphQL / admin JWT flows
 
 Use the human docs at ${adminOrigin}/vendor/api/docs for the Thai UI field tables.
 `;
