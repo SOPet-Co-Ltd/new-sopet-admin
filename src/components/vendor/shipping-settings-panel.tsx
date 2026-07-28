@@ -310,9 +310,13 @@ export function VendorShippingPanel() {
                       <ConfirmDeleteButton
                         confirmLabel={option.name}
                         title="ลบตัวเลือกจัดส่ง"
-                        description={`ลบ “${option.name}” ออกจากตัวเลือกที่ลูกค้าเห็นตอนชำระเงิน`}
+                        description={
+                          options.length <= 1
+                            ? 'ต้องมีอย่างน้อย 1 ตัวเลือกการจัดส่ง — เพิ่มตัวเลือกอื่นก่อนจึงจะลบได้'
+                            : `ลบ “${option.name}” ออกจากตัวเลือกที่ลูกค้าเห็นตอนชำระเงิน`
+                        }
                         variant="outline"
-                        disabled={deleteMutation.isPending}
+                        disabled={deleteMutation.isPending || options.length <= 1}
                         isDeleting={deleteMutation.isPending}
                         onConfirm={async () => {
                           await deleteMutation.mutateAsync(option.id);

@@ -8,6 +8,7 @@ const statusStyles: Record<string, string> = {
   pending_payment: 'bg-warning-bg text-warning-text',
   paid: 'bg-info-bg text-info-text',
   processing: 'bg-brand-tint text-brand',
+  on_hold: 'bg-warning-bg text-warning-text',
   shipped: 'bg-brand-soft/50 text-brand-hover',
   delivered: 'bg-success-bg text-success',
   cancelled: 'bg-danger-bg text-danger',

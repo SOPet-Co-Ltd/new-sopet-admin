@@ -24,6 +24,7 @@ const CHECKLIST_LABELS: Record<string, string> = {
   variants: 'ตัวเลือกสินค้า (อย่างน้อย 1 รายการ)',
   price: 'ราคา',
   stock: 'สต็อก',
+  shipping: 'ตัวเลือกการจัดส่งของร้าน (อย่างน้อย 1 รายการ)',
 };
 
 type ProductPublishPanelProps = {

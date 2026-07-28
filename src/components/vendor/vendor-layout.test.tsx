@@ -218,6 +218,20 @@ describe('buildVendorNavSections', () => {
     expect(labels).toContain('ตั้งค่า');
   });
 
+  it('hides operational nav when active store is suspended', () => {
+    const sections = buildVendorNavSections({
+      hasStores: true,
+      isOwner: true,
+      isManager: true,
+      isSuspended: true,
+      pendingRequestCount: 2,
+    });
+
+    const labels = sections.flatMap((section) => section.items.map((item) => item.label));
+    expect(labels).toEqual(['ร้านค้าของฉัน', 'คำเชิญ / คำขอ', 'การแจ้งเตือน', 'ตั้งค่า']);
+    expect(sections[0].items.find((item) => item.href === '/vendor/requests')?.badge).toBe(2);
+  });
+
   it('omits team and API sections for non-owner non-manager members', () => {
     const sections = buildVendorNavSections({ hasStores: true, isOwner: false, isManager: false });
 
@@ -296,6 +310,37 @@ describe('VendorLayout sidebar nav', () => {
     expect(screen.getByRole('link', { name: 'สินค้า' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'รับเงิน' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ตั้งค่า' })).toBeInTheDocument();
+  });
+
+  it('shows limited nav when active store is suspended', () => {
+    setupMocks({
+      stores: [
+        {
+          store: { id: 'store-1', name: 'Suspended Store', status: 'suspended' },
+          membershipRole: 'owner',
+        },
+      ],
+      isOwner: true,
+      isManager: true,
+    });
+
+    render(
+      <VendorLayout>
+        <div>content</div>
+      </VendorLayout>,
+    );
+
+    expect(screen.getByRole('link', { name: 'ร้านค้าของฉัน' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'คำเชิญ / คำขอ' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'การแจ้งเตือน' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'ตั้งค่า' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'แดชบอร์ด' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'คำสั่งซื้อ' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'สินค้า' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'โปรโมชัน' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'ทีมงาน' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'API' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'รับเงิน' })).not.toBeInTheDocument();
   });
 
   it('shows badge count for pending invitations and store requests', () => {

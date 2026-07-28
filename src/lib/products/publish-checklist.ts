@@ -8,12 +8,15 @@ const CHECKLIST_KEYS = [
   'variants',
   'price',
   'stock',
+  'shipping',
 ] as const;
 
 export type LivePublishChecklistForm = {
   name?: string;
   categoryId?: string;
   petTypeId?: string;
+  /** Store has ≥1 shipping option. Defaults to false when omitted. */
+  hasShipping?: boolean;
 };
 
 /**
@@ -36,6 +39,7 @@ export function buildLivePublishChecklist(
     variants.every((variant) => Number(variant.price) >= 0) &&
     variants.some((variant) => Number(variant.price) > 0);
   const hasStock = variants.some((variant) => Number(variant.stockQuantity ?? 0) > 0);
+  const hasShipping = Boolean(form.hasShipping);
 
   const completeness: Record<(typeof CHECKLIST_KEYS)[number], boolean> = {
     name: hasName,
@@ -45,6 +49,7 @@ export function buildLivePublishChecklist(
     variants: hasVariants,
     price: hasValidPrice,
     stock: hasStock,
+    shipping: hasShipping,
   };
 
   const items: ProductPublishChecklistItem[] = CHECKLIST_KEYS.map((key) => ({

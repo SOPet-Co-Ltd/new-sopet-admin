@@ -35,9 +35,22 @@ describe('buildLivePublishChecklist', () => {
       name: 'Ready product',
       categoryId: 'cat-1',
       petTypeId: 'pet-1',
+      hasShipping: true,
     });
 
     expect(checklist.canPublish).toBe(true);
     expect(checklist.missingKeys).toEqual([]);
+  });
+
+  it('requires store shipping options', () => {
+    const checklist = buildLivePublishChecklist(product, {
+      name: 'Ready product',
+      categoryId: 'cat-1',
+      petTypeId: 'pet-1',
+      hasShipping: false,
+    });
+
+    expect(checklist.canPublish).toBe(false);
+    expect(checklist.missingKeys).toContain('shipping');
   });
 });
