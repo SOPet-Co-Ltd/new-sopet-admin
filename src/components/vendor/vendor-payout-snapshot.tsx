@@ -11,7 +11,7 @@ import { formatCurrency } from '@/lib/utils';
 
 export function VendorPayoutSnapshot() {
   const { isOwner } = useIsStoreOwner();
-  const { data: summary, isLoading: summaryLoading } = useStorePayoutSummary();
+  const { data: summary, isLoading: summaryLoading } = useStorePayoutSummary(isOwner);
   const { data: store, isLoading: storeLoading } = useMyStore();
 
   if (!isOwner) return null;

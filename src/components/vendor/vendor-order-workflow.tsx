@@ -46,7 +46,7 @@ const WORKFLOW_STEPS = [
 ] as const;
 
 function getActiveStepIndex(order: Order): number {
-  if (order.status === 'cancelled' || order.status === 'refunded') {
+  if (order.status === 'cancelled' || order.status === 'refunded' || order.status === 'on_hold') {
     return -1;
   }
   const index = WORKFLOW_STEPS.findIndex((step) => step.key === order.status);

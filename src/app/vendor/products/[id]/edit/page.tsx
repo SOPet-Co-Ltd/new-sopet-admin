@@ -20,6 +20,7 @@ import { ProductDescriptionEditor } from '@/components/vendor/product-descriptio
 import { Textarea } from '@/components/ui/textarea';
 import { useProduct } from '@/hooks/useProduct';
 import { useDeleteProduct, usePublishProduct, useUpdateProduct } from '@/hooks/useProductMutations';
+import { useMyStoreShippingOptions } from '@/hooks/useShipping';
 import { buildLivePublishChecklist } from '@/lib/products/publish-checklist';
 import { productFormSchema, type ProductFormValues } from '@/lib/validations';
 import type { ProductStatus } from '@/types';
@@ -65,6 +66,7 @@ export default function EditProductPage() {
   const productId = params.id;
   const router = useRouter();
   const { data: product, isLoading, error } = useProduct(productId);
+  const { data: shippingOptions = [], isLoading: shippingLoading } = useMyStoreShippingOptions();
   const updateBasicMutation = useUpdateProduct();
   const updateExtrasMutation = useUpdateProduct();
   const updateTaxonomyMutation = useUpdateProduct();
@@ -253,8 +255,9 @@ export default function EditProductPage() {
       name: watchedName,
       categoryId: watchedCategoryId,
       petTypeId: watchedPetTypeId,
+      hasShipping: shippingOptions.length > 0,
     });
-  }, [product, watchedName, watchedCategoryId, watchedPetTypeId]);
+  }, [product, watchedName, watchedCategoryId, watchedPetTypeId, shippingOptions.length]);
 
   if (isLoading) {
     return <EditProductSkeleton />;
@@ -532,7 +535,7 @@ export default function EditProductPage() {
             selectableStatuses={selectableStatuses}
             onStatusChange={(status) => void handleStatusChange(status)}
             checklist={liveChecklist}
-            checklistLoading={false}
+            checklistLoading={shippingLoading}
             canPublish={canPublish}
             onPublish={() => void handlePublish()}
             publishPending={publishMutation.isPending}

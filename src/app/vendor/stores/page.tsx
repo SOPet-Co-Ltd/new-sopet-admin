@@ -75,20 +75,14 @@ function StorePickerCard({
   const canManage = membershipRole === 'owner' || membershipRole === 'manager';
   const isOwner = membershipRole === 'owner';
 
-  const primaryLabel = isSuspended
-    ? 'ถูกระงับ'
-    : isPending
-      ? 'กำลังสลับ...'
-      : isActive
-        ? 'เข้าแดชบอร์ด'
-        : 'เลือกร้านนี้';
+  const primaryLabel = isPending ? 'กำลังสลับ...' : isActive ? 'เข้าแดชบอร์ด' : 'เลือกร้านนี้';
 
   return (
     <Card
       className={cn(
         'group overflow-hidden transition-[border-color,box-shadow] duration-150 ease-out',
-        isActive && !isSuspended && 'border-brand/40 ring-1 ring-brand/25',
-        !isSuspended && 'hover:border-brand/25',
+        isActive && 'border-brand/40 ring-1 ring-brand/25',
+        'hover:border-brand/25',
         isSuspended && 'opacity-90',
       )}
     >
@@ -98,9 +92,7 @@ function StorePickerCard({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="truncate text-balance font-medium text-ink">{store.name}</h3>
-              {isActive && !isSuspended ? (
-                <Badge className="bg-brand-tint text-brand">ใช้งานอยู่</Badge>
-              ) : null}
+              {isActive ? <Badge className="bg-brand-tint text-brand">ใช้งานอยู่</Badge> : null}
             </div>
             <p className="mt-0.5 truncate text-sm text-muted-foreground">{store.slug}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -133,8 +125,8 @@ function StorePickerCard({
         {isSuspended ? (
           <p className="text-sm leading-relaxed text-danger" role="status">
             {canManage
-              ? 'ร้านถูกระงับชั่วคราว — ส่งคำขอเปิดใช้งานเพื่อให้ทีมงานตรวจสอบ'
-              : 'ร้านถูกระงับ — ติดต่อเจ้าของร้านหรือผู้จัดการ'}
+              ? 'ร้านถูกระงับชั่วคราว — เข้าดูได้ แต่จัดการไม่ได้ จนกว่าจะส่งคำขอเปิดใช้งานและได้รับการอนุมัติ'
+              : 'ร้านถูกระงับ — เข้าดูได้ แต่จัดการไม่ได้ ติดต่อเจ้าของร้านหรือผู้จัดการ'}
           </p>
         ) : null}
 
@@ -147,16 +139,14 @@ function StorePickerCard({
           <Button
             type="button"
             size="sm"
-            variant={isActive && !isSuspended ? 'outline' : 'default'}
-            className={cn('min-h-9 gap-1.5', !isSuspended && 'flex-1')}
-            disabled={isPending || isSuspended}
+            variant={isActive ? 'outline' : 'default'}
+            className="min-h-9 flex-1 gap-1.5"
+            disabled={isPending}
             aria-busy={isPending}
             onClick={onSelect}
           >
             {primaryLabel}
-            {!isSuspended && !isPending ? (
-              <HiArrowRight className="size-4" aria-hidden="true" />
-            ) : null}
+            {!isPending ? <HiArrowRight className="size-4" aria-hidden="true" /> : null}
           </Button>
         </div>
       </CardBody>
@@ -210,6 +200,8 @@ function ActiveStoreSpotlight({
   isPending: boolean;
 }) {
   const { store, membershipRole } = entry;
+  const isSuspended = store.status === 'suspended';
+  const canManage = membershipRole === 'owner' || membershipRole === 'manager';
 
   return (
     <Card className="overflow-hidden border-border bg-card">
@@ -221,19 +213,27 @@ function ActiveStoreSpotlight({
             <h2 className="text-balance font-display text-xl font-medium text-ink">{store.name}</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {labelMembershipRole(membershipRole)} · {store.slug}
+              {isSuspended ? ` · ${labelStoreStatus('suspended')}` : ''}
             </p>
           </div>
         </div>
-        <Button
-          type="button"
-          className="min-h-9 gap-2 self-start sm:self-center"
-          onClick={onEnter}
-          disabled={isPending}
-          aria-busy={isPending}
-        >
-          {isPending ? 'กำลังเปิด...' : 'เข้าแดชบอร์ด'}
-          {!isPending ? <HiArrowRight className="size-4" aria-hidden="true" /> : null}
-        </Button>
+        <div className="flex flex-wrap gap-2 self-start sm:self-center">
+          {isSuspended && canManage ? (
+            <Button type="button" variant="outline" className="min-h-9" asChild>
+              <Link href={`/vendor/reactivation?storeId=${store.id}`}>ส่งคำขอเปิดใช้งาน</Link>
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            className="min-h-9 gap-2"
+            onClick={onEnter}
+            disabled={isPending}
+            aria-busy={isPending}
+          >
+            {isPending ? 'กำลังเปิด...' : 'เข้าแดชบอร์ด'}
+            {!isPending ? <HiArrowRight className="size-4" aria-hidden="true" /> : null}
+          </Button>
+        </div>
       </CardBody>
     </Card>
   );
@@ -271,14 +271,12 @@ export default function VendorStoresPage() {
   const hasStores = vendorHasStores(myStores);
 
   function handleSelectStore(storeId: string) {
-    const entry = myStores.find((item) => item.store.id === storeId);
-    if (entry?.store.status === 'suspended') return;
-
     if (storeId === activeStoreId) {
       router.push('/vendor');
       return;
     }
 
+    // Suspended stores are selectable: vendor enters read-only and can request reactivation.
     switchMutation.mutate(storeId, {
       onSuccess: () => router.push('/vendor'),
     });
@@ -327,7 +325,7 @@ export default function VendorStoresPage() {
           </Card>
         ) : null}
 
-        {!isLoading && activeStore && activeStore.store.status !== 'suspended' ? (
+        {!isLoading && activeStore ? (
           <ActiveStoreSpotlight
             entry={activeStore}
             onEnter={() => handleSelectStore(activeStore.store.id)}

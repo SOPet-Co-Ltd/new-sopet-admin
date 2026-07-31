@@ -282,6 +282,14 @@ export type CartType = {
   id: Scalars['String']['output'];
   items: Array<CartItemType>;
   sessionId?: Maybe<Scalars['String']['output']>;
+  warnings?: Maybe<Array<CartWarningType>>;
+};
+
+export type CartWarningType = {
+  __typename?: 'CartWarningType';
+  code: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+  variantId?: Maybe<Scalars['String']['output']>;
 };
 
 export type CategoryType = {
