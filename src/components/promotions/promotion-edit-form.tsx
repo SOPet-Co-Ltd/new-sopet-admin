@@ -66,7 +66,10 @@ export function PromotionEditForm({
         priority: values.priority,
         startsAt: values.startsAt || undefined,
         expiresAt: values.expiresAt || undefined,
-        ...(conditions ? { conditions } : {}),
+        // Always send an explicit value (even "no conditions") so the backend's
+        // `input.conditions !== undefined` check clears previously-saved
+        // eligibility conditions when the vendor unchecks them on edit.
+        conditions: conditions ?? '{}',
       });
       router.push(listHref);
     } catch (err) {

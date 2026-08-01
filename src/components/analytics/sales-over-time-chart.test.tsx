@@ -28,7 +28,38 @@ describe('SalesOverTimeChart', () => {
 
     const bars = container.querySelectorAll('.bg-tertiary');
     expect(bars).toHaveLength(2);
-    expect((bars[1] as HTMLElement).style.height).toBe('100%');
+    // Max bar height is capped below 100% to leave headroom for its value label (row 44 fix).
+    expect((bars[1] as HTMLElement).style.height).toBe('88%');
+  });
+
+  it('shows a formatted currency value label above each bar (row 44 regression)', () => {
+    render(
+      <SalesOverTimeChart
+        data={[
+          { date: '2026-07-09', revenue: 0, orderCount: 0 },
+          { date: '2026-07-10', revenue: 370, orderCount: 1 },
+          { date: '2026-07-11', revenue: 15000, orderCount: 4 },
+        ]}
+      />,
+    );
+
+    // Previously the chart showed only bars/dates - no number was ever visible in the DOM.
+    expect(screen.getByText('฿370')).toBeInTheDocument();
+    expect(screen.getByText('฿15K')).toBeInTheDocument();
+  });
+
+  it('thins value labels (same cadence as date labels) for long ranges to avoid overlap', () => {
+    const points = Array.from({ length: 30 }, (_, index) => ({
+      date: `2026-06-${String(index + 1).padStart(2, '0')}`,
+      revenue: 100 + index,
+      orderCount: 1,
+    }));
+
+    render(<SalesOverTimeChart data={points} />);
+
+    // showEveryNth = ceil(30/7) = 5 for >14 points, so not every single bar gets a visible label.
+    expect(screen.getByText('฿100')).toBeInTheDocument();
+    expect(screen.queryByText('฿101')).not.toBeInTheDocument();
   });
 
   it('wraps the chart in a horizontally scrollable region with a min width', () => {

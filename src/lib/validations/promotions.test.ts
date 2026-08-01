@@ -39,6 +39,46 @@ describe('promotionFormSchema', () => {
    * @complexity: low
    * ROI: 72
    */
+  /**
+   * QA-hunt regression: expiresAt before/equal to startsAt previously passed both this
+   * schema and the backend with no error, silently creating a promotion that could never
+   * be eligible (validateCode's date-range check always failed).
+   * @category: edge-case
+   * @lane: unit
+   * @dependency: promotionFormSchema
+   * @complexity: low
+   * ROI: 60
+   */
+  it('rejects an expiresAt that is before or equal to startsAt', () => {
+    const result = promotionFormSchema.safeParse({
+      type: 'percentage',
+      code: 'BADDATES',
+      name: 'Bad dates',
+      discountValue: 10,
+      usagePerCustomer: 1,
+      startsAt: '2026-06-15T00:00',
+      expiresAt: '2026-06-01T00:00',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const issue = result.error.issues.find((i) => i.path.includes('expiresAt'));
+      expect(issue?.message).toBe('วันสิ้นสุดต้องอยู่หลังวันเริ่มต้น');
+    }
+  });
+
+  it('accepts an expiresAt that is after startsAt', () => {
+    const result = promotionFormSchema.safeParse({
+      type: 'percentage',
+      code: 'GOODDATES',
+      name: 'Good dates',
+      discountValue: 10,
+      usagePerCustomer: 1,
+      startsAt: '2026-06-01T00:00',
+      expiresAt: '2026-06-15T00:00',
+    });
+    expect(result.success).toBe(true);
+  });
+
   it('rejects percentage discount above 100', () => {
     const result = promotionFormSchema.safeParse({
       type: 'percentage',

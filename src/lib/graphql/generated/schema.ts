@@ -11,6 +11,12 @@ export type Scalars = {
   DateTime: { input: string; output: string };
 };
 
+export type AcceptAdminInvitationInput = {
+  fullName: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+  token: Scalars['String']['input'];
+};
+
 export type AcceptStoreMemberInvitationInput = {
   fullName: Scalars['String']['input'];
   password: Scalars['String']['input'];
@@ -625,6 +631,7 @@ export type MessagePayload = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  acceptAdminInvitation: VendorAuthPayload;
   acceptStoreInvitation: StoreMemberType;
   acceptStoreMemberInvitation: VendorAuthPayload;
   acceptVendorInvitation: VendorAuthPayload;
@@ -772,6 +779,10 @@ export type Mutation = {
   vendorLogin: VendorAuthPayload;
   verifyCustomerOtp: CustomerAuthPayload;
   verifyEmail: MessagePayload;
+};
+
+export type MutationAcceptAdminInvitationArgs = {
+  input: AcceptAdminInvitationInput;
 };
 
 export type MutationAcceptStoreInvitationArgs = {
@@ -1517,6 +1528,12 @@ export type PaginationMeta = {
   totalPages: Scalars['Int']['output'];
 };
 
+export type PasswordResetTokenStatusType = {
+  __typename?: 'PasswordResetTokenStatusType';
+  status: Scalars['String']['output'];
+  valid: Scalars['Boolean']['output'];
+};
+
 export type PaymentType = {
   __typename?: 'PaymentType';
   amount: Scalars['Float']['output'];
@@ -1765,6 +1782,7 @@ export type Query = {
   adminStorePayoutSummary: PayoutSummaryType;
   adminStorePayouts: Array<PayoutType>;
   adminStoreReactivationRequests: Array<StoreReactivationRequestType>;
+  adminStoreRequests: Array<StoreRequestType>;
   adminStoreShippingOptions: Array<StoreShippingOptionType>;
   adminStores: Array<AdminStoreType>;
   adminTeamMembers: Array<AdminTeamMemberType>;
@@ -1784,6 +1802,8 @@ export type Query = {
   customerReviewableItems: Array<CustomerReviewableItemType>;
   exportSearchAnalyticsCsv: Scalars['String']['output'];
   favorites: Array<FavoriteType>;
+  getAdminInvitationByToken: AdminInvitationType;
+  getPasswordResetTokenStatus: PasswordResetTokenStatusType;
   getStoreInvitationByToken: StoreInvitationPreviewType;
   guestOrders: Array<OrderType>;
   /** GraphQL API health check */
@@ -1948,6 +1968,14 @@ export type QueryCategoryDeleteImpactArgs = {
 export type QueryExportSearchAnalyticsCsvArgs = {
   fromDate?: InputMaybe<Scalars['DateTime']['input']>;
   toDate?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type QueryGetAdminInvitationByTokenArgs = {
+  token: Scalars['String']['input'];
+};
+
+export type QueryGetPasswordResetTokenStatusArgs = {
+  token: Scalars['String']['input'];
 };
 
 export type QueryGetStoreInvitationByTokenArgs = {
@@ -2246,7 +2274,7 @@ export type RejectStoreReactivationRequestInput = {
 
 export type RejectStoreRequestInput = {
   id: Scalars['String']['input'];
-  reason: Scalars['String']['input'];
+  reason?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type RemoveCartItemInput = {
@@ -2934,6 +2962,7 @@ export type UserProfile = {
 export type ValidatePromotionInput = {
   code: Scalars['String']['input'];
   lines?: InputMaybe<Array<ValidatePromotionLineInput>>;
+  shippingFee?: InputMaybe<Scalars['Float']['input']>;
   storeId?: InputMaybe<Scalars['String']['input']>;
   subtotal: Scalars['Float']['input'];
 };
@@ -2949,6 +2978,7 @@ export type ValidatePromotionLineInput = {
 export type ValidatePromotionsInput = {
   lines?: InputMaybe<Array<ValidatePromotionLineInput>>;
   promotions: Array<ValidatePromotionsTargetInput>;
+  shippingFee?: InputMaybe<Scalars['Float']['input']>;
   storeId?: InputMaybe<Scalars['String']['input']>;
   subtotal: Scalars['Float']['input'];
 };

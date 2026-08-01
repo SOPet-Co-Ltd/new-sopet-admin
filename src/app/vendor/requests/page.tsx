@@ -24,6 +24,13 @@ import {
 import { queryKeys } from '@/lib/react-query/keys';
 import type { MyPendingStoreInvitation, StoreReactivationRequest } from '@/types';
 
+function requestStatusClass(status: string): string {
+  if (status === 'approved') return 'bg-success-bg text-success';
+  if (status === 'rejected') return 'bg-danger-bg text-danger';
+  if (status === 'pending') return 'bg-warning-bg text-warning-text';
+  return 'bg-surface text-muted-foreground';
+}
+
 function formatExpiry(iso: string): string {
   return new Intl.DateTimeFormat('th-TH', {
     dateStyle: 'medium',
@@ -106,10 +113,6 @@ export default function VendorRequestsPage() {
     isLoading: loadingStoreRequests,
     error: storeRequestsError,
   } = useMyStoreRequests();
-  const pendingStoreRequests = useMemo(
-    () => storeRequests.filter((request) => request.status === 'pending'),
-    [storeRequests],
-  );
 
   const { data: myStores = [], isLoading: loadingStores } = useMyStores();
   const manageableSuspendedStores = useMemo(
@@ -225,10 +228,10 @@ export default function VendorRequestsPage() {
                   : 'โหลดคำขอเปิดร้านไม่สำเร็จ'}
               </p>
             ) : null}
-            {!loadingStoreRequests && pendingStoreRequests.length === 0 ? (
-              <p className="text-sm text-muted">ไม่มีคำขอเปิดร้านที่รออนุมัติ</p>
+            {!loadingStoreRequests && storeRequests.length === 0 ? (
+              <p className="text-sm text-muted">ไม่มีคำขอเปิดร้าน</p>
             ) : null}
-            {pendingStoreRequests.map((request) => (
+            {storeRequests.map((request) => (
               <div
                 key={request.id}
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-canvas p-4"
@@ -239,7 +242,7 @@ export default function VendorRequestsPage() {
                     <p className="text-sm text-muted">ส่งเมื่อ {formatExpiry(request.createdAt)}</p>
                   ) : null}
                 </div>
-                <Badge className="bg-warning-bg text-warning-text">
+                <Badge className={requestStatusClass(String(request.status))}>
                   {labelStoreRequestStatus(String(request.status))}
                 </Badge>
               </div>

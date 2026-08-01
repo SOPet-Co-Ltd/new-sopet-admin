@@ -937,6 +937,14 @@ export const PENDING_STORE_REQUESTS_QUERY = gql`
   }
 `;
 
+export const ADMIN_STORE_REQUESTS_QUERY = gql`
+  query AdminStoreRequests {
+    adminStoreRequests {
+      ${STORE_REQUEST_FIELDS}
+    }
+  }
+`;
+
 export const SUBMIT_STORE_REQUEST = gql`
   mutation SubmitStoreRequest($input: SubmitStoreRequestInput!) {
     submitStoreRequest(input: $input) {
@@ -1679,6 +1687,32 @@ export const SET_ADMIN_ACTIVE = gql`
   }
 `;
 
+export const ADMIN_INVITATION_BY_TOKEN_QUERY = gql`
+  query GetAdminInvitationByToken($token: String!) {
+    getAdminInvitationByToken(token: $token) {
+      ${ADMIN_INVITATION_FIELDS}
+    }
+  }
+`;
+
+export const ACCEPT_ADMIN_INVITATION = gql`
+  mutation AcceptAdminInvitation($input: AcceptAdminInvitationInput!) {
+    acceptAdminInvitation(input: $input) {
+      tokens {
+        accessToken
+        refreshToken
+      }
+      user {
+        id
+        email
+        fullName
+        role
+        emailVerified
+      }
+    }
+  }
+`;
+
 export const REQUEST_PASSWORD_RESET = gql`
   mutation RequestPasswordReset($input: RequestPasswordResetInput!) {
     requestPasswordReset(input: $input) {
@@ -1691,6 +1725,15 @@ export const RESET_PASSWORD = gql`
   mutation ResetPassword($input: ResetPasswordInput!) {
     resetPassword(input: $input) {
       message
+    }
+  }
+`;
+
+export const PASSWORD_RESET_TOKEN_STATUS_QUERY = gql`
+  query GetPasswordResetTokenStatus($token: String!) {
+    getPasswordResetTokenStatus(token: $token) {
+      valid
+      status
     }
   }
 `;

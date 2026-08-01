@@ -98,6 +98,15 @@ async function refreshAccessToken(): Promise<string> {
   }
 
   const { accessToken, refreshToken: newRefreshToken } = payload.data.refreshToken;
+
+  // If the user logged out (clearTokens()) while this request was in flight,
+  // don't resurrect cookies for a session that was just explicitly ended -
+  // otherwise the app looks "still logged in" right after logout (e.g. the
+  // guest-only /register guard bounces the user back to their dashboard).
+  if (getRefreshToken() !== refreshToken) {
+    throw new Error('Session was cleared during token refresh.');
+  }
+
   setTokens(accessToken, newRefreshToken);
   return accessToken;
 }

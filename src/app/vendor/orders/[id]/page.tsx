@@ -34,7 +34,11 @@ export default function VendorOrderDetailPage() {
   const params = useParams<{ id: string }>();
   const orderId = params.id;
   const storeId = useVendorStoreId();
-  const { data: orders = [], isLoading, error } = useVendorOrders(storeId);
+  const { data: orders = [], isLoading: ordersLoading, error } = useVendorOrders(storeId);
+  // `useVendorOrders` is disabled until `storeId` resolves (auth/vendor store hydration),
+  // so its own `isLoading` stays false during that window - without this, the page would
+  // briefly render "ไม่พบคำสั่งซื้อ" before the real fetch even starts.
+  const isLoading = ordersLoading || !storeId;
 
   const order = useMemo(
     () => orders.find((item) => item.id === orderId) ?? null,

@@ -56,7 +56,10 @@ export function StockRow({
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(11rem,14rem)] sm:items-end">
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-sm font-medium text-ink">{label}</p>
+            {/* min-w-0 must be on this <p> itself (not just an ancestor) - as a flex item
+                its default min-width:auto would otherwise keep it at full text width,
+                letting a long option label overflow past this row into the qty input. */}
+            <p className="min-w-0 truncate text-sm font-medium text-ink">{label}</p>
             <span
               className={cn(
                 'inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium',

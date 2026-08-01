@@ -56,7 +56,6 @@ export default function AdminStoreEditPage() {
       contactEmail: '',
       address: '',
       ownerId: '',
-      ownerEmail: '',
     },
   });
 
@@ -76,7 +75,6 @@ export default function AdminStoreEditPage() {
         contactEmail: store.contactEmail ?? '',
         address: store.address ?? '',
         ownerId: store.ownerId ?? '',
-        ownerEmail: store.ownerEmail ?? '',
       },
       { keepDirtyValues: true },
     );
@@ -211,9 +209,18 @@ export default function AdminStoreEditPage() {
                     type="tel"
                     placeholder="0812345678"
                     autoComplete="tel"
+                    aria-invalid={!!form.formState.errors.contactPhone}
+                    aria-describedby={
+                      form.formState.errors.contactPhone ? 'contactPhone-error' : undefined
+                    }
                     {...form.register('contactPhone')}
                     className="mt-1.5"
                   />
+                  {form.formState.errors.contactPhone ? (
+                    <p id="contactPhone-error" className="mt-1 text-xs text-danger" role="alert">
+                      {form.formState.errors.contactPhone.message}
+                    </p>
+                  ) : null}
                 </div>
                 <div>
                   <Label htmlFor="contactEmail">อีเมลติดต่อ</Label>
@@ -270,27 +277,6 @@ export default function AdminStoreEditPage() {
                     />
                   )}
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="ownerEmail">อีเมลเจ้าของ</Label>
-                <Input
-                  id="ownerEmail"
-                  type="email"
-                  placeholder="email@example.com"
-                  autoComplete="email"
-                  aria-invalid={!!form.formState.errors.ownerEmail}
-                  aria-describedby={
-                    form.formState.errors.ownerEmail ? 'ownerEmail-error' : undefined
-                  }
-                  {...form.register('ownerEmail')}
-                  className="mt-1.5"
-                />
-                {form.formState.errors.ownerEmail ? (
-                  <p id="ownerEmail-error" className="mt-1 text-xs text-danger" role="alert">
-                    {form.formState.errors.ownerEmail.message}
-                  </p>
-                ) : null}
               </div>
 
               {updateMutation.isError ? (

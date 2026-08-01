@@ -40,6 +40,7 @@ function LoginPageContent() {
   const requestReset = useRequestPasswordReset();
   const [showForgot, setShowForgot] = useState(false);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
+  const [resetMessageIsError, setResetMessageIsError] = useState(false);
   const [sessionMessage] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null;
     const stored = sessionStorage.getItem(AUTH_SESSION_MESSAGE_KEY);
@@ -86,12 +87,14 @@ function LoginPageContent() {
 
   async function onForgotSubmit(values: ForgotPasswordFormValues) {
     setResetMessage(null);
+    setResetMessageIsError(false);
     try {
       const message = await requestReset.mutateAsync(values.email);
       setResetMessage(message);
       forgotForm.reset();
     } catch (err) {
       setResetMessage(getErrorMessage(err, 'ส่งคำขอไม่สำเร็จ'));
+      setResetMessageIsError(true);
     }
   }
 
@@ -148,7 +151,14 @@ function LoginPageContent() {
                     </p>
                   ) : null}
                 </div>
-                {resetMessage ? <p className="text-sm text-muted">{resetMessage}</p> : null}
+                {resetMessage ? (
+                  <p
+                    role={resetMessageIsError ? 'alert' : 'status'}
+                    className={`text-sm ${resetMessageIsError ? 'text-danger' : 'text-success'}`}
+                  >
+                    {resetMessage}
+                  </p>
+                ) : null}
                 <Button
                   type="submit"
                   className="w-full"

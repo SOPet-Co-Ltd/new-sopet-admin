@@ -6,9 +6,12 @@ import { useSyncEmailVerificationStatus } from '@/hooks/useEmailVerification';
 
 export function EmailVerificationBanner() {
   const { user, isAuthenticated } = useCurrentUser();
-  useSyncEmailVerificationStatus();
+  const { isChecking } = useSyncEmailVerificationStatus();
 
-  if (!isAuthenticated || !user?.email || user.emailVerified === true) {
+  // Don't flash the "unverified" notice while the session-freshness check is still in
+  // flight - the persisted emailVerified:false may just be stale (e.g. verified from
+  // another tab/device) and is about to be corrected by that same request.
+  if (!isAuthenticated || !user?.email || user.emailVerified === true || isChecking) {
     return null;
   }
 

@@ -26,6 +26,32 @@ function formatValidity(promo: Promotion): string | null {
   return `${start} – ${end}`;
 }
 
+export type PromotionEffectiveStatus = 'inactive' | 'scheduled' | 'expired' | 'active';
+
+/**
+ * QA-hunt regression: the list badge only ever reflected the `isActive` toggle, so a
+ * promotion that had already expired (or hadn't started yet) still showed the green
+ * "เปิดใช้งาน" badge - misleading admins/vendors into thinking it's currently usable when
+ * validateCode() would actually reject every checkout attempt against it as out-of-range.
+ */
+export function getPromotionEffectiveStatus(promo: Promotion): PromotionEffectiveStatus {
+  if (!promo.isActive) return 'inactive';
+  const now = Date.now();
+  if (promo.expiresAt && new Date(promo.expiresAt).getTime() < now) return 'expired';
+  if (promo.startsAt && new Date(promo.startsAt).getTime() > now) return 'scheduled';
+  return 'active';
+}
+
+export const PROMOTION_EFFECTIVE_STATUS_META: Record<
+  PromotionEffectiveStatus,
+  { label: string; badgeStatus: string }
+> = {
+  inactive: { label: 'ปิดใช้งาน', badgeStatus: 'draft' },
+  scheduled: { label: 'รอเริ่ม', badgeStatus: 'on_hold' },
+  expired: { label: 'หมดอายุ', badgeStatus: 'archived' },
+  active: { label: 'เปิดใช้งาน', badgeStatus: 'published' },
+};
+
 function formatUsage(promo: Promotion): string {
   const used = `ใช้แล้ว ${promo.usageCount}`;
   if (promo.usageLimit) {
@@ -87,7 +113,8 @@ export function PlatformPromotionListItem({
 }: PlatformPromotionListItemProps) {
   const validity = formatValidity(promo);
   const busy = isToggling || isDeleting;
-  const statusLabel = promo.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+  const effectiveStatus = getPromotionEffectiveStatus(promo);
+  const statusMeta = PROMOTION_EFFECTIVE_STATUS_META[effectiveStatus];
   const toggleLabel = promo.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน';
   const conditionChips = formatPromotionConditionChips(promo.conditions);
 
@@ -102,11 +129,8 @@ export function PlatformPromotionListItem({
       <div className="min-w-0 flex-1 space-y-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <p className="truncate font-medium text-ink">{promo.name}</p>
-          <Badge
-            status={promo.isActive ? 'published' : 'draft'}
-            aria-label={`สถานะ: ${statusLabel}`}
-          >
-            {statusLabel}
+          <Badge status={statusMeta.badgeStatus} aria-label={`สถานะ: ${statusMeta.label}`}>
+            {statusMeta.label}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">

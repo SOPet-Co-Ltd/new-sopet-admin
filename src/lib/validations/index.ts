@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+// Accepts Thai mobile (10 digits) and landline (9 digits) numbers, with optional
+// spaces/dashes (e.g. "081-234-5678"). Rejects clearly non-phone input (emails, etc.)
+// before it ever reaches the backend.
+const THAI_PHONE_REGEX = /^0\d{8,9}$/;
+const contactPhoneSchema = z
+  .string()
+  .optional()
+  .refine(
+    (value) => !value || THAI_PHONE_REGEX.test(value.replace(/[\s-]/g, '')),
+    'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง',
+  );
+
 export const loginSchema = z.object({
   email: z.email('กรุณากรอกอีเมลที่ถูกต้อง'),
   password: z.string().min(1, 'กรุณากรอกรหัสผ่าน'),
@@ -28,7 +40,7 @@ export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export const storeInfoFormSchema = z.object({
   name: z.string().min(1, 'กรุณากรอกชื่อร้านค้า'),
   description: z.string().optional(),
-  contactPhone: z.string().optional(),
+  contactPhone: contactPhoneSchema,
   contactEmail: z.union([z.literal(''), z.email('กรุณากรอกอีเมลที่ถูกต้อง')]).optional(),
   address: z.string().optional(),
   logoUrl: z.string().optional(),
@@ -108,7 +120,9 @@ export const registerVendorSchema = z
     email: z.email('กรุณากรอกอีเมลที่ถูกต้อง'),
     password: z.string().min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'),
     confirmPassword: z.string().min(1, 'กรุณายืนยันรหัสผ่าน'),
-    fullName: z.string().min(1, 'กรุณากรอกชื่อ-นามสกุล'),
+    // .trim() ensures a whitespace-only name (e.g. "   ") fails min(1) instead
+    // of being accepted as a "valid" full name.
+    fullName: z.string().trim().min(1, 'กรุณากรอกชื่อ-นามสกุล'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'รหัสผ่านไม่ตรงกัน',
@@ -118,7 +132,7 @@ export const registerVendorSchema = z
 export type RegisterVendorFormValues = z.infer<typeof registerVendorSchema>;
 
 export const acceptStoreMemberInviteSchema = z.object({
-  fullName: z.string().min(1, 'กรุณากรอกชื่อ-นามสกุล'),
+  fullName: z.string().trim().min(1, 'กรุณากรอกชื่อ-นามสกุล'),
   password: z.string().min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'),
 });
 
@@ -127,7 +141,7 @@ export type AcceptStoreMemberInviteFormValues = z.infer<typeof acceptStoreMember
 export const storeRequestSchema = z.object({
   storeName: z.string().min(1, 'กรุณากรอกชื่อร้านค้า'),
   description: z.string().optional(),
-  contactPhone: z.string().optional(),
+  contactPhone: contactPhoneSchema,
   contactEmail: z.union([z.literal(''), z.email('กรุณากรอกอีเมลที่ถูกต้อง')]).optional(),
   address: z.string().optional(),
   logoUrl: z.string().optional(),
@@ -158,15 +172,14 @@ export const inviteVendorSchema = z.object({
 export type InviteVendorFormValues = z.infer<typeof inviteVendorSchema>;
 
 export const adminStoreFormSchema = z.object({
-  name: z.string().min(1, 'กรุณากรอกชื่อร้านค้า'),
+  name: z.string().trim().min(1, 'กรุณากรอกชื่อร้านค้า'),
   slug: z.string().optional(),
   description: z.string().optional(),
   status: z.enum(['pending', 'approved', 'rejected', 'suspended']).optional(),
-  contactPhone: z.string().optional(),
+  contactPhone: contactPhoneSchema,
   contactEmail: z.union([z.literal(''), z.email('กรุณากรอกอีเมลที่ถูกต้อง')]).optional(),
   address: z.string().optional(),
   ownerId: z.string().min(1, 'กรุณาเลือกเจ้าของร้านค้า'),
-  ownerEmail: z.union([z.literal(''), z.email('กรุณากรอกอีเมลที่ถูกต้อง')]).optional(),
 });
 
 export type AdminStoreFormValues = z.infer<typeof adminStoreFormSchema>;

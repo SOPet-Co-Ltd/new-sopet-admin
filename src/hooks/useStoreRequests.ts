@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   approveStoreRequest,
+  getAdminStoreRequests,
   getMyStoreRequests,
   getPendingStoreRequests,
   rejectStoreRequest,
@@ -22,6 +23,15 @@ export function usePendingStoreRequests() {
   return useQuery({
     queryKey: queryKeys.storeRequests.pending(),
     queryFn: getPendingStoreRequests,
+  });
+}
+
+/** Full history (pending/approved/rejected) for the admin request center. */
+export function useAdminStoreRequests(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.storeRequests.adminAll(),
+    queryFn: getAdminStoreRequests,
+    enabled,
   });
 }
 

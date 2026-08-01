@@ -71,6 +71,24 @@ describe('VendorPromotionListItem', () => {
     );
   });
 
+  it('shows หมดอายุ (expired) status when isActive but expiresAt already passed (QA-hunt regression)', () => {
+    render(
+      <ul>
+        <VendorPromotionListItem
+          promo={{
+            ...basePromo,
+            startsAt: '2025-01-01T00:00:00.000Z',
+            expiresAt: '2025-06-30T00:00:00.000Z',
+          }}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    expect(screen.getByLabelText('สถานะ: หมดอายุ')).toHaveTextContent('หมดอายุ');
+  });
+
   it('uses coral secondary affordance when inactive can be turned on', () => {
     render(
       <ul>

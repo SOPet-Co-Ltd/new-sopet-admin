@@ -159,4 +159,33 @@ describe('useSyncEmailVerificationStatus', () => {
 
     expect(refreshAuthUser).not.toHaveBeenCalled();
   });
+
+  it('reports isChecking:true while the freshness check is in flight, then false once it settles', async () => {
+    let resolveRefresh!: (value: null) => void;
+    vi.mocked(refreshAuthUser).mockReturnValue(
+      new Promise((resolve) => {
+        resolveRefresh = resolve;
+      }),
+    );
+
+    const { result } = renderHook(() => useSyncEmailVerificationStatus());
+
+    expect(result.current.isChecking).toBe(true);
+
+    resolveRefresh(null);
+    await waitFor(() => expect(result.current.isChecking).toBe(false));
+  });
+
+  it('reports isChecking:false immediately when email is already verified (no refresh needed)', () => {
+    useAuthStore.setState({
+      user: { ...unverifiedVendor, emailVerified: true },
+      isAuthenticated: true,
+      hasHydrated: true,
+    });
+
+    const { result } = renderHook(() => useSyncEmailVerificationStatus());
+
+    expect(result.current.isChecking).toBe(false);
+    expect(refreshAuthUser).not.toHaveBeenCalled();
+  });
 });

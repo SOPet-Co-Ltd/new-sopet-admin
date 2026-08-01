@@ -116,6 +116,10 @@ export function LoginImagesPanel() {
         <p className="text-sm text-pretty text-muted-foreground">
           ตั้งค่ารูปเดสก์ท็อปและมือถือสำหรับหน้าเข้าสู่ระบบลูกค้า
         </p>
+        <p className="text-xs text-pretty text-muted-foreground">
+          หมายเหตุ: การอัปโหลดและบันทึกที่นี่จะเก็บรูปไว้ในระบบเท่านั้น —
+          ยังไม่แสดงผลบนหน้าเข้าสู่ระบบจริง (เตรียมไว้สำหรับการอัปเดตหน้าร้านในอนาคต)
+        </p>
       </CardHeader>
       <CardBody className="space-y-6">
         {isLoading && !data ? (
