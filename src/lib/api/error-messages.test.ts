@@ -11,6 +11,17 @@ describe('messageForErrorCode', () => {
   it('returns centralized Thai message for known codes', () => {
     expect(messageForErrorCode('NOT_FOUND')).toBe(ERROR_MESSAGES.NOT_FOUND);
     expect(messageForErrorCode('FORBIDDEN')).toBe(ERROR_MESSAGES.FORBIDDEN);
+    expect(messageForErrorCode('INVALID_CREDENTIALS')).toBe(ERROR_MESSAGES.INVALID_CREDENTIALS);
+    expect(messageForErrorCode('ACCOUNT_SUSPENDED')).toBe(ERROR_MESSAGES.ACCOUNT_SUSPENDED);
+  });
+
+  it('maps ACCOUNT_SUSPENDED English backend copy to Thai', () => {
+    expect(
+      messageForErrorCode(
+        'ACCOUNT_SUSPENDED',
+        'Your account has been suspended. Please contact support for assistance.',
+      ),
+    ).toBe(ERROR_MESSAGES.ACCOUNT_SUSPENDED);
   });
 
   it('prefers a Thai API message over the code default', () => {
