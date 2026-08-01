@@ -97,21 +97,40 @@ const noStoresNavSection = (pendingRequestCount?: number): DashboardNavSection =
   ],
 });
 
+/**
+ * Suspended stores hide ops blocked by StoreStatusGuard.
+ * Notifications stay reachable so enter-hold / resume cards remain visible (UI Spec TBD-05).
+ */
+const suspendedAccountSection: DashboardNavSection = {
+  title: 'บัญชี',
+  items: [
+    { href: '/vendor/notifications', label: 'การแจ้งเตือน', icon: HiBell },
+    { href: '/vendor/settings', label: 'ตั้งค่า', icon: HiCog6Tooth },
+  ],
+};
+
 export function buildVendorNavSections({
   hasStores,
   isOwner,
   isManager,
+  isSuspended = false,
   pendingOrderCount,
   pendingRequestCount,
 }: {
   hasStores: boolean;
   isOwner: boolean;
   isManager: boolean;
+  /** Active JWT store is suspended — hide ops the StoreStatusGuard blocks. */
+  isSuspended?: boolean;
   pendingOrderCount?: number;
   pendingRequestCount?: number;
 }): DashboardNavSection[] {
   if (!hasStores) {
     return [noStoresNavSection(pendingRequestCount), accountSection(isOwner)];
+  }
+
+  if (isSuspended) {
+    return [noStoresNavSection(pendingRequestCount), suspendedAccountSection];
   }
 
   return [
@@ -134,6 +153,8 @@ export function VendorLayout({ children }: { children: React.ReactNode }) {
   const { isManager } = useIsStoreManager();
 
   const hasStores = vendorHasStores(stores);
+  const activeStore = stores.find((entry) => entry.store.id === storeId);
+  const isSuspended = activeStore?.store.status === 'suspended';
   const pendingStoreRequestCount = storeRequests.filter(
     (request) => request.status === 'pending',
   ).length;
@@ -143,7 +164,8 @@ export function VendorLayout({ children }: { children: React.ReactNode }) {
     hasStores: isStoresLoading || hasStores,
     isOwner,
     isManager,
-    pendingOrderCount: analytics?.pendingOrders,
+    isSuspended: !isStoresLoading && isSuspended,
+    pendingOrderCount: isSuspended ? undefined : analytics?.pendingOrders,
     pendingRequestCount: pendingRequestCount > 0 ? pendingRequestCount : undefined,
   });
 

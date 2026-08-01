@@ -239,9 +239,18 @@ export function VendorStoreSettingsPanel({
                   type="tel"
                   autoComplete="tel"
                   placeholder="0812345678"
+                  aria-invalid={!!form.formState.errors.contactPhone}
+                  aria-describedby={
+                    form.formState.errors.contactPhone ? 'contactPhone-error' : undefined
+                  }
                   {...form.register('contactPhone')}
                   className="mt-1.5"
                 />
+                {form.formState.errors.contactPhone ? (
+                  <p id="contactPhone-error" className="mt-1 text-xs text-danger" role="alert">
+                    {form.formState.errors.contactPhone.message}
+                  </p>
+                ) : null}
               </div>
               <div>
                 <Label htmlFor="contactEmail">อีเมลติดต่อ</Label>

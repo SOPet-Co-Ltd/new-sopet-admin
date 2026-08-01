@@ -78,4 +78,20 @@ describe('vendor-action-queue', () => {
       filterVendorActionableOrders([newer, older], 'store-1').map((order) => order.id),
     ).toEqual(['older', 'newer']);
   });
+
+  it('excludes orders whose store items are all on_hold from actionable queue', () => {
+    const held = createOrder({
+      status: 'processing',
+      items: [
+        {
+          id: 'item-1',
+          storeId: 'store-1',
+          fulfillmentStatus: 'on_hold',
+        } as Order['items'][number],
+      ],
+    });
+
+    expect(isVendorActionableOrder(held, 'store-1')).toBe(false);
+    expect(filterVendorActionableOrders([held], 'store-1')).toEqual([]);
+  });
 });

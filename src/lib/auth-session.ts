@@ -52,6 +52,13 @@ export async function refreshAuthUser(): Promise<User | null> {
 
   try {
     const freshUser = await getMe();
+
+    // If the user logged out while this request was in flight, don't revive
+    // `isAuthenticated`/`user` in the (persisted) auth store after the fact.
+    if (!useAuthStore.getState().isAuthenticated) {
+      return null;
+    }
+
     const mergedUser: User = {
       ...user,
       ...freshUser,

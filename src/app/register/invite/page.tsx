@@ -17,7 +17,7 @@ import { isAccessTokenUsable } from '@/lib/jwt';
 import { useAuthStore } from '@/stores/auth.store';
 
 const schema = z.object({
-  fullName: z.string().min(1, 'กรุณากรอกชื่อ'),
+  fullName: z.string().trim().min(1, 'กรุณากรอกชื่อ'),
   password: z.string().min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'),
 });
 

@@ -373,9 +373,13 @@ export function StoreShippingOptionsPanel() {
                           <ConfirmDeleteButton
                             confirmLabel={option.name}
                             title="ลบตัวเลือกจัดส่ง"
-                            description={`ลบ “${option.name}” (${formatCurrency(option.price)}) ออกจากร้าน ${selectedStore?.name ?? ''}`}
+                            description={
+                              storeOptions.length <= 1
+                                ? 'ต้องมีอย่างน้อย 1 ตัวเลือกการจัดส่ง — เพิ่มตัวเลือกอื่นก่อนจึงจะลบได้'
+                                : `ลบ “${option.name}” (${formatCurrency(option.price)}) ออกจากร้าน ${selectedStore?.name ?? ''}`
+                            }
                             variant="outline"
-                            disabled={deleteStoreOption.isPending}
+                            disabled={deleteStoreOption.isPending || storeOptions.length <= 1}
                             isDeleting={deleteStoreOption.isPending}
                             onConfirm={async () => {
                               await deleteStoreOption.mutateAsync({

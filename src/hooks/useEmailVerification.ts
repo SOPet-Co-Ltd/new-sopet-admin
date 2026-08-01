@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useCooldown } from '@/hooks/useCooldown';
 import { normalizeError } from '@/lib/api/errors';
@@ -55,16 +55,44 @@ export function useResendEmailVerification() {
   };
 }
 
-/** Refreshes auth user when the persisted profile may be stale (e.g. admin verified email). */
-export function useSyncEmailVerificationStatus() {
-  const user = useAuthStore((s) => s.user);
+/**
+ * Refreshes auth user when the persisted profile may be stale (e.g. admin verified email).
+ *
+ * Returns `isChecking: true` until that freshness check has settled, so callers (e.g. the
+ * unverified-email banner) can avoid flashing a stale "unverified" state for a vendor whose
+ * persisted `emailVerified: false` is simply out of date (verified in another tab/session)
+ * and is about to be corrected by this same round-trip.
+ */
+export function useSyncEmailVerificationStatus(): { isChecking: boolean } {
+  const userId = useAuthStore((s) => s.user?.id);
+  const emailVerified = useAuthStore((s) => s.user?.emailVerified);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (!hasHydrated || !isAuthenticated || !user || user.emailVerified === true) {
+    // Depend on primitives (id / emailVerified), not the user object — refreshAuthUser
+    // always setUser() with a new reference, which would infinite-loop Me while unverified.
+    if (!hasHydrated || !isAuthenticated || !userId || emailVerified === true) {
+      // Must flip synchronously (not e.g. via a derived render-time value) so isChecking
+      // is correct the instant hydration/auth settles, before the caller's next paint.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsChecking(false);
       return;
     }
-    void refreshAuthUser();
-  }, [hasHydrated, isAuthenticated, user]);
+
+    let cancelled = false;
+    setIsChecking(true);
+    void refreshAuthUser().finally(() => {
+      if (!cancelled) {
+        setIsChecking(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hasHydrated, isAuthenticated, userId, emailVerified]);
+
+  return { isChecking };
 }

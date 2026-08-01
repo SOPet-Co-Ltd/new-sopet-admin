@@ -45,7 +45,7 @@ export function useCreatePlatformBanner() {
   return useMutation({
     mutationFn: (input: CreatePlatformBannerInput) => createPlatformBanner(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
     },
   });
 }
@@ -55,7 +55,7 @@ export function useUpdatePlatformBanner() {
   return useMutation({
     mutationFn: (input: UpdatePlatformBannerInput) => updatePlatformBanner(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
     },
   });
 }
@@ -65,7 +65,7 @@ export function useDeletePlatformBanner() {
   return useMutation({
     mutationFn: (id: string) => deletePlatformBanner(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
     },
   });
 }
@@ -75,7 +75,7 @@ export function useReorderPlatformBanners() {
   return useMutation({
     mutationFn: (ids: string[]) => reorderPlatformBanners(ids),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
     },
   });
 }
@@ -92,7 +92,7 @@ export function useCreatePlatformSponsor() {
   return useMutation({
     mutationFn: (input: CreatePlatformSponsorInput) => createPlatformSponsor(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
     },
   });
 }
@@ -102,7 +102,7 @@ export function useUpdatePlatformSponsor() {
   return useMutation({
     mutationFn: (input: UpdatePlatformSponsorInput) => updatePlatformSponsor(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
     },
   });
 }
@@ -112,7 +112,7 @@ export function useDeletePlatformSponsor() {
   return useMutation({
     mutationFn: (id: string) => deletePlatformSponsor(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
     },
   });
 }
@@ -122,7 +122,7 @@ export function useReorderPlatformSponsors() {
   return useMutation({
     mutationFn: (ids: string[]) => reorderPlatformSponsors(ids),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
     },
   });
 }
@@ -139,7 +139,7 @@ export function useCreatePlatformAd() {
   return useMutation({
     mutationFn: (input: CreatePlatformAdInput) => createPlatformAd(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
     },
   });
 }
@@ -149,7 +149,7 @@ export function useUpdatePlatformAd() {
   return useMutation({
     mutationFn: (input: UpdatePlatformAdInput) => updatePlatformAd(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
     },
   });
 }
@@ -159,7 +159,7 @@ export function useDeletePlatformAd() {
   return useMutation({
     mutationFn: (id: string) => deletePlatformAd(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
     },
   });
 }
@@ -177,7 +177,7 @@ export function useUpdateLoginPageImages() {
     mutationFn: (form: LoginImagesFormValues) =>
       updateLoginPageImages(loginImagesFormToUpdateInput(form)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
     },
   });
 }
@@ -187,7 +187,7 @@ export function useClearLoginPageDesktopImage() {
   return useMutation({
     mutationFn: () => clearLoginPageDesktopImage(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
     },
   });
 }
@@ -197,7 +197,7 @@ export function useClearLoginPageMobileImage() {
   return useMutation({
     mutationFn: () => clearLoginPageMobileImage(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
     },
   });
 }

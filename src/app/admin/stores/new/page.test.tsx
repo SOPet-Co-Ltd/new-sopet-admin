@@ -46,4 +46,16 @@ describe('AdminStoreNewPage', () => {
     expect(screen.getByLabelText('เจ้าของร้านค้า')).toHaveAttribute('aria-invalid', 'true');
     expect(mutateAsync).not.toHaveBeenCalled();
   });
+
+  it('shows a clear Thai error when an email is typed into contactPhone', async () => {
+    render(<AdminStoreNewPage />);
+
+    await userEvent.type(screen.getByLabelText(/ชื่อร้านค้า/), 'Pet Shop');
+    await userEvent.type(screen.getByLabelText('เบอร์โทร'), 'user@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'สร้างร้านค้า' }));
+
+    expect(screen.getByText('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง')).toBeInTheDocument();
+    expect(screen.getByLabelText('เบอร์โทร')).toHaveAttribute('aria-invalid', 'true');
+    expect(mutateAsync).not.toHaveBeenCalled();
+  });
 });

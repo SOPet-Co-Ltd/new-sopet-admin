@@ -54,6 +54,10 @@ vi.mock('@/hooks/useProductMutations', () => ({
   useDeleteProduct: () => ({ mutateAsync: vi.fn(), isPending: false, error: null }),
 }));
 
+vi.mock('@/hooks/useShipping', () => ({
+  useMyStoreShippingOptions: () => ({ data: [{ id: 'ship-1' }], isLoading: false }),
+}));
+
 vi.mock('@/hooks/useTaxonomy', () => ({
   useApprovedCategories: () => ({
     data: [{ id: 'cat-1', name: 'อาหารสุนัข', slug: 'dog-food', status: 'approved' }],

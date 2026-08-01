@@ -9,19 +9,24 @@ import {
   requestPayout,
   triggerPayout,
 } from '@/lib/api/payouts';
+import { useIsStoreOwner } from '@/hooks/useMembershipRole';
 import { queryKeys } from '@/lib/react-query/keys';
 
-export function useStorePayoutSummary() {
+export function useStorePayoutSummary(enabled = true) {
+  const { isOwner } = useIsStoreOwner();
   return useQuery({
     queryKey: queryKeys.payouts.vendorSummary(),
     queryFn: getStorePayoutSummary,
+    enabled: enabled && isOwner,
   });
 }
 
-export function useStorePayouts() {
+export function useStorePayouts(enabled = true) {
+  const { isOwner } = useIsStoreOwner();
   return useQuery({
     queryKey: queryKeys.payouts.vendorHistory(),
     queryFn: getStorePayouts,
+    enabled: enabled && isOwner,
   });
 }
 

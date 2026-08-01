@@ -33,6 +33,13 @@ export function StoreRequestRow({
 
   const contactParts = [request.contactEmail, request.contactPhone].filter(Boolean);
   const showNextUp = isNextUp && !highlighted;
+  const isPending = request.status === 'pending';
+  const statusBadgeClass =
+    request.status === 'approved'
+      ? 'bg-success-bg text-success'
+      : request.status === 'rejected'
+        ? 'bg-danger-bg text-danger'
+        : undefined;
 
   function handleCancelReject() {
     setRejecting(false);
@@ -74,14 +81,22 @@ export function StoreRequestRow({
             </p>
           ) : null}
         </div>
-        <Badge status="processing">{labelStoreRequestStatus(request.status)}</Badge>
+        <Badge status={statusBadgeClass ? undefined : 'processing'} className={statusBadgeClass}>
+          {labelStoreRequestStatus(request.status)}
+        </Badge>
       </div>
 
       {request.description ? (
         <p className="mt-2 text-sm text-pretty text-muted-foreground">{request.description}</p>
       ) : null}
 
-      {rejecting ? (
+      {request.rejectionReason ? (
+        <p className="mt-2 text-sm text-danger" role="status">
+          เหตุผลที่ปฏิเสธ: {request.rejectionReason}
+        </p>
+      ) : null}
+
+      {!isPending ? null : rejecting ? (
         <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-border pt-3">
           <div className="min-w-[200px] flex-1">
             <Label htmlFor={`reason-${request.id}`}>เหตุผลการปฏิเสธ</Label>

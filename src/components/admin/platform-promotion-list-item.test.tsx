@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import {
   formatPromotionConditionChips,
+  getPromotionEffectiveStatus,
   PlatformPromotionListItem,
 } from './platform-promotion-list-item';
 import { PlatformPromotionsEmptyState } from './platform-promotions-empty-state';
@@ -56,6 +57,38 @@ describe('PlatformPromotionListItem', () => {
       'true',
     );
     expect(screen.getByText('ลำดับ 2')).toBeInTheDocument();
+  });
+
+  it('shows หมดอายุ (expired) status when isActive but expiresAt already passed (QA-hunt regression)', () => {
+    render(
+      <ul>
+        <PlatformPromotionListItem
+          promo={{
+            ...basePromo,
+            startsAt: '2025-01-01T00:00:00.000Z',
+            expiresAt: '2025-06-30T00:00:00.000Z',
+          }}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    expect(screen.getByLabelText('สถานะ: หมดอายุ')).toHaveTextContent('หมดอายุ');
+  });
+
+  it('shows รอเริ่ม (scheduled) status when isActive but startsAt is still in the future (QA-hunt regression)', () => {
+    render(
+      <ul>
+        <PlatformPromotionListItem
+          promo={{ ...basePromo, startsAt: '2099-01-01T00:00:00.000Z', expiresAt: undefined }}
+          onToggle={vi.fn()}
+          onDelete={vi.fn().mockResolvedValue(undefined)}
+        />
+      </ul>,
+    );
+
+    expect(screen.getByLabelText('สถานะ: รอเริ่ม')).toHaveTextContent('รอเริ่ม');
   });
 
   it('uses coral secondary affordance when inactive can be turned on', () => {
@@ -153,6 +186,34 @@ describe('PlatformPromotionListItem', () => {
     );
 
     expect(screen.queryByLabelText('เงื่อนไขโปรโมชัน')).not.toBeInTheDocument();
+  });
+});
+
+describe('getPromotionEffectiveStatus', () => {
+  it('returns inactive when isActive is false regardless of dates', () => {
+    expect(getPromotionEffectiveStatus({ ...basePromo, isActive: false })).toBe('inactive');
+  });
+
+  it('returns expired when active but expiresAt is in the past', () => {
+    expect(
+      getPromotionEffectiveStatus({ ...basePromo, expiresAt: '2020-01-01T00:00:00.000Z' }),
+    ).toBe('expired');
+  });
+
+  it('returns scheduled when active but startsAt is in the future', () => {
+    expect(
+      getPromotionEffectiveStatus({
+        ...basePromo,
+        startsAt: '2099-01-01T00:00:00.000Z',
+        expiresAt: undefined,
+      }),
+    ).toBe('scheduled');
+  });
+
+  it('returns active when isActive and within (or without) date bounds', () => {
+    expect(
+      getPromotionEffectiveStatus({ ...basePromo, startsAt: undefined, expiresAt: undefined }),
+    ).toBe('active');
   });
 });
 

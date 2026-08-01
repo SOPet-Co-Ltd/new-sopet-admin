@@ -144,6 +144,22 @@ export const promotionFormSchema = z
         });
       }
     }
+
+    // Neither field validates the other's format/existence on its own, and the backend
+    // silently accepts an inverted range (promotion just never becomes eligible, with no
+    // error anywhere) - catch it here so admins/vendors get immediate feedback instead of a
+    // promotion that mysteriously never applies.
+    if (data.startsAt && data.expiresAt) {
+      const start = new Date(data.startsAt);
+      const end = new Date(data.expiresAt);
+      if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end <= start) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['expiresAt'],
+          message: 'วันสิ้นสุดต้องอยู่หลังวันเริ่มต้น',
+        });
+      }
+    }
   });
 
 export type PromotionFormValues = z.infer<typeof promotionFormSchema>;

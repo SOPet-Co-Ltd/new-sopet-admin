@@ -91,6 +91,12 @@ describe('LoginImagesPanel', () => {
     expect(screen.getByRole('button', { name: 'บันทึก' })).toBeDisabled();
   });
 
+  it('clarifies that saved images are not yet rendered on a live login page (row 48 regression)', () => {
+    render(<LoginImagesPanel />);
+
+    expect(screen.getByText(/ยังไม่แสดงผลบนหน้าเข้าสู่ระบบจริง/)).toBeInTheDocument();
+  });
+
   it('blocks Save without desktop and shows ต้องมีรูปเดสก์ท็อป', async () => {
     const user = userEvent.setup();
     render(<LoginImagesPanel />);

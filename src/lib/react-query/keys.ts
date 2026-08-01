@@ -8,6 +8,8 @@ export const queryKeys = {
   auth: {
     all: ['auth'] as const,
     currentUser: ['auth', 'currentUser'] as const,
+    passwordResetTokenStatus: (token: string) =>
+      ['auth', 'passwordResetTokenStatus', token] as const,
   },
   stores: {
     all: ['stores'] as const,
@@ -83,6 +85,7 @@ export const queryKeys = {
     all: ['storeRequests'] as const,
     mine: () => ['storeRequests', 'mine'] as const,
     pending: () => ['storeRequests', 'pending'] as const,
+    adminAll: () => ['storeRequests', 'adminAll'] as const,
   },
   storeReactivationRequests: {
     all: ['storeReactivationRequests'] as const,
@@ -135,6 +138,7 @@ export const queryKeys = {
     all: ['adminTeam'] as const,
     members: () => ['adminTeam', 'members'] as const,
     invitations: () => ['adminTeam', 'invitations'] as const,
+    invitationByToken: (token: string) => ['adminTeam', 'invitationByToken', token] as const,
   },
   adminCustomers: {
     all: ['adminCustomers'] as const,

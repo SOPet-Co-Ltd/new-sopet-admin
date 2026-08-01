@@ -628,7 +628,6 @@ export interface UpdateStoreAsAdminInput {
   contactEmail?: string;
   address?: string;
   ownerId?: string | null;
-  ownerEmail?: string;
 }
 
 export interface AdminVendor {

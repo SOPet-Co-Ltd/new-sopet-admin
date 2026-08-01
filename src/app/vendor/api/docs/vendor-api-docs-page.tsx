@@ -58,6 +58,32 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
   -H "Content-Type: application/json" \\
   -d '${jsonExample.replace(/\n/g, '\n  ')}'`;
 
+  const productPatchExample = `{
+  "name": "อาหารแมวออร์แกนิค 2kg (อัปเดต)",
+  "description": "รายละเอียดใหม่",
+  "category": "อาหารแมว",
+  "tags": ["ออร์แกนิค"],
+  "petType": "แมว",
+  "brand": "Royal Canin"
+}`;
+  const productPatchCurl = `curl -X PATCH "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/products/{productId}" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
+  -H "Content-Type: application/json" \\
+  -d '${productPatchExample.replace(/\n/g, '\n  ')}'`;
+
+  const variantPatchExample = `{
+  "stock": 100,
+  "price": 529
+}`;
+  const variantByIdCurl = `curl -X PATCH "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/products/{productId}/variants/{variantId}" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
+  -H "Content-Type: application/json" \\
+  -d '${variantPatchExample.replace(/\n/g, '\n  ')}'`;
+  const variantBySkuCurl = `curl -X PATCH "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/variants/by-sku/CAT-ORG-2KG-CHK" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
+  -H "Content-Type: application/json" \\
+  -d '${variantPatchExample.replace(/\n/g, '\n  ')}'`;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -364,6 +390,155 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
 
       <Card>
         <CardHeader>
+          <h2 className="font-display font-medium text-ink">แก้ไขข้อมูลสินค้า</h2>
+        </CardHeader>
+        <CardBody className="space-y-4 text-sm">
+          <div>
+            <p className="font-medium text-ink">Endpoint</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink">
+              PATCH /api/v1/stores/&#123;storeId&#125;/products/&#123;productId&#125;
+            </pre>
+          </div>
+          <p className="text-muted">
+            แก้ไขเฉพาะข้อมูลทั่วไปของสินค้า (ชื่อ รายละเอียด หมวดหมู่ แท็ก ประเภทสัตว์เลี้ยง แบรนด์
+            ฯลฯ) — ไม่ใช้แก้สต็อกหรือราคา (ดู endpoint ตัวแปรด้านล่าง)
+          </p>
+          <div>
+            <p className="mb-2 font-medium text-ink">
+              Request Body (ทุกฟิลด์ไม่บังคับ ต้องมีอย่างน้อย 1 ฟิลด์)
+            </p>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full min-w-[480px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-surface text-muted">
+                    <th className="px-4 py-2 font-medium">ฟิลด์</th>
+                    <th className="px-4 py-2 font-medium">ประเภท</th>
+                    <th className="px-4 py-2 font-medium">คำอธิบาย</th>
+                  </tr>
+                </thead>
+                <tbody className="text-muted">
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">name</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">ชื่อสินค้า</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">description</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">รายละเอียด</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">warning</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">คำเตือน</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">expiryDate</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">วันหมดอายุ YYYY-MM-DD</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">category</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">ชื่อหมวดหมู่ (ต้องอนุมัติแล้ว)</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">tags</td>
+                    <td className="px-4 py-2">string[]</td>
+                    <td className="px-4 py-2">รายชื่อแท็ก (แทนที่ชุดเดิมทั้งชุดเมื่อส่ง)</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">petType</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">ชื่อประเภทสัตว์เลี้ยง</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 font-mono text-ink">brand</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">ชื่อแบรนด์</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 font-medium text-ink">ตัวอย่าง cURL</p>
+            <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink whitespace-pre-wrap">
+              {productPatchCurl}
+            </pre>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="font-display font-medium text-ink">
+            แก้ไขสต็อก / ราคาของตัวแปร (Variant)
+          </h2>
+        </CardHeader>
+        <CardBody className="space-y-4 text-sm">
+          <div>
+            <p className="font-medium text-ink">Endpoint (ระบุด้วยรหัสตัวแปร)</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink">
+              PATCH
+              /api/v1/stores/&#123;storeId&#125;/products/&#123;productId&#125;/variants/&#123;variantId&#125;
+            </pre>
+          </div>
+          <div>
+            <p className="font-medium text-ink">Endpoint (ระบุด้วย SKU)</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink">
+              PATCH /api/v1/stores/&#123;storeId&#125;/variants/by-sku/&#123;sku&#125;
+            </pre>
+          </div>
+          <p className="text-muted">
+            แก้เฉพาะสต็อกและราคาของรายการที่ขายได้ — ไม่แก้ชื่อสินค้าหรือหมวดหมู่ ราคาเป็นราคาเต็ม
+            (บาท) เหมือนตอนสร้างสินค้า
+          </p>
+          <div>
+            <p className="mb-2 font-medium text-ink">
+              Request Body (ต้องมีอย่างน้อย stock หรือ price)
+            </p>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full min-w-[480px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-surface text-muted">
+                    <th className="px-4 py-2 font-medium">ฟิลด์</th>
+                    <th className="px-4 py-2 font-medium">ประเภท</th>
+                    <th className="px-4 py-2 font-medium">คำอธิบาย</th>
+                  </tr>
+                </thead>
+                <tbody className="text-muted">
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">stock</td>
+                    <td className="px-4 py-2">integer</td>
+                    <td className="px-4 py-2">จำนวนสต็อก (≥ 0)</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 font-mono text-ink">price</td>
+                    <td className="px-4 py-2">number</td>
+                    <td className="px-4 py-2">ราคาเต็มเป็นบาท (≥ 0)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <p className="mb-2 font-medium text-ink">ตัวอย่าง cURL (by id)</p>
+            <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink whitespace-pre-wrap">
+              {variantByIdCurl}
+            </pre>
+          </div>
+          <div>
+            <p className="mb-2 font-medium text-ink">ตัวอย่าง cURL (by SKU)</p>
+            <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink whitespace-pre-wrap">
+              {variantBySkuCurl}
+            </pre>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <h2 className="font-display font-medium text-ink">รหัสข้อผิดพลาด (Error Codes)</h2>
         </CardHeader>
         <CardBody>
@@ -442,10 +617,22 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
                     ไม่พบชื่อแบรนด์ที่ระบุ หรือแบรนด์ยังไม่ได้รับการอนุมัติ
                   </td>
                 </tr>
-                <tr>
+                <tr className="border-b border-border/60">
                   <td className="px-4 py-2">400</td>
                   <td className="px-4 py-2 font-mono text-ink">SKU_EXISTS</td>
                   <td className="px-4 py-2">SKU ซ้ำกับที่มีอยู่แล้วในระบบ</td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <td className="px-4 py-2">404</td>
+                  <td className="px-4 py-2 font-mono text-ink">PRODUCT_NOT_FOUND</td>
+                  <td className="px-4 py-2">ไม่พบสินค้า หรือสินค้าไม่ได้อยู่ในร้านนี้</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2">404</td>
+                  <td className="px-4 py-2 font-mono text-ink">VARIANT_NOT_FOUND</td>
+                  <td className="px-4 py-2">
+                    ไม่พบตัวแปร หรือตัวแปรไม่ได้อยู่ในร้าน/สินค้าที่ระบุ
+                  </td>
                 </tr>
               </tbody>
             </table>

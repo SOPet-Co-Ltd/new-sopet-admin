@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useMemo } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { RequestsQueueSummary } from '@/components/admin/requests/requests-queue-summary';
 import {
@@ -18,6 +18,7 @@ import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  useAdminStoreRequests,
   useApproveStoreRequest,
   usePendingStoreRequests,
   useRejectStoreRequest,
@@ -37,9 +38,15 @@ function AdminRequestsPageContent() {
   const highlightRequestId = searchParams.get('requestId');
   const tab = parseTab(searchParams.get('tab'));
 
-  const { data: storeRequests = [], isLoading: loadingStores } = usePendingStoreRequests();
+  const [showHistory, setShowHistory] = useState(false);
+  const { data: pendingRequests = [], isLoading: loadingStores } = usePendingStoreRequests();
+  const { data: historyRequests = [], isLoading: loadingHistory } =
+    useAdminStoreRequests(showHistory);
   const approveStore = useApproveStoreRequest();
   const rejectStore = useRejectStoreRequest();
+
+  const storeRequests = showHistory ? historyRequests : pendingRequests;
+  const loadingStoreList = showHistory ? loadingHistory : loadingStores;
 
   const { data: invitations = [], isLoading: loadingInvitations } = usePendingVendorInvitations();
   const inviteMutation = useInviteVendor();
@@ -51,10 +58,10 @@ function AdminRequestsPageContent() {
 
   const tabCounts = useMemo(
     () => ({
-      stores: storeRequests.length,
+      stores: pendingRequests.length,
       invitations: invitations.length,
     }),
-    [storeRequests.length, invitations.length],
+    [pendingRequests.length, invitations.length],
   );
 
   const setActiveTab = useCallback(
@@ -71,10 +78,10 @@ function AdminRequestsPageContent() {
   );
 
   useEffect(() => {
-    if (!highlightRequestId || loadingStores || tab !== 'stores') return;
+    if (!highlightRequestId || loadingStoreList || tab !== 'stores') return;
     const element = document.getElementById(`store-request-${highlightRequestId}`);
     element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [highlightRequestId, loadingStores, storeRequests, tab]);
+  }, [highlightRequestId, loadingStoreList, storeRequests, tab]);
 
   async function onInvite(values: InviteVendorFormValues) {
     try {
@@ -87,7 +94,9 @@ function AdminRequestsPageContent() {
 
   const nextStoreRequestId =
     highlightRequestId ??
-    (storeRequests.length > 0 && tabCounts.stores > 0 ? storeRequests[0]?.id : null);
+    (!showHistory && pendingRequests.length > 0 && tabCounts.stores > 0
+      ? pendingRequests[0]?.id
+      : null);
 
   return (
     <div className="min-w-0 space-y-6">
@@ -106,25 +115,40 @@ function AdminRequestsPageContent() {
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="font-display font-medium text-balance text-ink">
-                  คำขอเปิดร้านรออนุมัติ
+                  {showHistory ? 'คำขอเปิดร้านทั้งหมด' : 'คำขอเปิดร้านรออนุมัติ'}
                 </h2>
-                {!loadingStores && tabCounts.stores > 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    {tabCounts.stores.toLocaleString('th-TH')} รายการ — เรียงตามลำดับที่ส่ง
-                  </p>
-                ) : null}
+                <div className="flex flex-wrap items-center gap-3">
+                  {!loadingStoreList && storeRequests.length > 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      {storeRequests.length.toLocaleString('th-TH')} รายการ
+                      {showHistory ? '' : ' — เรียงตามลำดับที่ส่ง'}
+                    </p>
+                  ) : null}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowHistory((current) => !current)}
+                  >
+                    {showHistory ? 'ดูเฉพาะที่รออนุมัติ' : 'ดูประวัติทั้งหมด (รวมที่ปฏิเสธ)'}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardBody className="space-y-3">
-              {loadingStores ? (
+              {loadingStoreList ? (
                 <RequestsListSkeleton rows={3} />
               ) : storeRequests.length === 0 ? (
                 <RequestsEmptyState
                   variant="success"
-                  title="ไม่มีคำขอเปิดร้านรออนุมัติ"
-                  description="คิวว่างแล้ว — คำขอใหม่จากผู้ขายจะปรากฏที่นี่ทันที"
+                  title={showHistory ? 'ยังไม่มีคำขอเปิดร้าน' : 'ไม่มีคำขอเปิดร้านรออนุมัติ'}
+                  description={
+                    showHistory
+                      ? 'คำขอเปิดร้านทุกสถานะจะปรากฏที่นี่'
+                      : 'คิวว่างแล้ว — คำขอใหม่จากผู้ขายจะปรากฏที่นี่ทันที'
+                  }
                   action={
-                    tabCounts.invitations > 0 ? (
+                    !showHistory && tabCounts.invitations > 0 ? (
                       <RequestsTabSwitchButton
                         label="ไปที่เชิญผู้ขาย"
                         onClick={() => setActiveTab('invitations')}

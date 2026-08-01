@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EmailVerificationBanner } from './email-verification-banner';
 
 const mutateMock = vi.fn();
 
 vi.mock('@/hooks/useEmailVerification', () => ({
-  useSyncEmailVerificationStatus: vi.fn(),
+  useSyncEmailVerificationStatus: vi.fn(() => ({ isChecking: false })),
   useResendEmailVerification: () => ({
     mutate: mutateMock,
     isPending: false,
@@ -22,10 +22,16 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 import { useCurrentUser } from '@/hooks/useAuth';
+import { useSyncEmailVerificationStatus } from '@/hooks/useEmailVerification';
 
 const mockedUseCurrentUser = vi.mocked(useCurrentUser);
+const mockedUseSyncEmailVerificationStatus = vi.mocked(useSyncEmailVerificationStatus);
 
 describe('EmailVerificationBanner', () => {
+  beforeEach(() => {
+    mockedUseSyncEmailVerificationStatus.mockReturnValue({ isChecking: false });
+  });
+
   it('renders notice when vendor is logged in and email is unverified', () => {
     mockedUseCurrentUser.mockReturnValue({
       user: {
@@ -66,6 +72,24 @@ describe('EmailVerificationBanner', () => {
       user: null,
       isAuthenticated: false,
     });
+
+    const { container } = render(<EmailVerificationBanner />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('renders nothing while the freshness check is still in flight, even if the persisted status is unverified', () => {
+    mockedUseCurrentUser.mockReturnValue({
+      user: {
+        id: '1',
+        email: 'vendor@test.com',
+        fullName: 'Vendor',
+        role: 'vendor',
+        emailVerified: false,
+      },
+      isAuthenticated: true,
+    });
+    mockedUseSyncEmailVerificationStatus.mockReturnValue({ isChecking: true });
 
     const { container } = render(<EmailVerificationBanner />);
 

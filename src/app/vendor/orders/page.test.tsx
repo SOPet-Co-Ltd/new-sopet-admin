@@ -164,4 +164,25 @@ describe('VendorOrdersPage', () => {
       'false',
     );
   });
+
+  /**
+   * Regression (QA-hunt): while auth/vendor Zustand stores are still hydrating, storeId is
+   * undefined and useVendorOrders is disabled - its own `isLoading` stays false, so without
+   * accounting for a missing storeId the page briefly rendered the "ยังไม่มีคำสั่งซื้อ" /
+   * "ไม่มีออเดอร์ที่ต้องดำเนินการ" empty state instead of a loading skeleton.
+   */
+  it('shows loading skeleton (not an empty state) while storeId has not resolved yet', () => {
+    mockedUseVendorStoreId.mockReturnValue(undefined);
+    mockedUseVendorOrders.mockReturnValue({
+      data: [] as Order[],
+      isLoading: false,
+      error: null,
+    } as ReturnType<typeof useVendorOrders>);
+
+    render(<VendorOrdersPage />);
+
+    expect(screen.getByLabelText('กำลังโหลดคำสั่งซื้อ')).toBeInTheDocument();
+    expect(screen.queryByText('ยังไม่มีคำสั่งซื้อ')).not.toBeInTheDocument();
+    expect(screen.queryByText('ไม่มีออเดอร์ที่ต้องดำเนินการ')).not.toBeInTheDocument();
+  });
 });

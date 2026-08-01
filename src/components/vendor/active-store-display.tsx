@@ -42,7 +42,17 @@ export function ActiveStoreDisplay() {
         <p className="truncate text-sm font-medium text-ink">{active.store.name}</p>
         <p className="text-xs text-muted">{labelMembershipRole(active.membershipRole)}</p>
         {active.store.status === 'suspended' ? (
-          <p className="mt-1 text-xs font-medium text-danger">{labelStoreStatus('suspended')}</p>
+          <>
+            <p className="mt-1 text-xs font-medium text-danger">{labelStoreStatus('suspended')}</p>
+            {(active.membershipRole === 'owner' || active.membershipRole === 'manager') && (
+              <Link
+                href={`/vendor/reactivation?storeId=${active.store.id}`}
+                className="mt-1 inline-block text-xs font-medium text-brand hover:underline"
+              >
+                ส่งคำขอเปิดใช้งาน
+              </Link>
+            )}
+          </>
         ) : null}
       </div>
     );
@@ -75,6 +85,20 @@ export function ActiveStoreDisplay() {
         </SelectContent>
       </Select>
       <p className="text-xs text-muted">{labelMembershipRole(active.membershipRole)}</p>
+      {active.store.status === 'suspended' ? (
+        <p className="text-xs font-medium text-danger">
+          ร้านถูกระงับ — จัดการไม่ได้จนกว่าจะเปิดใช้งานอีกครั้ง
+        </p>
+      ) : null}
+      {active.store.status === 'suspended' &&
+      (active.membershipRole === 'owner' || active.membershipRole === 'manager') ? (
+        <Link
+          href={`/vendor/reactivation?storeId=${active.store.id}`}
+          className="text-xs font-medium text-brand hover:underline"
+        >
+          ส่งคำขอเปิดใช้งาน
+        </Link>
+      ) : null}
       <Link href="/vendor/stores" className="text-xs font-medium text-brand hover:underline">
         จัดการร้านทั้งหมด
       </Link>

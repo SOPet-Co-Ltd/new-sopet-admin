@@ -138,7 +138,11 @@ export default function VendorOrdersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const storeId = useVendorStoreId();
-  const { data: orders = [], isLoading, error } = useVendorOrders(storeId);
+  const { data: orders = [], isLoading: ordersLoading, error } = useVendorOrders(storeId);
+  // `useVendorOrders` is disabled until `storeId` resolves (auth/vendor store hydration),
+  // so its own `isLoading` stays false during that window - without this, the page would
+  // briefly render the "no orders" empty state before the real fetch even starts.
+  const isLoading = ordersLoading || !storeId;
   const queueParam = searchParams.get('queue');
   const queueFilter = queueParam !== 'all';
   const statusFilter = searchParams.get('status') ?? 'all';

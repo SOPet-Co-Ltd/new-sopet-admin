@@ -52,6 +52,20 @@ describe('RegisterPage', () => {
     });
   });
 
+  it('rejects a whitespace-only fullName instead of registering', async () => {
+    mutateAsync.mockClear();
+    render(<RegisterPage />);
+
+    await userEvent.type(screen.getByLabelText(/ชื่อ-นามสกุล/), '   ');
+    await userEvent.type(screen.getByLabelText(/อีเมล/), 'vendor@example.com');
+    await userEvent.type(screen.getByPlaceholderText('อย่างน้อย 8 ตัวอักษร'), 'password123');
+    await userEvent.type(screen.getByPlaceholderText('กรอกรหัสผ่านอีกครั้ง'), 'password123');
+    await userEvent.click(screen.getByRole('button', { name: 'ลงทะเบียน' }));
+
+    expect(screen.getByText('กรุณากรอกชื่อ-นามสกุล')).toBeInTheDocument();
+    expect(mutateAsync).not.toHaveBeenCalled();
+  });
+
   it('has show/hide toggles for both password fields', () => {
     render(<RegisterPage />);
 

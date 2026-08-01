@@ -64,7 +64,10 @@ export function PromotionCreateForm({
         priority: values.priority,
         startsAt: values.startsAt || undefined,
         expiresAt: values.expiresAt || undefined,
-        ...(conditions ? { conditions } : {}),
+        // Send an explicit value (even "no conditions") for symmetry with the
+        // edit form - see promotion-edit-form.tsx for why omitting this field
+        // is unsafe once the promotion can be edited later.
+        conditions: conditions ?? '{}',
       });
       router.push(listHref);
     } catch (err) {

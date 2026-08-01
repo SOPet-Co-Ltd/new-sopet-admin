@@ -1,5 +1,6 @@
 import { executeMutation, executeQuery } from '@/lib/graphql/client';
 import {
+  ADMIN_STORE_REQUESTS_QUERY,
   APPROVE_STORE_REQUEST,
   MY_STORE_REQUESTS_QUERY,
   PENDING_STORE_REQUESTS_QUERY,
@@ -23,6 +24,13 @@ export function getPendingStoreRequests(): Promise<StoreRequest[]> {
   ).then((data) => data.pendingStoreRequests.map(mapStoreRequest));
 }
 
+/** Full history (all statuses) for the admin request center. */
+export function getAdminStoreRequests(): Promise<StoreRequest[]> {
+  return executeQuery<{ adminStoreRequests: GqlStoreRequest[] }>(ADMIN_STORE_REQUESTS_QUERY).then(
+    (data) => data.adminStoreRequests.map(mapStoreRequest),
+  );
+}
+
 export function submitStoreRequest(input: SubmitStoreRequestInput): Promise<StoreRequest> {
   return executeMutation<{ submitStoreRequest: GqlStoreRequest }>(SUBMIT_STORE_REQUEST, {
     input,
@@ -37,6 +45,6 @@ export function approveStoreRequest(id: string): Promise<StoreRequest> {
 
 export function rejectStoreRequest(id: string, reason?: string): Promise<StoreRequest> {
   return executeMutation<{ rejectStoreRequest: GqlStoreRequest }>(REJECT_STORE_REQUEST, {
-    input: { id, reason: reason ?? '' },
+    input: { id, reason: reason || undefined },
   }).then((data) => mapStoreRequest(data.rejectStoreRequest));
 }

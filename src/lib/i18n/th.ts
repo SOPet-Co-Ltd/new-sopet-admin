@@ -8,6 +8,7 @@ export const orderStatusLabels: Record<string, string> = {
   pending_payment: 'รอชำระเงิน',
   paid: 'ชำระแล้ว',
   processing: 'กำลังดำเนินการ',
+  on_hold: 'พักการดำเนินการ',
   shipped: 'จัดส่งแล้ว',
   delivered: 'ส่งถึงแล้ว',
   cancelled: 'ยกเลิก',
@@ -23,6 +24,7 @@ export const paymentMethodLabels: Record<string, string> = {
 export const fulfillmentStatusLabels: Record<string, string> = {
   pending: 'รอดำเนินการ',
   processing: 'กำลังเตรียม',
+  on_hold: 'พักจัดส่ง',
   shipped: 'จัดส่งแล้ว',
   delivered: 'ส่งถึงแล้ว',
   cancelled: 'ยกเลิก',
@@ -184,6 +186,8 @@ const notificationTypeLabels: Record<string, string> = {
   promotion: 'โปรโมชัน',
   review_request: 'ขอรีวิว',
   dispute_update: 'อัปเดตข้อพิพาท',
+  vendor_order_items_on_hold: 'คำสั่งซื้อถูกพักชั่วคราว',
+  vendor_order_items_hold_resumed: 'คำสั่งซื้อกลับมาดำเนินการได้แล้ว',
 };
 
 export function labelNotificationType(type: string): string {

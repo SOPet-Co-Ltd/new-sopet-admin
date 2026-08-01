@@ -115,6 +115,30 @@ describe('auth-session', () => {
       await expect(refreshAuthUser()).resolves.toBeNull();
       expect(getMe).not.toHaveBeenCalled();
     });
+
+    it('does not revive the auth store if the user logged out while getMe was in flight', async () => {
+      let resolveGetMe: (value: Awaited<ReturnType<typeof getMe>>) => void = () => {};
+      vi.mocked(getMe).mockReturnValue(
+        new Promise((resolve) => {
+          resolveGetMe = resolve;
+        }),
+      );
+
+      const pending = refreshAuthUser();
+      // Simulate a logout completing before the in-flight `me` query resolves.
+      useAuthStore.getState().clearAuth();
+      resolveGetMe({
+        id: '1',
+        email: 'a@test.com',
+        fullName: 'A',
+        role: 'vendor',
+        emailVerified: true,
+      });
+
+      await expect(pending).resolves.toBeNull();
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+      expect(useAuthStore.getState().user).toBeNull();
+    });
   });
 
   describe('syncEmailVerificationStatus', () => {

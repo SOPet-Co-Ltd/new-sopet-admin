@@ -1,7 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { formatPromotionConditionChips } from '@/components/admin/platform-promotion-list-item';
+import {
+  formatPromotionConditionChips,
+  getPromotionEffectiveStatus,
+  PROMOTION_EFFECTIVE_STATUS_META,
+} from '@/components/admin/platform-promotion-list-item';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
@@ -54,7 +58,8 @@ export function VendorPromotionListItem({
 }: VendorPromotionListItemProps) {
   const validity = formatValidity(promo);
   const busy = isToggling || isDeleting;
-  const statusLabel = promo.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+  const effectiveStatus = getPromotionEffectiveStatus(promo);
+  const statusMeta = PROMOTION_EFFECTIVE_STATUS_META[effectiveStatus];
   const toggleLabel = promo.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน';
   const href = editHref ?? `/vendor/promotions/${promo.id}/edit`;
   const conditionChips = formatPromotionConditionChips(promo.conditions);
@@ -70,11 +75,8 @@ export function VendorPromotionListItem({
       <div className="min-w-0 flex-1 space-y-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <p className="truncate font-medium text-ink">{promo.name}</p>
-          <Badge
-            status={promo.isActive ? 'published' : 'draft'}
-            aria-label={`สถานะ: ${statusLabel}`}
-          >
-            {statusLabel}
+          <Badge status={statusMeta.badgeStatus} aria-label={`สถานะ: ${statusMeta.label}`}>
+            {statusMeta.label}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
