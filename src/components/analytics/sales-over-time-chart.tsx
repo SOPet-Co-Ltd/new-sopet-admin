@@ -20,12 +20,16 @@ function formatShortDate(dateStr: string): string {
 
 /** Compact currency for on-bar value labels (e.g. "฿1.2K") - full amount stays in the title tooltip. */
 function formatCompactCurrency(value: number): string {
-  return new Intl.NumberFormat('th-TH', {
+  const formatted = new Intl.NumberFormat('th-TH', {
     style: 'currency',
     currency: 'THB',
     notation: 'compact',
     maximumFractionDigits: 1,
+    minimumFractionDigits: 0,
   }).format(value);
+  // ICU compact notation keeps a trailing ".0" on some platforms (e.g. Linux CI Node).
+  // Normalize so labels stay compact and match across environments: ฿370.0 → ฿370, ฿15.0K → ฿15K.
+  return formatted.replace(/(\d)\.0(?=\D|$)/u, '$1');
 }
 
 export function SalesOverTimeChart({ data }: SalesOverTimeChartProps) {
