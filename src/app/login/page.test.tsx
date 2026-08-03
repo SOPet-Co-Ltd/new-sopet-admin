@@ -18,7 +18,7 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
 });
 
 vi.mock('@/lib/api/client', () => ({
-  getAccessToken: () => undefined,
+  hasClientSession: () => false,
 }));
 
 vi.mock('@/lib/auth-session', () => ({

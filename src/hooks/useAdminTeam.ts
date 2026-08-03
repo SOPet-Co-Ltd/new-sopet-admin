@@ -10,9 +10,8 @@ import {
   revokeAdminInvitation,
   setAdminActive,
 } from '@/lib/api/adminTeam';
-import { setTokens } from '@/lib/api/client';
+import { applyAuthenticatedSession } from '@/lib/auth/apply-session';
 import { queryKeys } from '@/lib/react-query/keys';
-import { useAuthStore } from '@/stores/auth.store';
 import type { InviteAdminInput, LoginResult } from '@/types';
 
 export function useAdminTeamMembers() {
@@ -70,13 +69,10 @@ export function useAdminInvitationByToken(token: string) {
 }
 
 export function useAcceptAdminInvitation() {
-  const setUser = useAuthStore((s) => s.setUser);
-
   return useMutation<LoginResult, Error, { token: string; password: string; fullName: string }>({
     mutationFn: acceptAdminInvitation,
-    onSuccess: (result) => {
-      setTokens(result.accessToken, result.refreshToken);
-      setUser(result.user);
+    onSuccess: async (result) => {
+      await applyAuthenticatedSession(result.user);
     },
   });
 }

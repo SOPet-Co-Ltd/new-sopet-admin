@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { login } from '@/lib/api/auth';
-import { setTokens } from '@/lib/api/client';
+import { clearTokens } from '@/lib/api/client';
 import { getApolloClient } from '@/lib/graphql/client';
 import { queryKeys } from '@/lib/react-query/keys';
 import { useAuthStore } from '@/stores/auth.store';
@@ -23,19 +23,24 @@ vi.mock('@/lib/api/auth', () => ({
 vi.mock('@/lib/api/client', () => ({
   clearTokens: vi.fn(),
   setTokens: vi.fn(),
+  hasClientSession: vi.fn(() => true),
+}));
+
+vi.mock('@/lib/auth/apply-session', () => ({
+  applyAuthenticatedSession: vi.fn(async (user) => {
+    useAuthStore.getState().setUser({ ...user, storeId: 'store-b' });
+    useVendorStore.getState().setActiveStoreId('store-b');
+    return { ...user, storeId: 'store-b' };
+  }),
 }));
 
 vi.mock('@/lib/graphql/client', () => ({
   getApolloClient: vi.fn(),
 }));
 
-vi.mock('@/lib/jwt', () => ({
-  getStoreIdFromToken: vi.fn(() => 'store-b'),
-}));
-
 const vendorB = {
-  accessToken: 'token-b',
-  refreshToken: 'refresh-b',
+  accessToken: null,
+  refreshToken: null,
   user: {
     id: 'vendor-b',
     email: 'b@test.com',
@@ -103,7 +108,7 @@ describe('useAuth session boundaries', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(setTokens).toHaveBeenCalledWith('token-b', 'refresh-b');
+    expect(clearTokens).toHaveBeenCalled();
     expect(useAuthStore.getState().user?.email).toBe('b@test.com');
     expect(useVendorStore.getState().activeStoreId).toBe('store-b');
     expect(queryClient.getQueryData(queryKeys.stores.myStores())).toBeUndefined();

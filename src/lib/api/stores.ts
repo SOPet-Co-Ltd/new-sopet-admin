@@ -125,7 +125,7 @@ export function getMyStores(): Promise<VendorStore[]> {
 export function switchStore(storeId: string): Promise<LoginResult> {
   return executeMutation<{
     switchStore: {
-      tokens: { accessToken: string; refreshToken: string };
+      tokens: { accessToken: string | null; refreshToken: string | null };
       user: Parameters<typeof mapUser>[0] & { storeId?: string | null };
     };
   }>(SWITCH_STORE, { input: { storeId } }).then((data) => ({

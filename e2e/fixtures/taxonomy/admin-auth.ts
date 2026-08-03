@@ -21,6 +21,7 @@ async function seedAuthCookies(page: Page, role: AuthRole) {
       domain: 'localhost',
       path: '/',
       sameSite: 'Lax',
+      httpOnly: true,
     },
     {
       name: REFRESH_TOKEN_COOKIE,
@@ -28,6 +29,15 @@ async function seedAuthCookies(page: Page, role: AuthRole) {
       domain: 'localhost',
       path: '/',
       sameSite: 'Lax',
+      httpOnly: true,
+    },
+    {
+      name: 'sopet_admin_auth',
+      value: '1',
+      domain: 'localhost',
+      path: '/',
+      sameSite: 'Lax',
+      httpOnly: false,
     },
   ]);
 }

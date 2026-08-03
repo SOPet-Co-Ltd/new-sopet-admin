@@ -1,28 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthGuard } from '@/components/auth-guard';
-import { getAccessToken } from '@/lib/api/client';
+import { hasClientSession } from '@/lib/api/client';
 
 const replace = vi.fn();
-
-/** Minimal JWT whose payload passes `isAccessTokenUsable` (role + unexpired). */
-function usableAccessToken(role: 'admin' | 'vendor' = 'vendor'): string {
-  const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
-  const payload = btoa(
-    JSON.stringify({
-      role,
-      exp: Math.floor(Date.now() / 1000) + 60 * 60,
-    }),
-  );
-  return `${header}.${payload}.sig`;
-}
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
 }));
 
 vi.mock('@/lib/api/client', () => ({
-  getAccessToken: vi.fn(),
+  hasClientSession: vi.fn(),
 }));
 
 const mockUseAuthStore = vi.fn();
@@ -49,7 +37,7 @@ function mockAuthState(state: {
 describe('AuthGuard', () => {
   beforeEach(() => {
     replace.mockClear();
-    vi.mocked(getAccessToken).mockReturnValue(usableAccessToken('vendor'));
+    vi.mocked(hasClientSession).mockReturnValue(true);
   });
 
   it('renders children directly while auth store is hydrating', () => {

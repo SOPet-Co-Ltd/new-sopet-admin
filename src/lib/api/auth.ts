@@ -4,7 +4,7 @@ import { mapUser } from '@/lib/graphql/mappers';
 import type { LoginInput, LoginResult, RefreshResult, RegisterVendorInput, User } from '@/types';
 
 type AuthPayload = {
-  tokens: { accessToken: string; refreshToken: string };
+  tokens: { accessToken: string | null; refreshToken: string | null };
   user: {
     id: string;
     email: string;
@@ -37,7 +37,7 @@ export const adminLogin = login;
 
 export function refresh(refreshToken: string): Promise<RefreshResult> {
   return executeMutation<{
-    refreshToken: { accessToken: string; refreshToken: string };
+    refreshToken: { accessToken: string | null; refreshToken: string | null };
   }>(REFRESH_TOKEN, { input: { refreshToken } }).then((data) => data.refreshToken);
 }
 

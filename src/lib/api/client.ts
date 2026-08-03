@@ -3,6 +3,7 @@ export {
   getRefreshToken,
   setTokens,
   clearTokens,
+  hasClientSession,
   setOnAuthFailure,
   notifyAuthFailure,
 } from '@/lib/graphql/tokens';

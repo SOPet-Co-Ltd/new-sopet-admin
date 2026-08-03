@@ -12,9 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getDashboardPath, useCurrentUser } from '@/hooks/useAuth';
 import { useAcceptAdminInvitation, useAdminInvitationByToken } from '@/hooks/useAdminTeam';
-import { getAccessToken } from '@/lib/api/client';
+import { hasClientSession } from '@/lib/api/client';
 import { getErrorMessage } from '@/lib/api/errors';
-import { isAccessTokenUsable } from '@/lib/jwt';
 import { useAuthStore } from '@/stores/auth.store';
 
 const schema = z.object({
@@ -42,15 +41,12 @@ function AcceptAdminInviteForm() {
       return;
     }
 
-    const accessToken = getAccessToken();
-    if (isAuthenticated && isAccessTokenUsable(accessToken) && user) {
+    if (isAuthenticated && hasClientSession() && user) {
       router.replace(getDashboardPath(user.role));
     }
   }, [hasHydrated, isAuthenticated, router, user]);
 
-  const accessToken = typeof window !== 'undefined' ? getAccessToken() : undefined;
-  const isRedirecting =
-    hasHydrated && isAuthenticated && isAccessTokenUsable(accessToken) && !!user;
+  const isRedirecting = hasHydrated && isAuthenticated && hasClientSession() && !!user;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
