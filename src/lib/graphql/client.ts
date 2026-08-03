@@ -90,11 +90,23 @@ async function refreshAccessToken(): Promise<string> {
 
   const payload = (await response.json()) as {
     data?: { refreshToken?: { accessToken: string; refreshToken: string } };
-    errors?: Array<{ message: string }>;
+    errors?: Array<{
+      message: string;
+      extensions?: { code?: string };
+    }>;
   };
 
   if (!response.ok || payload.errors?.length || !payload.data?.refreshToken) {
-    throw new Error(payload.errors?.[0]?.message ?? 'Token refresh failed.');
+    const graphQLError = payload.errors?.[0];
+    const code = graphQLError?.extensions?.code;
+    if (code === 'ACCOUNT_SUSPENDED') {
+      throw new ApiError({
+        code: 'ACCOUNT_SUSPENDED',
+        message: ERROR_MESSAGES.ACCOUNT_SUSPENDED,
+        status: 403,
+      });
+    }
+    throw new Error(graphQLError?.message ?? 'Token refresh failed.');
   }
 
   const { accessToken, refreshToken: newRefreshToken } = payload.data.refreshToken;
@@ -183,9 +195,15 @@ async function withAuthRetry<T>(run: () => Promise<T>): Promise<T> {
   try {
     return await run();
   } catch (error) {
+    const normalized = normalizeError(error);
+    if (normalized.code === 'ACCOUNT_SUSPENDED') {
+      notifyAuthFailure(ERROR_MESSAGES.ACCOUNT_SUSPENDED);
+      throw normalized;
+    }
+
     const status = getErrorStatus(error);
     if (status !== 401 || !getRefreshToken()) {
-      throw normalizeError(error);
+      throw normalized;
     }
 
     try {
@@ -196,7 +214,16 @@ async function withAuthRetry<T>(run: () => Promise<T>): Promise<T> {
       }
       await refreshPromise;
       return await run();
-    } catch {
+    } catch (refreshError) {
+      const refreshNormalized = normalizeError(refreshError);
+      if (refreshNormalized.code === 'ACCOUNT_SUSPENDED') {
+        notifyAuthFailure(ERROR_MESSAGES.ACCOUNT_SUSPENDED);
+        throw new ApiError({
+          code: 'ACCOUNT_SUSPENDED',
+          message: ERROR_MESSAGES.ACCOUNT_SUSPENDED,
+          status: 403,
+        });
+      }
       clearTokens();
       notifyAuthFailure();
       throw new ApiError({

@@ -16,9 +16,9 @@ function AuthFailureHandler() {
   const router = useRouter();
 
   useEffect(() => {
-    setOnAuthFailure(() => {
+    setOnAuthFailure((message) => {
       clearAuthSession(queryClient);
-      sessionStorage.setItem(AUTH_SESSION_MESSAGE_KEY, ERROR_MESSAGES.SESSION_EXPIRED);
+      sessionStorage.setItem(AUTH_SESSION_MESSAGE_KEY, message ?? ERROR_MESSAGES.SESSION_EXPIRED);
       router.replace('/login');
     });
   }, [queryClient, router]);

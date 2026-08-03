@@ -38,7 +38,7 @@ export function clearTokens(): void {
   Cookies.remove(REFRESH_TOKEN, removeOptions);
 }
 
-type AuthFailureHandler = () => void;
+type AuthFailureHandler = (message?: string) => void;
 
 let onAuthFailure: AuthFailureHandler = () => {
   clearTokens();
@@ -48,9 +48,9 @@ export function setOnAuthFailure(handler: AuthFailureHandler): void {
   onAuthFailure = handler;
 }
 
-export function notifyAuthFailure(): void {
+export function notifyAuthFailure(message?: string): void {
   clearTokens();
   if (typeof window !== 'undefined') {
-    onAuthFailure();
+    onAuthFailure(message);
   }
 }
