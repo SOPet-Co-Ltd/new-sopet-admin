@@ -2,13 +2,13 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAccessToken } from '@/lib/api/client';
+import { hasClientSession } from '@/lib/api/client';
 import { getDashboardPath, useCurrentUser } from '@/hooks/useAuth';
 
 export default function HomePage() {
   const router = useRouter();
   const { user, isAuthenticated } = useCurrentUser();
-  const hasToken = typeof window !== 'undefined' && !!getAccessToken();
+  const hasToken = typeof window !== 'undefined' && hasClientSession();
 
   useEffect(() => {
     if (!isAuthenticated || !hasToken) {

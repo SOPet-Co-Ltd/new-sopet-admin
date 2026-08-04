@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useMyStores } from '@/hooks/useMyStores';
 import { useSwitchStore } from '@/hooks/useSwitchStore';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { useVendorStoreSync } from '@/hooks/useVendorStoreSync';
+import { getStoreSwitchRedirectPath } from '@/lib/vendor/store-switch-redirect';
 import { labelMembershipRole, labelStoreStatus } from '@/lib/i18n/th';
 import {
   Select,
@@ -16,6 +18,8 @@ import {
 
 export function ActiveStoreDisplay() {
   useVendorStoreSync();
+  const router = useRouter();
+  const pathname = usePathname();
   const storeId = useVendorStoreId();
   const { data: stores = [], isLoading } = useMyStores();
   const switchStore = useSwitchStore();
@@ -67,7 +71,14 @@ export function ActiveStoreDisplay() {
         value={activeId}
         onValueChange={(nextId) => {
           if (nextId !== activeId) {
-            switchStore.mutate(nextId);
+            switchStore.mutate(nextId, {
+              onSuccess: () => {
+                const redirect = getStoreSwitchRedirectPath(pathname);
+                if (redirect) {
+                  router.replace(redirect);
+                }
+              },
+            });
           }
         }}
         disabled={switchStore.isPending}

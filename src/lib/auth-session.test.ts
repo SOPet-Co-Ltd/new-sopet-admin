@@ -1,9 +1,8 @@
 import { QueryClient } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getMe } from '@/lib/api/auth';
-import { clearTokens, getAccessToken } from '@/lib/api/client';
+import { clearTokens, hasClientSession } from '@/lib/api/client';
 import { getApolloClient } from '@/lib/graphql/client';
-import { isAccessTokenUsable } from '@/lib/jwt';
 import { useAuthStore } from '@/stores/auth.store';
 import { useVendorStore } from '@/stores/vendor.store';
 import {
@@ -16,7 +15,7 @@ import {
 
 vi.mock('@/lib/api/client', () => ({
   clearTokens: vi.fn(),
-  getAccessToken: vi.fn(),
+  hasClientSession: vi.fn(),
 }));
 
 vi.mock('@/lib/api/auth', () => ({
@@ -25,10 +24,6 @@ vi.mock('@/lib/api/auth', () => ({
 
 vi.mock('@/lib/graphql/client', () => ({
   getApolloClient: vi.fn(),
-}));
-
-vi.mock('@/lib/jwt', () => ({
-  isAccessTokenUsable: vi.fn(),
 }));
 
 describe('auth-session', () => {
@@ -53,8 +48,7 @@ describe('auth-session', () => {
       hasHydrated: true,
     });
     useVendorStore.setState({ activeStoreId: 'store-a', hasHydrated: true });
-    vi.mocked(getAccessToken).mockReturnValue('token');
-    vi.mocked(isAccessTokenUsable).mockReturnValue(true);
+    vi.mocked(hasClientSession).mockReturnValue(true);
   });
 
   describe('resetSessionCaches', () => {
@@ -125,7 +119,6 @@ describe('auth-session', () => {
       );
 
       const pending = refreshAuthUser();
-      // Simulate a logout completing before the in-flight `me` query resolves.
       useAuthStore.getState().clearAuth();
       resolveGetMe({
         id: '1',

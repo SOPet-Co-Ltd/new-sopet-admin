@@ -56,7 +56,7 @@ export function acceptAdminInvitation(input: {
 }): Promise<LoginResult> {
   return executeMutation<{
     acceptAdminInvitation: {
-      tokens: { accessToken: string; refreshToken: string };
+      tokens: { accessToken: string | null; refreshToken: string | null };
       user: Parameters<typeof mapUser>[0];
     };
   }>(ACCEPT_ADMIN_INVITATION, { input }).then((data) => ({

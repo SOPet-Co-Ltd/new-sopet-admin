@@ -1,8 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { getMe } from '@/lib/api/auth';
-import { clearTokens, getAccessToken } from '@/lib/api/client';
+import { clearTokens, hasClientSession } from '@/lib/api/client';
 import { getApolloClient } from '@/lib/graphql/client';
-import { isAccessTokenUsable } from '@/lib/jwt';
 import { useAuthStore } from '@/stores/auth.store';
 import { useVendorStore } from '@/stores/vendor.store';
 import type { User } from '@/types';
@@ -17,7 +16,7 @@ export function resetSessionCaches(queryClient: QueryClient): void {
 
 /** Clears tokens, persisted auth/vendor state, and all client-side data caches. */
 export function clearAuthSession(queryClient: QueryClient): void {
-  clearTokens();
+  void clearTokens();
   useAuthStore.getState().clearAuth();
   useVendorStore.getState().clearVendor();
   resetSessionCaches(queryClient);
@@ -38,23 +37,20 @@ export async function syncEmailVerificationStatus(): Promise<void> {
   await refreshAuthUser();
 }
 
-/** Refreshes the persisted auth user from the `me` query when a valid token exists. */
+/** Refreshes the persisted auth user from the `me` query when a session exists. */
 export async function refreshAuthUser(): Promise<User | null> {
   const { user, isAuthenticated } = useAuthStore.getState();
   if (!isAuthenticated || !user) {
     return null;
   }
 
-  const accessToken = getAccessToken();
-  if (!isAccessTokenUsable(accessToken)) {
+  if (!hasClientSession()) {
     return user;
   }
 
   try {
     const freshUser = await getMe();
 
-    // If the user logged out while this request was in flight, don't revive
-    // `isAuthenticated`/`user` in the (persisted) auth store after the fact.
     if (!useAuthStore.getState().isAuthenticated) {
       return null;
     }

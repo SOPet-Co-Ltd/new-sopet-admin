@@ -71,6 +71,8 @@ export function resolvePublicApiBaseUrl(): string {
 
 export const ACCESS_TOKEN = 'accessToken';
 export const REFRESH_TOKEN = 'refreshToken';
+/** Non-secret companion flag so the client knows a session exists without reading JWTs. */
+export const AUTH_COMPANION_COOKIE = 'sopet_admin_auth';
 
 export const COOKIE_NAMES = {
   ACCESS_TOKEN,

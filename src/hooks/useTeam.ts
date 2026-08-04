@@ -14,11 +14,8 @@ import {
   revokeStoreInvitation,
   updateStoreMemberRole,
 } from '@/lib/api/team';
-import { setTokens } from '@/lib/api/client';
-import { getStoreIdFromToken } from '@/lib/jwt';
+import { applyAuthenticatedSession } from '@/lib/auth/apply-session';
 import { queryKeys } from '@/lib/react-query/keys';
-import { useAuthStore } from '@/stores/auth.store';
-import { useVendorStore } from '@/stores/vendor.store';
 import type { InviteStoreMemberInput, LoginResult } from '@/types';
 
 export function useStoreMembers() {
@@ -116,18 +113,12 @@ export function useStoreInvitationPreview(token: string) {
 }
 
 export function useAcceptStoreMemberInvitation() {
-  const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
 
   return useMutation<LoginResult, Error, { token: string; password: string; fullName: string }>({
     mutationFn: acceptStoreMemberInvitation,
-    onSuccess: (result) => {
-      setTokens(result.accessToken, result.refreshToken);
-      const storeId = getStoreIdFromToken(result.accessToken);
-      setUser({ ...result.user, storeId });
-      if (storeId) {
-        useVendorStore.getState().setActiveStoreId(storeId);
-      }
+    onSuccess: async (result) => {
+      await applyAuthenticatedSession(result.user);
       queryClient.invalidateQueries({ queryKey: queryKeys.stores.myStores() });
       queryClient.invalidateQueries({ queryKey: queryKeys.team.all });
     },

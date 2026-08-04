@@ -1,9 +1,6 @@
 import type { NextConfig } from 'next';
 import type { RemotePattern } from 'next/dist/shared/lib/image-config';
 
-const graphqlBackendOrigin =
-  process.env.GRAPHQL_SSR_URL?.replace(/\/graphql\/?$/, '') ?? 'http://localhost:3002';
-
 function cdnRemotePattern(cdnUrl: string): RemotePattern | null {
   try {
     const parsed = new URL(cdnUrl);
@@ -51,14 +48,6 @@ function imageRemotePatterns(): RemotePattern[] {
 }
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: '/graphql',
-        destination: `${graphqlBackendOrigin}/graphql`,
-      },
-    ];
-  },
   // The browser inspector/automation crawls the React tree on every mousemove,
   // enumerating Next's `params`/`searchParams` Promise props and tripping the
   // dev-only sync-dynamic-apis warning. Those are console.error-level, so the

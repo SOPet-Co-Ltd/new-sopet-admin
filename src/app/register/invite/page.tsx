@@ -12,8 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getDashboardPath, useCurrentUser } from '@/hooks/useAuth';
 import { useAcceptVendorInvitation } from '@/hooks/useVendorInvitations';
-import { getAccessToken } from '@/lib/api/client';
-import { isAccessTokenUsable } from '@/lib/jwt';
+import { hasClientSession } from '@/lib/api/client';
 import { useAuthStore } from '@/stores/auth.store';
 
 const schema = z.object({
@@ -36,15 +35,12 @@ function AcceptVendorInviteForm() {
       return;
     }
 
-    const accessToken = getAccessToken();
-    if (isAuthenticated && isAccessTokenUsable(accessToken) && user) {
+    if (isAuthenticated && hasClientSession() && user) {
       router.replace(getDashboardPath(user.role));
     }
   }, [hasHydrated, isAuthenticated, router, user]);
 
-  const accessToken = typeof window !== 'undefined' ? getAccessToken() : undefined;
-  const isRedirecting =
-    hasHydrated && isAuthenticated && isAccessTokenUsable(accessToken) && !!user;
+  const isRedirecting = hasHydrated && isAuthenticated && hasClientSession() && !!user;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),

@@ -28,7 +28,7 @@ export function acceptVendorInvitation(input: {
 }): Promise<LoginResult> {
   return executeMutation<{
     acceptVendorInvitation: {
-      tokens: { accessToken: string; refreshToken: string };
+      tokens: { accessToken: string | null; refreshToken: string | null };
       user: Parameters<typeof mapUser>[0];
     };
   }>(ACCEPT_VENDOR_INVITATION, { input }).then((data) => ({

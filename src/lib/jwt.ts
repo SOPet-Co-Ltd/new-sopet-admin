@@ -1,5 +1,3 @@
-import { getAccessToken } from '@/lib/graphql/tokens';
-
 export type PortalRole = 'admin' | 'vendor';
 
 export function decodeJwtPayload(token: string): Record<string, unknown> | null {
@@ -7,7 +5,8 @@ export function decodeJwtPayload(token: string): Record<string, unknown> | null 
     const parts = token.split('.');
     if (parts.length !== 3) return null;
     const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const json = atob(base64);
+    const json =
+      typeof atob === 'function' ? atob(base64) : Buffer.from(base64, 'base64').toString('utf8');
     return JSON.parse(json) as Record<string, unknown>;
   } catch {
     return null;
@@ -41,9 +40,9 @@ export function isAccessTokenUsable(token?: string): token is string {
   return getPortalRoleFromToken(token) !== null;
 }
 
+/** Prefer passing an explicit token (server) or storeId from `me` / session API. */
 export function getStoreIdFromToken(token?: string): string | undefined {
-  const accessToken = token ?? getAccessToken();
-  if (!accessToken) return undefined;
-  const payload = decodeJwtPayload(accessToken);
+  if (!token) return undefined;
+  const payload = decodeJwtPayload(token);
   return typeof payload?.storeId === 'string' ? payload.storeId : undefined;
 }

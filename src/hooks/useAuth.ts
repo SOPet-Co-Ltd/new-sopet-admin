@@ -1,24 +1,23 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { login } from '@/lib/api/auth';
-import { clearTokens, setTokens } from '@/lib/api/client';
+import { clearTokens } from '@/lib/api/client';
+import { applyAuthenticatedSession } from '@/lib/auth/apply-session';
 import { clearAuthSession, resetSessionCaches } from '@/lib/auth-session';
-import { getStoreIdFromToken } from '@/lib/jwt';
 import { useAuthStore } from '@/stores/auth.store';
 import { useVendorStore } from '@/stores/vendor.store';
 import type { LoginInput, LoginResult } from '@/types';
+import { useRouter } from 'next/navigation';
 
 const PORTAL_ROLES = new Set(['admin', 'vendor']);
 
 export function useLogin() {
   const queryClient = useQueryClient();
-  const setUser = useAuthStore((s) => s.setUser);
 
   return useMutation<LoginResult, Error, LoginInput>({
     mutationFn: async (input) => {
-      clearTokens();
+      await clearTokens();
       useAuthStore.getState().clearAuth();
       useVendorStore.getState().clearVendor();
       const result = await login(input);
@@ -27,13 +26,8 @@ export function useLogin() {
       }
       return result;
     },
-    onSuccess: (result) => {
-      setTokens(result.accessToken, result.refreshToken);
-      const storeId = getStoreIdFromToken(result.accessToken);
-      setUser({ ...result.user, storeId });
-      if (storeId) {
-        useVendorStore.getState().setActiveStoreId(storeId);
-      }
+    onSuccess: async (result) => {
+      await applyAuthenticatedSession(result.user);
       resetSessionCaches(queryClient);
     },
   });

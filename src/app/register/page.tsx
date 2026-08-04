@@ -12,8 +12,7 @@ import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
 import { getDashboardPath, useCurrentUser } from '@/hooks/useAuth';
 import { useRegisterVendor } from '@/hooks/useRegisterVendor';
-import { getAccessToken } from '@/lib/api/client';
-import { isAccessTokenUsable } from '@/lib/jwt';
+import { hasClientSession } from '@/lib/api/client';
 import { registerVendorSchema, type RegisterVendorFormValues } from '@/lib/validations';
 import { useAuthStore } from '@/stores/auth.store';
 
@@ -28,15 +27,12 @@ export default function RegisterPage() {
       return;
     }
 
-    const accessToken = getAccessToken();
-    if (isAuthenticated && isAccessTokenUsable(accessToken) && user) {
+    if (isAuthenticated && hasClientSession() && user) {
       router.replace(getDashboardPath(user.role));
     }
   }, [hasHydrated, isAuthenticated, router, user]);
 
-  const accessToken = typeof window !== 'undefined' ? getAccessToken() : undefined;
-  const isRedirecting =
-    hasHydrated && isAuthenticated && isAccessTokenUsable(accessToken) && !!user;
+  const isRedirecting = hasHydrated && isAuthenticated && hasClientSession() && !!user;
 
   const form = useForm<RegisterVendorFormValues>({
     resolver: zodResolver(registerVendorSchema),

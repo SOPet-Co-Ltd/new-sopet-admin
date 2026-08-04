@@ -295,14 +295,14 @@ export interface LoginInput {
 }
 
 export interface LoginResult {
-  accessToken: string;
-  refreshToken: string;
+  accessToken: string | null;
+  refreshToken: string | null;
   user: User;
 }
 
 export interface RefreshResult {
-  accessToken: string;
-  refreshToken: string;
+  accessToken: string | null;
+  refreshToken: string | null;
 }
 
 export interface UpdateOrderStatusInput {
