@@ -49,6 +49,10 @@ vi.mock('@/hooks/useSearchAdmin', () => ({
     isPending: false,
     mutateAsync: vi.fn().mockResolvedValue('\uFEFFquery,result_count\n'),
   }),
+  useResetSearchAnalytics: () => ({
+    isPending: false,
+    mutateAsync: vi.fn().mockResolvedValue(true),
+  }),
 }));
 
 describe('AdminSearchAnalyticsPage', () => {
@@ -61,6 +65,7 @@ describe('AdminSearchAnalyticsPage', () => {
     expect(screen.getByText('คำค้นหายอดนิยม')).toBeInTheDocument();
     expect(screen.getByText('query-1')).toBeInTheDocument();
     expect(screen.getByText('ส่งออก CSV')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ล้างข้อมูล' })).toBeInTheDocument();
     expect(screen.getByText('เวลาตอบสนองเฉลี่ย')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /จัดการคำพ้องความหมาย/ })).toHaveAttribute(
       'href',

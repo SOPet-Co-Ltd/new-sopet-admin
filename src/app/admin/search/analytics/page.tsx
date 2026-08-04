@@ -9,10 +9,12 @@ import {
   PlatformStatGridSkeleton,
 } from '@/components/analytics/platform-stat-card';
 import { SearchAnalyticsExportButton } from '@/components/admin/search/SearchAnalyticsExportButton';
+import { SearchAnalyticsResetButton } from '@/components/admin/search/SearchAnalyticsResetButton';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
 import {
   useExportSearchAnalyticsCsv,
+  useResetSearchAnalytics,
   useSearchAnalyticsSuggestionCtr,
   useSearchAnalyticsSummary,
   useSearchAnalyticsTopQueries,
@@ -160,6 +162,7 @@ export default function AdminSearchAnalyticsPage() {
     error: ctrError,
   } = useSearchAnalyticsSuggestionCtr();
   const exportMutation = useExportSearchAnalyticsCsv();
+  const resetMutation = useResetSearchAnalytics();
 
   const visibleSuggestionCtr = suggestionCtr.slice(0, ctrPaging.limit);
 
@@ -174,17 +177,28 @@ export default function AdminSearchAnalyticsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleReset = async () => {
+    await resetMutation.mutateAsync();
+  };
+
   return (
     <div className="min-w-0 space-y-10">
       <PageHeader
         title="วิเคราะห์การค้นหา"
         description="สรุปการใช้งาน Smart Search 7 วันล่าสุด — ใช้ตัวเลขนี้เพื่อปรับคำพ้องและความสำคัญของผลลัพธ์"
         action={
-          <SearchAnalyticsExportButton
-            disabled={summaryLoading || Boolean(summaryError)}
-            loading={exportMutation.isPending}
-            onExport={handleExport}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <SearchAnalyticsExportButton
+              disabled={summaryLoading || Boolean(summaryError)}
+              loading={exportMutation.isPending}
+              onExport={handleExport}
+            />
+            <SearchAnalyticsResetButton
+              disabled={summaryLoading || Boolean(summaryError) || exportMutation.isPending}
+              loading={resetMutation.isPending}
+              onReset={handleReset}
+            />
+          </div>
         }
       />
 

@@ -11,6 +11,7 @@ import {
   getSearchAnalyticsZeroResultQueries,
   getSearchRankingWeights,
   getSearchSynonyms,
+  resetSearchAnalytics,
   updateSearchRankingWeights,
   updateSearchSynonym,
   type SearchAnalyticsQueryRow,
@@ -130,5 +131,16 @@ export function useExportSearchAnalyticsCsv() {
   return useMutation({
     mutationFn: ({ fromDate, toDate }: { fromDate?: string; toDate?: string }) =>
       exportSearchAnalyticsCsv(fromDate, toDate),
+  });
+}
+
+export function useResetSearchAnalytics() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => resetSearchAnalytics(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.search.all });
+    },
   });
 }

@@ -229,6 +229,10 @@ export type ExportSearchAnalyticsCsvQueryVariables = Exact<{
 
 export type ExportSearchAnalyticsCsvQuery = { exportSearchAnalyticsCsv: string };
 
+export type ResetSearchAnalyticsMutationVariables = Exact<{ [key: string]: never }>;
+
+export type ResetSearchAnalyticsMutation = { resetSearchAnalytics: boolean };
+
 export type ApprovedCategoriesQueryVariables = Exact<{ [key: string]: never }>;
 
 export type ApprovedCategoriesQuery = {
@@ -1477,6 +1481,20 @@ export const ExportSearchAnalyticsCsvDocument = {
     },
   ],
 } as unknown as DocumentNode<ExportSearchAnalyticsCsvQuery, ExportSearchAnalyticsCsvQueryVariables>;
+export const ResetSearchAnalyticsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'ResetSearchAnalytics' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [{ kind: 'Field', name: { kind: 'Name', value: 'resetSearchAnalytics' } }],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ResetSearchAnalyticsMutation, ResetSearchAnalyticsMutationVariables>;
 export const ApprovedCategoriesDocument = {
   kind: 'Document',
   definitions: [

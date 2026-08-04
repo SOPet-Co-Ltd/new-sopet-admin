@@ -11,6 +11,7 @@ import {
   SEARCH_ANALYTICS_ZERO_RESULT_QUERIES_QUERY,
   SEARCH_ANALYTICS_SUGGESTION_CTR_QUERY,
   EXPORT_SEARCH_ANALYTICS_CSV_QUERY,
+  RESET_SEARCH_ANALYTICS,
 } from '@/lib/graphql/documents';
 import type {
   SearchRankingWeightsQuery,
@@ -26,6 +27,7 @@ import type {
   SearchAnalyticsZeroResultQueriesQuery,
   SearchAnalyticsSuggestionCtrQuery,
   ExportSearchAnalyticsCsvQuery,
+  ResetSearchAnalyticsMutation,
 } from '@/lib/graphql/generated/graphql';
 
 export type SearchRankingWeights = SearchRankingWeightsQuery['searchRankingWeights'];
@@ -126,4 +128,10 @@ export function exportSearchAnalyticsCsv(fromDate?: string, toDate?: string): Pr
     fromDate,
     toDate,
   }).then((data) => data.exportSearchAnalyticsCsv);
+}
+
+export function resetSearchAnalytics(): Promise<boolean> {
+  return executeMutation<ResetSearchAnalyticsMutation>(RESET_SEARCH_ANALYTICS).then(
+    (data) => data.resetSearchAnalytics,
+  );
 }

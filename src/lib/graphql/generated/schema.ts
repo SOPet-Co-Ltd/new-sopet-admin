@@ -729,6 +729,7 @@ export type Mutation = {
   requestPayout: PayoutType;
   resendEmailVerification: MessagePayload;
   resetPassword: MessagePayload;
+  resetSearchAnalytics: Scalars['Boolean']['output'];
   revokeAdminInvitation: AdminInvitationType;
   revokeStoreApiKey: Scalars['Boolean']['output'];
   revokeStoreInvitation: StoreMemberInvitationType;

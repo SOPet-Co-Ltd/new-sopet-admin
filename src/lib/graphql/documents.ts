@@ -2101,6 +2101,12 @@ export const EXPORT_SEARCH_ANALYTICS_CSV_QUERY = gql`
   }
 `;
 
+export const RESET_SEARCH_ANALYTICS = gql`
+  mutation ResetSearchAnalytics {
+    resetSearchAnalytics
+  }
+`;
+
 export const PLATFORM_SETTINGS_FOR_VENDOR_QUERY = gql`
   query PlatformSettingsForVendor {
     platformSettings {
