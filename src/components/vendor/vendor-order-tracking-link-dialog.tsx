@@ -53,18 +53,27 @@ export function VendorOrderTrackingLinkDialog({
       <DialogContent onCloseAutoFocus={handleCloseAutoFocus}>
         <DialogHeader>
           <DialogTitle>ลิงก์ติดตามคำสั่งซื้อ</DialogTitle>
-          <DialogDescription>{orderNumber}</DialogDescription>
+          <DialogDescription>ส่งลิงก์นี้ให้ลูกค้าเพื่อติดตามสถานะ {orderNumber}</DialogDescription>
         </DialogHeader>
 
-        {isError ? <p className="text-sm text-danger">โหลดไม่สำเร็จ</p> : null}
+        {isError ? (
+          <p className="text-sm text-danger" role="alert">
+            โหลดลิงก์ไม่สำเร็จ ลองใหม่อีกครั้ง
+          </p>
+        ) : null}
 
-        <div className="flex flex-wrap items-center gap-2">
-          <code className="flex-1 overflow-x-auto rounded-lg border border-border bg-surface px-4 py-3 font-mono text-sm break-all text-ink">
-            {isLoading || !trackingUrl ? 'กำลังโหลด...' : trackingUrl}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+          <code
+            className="min-h-11 flex-1 overflow-x-auto rounded-lg border border-border bg-surface px-4 py-3 font-mono text-sm break-all text-ink"
+            aria-busy={isLoading}
+            aria-live="polite"
+          >
+            {isLoading || !trackingUrl ? 'กำลังโหลดลิงก์...' : trackingUrl}
           </code>
           <Button
             type="button"
             variant="outline"
+            className="shrink-0 self-stretch sm:self-auto"
             onClick={handleCopy}
             disabled={!trackingUrl}
             aria-label="คัดลอกลิงก์ติดตาม"

@@ -1,7 +1,9 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { HiArrowDown, HiArrowUp, HiPhoto } from 'react-icons/hi2';
+import { Badge } from '@/components/ui/badge';
 import { ConfirmDeleteButton } from '@/components/ui/confirm-delete-button';
 import { Button } from '@/components/ui/button';
 import { useImageUpload } from '@/hooks/useImageUpload';
@@ -13,6 +15,7 @@ import {
   SET_PRODUCT_THUMBNAIL,
 } from '@/lib/graphql/documents';
 import { queryKeys } from '@/lib/react-query/keys';
+import { cn } from '@/lib/utils';
 import type { Product, ProductImage } from '@/types';
 
 type GqlProductImage = {
@@ -42,15 +45,17 @@ function imageConfirmLabel(url: string): string {
 
 export function ProductImagesManager({ product }: { product: Product }) {
   const queryClient = useQueryClient();
-  const [images, setImages] = useState<ProductImage[]>([]);
+  const [images, setImages] = useState<ProductImage[]>(() => sortImages(product.images ?? []));
+  const [loadedImages, setLoadedImages] = useState(product.images);
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [mediaPending, setMediaPending] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { upload: uploadProductImage, isUploading: imageUploading } = useImageUpload('products');
 
-  useEffect(() => {
+  if (product.images !== loadedImages) {
+    setLoadedImages(product.images);
     setImages(sortImages(product.images ?? []));
-  }, [product.images]);
+  }
 
   function invalidateProducts() {
     queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
@@ -147,103 +152,158 @@ export function ProductImagesManager({ product }: { product: Product }) {
     }
   }
 
+  const busy = mediaPending || imageUploading;
+  const explicitThumbnailId = images.find((img) => img.isThumbnail)?.id;
+  // Match storefront/list display: first sorted image is used when none is marked.
+  const thumbnailImageId = explicitThumbnailId ?? images[0]?.id;
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4" aria-busy={busy}>
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="sr-only"
+        aria-label="เลือกรูปภาพสินค้า"
+        disabled={busy}
+        onChange={(event) => void handleImageFileChange(event)}
+      />
+
       {images.length > 0 ? (
         <ul className="space-y-3" aria-label="รายการรูปภาพสินค้า">
-          {images.map((image, index) => (
-            <li
-              key={image.id}
-              className="flex flex-wrap items-center gap-3 rounded-md border border-border p-3"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={image.imageUrl}
-                alt=""
-                className="h-14 w-14 shrink-0 rounded object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs text-muted">{image.imageUrl}</p>
-                <div className="mt-2 flex items-center gap-1">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="h-8 w-8 p-0"
-                    disabled={mediaPending || index === 0}
-                    aria-label={`เลื่อนรูปภาพขึ้น (ลำดับที่ ${index + 1})`}
-                    onClick={() => void handleMove(index, -1)}
-                  >
-                    ↑
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="h-8 w-8 p-0"
-                    disabled={mediaPending || index === images.length - 1}
-                    aria-label={`เลื่อนรูปภาพลง (ลำดับที่ ${index + 1})`}
-                    onClick={() => void handleMove(index, 1)}
-                  >
-                    ↓
-                  </Button>
+          {images.map((image, index) => {
+            const isThumbnail = image.id === thumbnailImageId;
+            const orderLabel = `รูปที่ ${index + 1}`;
+
+            return (
+              <li
+                key={image.id}
+                className={cn(
+                  'flex flex-wrap items-center gap-3 rounded-lg border p-3 transition-colors duration-150 ease-out',
+                  isThumbnail
+                    ? 'border-brand bg-brand-tint/40 ring-1 ring-brand/30'
+                    : 'border-border bg-card',
+                )}
+                aria-current={isThumbnail ? 'true' : undefined}
+              >
+                <div className="relative shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.imageUrl}
+                    alt=""
+                    className={cn(
+                      'h-16 w-16 rounded-md object-cover',
+                      isThumbnail && 'ring-2 ring-brand ring-offset-1',
+                    )}
+                  />
+                  {isThumbnail ? (
+                    <Badge
+                      className="absolute -top-2 -right-2 bg-brand text-white"
+                      aria-label="รูปหน้าปกปัจจุบัน"
+                    >
+                      หน้าปก
+                    </Badge>
+                  ) : null}
                 </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={image.isThumbnail ? 'default' : 'outline'}
-                  disabled={mediaPending || image.isThumbnail}
-                  aria-pressed={image.isThumbnail}
-                  aria-label={
-                    image.isThumbnail
-                      ? `รูปหน้าปก: ${image.imageUrl}`
-                      : `ตั้งเป็นรูปหน้าปก: ${image.imageUrl}`
-                  }
-                  onClick={() => void handleSetThumbnail(image.id)}
-                >
-                  {image.isThumbnail ? 'รูปหน้าปก' : 'ตั้งเป็นหน้าปก'}
-                </Button>
-                <ConfirmDeleteButton
-                  confirmLabel={imageConfirmLabel(image.imageUrl)}
-                  title="ลบรูปภาพ"
-                  description="รูปภาพจะถูกลบออกจากสินค้านี้"
-                  disabled={mediaPending}
-                  isDeleting={mediaPending}
-                  onConfirm={async () => {
-                    await handleDeleteImage(image.id);
-                  }}
-                />
-              </div>
-            </li>
-          ))}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-ink">{orderLabel}</p>
+                  {isThumbnail ? (
+                    <p className="mt-0.5 text-xs font-medium text-brand">รูปหน้าปกปัจจุบัน</p>
+                  ) : (
+                    <p className="mt-0.5 truncate text-xs text-muted" title={image.imageUrl}>
+                      {imageConfirmLabel(image.imageUrl)}
+                    </p>
+                  )}
+                  <div className="mt-2 flex items-center gap-1">
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      className="size-10"
+                      disabled={busy || index === 0}
+                      aria-label={`เลื่อนรูปภาพขึ้น (ลำดับที่ ${index + 1})`}
+                      onClick={() => void handleMove(index, -1)}
+                    >
+                      <HiArrowUp className="size-4" aria-hidden="true" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      className="size-10"
+                      disabled={busy || index === images.length - 1}
+                      aria-label={`เลื่อนรูปภาพลง (ลำดับที่ ${index + 1})`}
+                      onClick={() => void handleMove(index, 1)}
+                    >
+                      <HiArrowDown className="size-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={isThumbnail ? 'default' : 'outline'}
+                    disabled={busy || isThumbnail}
+                    aria-pressed={isThumbnail}
+                    aria-label={
+                      isThumbnail ? `รูปหน้าปก: ${orderLabel}` : `ตั้งเป็นรูปหน้าปก: ${orderLabel}`
+                    }
+                    onClick={() => void handleSetThumbnail(image.id)}
+                  >
+                    {isThumbnail ? 'รูปหน้าปก' : 'ตั้งเป็นหน้าปก'}
+                  </Button>
+                  <ConfirmDeleteButton
+                    confirmLabel={imageConfirmLabel(image.imageUrl)}
+                    title="ลบรูปภาพ"
+                    description="รูปภาพจะถูกลบออกจากสินค้านี้"
+                    disabled={busy}
+                    isDeleting={mediaPending}
+                    onConfirm={async () => {
+                      await handleDeleteImage(image.id);
+                    }}
+                  />
+                </div>
+              </li>
+            );
+          })}
         </ul>
       ) : (
-        <p className="text-sm text-muted">ยังไม่มีรูปภาพ</p>
+        <div className="rounded-lg border border-dashed border-border bg-surface/50 px-4 py-8 text-center">
+          <HiPhoto className="mx-auto size-8 text-muted" aria-hidden="true" />
+          <p className="mt-3 text-sm font-medium text-ink">ยังไม่มีรูปภาพ</p>
+          <p className="mt-1 text-xs text-muted">
+            เพิ่มอย่างน้อย 1 รูปเพื่อเผยแพร่สินค้า — รูปแรกจะเป็นภาพหลักจนกว่าจะตั้งหน้าปก
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-4"
+            disabled={busy}
+            aria-busy={busy}
+            onClick={() => imageInputRef.current?.click()}
+          >
+            {busy ? 'กำลังอัปโหลด...' : 'เลือกรูปภาพ'}
+          </Button>
+        </div>
       )}
 
-      <div className="flex flex-wrap items-end gap-2">
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          className="sr-only"
-          aria-label="เลือกรูปภาพสินค้า"
-          disabled={mediaPending || imageUploading}
-          onChange={(event) => void handleImageFileChange(event)}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          disabled={mediaPending || imageUploading}
-          aria-busy={mediaPending || imageUploading}
-          onClick={() => imageInputRef.current?.click()}
-        >
-          {mediaPending || imageUploading ? 'กำลังอัปโหลด...' : 'เลือกรูปภาพ'}
-        </Button>
-        <p className="text-xs text-muted">JPEG, PNG, WebP หรือ GIF สูงสุด 5 MB</p>
-      </div>
+      {images.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            aria-busy={busy}
+            onClick={() => imageInputRef.current?.click()}
+          >
+            {busy ? 'กำลังอัปโหลด...' : 'เพิ่มรูปภาพ'}
+          </Button>
+          <p className="text-xs text-muted">JPEG, PNG, WebP หรือ GIF สูงสุด 5 MB</p>
+        </div>
+      ) : (
+        <p className="text-xs text-muted">รองรับ JPEG, PNG, WebP หรือ GIF สูงสุด 5 MB</p>
+      )}
 
       {mediaError ? (
         <p className="text-sm text-danger" role="alert">

@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { HiArrowLeft } from 'react-icons/hi2';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { VendorCombobox } from '@/components/admin/vendor-combobox';
 import { useCreateStoreAsAdmin } from '@/hooks/useAdminStores';
+import { buildCreateStoreAsAdminInput } from '@/lib/api/admin-stores';
 import { adminStoreFormSchema, type AdminStoreFormValues } from '@/lib/validations';
 
 export default function AdminStoreNewPage() {
@@ -28,22 +29,12 @@ export default function AdminStoreNewPage() {
       contactEmail: '',
       address: '',
       ownerId: '',
-      ownerEmail: '',
     },
   });
 
   async function onSubmit(values: AdminStoreFormValues) {
     try {
-      const store = await createMutation.mutateAsync({
-        name: values.name,
-        slug: values.slug || undefined,
-        description: values.description || undefined,
-        contactPhone: values.contactPhone || undefined,
-        contactEmail: values.contactEmail || undefined,
-        address: values.address || undefined,
-        ownerId: values.ownerId || undefined,
-        ownerEmail: values.ownerEmail || undefined,
-      });
+      const store = await createMutation.mutateAsync(buildCreateStoreAsAdminInput(values));
       router.push(`/admin/stores/${store.id}`);
     } catch {
       // surfaced via mutation state
@@ -91,6 +82,9 @@ export default function AdminStoreNewPage() {
             <div>
               <Label htmlFor="slug">Slug (ไม่บังคับ)</Label>
               <Input id="slug" autoComplete="off" {...form.register('slug')} className="mt-1.5" />
+              <p className="mt-1 text-xs text-muted">
+                เว้นว่างเพื่อให้ระบบสร้าง slug อัตโนมัติ (ชื่อไทยล้วนจะได้ slug สั้นแบบสุ่ม)
+              </p>
             </div>
             <div className="sm:col-span-2">
               <Label htmlFor="description">รายละเอียด</Label>
@@ -103,29 +97,22 @@ export default function AdminStoreNewPage() {
               />
             </div>
             <div>
-              <Label htmlFor="ownerId">รหัสเจ้าของ</Label>
-              <VendorCombobox
-                value={form.watch('ownerId') ?? ''}
-                onChange={(id) => form.setValue('ownerId', id)}
+              <Label htmlFor="ownerId" required>
+                เจ้าของร้านค้า
+              </Label>
+              <Controller
+                name="ownerId"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <VendorCombobox
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    fieldError={fieldState.error?.message}
+                    aria-invalid={!!fieldState.error}
+                    aria-describedby={fieldState.error ? 'ownerId-error' : undefined}
+                  />
+                )}
               />
-            </div>
-            <div>
-              <Label htmlFor="ownerEmail">อีเมลเจ้าของ</Label>
-              <Input
-                id="ownerEmail"
-                type="email"
-                placeholder="email@example.com"
-                autoComplete="email"
-                aria-invalid={!!form.formState.errors.ownerEmail}
-                aria-describedby={form.formState.errors.ownerEmail ? 'ownerEmail-error' : undefined}
-                {...form.register('ownerEmail')}
-                className="mt-1.5"
-              />
-              {form.formState.errors.ownerEmail ? (
-                <p id="ownerEmail-error" className="mt-1 text-xs text-danger" role="alert">
-                  {form.formState.errors.ownerEmail.message}
-                </p>
-              ) : null}
             </div>
             <div>
               <Label htmlFor="contactPhone">เบอร์โทร</Label>
@@ -134,9 +121,18 @@ export default function AdminStoreNewPage() {
                 type="tel"
                 placeholder="0812345678"
                 autoComplete="tel"
+                aria-invalid={!!form.formState.errors.contactPhone}
+                aria-describedby={
+                  form.formState.errors.contactPhone ? 'contactPhone-error' : undefined
+                }
                 {...form.register('contactPhone')}
                 className="mt-1.5"
               />
+              {form.formState.errors.contactPhone ? (
+                <p id="contactPhone-error" className="mt-1 text-xs text-danger" role="alert">
+                  {form.formState.errors.contactPhone.message}
+                </p>
+              ) : null}
             </div>
             <div>
               <Label htmlFor="contactEmail">อีเมลติดต่อ</Label>

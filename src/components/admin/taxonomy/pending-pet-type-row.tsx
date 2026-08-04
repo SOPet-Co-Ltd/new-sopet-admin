@@ -1,12 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import {
+  taxonomyListItemMetaClassName,
+  taxonomyPendingRowClassName,
+} from '@/components/admin/taxonomy/taxonomy-hub-primitives';
 import { Button } from '@/components/ui/button';
 import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { TaxonomyDeleteButton } from '@/components/admin/taxonomy/taxonomy-delete-button';
 import { useSetPetTypeImage } from '@/hooks/useTaxonomy';
 import { isApiError } from '@/lib/api/errors';
+import { useState } from 'react';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
+
 import type { TaxonomyItem } from '@/types';
 
 export interface PendingPetTypeRowProps {
@@ -43,11 +48,11 @@ export function PendingPetTypeRow({
   }
 
   return (
-    <li className="flex flex-col gap-3 rounded-lg border border-border bg-surface/50 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+    <li className={taxonomyPendingRowClassName}>
       <div className="min-w-0 flex-1 space-y-3">
         <div>
-          <p className="font-medium text-ink">{item.name}</p>
-          <p className="text-xs text-muted">
+          <p className="truncate font-medium text-ink">{item.name}</p>
+          <p className={taxonomyListItemMetaClassName}>
             {item.slug} · {labelTaxonomyStatus(item.status)}
           </p>
         </div>
@@ -61,7 +66,7 @@ export function PendingPetTypeRow({
           error={uploadError ?? undefined}
         />
         {!hasImage ? (
-          <p id={approveHintId} className="text-xs text-muted">
+          <p id={approveHintId} className="text-xs text-muted-foreground">
             ต้องอัปโหลดรูปภาพก่อนอนุมัติ
           </p>
         ) : null}

@@ -1,19 +1,20 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Suspense, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getAccessToken } from '@/lib/api/client';
-import { getErrorMessage } from '@/lib/api/errors';
-import { AUTH_SESSION_MESSAGE_KEY } from '@/lib/auth-session';
 import { getDashboardPath, useCurrentUser, useLogin } from '@/hooks/useAuth';
 import { useRequestPasswordReset } from '@/hooks/usePasswordReset';
+import { hasClientSession } from '@/lib/api/client';
+import { getErrorMessage } from '@/lib/api/errors';
+import { AUTH_SESSION_MESSAGE_KEY, clearAuthSession } from '@/lib/auth-session';
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -31,21 +32,28 @@ function getSafeRedirect(value: string | null): string | null {
 function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const redirectTo = getSafeRedirect(searchParams.get('redirect'));
   const { user, isAuthenticated } = useCurrentUser();
   const login = useLogin();
   const requestReset = useRequestPasswordReset();
   const [showForgot, setShowForgot] = useState(false);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
-  const [sessionMessage, setSessionMessage] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [resetMessageIsError, setResetMessageIsError] = useState(false);
+  const [sessionMessage] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
     const stored = sessionStorage.getItem(AUTH_SESSION_MESSAGE_KEY);
     if (stored) {
-      setSessionMessage(stored);
       sessionStorage.removeItem(AUTH_SESSION_MESSAGE_KEY);
     }
-  }, []);
+    return stored;
+  });
+
+  useEffect(() => {
+    if (!hasClientSession()) {
+      clearAuthSession(queryClient);
+    }
+  }, [queryClient]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -58,8 +66,7 @@ function LoginPageContent() {
   });
 
   useEffect(() => {
-    const hasToken = !!getAccessToken();
-    if (isAuthenticated && hasToken && user) {
+    if (isAuthenticated && hasClientSession() && user) {
       router.replace(redirectTo ?? getDashboardPath(user.role));
     }
   }, [isAuthenticated, redirectTo, router, user]);
@@ -77,12 +84,14 @@ function LoginPageContent() {
 
   async function onForgotSubmit(values: ForgotPasswordFormValues) {
     setResetMessage(null);
+    setResetMessageIsError(false);
     try {
       const message = await requestReset.mutateAsync(values.email);
       setResetMessage(message);
       forgotForm.reset();
     } catch (err) {
       setResetMessage(getErrorMessage(err, 'ส่งคำขอไม่สำเร็จ'));
+      setResetMessageIsError(true);
     }
   }
 
@@ -139,7 +148,14 @@ function LoginPageContent() {
                     </p>
                   ) : null}
                 </div>
-                {resetMessage ? <p className="text-sm text-muted">{resetMessage}</p> : null}
+                {resetMessage ? (
+                  <p
+                    role={resetMessageIsError ? 'alert' : 'status'}
+                    className={`text-sm ${resetMessageIsError ? 'text-danger' : 'text-success'}`}
+                  >
+                    {resetMessage}
+                  </p>
+                ) : null}
                 <Button
                   type="submit"
                   className="w-full"

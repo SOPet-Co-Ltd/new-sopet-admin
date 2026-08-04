@@ -8,8 +8,8 @@ type ButtonVariant = 'default' | 'outline' | 'ghost' | 'destructive' | 'secondar
 type ButtonSize = 'default' | 'sm' | 'icon';
 
 const variantClasses: Record<ButtonVariant, string> = {
-  default: 'bg-brand text-white hover:bg-brand-hover shadow-sm',
-  secondary: 'bg-secondary-tint text-secondary hover:bg-secondary/20',
+  default: 'bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm',
+  secondary: 'bg-secondary-tint text-secondary hover:bg-secondary/15',
   outline: 'border border-border bg-card text-ink hover:bg-surface',
   ghost: 'text-muted hover:bg-brand-tint hover:text-ink',
   destructive: 'bg-danger text-white hover:bg-danger/90',

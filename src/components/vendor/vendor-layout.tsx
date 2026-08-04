@@ -1,12 +1,14 @@
 'use client';
 
 import {
+  HiBanknotes,
   HiBell,
   HiBuildingStorefront,
   HiCodeBracket,
   HiCog6Tooth,
   HiCube,
   HiHome,
+  HiInboxArrowDown,
   HiShoppingBag,
   HiStar,
   HiTicket,
@@ -16,27 +18,45 @@ import {
 import { AuthGuard } from '@/components/auth-guard';
 import { DashboardShell, type DashboardNavSection } from '@/components/dashboard-shell';
 import { ActiveStoreDisplay } from '@/components/vendor/active-store-display';
+import { EmailVerificationBanner } from '@/components/vendor/email-verification-banner';
 import { SuspendedStoreBanner } from '@/components/vendor/suspended-store-banner';
-import { useCurrentUser } from '@/hooks/useAuth';
+import { VendorStoreGuard } from '@/components/vendor/vendor-store-guard';
 import { useIsStoreManager, useIsStoreOwner } from '@/hooks/useMembershipRole';
+import { useMyStores } from '@/hooks/useMyStores';
+import { useMyStoreRequests } from '@/hooks/useStoreRequests';
+import { useStoreAnalytics } from '@/hooks/useStoreAnalytics';
+import { useMyPendingStoreInvitations } from '@/hooks/useTeam';
+import { useVendorStoreId } from '@/hooks/useVendorStoreId';
+import { vendorHasStores } from '@/lib/vendor/vendor-store-access';
 
-const storeSection: DashboardNavSection = {
+const storeSection = (pendingRequestCount?: number): DashboardNavSection => ({
   title: 'ร้านค้า',
   items: [
     { href: '/vendor', label: 'แดชบอร์ด', exact: true, icon: HiHome },
     { href: '/vendor/stores', label: 'ร้านค้าของฉัน', icon: HiBuildingStorefront },
+    {
+      href: '/vendor/requests',
+      label: 'คำเชิญ / คำขอ',
+      icon: HiInboxArrowDown,
+      badge: pendingRequestCount,
+    },
   ],
-};
+});
 
-const salesSection: DashboardNavSection = {
+const salesSection = (pendingOrderCount?: number): DashboardNavSection => ({
   title: 'ขาย',
   items: [
-    { href: '/vendor/orders', label: 'คำสั่งซื้อ', icon: HiShoppingBag },
+    {
+      href: '/vendor/orders?queue=action',
+      label: 'คำสั่งซื้อ',
+      icon: HiShoppingBag,
+      badge: pendingOrderCount,
+    },
     { href: '/vendor/products', label: 'สินค้า', icon: HiCube },
     { href: '/vendor/customers', label: 'ลูกค้า', icon: HiUsers },
     { href: '/vendor/reviews', label: 'รีวิว', icon: HiStar },
   ],
-};
+});
 
 const marketingSection: DashboardNavSection = {
   title: 'การตลาด',
@@ -53,7 +73,35 @@ const systemSection: DashboardNavSection = {
   items: [{ href: '/vendor/api', label: 'API', icon: HiCodeBracket }],
 };
 
-const accountSection: DashboardNavSection = {
+const accountSection = (isOwner: boolean): DashboardNavSection => ({
+  title: 'บัญชี',
+  items: [
+    ...(isOwner
+      ? [{ href: '/vendor/settings?tab=payout', label: 'รับเงิน', icon: HiBanknotes }]
+      : []),
+    { href: '/vendor/notifications', label: 'การแจ้งเตือน', icon: HiBell },
+    { href: '/vendor/settings', label: 'ตั้งค่า', icon: HiCog6Tooth },
+  ],
+});
+
+const noStoresNavSection = (pendingRequestCount?: number): DashboardNavSection => ({
+  title: 'ร้านค้า',
+  items: [
+    { href: '/vendor/stores', label: 'ร้านค้าของฉัน', icon: HiBuildingStorefront },
+    {
+      href: '/vendor/requests',
+      label: 'คำเชิญ / คำขอ',
+      icon: HiInboxArrowDown,
+      badge: pendingRequestCount,
+    },
+  ],
+});
+
+/**
+ * Suspended stores hide ops blocked by StoreStatusGuard.
+ * Notifications stay reachable so enter-hold / resume cards remain visible (UI Spec TBD-05).
+ */
+const suspendedAccountSection: DashboardNavSection = {
   title: 'บัญชี',
   items: [
     { href: '/vendor/notifications', label: 'การแจ้งเตือน', icon: HiBell },
@@ -61,39 +109,83 @@ const accountSection: DashboardNavSection = {
   ],
 };
 
-export function VendorLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useCurrentUser();
-  const { isOwner } = useIsStoreOwner();
-  const { isManager } = useIsStoreManager();
+export function buildVendorNavSections({
+  hasStores,
+  isOwner,
+  isManager,
+  isSuspended = false,
+  pendingOrderCount,
+  pendingRequestCount,
+}: {
+  hasStores: boolean;
+  isOwner: boolean;
+  isManager: boolean;
+  /** Active JWT store is suspended — hide ops the StoreStatusGuard blocks. */
+  isSuspended?: boolean;
+  pendingOrderCount?: number;
+  pendingRequestCount?: number;
+}): DashboardNavSection[] {
+  if (!hasStores) {
+    return [noStoresNavSection(pendingRequestCount), accountSection(isOwner)];
+  }
 
-  const navSections: DashboardNavSection[] = [
-    storeSection,
-    salesSection,
+  if (isSuspended) {
+    return [noStoresNavSection(pendingRequestCount), suspendedAccountSection];
+  }
+
+  return [
+    storeSection(pendingRequestCount),
+    salesSection(pendingOrderCount),
     marketingSection,
     ...(isOwner ? [teamSection] : []),
     ...(isManager ? [systemSection] : []),
-    accountSection,
+    accountSection(isOwner),
   ];
+}
+
+export function VendorLayout({ children }: { children: React.ReactNode }) {
+  const { data: stores = [], isLoading: isStoresLoading } = useMyStores();
+  const storeId = useVendorStoreId();
+  const { data: analytics } = useStoreAnalytics(storeId);
+  const { data: pendingInvitations = [] } = useMyPendingStoreInvitations();
+  const { data: storeRequests = [] } = useMyStoreRequests();
+  const { isOwner } = useIsStoreOwner();
+  const { isManager } = useIsStoreManager();
+
+  const hasStores = vendorHasStores(stores);
+  const activeStore = stores.find((entry) => entry.store.id === storeId);
+  const isSuspended = activeStore?.store.status === 'suspended';
+  const pendingStoreRequestCount = storeRequests.filter(
+    (request) => request.status === 'pending',
+  ).length;
+  const pendingRequestCount = pendingInvitations.length + pendingStoreRequestCount;
+
+  const navSections = buildVendorNavSections({
+    hasStores: isStoresLoading || hasStores,
+    isOwner,
+    isManager,
+    isSuspended: !isStoresLoading && isSuspended,
+    pendingOrderCount: isSuspended ? undefined : analytics?.pendingOrders,
+    pendingRequestCount: pendingRequestCount > 0 ? pendingRequestCount : undefined,
+  });
 
   const header = (
-    <>
-      {user ? <p className="mt-2 truncate text-sm text-muted">{user.fullName}</p> : null}
-      <div className="mt-4 rounded-lg bg-surface p-3">
-        <ActiveStoreDisplay />
-      </div>
-    </>
+    <div className="mt-4 rounded-lg bg-surface p-3">
+      <ActiveStoreDisplay />
+    </div>
   );
 
   return (
     <AuthGuard requiredRole="vendor">
       <DashboardShell
         brandHref="/vendor"
-        brandLabel="Vendor"
+        brandLabel="ผู้ขาย"
         navSections={navSections}
         header={header}
       >
+        <EmailVerificationBanner />
         <SuspendedStoreBanner />
-        {children}
+        <VendorStoreGuard>{children}</VendorStoreGuard>
       </DashboardShell>
     </AuthGuard>
   );

@@ -1,9 +1,15 @@
-import type { ProductsQueryParams, StoreProductReviewsParams } from '@/types';
+import type {
+  AdminAuditLogsQueryParams,
+  ProductsQueryParams,
+  StoreProductReviewsParams,
+} from '@/types';
 
 export const queryKeys = {
   auth: {
     all: ['auth'] as const,
     currentUser: ['auth', 'currentUser'] as const,
+    passwordResetTokenStatus: (token: string) =>
+      ['auth', 'passwordResetTokenStatus', token] as const,
   },
   stores: {
     all: ['stores'] as const,
@@ -23,6 +29,8 @@ export const queryKeys = {
     list: (params: ProductsQueryParams) => ['products', 'list', params] as const,
     detail: (id: string) => ['products', 'detail', id] as const,
     publishChecklist: (id: string) => ['products', 'publishChecklist', id] as const,
+    variantSyncImpact: (productId: string, payloadKey: string) =>
+      ['products', 'variantSyncImpact', productId, payloadKey] as const,
   },
   analytics: {
     all: ['analytics'] as const,
@@ -52,6 +60,8 @@ export const queryKeys = {
     myTagProposals: () => ['taxonomy', 'myTagProposals'] as const,
     rejectedCategories: () => ['taxonomy', 'rejectedCategories'] as const,
     rejectedTags: () => ['taxonomy', 'rejectedTags'] as const,
+    rejectedPetTypes: () => ['taxonomy', 'rejectedPetTypes'] as const,
+    rejectedBrands: () => ['taxonomy', 'rejectedBrands'] as const,
     categoryDeleteImpact: (categoryId: string) =>
       ['taxonomy', 'categoryDeleteImpact', categoryId] as const,
     tagDeleteImpact: (tagId: string) => ['taxonomy', 'tagDeleteImpact', tagId] as const,
@@ -63,6 +73,7 @@ export const queryKeys = {
     all: ['team'] as const,
     members: () => ['team', 'members'] as const,
     invitations: () => ['team', 'invitations'] as const,
+    myPendingInvitations: () => ['team', 'myPendingInvitations'] as const,
     invitationPreview: (token: string) => ['team', 'invitationPreview', token] as const,
   },
   promotions: {
@@ -74,6 +85,7 @@ export const queryKeys = {
     all: ['storeRequests'] as const,
     mine: () => ['storeRequests', 'mine'] as const,
     pending: () => ['storeRequests', 'pending'] as const,
+    adminAll: () => ['storeRequests', 'adminAll'] as const,
   },
   storeReactivationRequests: {
     all: ['storeReactivationRequests'] as const,
@@ -93,6 +105,7 @@ export const queryKeys = {
     list: (search?: string) =>
       search ? (['adminVendors', 'list', search] as const) : (['adminVendors', 'list'] as const),
     detail: (id: string) => ['adminVendors', 'detail', id] as const,
+    detailInsights: (id: string) => ['adminVendors', 'detailInsights', id] as const,
   },
   shippingProviders: {
     all: ['shippingProviders'] as const,
@@ -119,23 +132,31 @@ export const queryKeys = {
     banners: () => ['platform', 'banners'] as const,
     sponsors: () => ['platform', 'sponsors'] as const,
     ads: () => ['platform', 'ads'] as const,
+    loginPageImages: () => ['platform', 'loginPageImages'] as const,
   },
   adminTeam: {
     all: ['adminTeam'] as const,
     members: () => ['adminTeam', 'members'] as const,
     invitations: () => ['adminTeam', 'invitations'] as const,
+    invitationByToken: (token: string) => ['adminTeam', 'invitationByToken', token] as const,
   },
   adminCustomers: {
     all: ['adminCustomers'] as const,
     list: (params: { page?: number; limit?: number; search?: string }) =>
       ['adminCustomers', 'list', params] as const,
     detail: (id: string) => ['adminCustomers', 'detail', id] as const,
+    detailInsights: (id: string) => ['adminCustomers', 'detailInsights', id] as const,
+  },
+  adminAuditLogs: {
+    all: ['adminAuditLogs'] as const,
+    list: (params: AdminAuditLogsQueryParams) => ['adminAuditLogs', 'list', params] as const,
   },
   vendorCustomers: {
     all: ['vendorCustomers'] as const,
     list: (params: { page?: number; limit?: number; search?: string }) =>
       ['vendorCustomers', 'list', params] as const,
     detail: (id: string) => ['vendorCustomers', 'detail', id] as const,
+    detailInsights: (id: string) => ['vendorCustomers', 'detailInsights', id] as const,
   },
   apiKeys: {
     all: ['apiKeys'] as const,
@@ -161,5 +182,12 @@ export const queryKeys = {
       ['search', 'analyticsZeroResultQueries', fromDate, toDate, limit] as const,
     analyticsSuggestionCtr: (fromDate?: string, toDate?: string) =>
       ['search', 'analyticsSuggestionCtr', fromDate, toDate] as const,
+  },
+  payouts: {
+    all: ['payouts'] as const,
+    vendorSummary: () => ['payouts', 'vendorSummary'] as const,
+    vendorHistory: () => ['payouts', 'vendorHistory'] as const,
+    adminSummary: (storeId: string) => ['payouts', 'adminSummary', storeId] as const,
+    adminHistory: (storeId: string) => ['payouts', 'adminHistory', storeId] as const,
   },
 } as const;

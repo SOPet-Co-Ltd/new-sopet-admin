@@ -8,6 +8,7 @@ export const orderStatusLabels: Record<string, string> = {
   pending_payment: 'รอชำระเงิน',
   paid: 'ชำระแล้ว',
   processing: 'กำลังดำเนินการ',
+  on_hold: 'พักการดำเนินการ',
   shipped: 'จัดส่งแล้ว',
   delivered: 'ส่งถึงแล้ว',
   cancelled: 'ยกเลิก',
@@ -23,6 +24,7 @@ export const paymentMethodLabels: Record<string, string> = {
 export const fulfillmentStatusLabels: Record<string, string> = {
   pending: 'รอดำเนินการ',
   processing: 'กำลังเตรียม',
+  on_hold: 'พักจัดส่ง',
   shipped: 'จัดส่งแล้ว',
   delivered: 'ส่งถึงแล้ว',
   cancelled: 'ยกเลิก',
@@ -38,6 +40,17 @@ export const membershipRoleBadgeLabels: Record<string, string> = {
   owner: 'เจ้าของ',
   manager: 'ผู้จัดการ',
   staff: 'พนักงาน',
+};
+
+/** Platform admin capabilities summary for admin team UI. */
+export const adminAccessDescription =
+  'อนุมัติร้านค้า จัดการข้อพิพาท ตั้งค่าแพลตฟอร์ม และเชิญผู้ดูแลคนอื่น';
+
+/** Short permission summaries for vendor team UI (invite + role change). */
+export const membershipRoleDescriptions: Record<string, string> = {
+  owner: 'จัดการทีม รับเงิน ตั้งค่าร้าน และสิทธิ์ทั้งหมด',
+  manager: 'จัดการ API และงานขายทั่วไป — ไม่จัดการทีมหรือรับเงิน',
+  staff: 'ทำงานขายทั่วไป เช่น สินค้า คำสั่งซื้อ และโปรโมชัน',
 };
 
 export const invitationStatusLabels: Record<string, string> = {
@@ -78,7 +91,7 @@ export const promotionTypeLabels: Record<string, string> = {
 export const settingsTabLabels = {
   profile: 'บัญชีผู้ใช้',
   store: 'ข้อมูลร้านค้า',
-  payout: 'บัญชีรับเงิน Omise',
+  payout: 'รับเงิน',
   shipping: 'การจัดส่ง',
 } as const;
 
@@ -86,6 +99,7 @@ export const platformSettingsTabLabels = {
   banners: 'แบนเนอร์',
   sponsors: 'สปอนเซอร์',
   ads: 'โฆษณาป๊อปอัพ',
+  loginImages: 'รูปหน้าเข้าสู่ระบบ',
 } as const;
 
 export const userRoleLabels: Record<string, string> = {
@@ -137,6 +151,45 @@ export function labelStoreStatus(status: string): string {
   return storeStatusLabels[status] ?? status;
 }
 
+const vendorActivityLabels: Record<string, string> = {
+  account_created: 'สมัครบัญชีผู้ขาย',
+  last_login: 'เข้าสู่ระบบล่าสุด',
+  store_created: 'สร้างร้านค้า',
+  membership_joined: 'เข้าร่วมร้านค้า',
+  admin_store_approved: 'แอดมินอนุมัติร้านค้า',
+  admin_store_rejected: 'แอดมินปฏิเสธร้านค้า',
+  admin_store_suspended: 'แอดมินระงับร้านค้า',
+  password_reset_sent: 'ส่งอีเมลรีเซ็ตรหัสผ่าน',
+  vendor_updated: 'แก้ไขข้อมูลผู้ขาย',
+  store_reactivated: 'เปิดใช้งานร้านค้าอีกครั้ง',
+  store_owner_changed: 'เปลี่ยนเจ้าของร้านค้า',
+  order_received: 'ได้รับคำสั่งซื้อ',
+};
+
+export function labelVendorActivity(kind: string): string {
+  return vendorActivityLabels[kind] ?? kind;
+}
+
 export function labelPromotionType(type: string): string {
   return promotionTypeLabels[type] ?? type;
+}
+
+const notificationTypeLabels: Record<string, string> = {
+  new_order: 'คำสั่งซื้อใหม่',
+  order_status_changed: 'อัปเดตคำสั่งซื้อ',
+  store_status_changed: 'อัปเดตร้านค้า',
+  request_status_changed: 'อัปเดตคำขอ',
+  new_store_request: 'คำขอเปิดร้าน',
+  order_confirmation: 'ยืนยันคำสั่งซื้อ',
+  order_shipped: 'จัดส่งแล้ว',
+  order_delivered: 'ส่งถึงแล้ว',
+  promotion: 'โปรโมชัน',
+  review_request: 'ขอรีวิว',
+  dispute_update: 'อัปเดตข้อพิพาท',
+  vendor_order_items_on_hold: 'คำสั่งซื้อถูกพักชั่วคราว',
+  vendor_order_items_hold_resumed: 'คำสั่งซื้อกลับมาดำเนินการได้แล้ว',
+};
+
+export function labelNotificationType(type: string): string {
+  return notificationTypeLabels[type] ?? type;
 }

@@ -24,6 +24,7 @@ interface ImageUploadFieldProps {
   id?: string;
   required?: boolean;
   showUrl?: boolean;
+  onClear?: () => void;
 }
 
 export function ImageUploadField({
@@ -37,6 +38,7 @@ export function ImageUploadField({
   id,
   required,
   showUrl = true,
+  onClear,
 }: ImageUploadFieldProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
@@ -126,6 +128,17 @@ export function ImageUploadField({
           >
             {isUploading ? 'กำลังอัปโหลด...' : value ? 'เปลี่ยนรูปภาพ' : 'เลือกรูปภาพ'}
           </Button>
+          {onClear && value ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={disabled || isUploading}
+              onClick={() => onClear()}
+            >
+              ล้างรูป
+            </Button>
+          ) : null}
           {showUrl && value ? (
             <p className="truncate text-xs text-muted" title={value}>
               {value}

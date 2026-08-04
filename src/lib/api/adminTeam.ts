@@ -1,12 +1,15 @@
 import { executeMutation, executeQuery } from '@/lib/graphql/client';
 import {
+  ACCEPT_ADMIN_INVITATION,
+  ADMIN_INVITATION_BY_TOKEN_QUERY,
   ADMIN_TEAM_MEMBERS_QUERY,
   INVITE_ADMIN,
   PENDING_ADMIN_INVITATIONS_QUERY,
   REVOKE_ADMIN_INVITATION,
   SET_ADMIN_ACTIVE,
 } from '@/lib/graphql/documents';
-import type { AdminInvitation, AdminTeamMember, InviteAdminInput } from '@/types';
+import { mapUser } from '@/lib/graphql/mappers';
+import type { AdminInvitation, AdminTeamMember, InviteAdminInput, LoginResult } from '@/types';
 
 export function getAdminTeamMembers(): Promise<AdminTeamMember[]> {
   return executeQuery<{ adminTeamMembers: AdminTeamMember[] }>(ADMIN_TEAM_MEMBERS_QUERY).then(
@@ -37,4 +40,28 @@ export function setAdminActive(userId: string, isActive: boolean): Promise<Admin
     userId,
     isActive,
   }).then((data) => data.setAdminActive);
+}
+
+export function getAdminInvitationByToken(token: string): Promise<AdminInvitation> {
+  return executeQuery<{ getAdminInvitationByToken: AdminInvitation }>(
+    ADMIN_INVITATION_BY_TOKEN_QUERY,
+    { token },
+  ).then((data) => data.getAdminInvitationByToken);
+}
+
+export function acceptAdminInvitation(input: {
+  token: string;
+  password: string;
+  fullName: string;
+}): Promise<LoginResult> {
+  return executeMutation<{
+    acceptAdminInvitation: {
+      tokens: { accessToken: string | null; refreshToken: string | null };
+      user: Parameters<typeof mapUser>[0];
+    };
+  }>(ACCEPT_ADMIN_INVITATION, { input }).then((data) => ({
+    accessToken: data.acceptAdminInvitation.tokens.accessToken,
+    refreshToken: data.acceptAdminInvitation.tokens.refreshToken,
+    user: mapUser(data.acceptAdminInvitation.user),
+  }));
 }

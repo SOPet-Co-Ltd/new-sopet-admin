@@ -49,7 +49,7 @@ describe('VendorOrdersActionMenu', () => {
 
   /**
    * AC: AC-011 — Given the vendor orders table, when "ดูรายละเอียด" is selected, then
-   * `onViewDetails` is invoked with the row order id (detail dialog wiring).
+   * `onViewDetails` is invoked with the row order id (detail page navigation wiring).
    * Behavior: Open menu → select view details → onViewDetails called once with orderId
    * @category: core-functionality
    * @lane: integration

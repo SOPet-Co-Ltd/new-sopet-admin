@@ -3,11 +3,10 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState, type ComponentType } from 'react';
-import { HiBars3 } from 'react-icons/hi2';
+import { useState, type ComponentType } from 'react';
+import { HiArrowRightOnRectangle, HiBars3, HiUserCircle } from 'react-icons/hi2';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Button } from '@/components/ui/button';
-import { useLogout } from '@/hooks/useAuth';
+import { useCurrentUser, useLogout } from '@/hooks/useAuth';
 import { createDashboardNavPrefetchHandlers } from '@/lib/react-query/prefetch-dashboard-nav';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +16,7 @@ export type DashboardNavItem = {
   exact?: boolean;
   disabled?: boolean;
   icon?: ComponentType<{ className?: string }>;
+  badge?: number;
 };
 
 export type DashboardNavSection = {
@@ -39,12 +39,15 @@ export function DashboardShell({
 }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const { user } = useCurrentUser();
   const logout = useLogout();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState(pathname);
 
-  useEffect(() => {
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setMobileOpen(false);
-  }, [pathname]);
+  }
 
   const sidebar = (
     <div className="flex h-full flex-col">
@@ -63,9 +66,7 @@ export function DashboardShell({
             className={cn(sectionIndex > 0 && 'mt-3')}
           >
             {section.title ? (
-              <p className="px-3 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-muted">
-                {section.title}
-              </p>
+              <p className="px-3 pb-1 pt-1 text-sm font-medium text-muted">{section.title}</p>
             ) : null}
             <div className="space-y-1">
               {section.items.map((item) => {
@@ -77,17 +78,17 @@ export function DashboardShell({
                 const className = cn(
                   'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
                   item.disabled
-                    ? 'cursor-not-allowed border-l-[3px] border-transparent text-muted/60'
+                    ? 'cursor-not-allowed text-muted/60'
                     : active
-                      ? 'border-l-[3px] border-brand bg-brand-tint pl-[9px] text-brand'
-                      : 'border-l-[3px] border-transparent text-muted hover:bg-surface hover:text-ink',
+                      ? 'bg-brand-tint font-semibold text-brand'
+                      : 'text-muted hover:bg-surface hover:text-ink',
                 );
 
                 if (item.disabled) {
                   return (
                     <span key={item.href} className={className} aria-disabled="true">
                       {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
-                      <span>{item.label}</span>
+                      <span className="flex-1">{item.label}</span>
                     </span>
                   );
                 }
@@ -101,7 +102,12 @@ export function DashboardShell({
                     onFocus={prefetchHandlers.onFocus}
                   >
                     {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
-                    <span>{item.label}</span>
+                    <span className="flex-1">{item.label}</span>
+                    {item.badge && item.badge > 0 ? (
+                      <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-semibold text-primary-foreground">
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                    ) : null}
                   </Link>
                 );
               })}
@@ -110,17 +116,43 @@ export function DashboardShell({
         ))}
       </nav>
 
-      <div className="space-y-2 border-t border-border p-4">
-        <ThemeToggle />
-        <Button type="button" variant="outline" className="w-full" onClick={logout}>
-          ออกจากระบบ
-        </Button>
+      <div className="border-t border-border p-4">
+        <div className="space-y-3 rounded-xl bg-surface p-3">
+          {user ? (
+            <>
+              <div className="flex items-center gap-3 px-1">
+                <div
+                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand"
+                  aria-hidden="true"
+                >
+                  <HiUserCircle className="size-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-ink">{user.fullName}</p>
+                  <p className="truncate text-xs text-muted">{user.email}</p>
+                </div>
+              </div>
+              <div className="h-px bg-border" aria-hidden="true" />
+            </>
+          ) : null}
+          <div className="space-y-1">
+            <ThemeToggle variant="labeled" />
+            <button
+              type="button"
+              onClick={logout}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-all hover:bg-danger/10 hover:text-danger"
+            >
+              <HiArrowRightOnRectangle className="size-4 shrink-0" aria-hidden="true" />
+              <span>ออกจากระบบ</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-cream">
+    <div className="flex h-dvh overflow-hidden bg-background">
       <aside className="hidden w-64 shrink-0 border-r border-border bg-white md:block">
         {sidebar}
       </aside>
@@ -139,7 +171,7 @@ export function DashboardShell({
         </div>
       ) : null}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-3 border-b border-border bg-white px-4 py-3 md:hidden">
           <button
             type="button"
@@ -159,8 +191,10 @@ export function DashboardShell({
           </div>
         </div>
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-10">{children}</div>
+        <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="mx-auto min-w-0 max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-10">
+            {children}
+          </div>
         </main>
       </div>
     </div>

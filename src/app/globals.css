@@ -3,31 +3,36 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Brand */
+  /* Brand — soft, UI-friendly ramps from product palette */
   --primary: #9c6ade;
-  --primary-hover: #8b5bc7;
-  --primary-tint: #f0e8fa;
-  --primary-soft: #d9c4f0;
+  --primary-hover: #8b58d4;
+  --primary-deep: #7348a8;
+  --primary-tint: #f9f6fe;
+  --primary-soft: #e9dff8;
   --primary-foreground: #ffffff;
 
   --secondary: #ff6f61;
-  --secondary-hover: #e85f52;
-  --secondary-tint: #ffe8e6;
+  --secondary-hover: #eb5f52;
+  --secondary-tint: #fff3f1;
+  --secondary-soft: #ffd5d0;
   --secondary-foreground: #ffffff;
 
+  /* Accent — honey gold (readable text uses tertiary-deep) */
   --tertiary: #f5b335;
-  --tertiary-hover: #e0a22e;
-  --tertiary-tint: #fdf3dc;
+  --tertiary-hover: #e0a020;
+  --tertiary-deep: #a67c12;
+  --tertiary-tint: #fff8e8;
+  --tertiary-soft: #fbe8b0;
   --tertiary-foreground: #171719;
 
-  /* Semantic */
+  /* Semantic — cool near-white canvas */
   --foreground: #171719;
-  --background: #f7f4ef;
-  --surface: #fbf9f5;
+  --background: #fdfdfd;
+  --surface: #f5f5f5;
   --card: #ffffff;
-  --border: #e7e1d7;
-  --muted: #5c635d;
-  --muted-foreground: #5c635d;
+  --border: #e5e5e6;
+  --muted: #949495;
+  --muted-foreground: #454547;
 
   /* Legacy aliases */
   --brand: var(--primary);
@@ -38,15 +43,15 @@
   --cream: var(--background);
   --white: var(--card);
 
-  /* Status */
+  /* Status — softened for ops readability */
   --success: #2d6a4f;
-  --success-bg: #d8f3dc;
-  --warning-bg: #fff3cd;
-  --warning-text: #856404;
+  --success-bg: #e6f6ea;
+  --warning-bg: #fff8e8;
+  --warning-text: #8a6a14;
   --danger: #b42318;
-  --danger-bg: #fee4e2;
-  --info-bg: #e8f0fe;
-  --info-text: #1e4b8f;
+  --danger-bg: #fef0ee;
+  --info-bg: #eef3fb;
+  --info-text: #2a4f8f;
 }
 
 .dark {
@@ -60,12 +65,17 @@
 
   --primary-tint: #2a1f3d;
   --primary-soft: #3d2d5c;
+  --primary-hover: #b089e8;
+  --primary-deep: #c4a3f0;
 
   --secondary-tint: #3d2220;
+  --secondary-soft: #5c322e;
   --secondary-hover: #ff8579;
 
   --tertiary-tint: #3d3018;
+  --tertiary-soft: #5c4a1e;
   --tertiary-hover: #f7c24d;
+  --tertiary-deep: #f5b335;
   --tertiary-foreground: #171719;
 
   --success-bg: #1a3d2e;
@@ -81,16 +91,20 @@
   --color-primary-hover: var(--primary-hover);
   --color-primary-tint: var(--primary-tint);
   --color-primary-soft: var(--primary-soft);
+  --color-primary-deep: var(--primary-deep);
   --color-primary-foreground: var(--primary-foreground);
 
   --color-secondary: var(--secondary);
   --color-secondary-hover: var(--secondary-hover);
   --color-secondary-tint: var(--secondary-tint);
+  --color-secondary-soft: var(--secondary-soft);
   --color-secondary-foreground: var(--secondary-foreground);
 
   --color-tertiary: var(--tertiary);
   --color-tertiary-hover: var(--tertiary-hover);
+  --color-tertiary-deep: var(--tertiary-deep);
   --color-tertiary-tint: var(--tertiary-tint);
+  --color-tertiary-soft: var(--tertiary-soft);
   --color-tertiary-foreground: var(--tertiary-foreground);
 
   --color-foreground: var(--foreground);
@@ -119,14 +133,14 @@
   --color-info-bg: var(--info-bg);
   --color-info-text: var(--info-text);
 
-  --font-sans: var(--font-noto-sans-thai);
-  --font-display: var(--font-noto-serif-thai), Georgia, serif;
+  --font-sans: var(--font-mitr);
+  --font-display: var(--font-mitr);
   --radius-sm: 0.375rem;
   --radius-md: 0.625rem;
   --radius-lg: 0.875rem;
   --radius-xl: 1.25rem;
-  --shadow-card: 0 1px 3px rgb(23 23 25 / 0.06), 0 1px 2px rgb(23 23 25 / 0.04);
-  --shadow-elevated: 0 8px 24px rgb(23 23 25 / 0.08);
+  --shadow-card: 0 1px 3px rgb(23 23 25 / 0.05), 0 1px 2px rgb(23 23 25 / 0.03);
+  --shadow-elevated: 0 8px 24px rgb(23 23 25 / 0.07);
 }
 
 .dark {
@@ -139,20 +153,20 @@ html {
 }
 
 body {
-  @apply bg-cream text-ink antialiased;
-  font-family: var(--font-noto-sans-thai), system-ui, sans-serif;
+  @apply bg-background text-ink antialiased;
+  font-family: var(--font-mitr), ui-sans-serif, system-ui, sans-serif;
 }
 
 h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-noto-serif-thai), Georgia, serif;
-  letter-spacing: -0.02em;
+  font-family: var(--font-mitr), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 *:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid color-mix(in srgb, var(--primary) 65%, transparent);
   outline-offset: 2px;
 }
 

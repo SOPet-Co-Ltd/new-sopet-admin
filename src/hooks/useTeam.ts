@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   acceptStoreInvitation,
   acceptStoreMemberInvitation,
+  declineStoreInvitation,
+  getMyPendingStoreInvitations,
   getStoreInvitationByToken,
   getStoreInvitations,
   getStoreMembers,
@@ -12,11 +14,8 @@ import {
   revokeStoreInvitation,
   updateStoreMemberRole,
 } from '@/lib/api/team';
-import { setTokens } from '@/lib/api/client';
-import { getStoreIdFromToken } from '@/lib/jwt';
+import { applyAuthenticatedSession } from '@/lib/auth/apply-session';
 import { queryKeys } from '@/lib/react-query/keys';
-import { useAuthStore } from '@/stores/auth.store';
-import { useVendorStore } from '@/stores/vendor.store';
 import type { InviteStoreMemberInput, LoginResult } from '@/types';
 
 export function useStoreMembers() {
@@ -31,6 +30,13 @@ export function useStoreInvitations(enabled = true) {
     queryKey: queryKeys.team.invitations(),
     queryFn: getStoreInvitations,
     enabled,
+  });
+}
+
+export function useMyPendingStoreInvitations() {
+  return useQuery({
+    queryKey: queryKeys.team.myPendingInvitations(),
+    queryFn: getMyPendingStoreInvitations,
   });
 }
 
@@ -86,6 +92,17 @@ export function useAcceptStoreInvitation() {
   });
 }
 
+export function useDeclineStoreInvitation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (token: string) => declineStoreInvitation(token),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.team.myPendingInvitations() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.team.all });
+    },
+  });
+}
+
 export function useStoreInvitationPreview(token: string) {
   return useQuery({
     queryKey: queryKeys.team.invitationPreview(token),
@@ -96,18 +113,12 @@ export function useStoreInvitationPreview(token: string) {
 }
 
 export function useAcceptStoreMemberInvitation() {
-  const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
 
   return useMutation<LoginResult, Error, { token: string; password: string; fullName: string }>({
     mutationFn: acceptStoreMemberInvitation,
-    onSuccess: (result) => {
-      setTokens(result.accessToken, result.refreshToken);
-      const storeId = getStoreIdFromToken(result.accessToken);
-      setUser({ ...result.user, storeId });
-      if (storeId) {
-        useVendorStore.getState().setActiveStoreId(storeId);
-      }
+    onSuccess: async (result) => {
+      await applyAuthenticatedSession(result.user);
       queryClient.invalidateQueries({ queryKey: queryKeys.stores.myStores() });
       queryClient.invalidateQueries({ queryKey: queryKeys.team.all });
     },

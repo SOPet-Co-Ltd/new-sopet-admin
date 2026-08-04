@@ -3,14 +3,18 @@ import {
   ALL_PLATFORM_ADS_QUERY,
   ALL_PLATFORM_BANNERS_QUERY,
   ALL_PLATFORM_SPONSORS_QUERY,
+  CLEAR_LOGIN_PAGE_DESKTOP_IMAGE,
+  CLEAR_LOGIN_PAGE_MOBILE_IMAGE,
   CREATE_PLATFORM_AD,
   CREATE_PLATFORM_BANNER,
   CREATE_PLATFORM_SPONSOR,
   DELETE_PLATFORM_AD,
   DELETE_PLATFORM_BANNER,
   DELETE_PLATFORM_SPONSOR,
+  LOGIN_PAGE_IMAGES_QUERY,
   REORDER_PLATFORM_BANNERS,
   REORDER_PLATFORM_SPONSORS,
+  UPDATE_LOGIN_PAGE_IMAGES,
   UPDATE_PLATFORM_AD,
   UPDATE_PLATFORM_BANNER,
   UPDATE_PLATFORM_SPONSOR,
@@ -19,13 +23,16 @@ import type {
   CreatePlatformAdInput,
   CreatePlatformBannerInput,
   CreatePlatformSponsorInput,
+  LoginPageImages,
   PlatformAd,
   PlatformBanner,
   PlatformSponsor,
+  UpdateLoginPageImagesInput,
   UpdatePlatformAdInput,
   UpdatePlatformBannerInput,
   UpdatePlatformSponsorInput,
 } from '@/types';
+import type { LoginImagesFormValues } from '@/lib/validations';
 
 function mapBanner(raw: PlatformBanner): PlatformBanner {
   return {
@@ -150,4 +157,60 @@ export function deletePlatformAd(id: string): Promise<boolean> {
   return executeMutation<{ deletePlatformAd: boolean }>(DELETE_PLATFORM_AD, { id }).then(
     (data) => data.deletePlatformAd,
   );
+}
+
+function mapLoginPageImages(raw: LoginPageImages): LoginPageImages {
+  return {
+    desktopImageUrl: raw.desktopImageUrl ?? null,
+    mobileImageUrl: raw.mobileImageUrl ?? null,
+    altText: raw.altText ?? null,
+  };
+}
+
+/** Query/API nulls → RHF empty strings. */
+export function loginPageImagesToFormValues(data: LoginPageImages): LoginImagesFormValues {
+  return {
+    desktopImageUrl: data.desktopImageUrl ?? '',
+    mobileImageUrl: data.mobileImageUrl ?? '',
+    altText: data.altText ?? '',
+  };
+}
+
+/** Form empty strings → GraphQL null for optional mobile/alt; desktop required as-is. */
+export function loginImagesFormToUpdateInput(
+  form: LoginImagesFormValues,
+): UpdateLoginPageImagesInput {
+  return {
+    desktopImageUrl: form.desktopImageUrl,
+    mobileImageUrl: form.mobileImageUrl === '' ? null : form.mobileImageUrl,
+    altText: form.altText === '' ? null : form.altText,
+  };
+}
+
+export function getLoginPageImages(): Promise<LoginPageImages> {
+  return executeQuery<{ loginPageImages: LoginPageImages }>(LOGIN_PAGE_IMAGES_QUERY).then((data) =>
+    mapLoginPageImages(data.loginPageImages),
+  );
+}
+
+export function updateLoginPageImages(input: UpdateLoginPageImagesInput): Promise<LoginPageImages> {
+  return executeMutation<{ updateLoginPageImages: LoginPageImages }>(UPDATE_LOGIN_PAGE_IMAGES, {
+    input: {
+      desktopImageUrl: input.desktopImageUrl,
+      mobileImageUrl: input.mobileImageUrl === '' ? null : (input.mobileImageUrl ?? null),
+      altText: input.altText === '' ? null : (input.altText ?? null),
+    },
+  }).then((data) => mapLoginPageImages(data.updateLoginPageImages));
+}
+
+export function clearLoginPageDesktopImage(): Promise<LoginPageImages> {
+  return executeMutation<{ clearLoginPageDesktopImage: LoginPageImages }>(
+    CLEAR_LOGIN_PAGE_DESKTOP_IMAGE,
+  ).then((data) => mapLoginPageImages(data.clearLoginPageDesktopImage));
+}
+
+export function clearLoginPageMobileImage(): Promise<LoginPageImages> {
+  return executeMutation<{ clearLoginPageMobileImage: LoginPageImages }>(
+    CLEAR_LOGIN_PAGE_MOBILE_IMAGE,
+  ).then((data) => mapLoginPageImages(data.clearLoginPageMobileImage));
 }

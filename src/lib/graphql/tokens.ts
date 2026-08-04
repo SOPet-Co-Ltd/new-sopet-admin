@@ -1,48 +1,58 @@
-import Cookies from 'js-cookie';
-import {
-  ACCESS_TOKEN,
-  REFRESH_TOKEN,
-  ACCESS_TOKEN_MAX_AGE_DAYS,
-  REFRESH_TOKEN_MAX_AGE_DAYS,
-} from '@/lib/config';
+import { AUTH_COMPANION_COOKIE } from '@/lib/config';
+import { hasAuthCompanionCookie, logoutViaBff, refreshViaBff } from '@/lib/auth/client-session';
 
-export function getAccessToken(): string | undefined {
-  return Cookies.get(ACCESS_TOKEN);
-}
-
-export function getRefreshToken(): string | undefined {
-  return Cookies.get(REFRESH_TOKEN);
-}
-
-export function setTokens(accessToken: string, refreshToken: string): void {
-  Cookies.set(ACCESS_TOKEN, accessToken, {
-    expires: ACCESS_TOKEN_MAX_AGE_DAYS,
-    sameSite: 'lax',
-  });
-  Cookies.set(REFRESH_TOKEN, refreshToken, {
-    expires: REFRESH_TOKEN_MAX_AGE_DAYS,
-    sameSite: 'lax',
-  });
-}
-
-export function clearTokens(): void {
-  Cookies.remove(ACCESS_TOKEN);
-  Cookies.remove(REFRESH_TOKEN);
-}
-
-type AuthFailureHandler = () => void;
+type AuthFailureHandler = (message?: string) => void;
 
 let onAuthFailure: AuthFailureHandler = () => {
-  clearTokens();
+  void clearTokens();
 };
+
+/** HttpOnly — not readable from JS. Prefer hasClientSession(). */
+export function getAccessToken(): string | undefined {
+  return undefined;
+}
+
+/** HttpOnly — not readable from JS. */
+export function getRefreshToken(): string | undefined {
+  return undefined;
+}
+
+/** No-op — BFF `/graphql` proxy harvests tokens into HttpOnly cookies. */
+export function setTokens(_access: string, _refresh: string): void {
+  void _access;
+  void _refresh;
+}
+
+function clearCompanionCookie(): void {
+  if (typeof document === 'undefined') {
+    return;
+  }
+  document.cookie = `${AUTH_COMPANION_COOKIE}=; max-age=0; path=/; SameSite=Lax`;
+}
+
+export async function clearTokens(): Promise<void> {
+  clearCompanionCookie();
+  try {
+    await logoutViaBff();
+  } catch {
+    // Best-effort
+  }
+}
+
+export function hasClientSession(): boolean {
+  return hasAuthCompanionCookie();
+}
 
 export function setOnAuthFailure(handler: AuthFailureHandler): void {
   onAuthFailure = handler;
 }
 
-export function notifyAuthFailure(): void {
-  clearTokens();
+export function notifyAuthFailure(message?: string): void {
+  clearCompanionCookie();
+  void logoutViaBff();
   if (typeof window !== 'undefined') {
-    onAuthFailure();
+    onAuthFailure(message);
   }
 }
+
+export { refreshViaBff };

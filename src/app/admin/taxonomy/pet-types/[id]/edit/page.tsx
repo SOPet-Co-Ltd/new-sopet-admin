@@ -20,7 +20,7 @@ import {
 } from '@/hooks/useTaxonomy';
 import { isApiError } from '@/lib/api/errors';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
-import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
+import { editTaxonomySchema, type EditTaxonomyFormValues } from '@/lib/validations';
 
 export default function EditPetTypePage() {
   const params = useParams<{ id: string }>();
@@ -32,28 +32,44 @@ export default function EditPetTypePage() {
   const deletePetType = useDeletePetType();
   const setPetTypeImage = useSetPetTypeImage();
 
-  const form = useForm<ProposeTaxonomyFormValues>({
-    resolver: zodResolver(proposeTaxonomySchema),
-    defaultValues: { name: '' },
+  const form = useForm<EditTaxonomyFormValues>({
+    resolver: zodResolver(editTaxonomySchema),
+    defaultValues: { name: '', slug: '' },
   });
 
   useEffect(() => {
     if (petType) {
-      form.reset({ name: petType.name });
+      form.reset({ name: petType.name, slug: petType.slug });
     }
   }, [petType, form]);
 
   const isPending = updatePetType.isPending || deletePetType.isPending || setPetTypeImage.isPending;
 
-  async function onSubmit(values: ProposeTaxonomyFormValues) {
+  async function onSubmit(values: EditTaxonomyFormValues) {
     if (!petType) return;
+    const name = values.name.trim();
+    const slug = values.slug.trim();
+    const nameChanged = name !== petType.name;
+    const slugChanged = slug !== petType.slug;
+    if (!nameChanged && !slugChanged) {
+      router.push('/admin/taxonomy');
+      return;
+    }
     try {
-      await updatePetType.mutateAsync({ petTypeId: petType.id, name: values.name.trim() });
+      await updatePetType.mutateAsync({
+        petTypeId: petType.id,
+        name,
+        slug,
+      });
       router.push('/admin/taxonomy');
     } catch (err) {
-      form.setError('name', {
-        message: isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ',
-      });
+      const message = isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ';
+      const code = isApiError(err) ? err.code : undefined;
+      if (code === 'SLUG_EXISTS' || code === 'INVALID_SLUG') {
+        form.setError('slug', { message });
+      } else {
+        form.setError('name', { message });
+      }
     }
   }
 
@@ -78,7 +94,7 @@ export default function EditPetTypePage() {
     <div className="mx-auto max-w-2xl">
       <PageHeader
         title="แก้ไขประเภทสัตว์เลี้ยง"
-        description={`${petType.slug} · ${labelTaxonomyStatus(petType.status)}`}
+        description={labelTaxonomyStatus(petType.status)}
         back={
           <Link
             href="/admin/taxonomy"
@@ -111,6 +127,33 @@ export default function EditPetTypePage() {
                   {form.formState.errors.name.message}
                 </p>
               ) : null}
+            </div>
+
+            <div>
+              <Label htmlFor="pet-type-slug" required>
+                Slug
+              </Label>
+              <Input
+                id="pet-type-slug"
+                autoComplete="off"
+                placeholder="เช่น dog"
+                aria-invalid={!!form.formState.errors.slug}
+                aria-describedby={
+                  form.formState.errors.slug ? 'pet-type-slug-error' : 'pet-type-slug-hint'
+                }
+                {...form.register('slug')}
+                className="mt-1.5"
+                disabled={isPending}
+              />
+              {form.formState.errors.slug ? (
+                <p id="pet-type-slug-error" role="alert" className="mt-1 text-xs text-danger">
+                  {form.formState.errors.slug.message}
+                </p>
+              ) : (
+                <p id="pet-type-slug-hint" className="mt-1 text-xs text-muted">
+                  ใช้ใน URL และตัวกรอง — เปลี่ยนแล้วลิงก์เดิมอาจใช้ไม่ได้
+                </p>
+              )}
             </div>
 
             <ImageUploadField

@@ -24,21 +24,23 @@ export function RatingDistributionChart({ summary }: RatingDistributionChartProp
   };
 
   return (
-    <div className="space-y-2" aria-label="การกระจายคะแนนรีวิว">
+    <div className="space-y-2.5" aria-label="การกระจายคะแนนรีวิว">
       {RATING_LEVELS.map((level) => {
         const count = counts[level];
         const widthPercent = summary.reviewCount > 0 ? (count / summary.reviewCount) * 100 : 0;
 
         return (
           <div key={level} className="flex items-center gap-3 text-sm">
-            <span className="w-12 shrink-0 text-muted">{level} ดาว</span>
+            <span className="w-12 shrink-0 text-muted-foreground">{level} ดาว</span>
             <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-surface">
               <div
-                className="h-full rounded-full bg-brand-tint"
+                className="h-full rounded-full bg-brand-soft transition-[width] duration-200 ease-out motion-reduce:transition-none"
                 style={{ width: `${widthPercent}%` }}
               />
             </div>
-            <span className="w-8 shrink-0 text-right text-muted">{count}</span>
+            <span className="w-8 shrink-0 text-right tabular-nums text-muted-foreground">
+              {count}
+            </span>
           </div>
         );
       })}

@@ -102,6 +102,9 @@ export default function VendorApiPage() {
           <Button type="button" variant="outline" asChild>
             <Link href="/vendor/api/docs">เอกสาร API</Link>
           </Button>
+          <Button type="button" variant="outline" asChild>
+            <Link href="/vendor/api/llms.txt">llms.txt</Link>
+          </Button>
           <Button type="button" onClick={() => setCreateOpen(true)}>
             สร้าง API Key
           </Button>

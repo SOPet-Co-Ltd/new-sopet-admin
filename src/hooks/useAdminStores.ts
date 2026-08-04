@@ -44,6 +44,7 @@ export function useUpdateStoreAsAdmin() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.adminStores.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.adminStores.detail(variables.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stores.all });
     },
   });
 }

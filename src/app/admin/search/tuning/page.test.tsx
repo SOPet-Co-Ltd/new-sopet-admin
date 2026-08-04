@@ -19,17 +19,18 @@ describe('SearchRankingWeightForm', () => {
   it('loads default weights into the form', () => {
     render(<SearchRankingWeightForm initialWeights={defaultWeights} onSubmit={vi.fn()} />);
 
-    expect(screen.getByLabelText('Text relevance')).toHaveValue(40);
-    expect(screen.getByLabelText('Personalization cap (0–0.20)')).toHaveValue(0.1);
+    expect(screen.getByLabelText('ความเกี่ยวข้องของข้อความ')).toHaveValue(40);
+    expect(screen.getByLabelText('เพดานการปรับตามพฤติกรรม')).toHaveValue(0.1);
+    expect(screen.getByLabelText('ค่าคงที่ RRF (k)')).toHaveValue(60);
   });
 
   it('shows validation error for out-of-range personalization cap', async () => {
     const user = userEvent.setup();
     render(<SearchRankingWeightForm initialWeights={defaultWeights} onSubmit={vi.fn()} />);
 
-    await user.clear(screen.getByLabelText('Personalization cap (0–0.20)'));
-    await user.type(screen.getByLabelText('Personalization cap (0–0.20)'), '0.5');
-    await user.click(screen.getByRole('button', { name: 'บันทึก' }));
+    await user.clear(screen.getByLabelText('เพดานการปรับตามพฤติกรรม'));
+    await user.type(screen.getByLabelText('เพดานการปรับตามพฤติกรรม'), '0.5');
+    await user.click(screen.getByRole('button', { name: 'บันทึกน้ำหนัก' }));
 
     expect(await screen.findByText('ค่าต้องอยู่ระหว่าง 0 ถึง 0.20')).toBeInTheDocument();
   });
@@ -40,9 +41,9 @@ describe('SearchRankingWeightForm', () => {
 
     render(<SearchRankingWeightForm initialWeights={defaultWeights} onSubmit={onSubmit} />);
 
-    await user.clear(screen.getByLabelText('Text relevance'));
-    await user.type(screen.getByLabelText('Text relevance'), '50');
-    await user.click(screen.getByRole('button', { name: 'บันทึก' }));
+    await user.clear(screen.getByLabelText('ความเกี่ยวข้องของข้อความ'));
+    await user.type(screen.getByLabelText('ความเกี่ยวข้องของข้อความ'), '50');
+    await user.click(screen.getByRole('button', { name: 'บันทึกน้ำหนัก' }));
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith(

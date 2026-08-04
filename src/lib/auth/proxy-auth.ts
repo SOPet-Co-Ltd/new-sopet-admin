@@ -1,19 +1,33 @@
 import { ACCESS_TOKEN } from '@/lib/config';
-import { decodeJwtPayload } from '@/lib/jwt';
+import { getPortalRoleFromToken } from '@/lib/jwt';
 
 export type AuthRole = 'admin' | 'vendor';
 
 export function getRoleFromAccessToken(token: string | undefined): AuthRole | null {
-  if (!token) return null;
+  return getPortalRoleFromToken(token);
+}
 
-  const payload = decodeJwtPayload(token);
-  const role = payload?.role;
+export function getDashboardPathForRole(role: AuthRole): string {
+  if (role === 'admin') return '/admin/stores';
+  return '/vendor';
+}
 
-  if (role === 'admin' || role === 'vendor') {
-    return role;
+export function getGuestOnlyRedirectPath(
+  pathname: string,
+  role: AuthRole | null,
+  accessToken?: string,
+): string | null {
+  const isGuestOnlyRoute = pathname === '/register' || pathname.startsWith('/register/');
+  if (!isGuestOnlyRoute || !accessToken || !role) {
+    return null;
   }
 
-  return null;
+  return getDashboardPathForRole(role);
+}
+
+/** Public LLM / crawler docs — must stay readable without a vendor session. */
+export function isPublicVendorApiDocPath(pathname: string): boolean {
+  return pathname === '/vendor/api/llms.txt';
 }
 
 export function getAuthRedirectPath(
@@ -21,6 +35,15 @@ export function getAuthRedirectPath(
   role: AuthRole | null,
   accessToken?: string,
 ): string | null {
+  if (isPublicVendorApiDocPath(pathname)) {
+    return null;
+  }
+
+  const isProtectedRoute = pathname.startsWith('/admin') || pathname.startsWith('/vendor');
+  if (!isProtectedRoute) {
+    return null;
+  }
+
   if (!accessToken || !role) {
     return '/login';
   }

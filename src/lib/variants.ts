@@ -148,6 +148,7 @@ export function countVariantItems(groups: VariantOptionGroup[]): number {
 
 export function formatCombinationLabel(options: Record<string, string>): string {
   return Object.entries(options)
+    .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `${key}: ${value}`)
     .join(' · ');
 }

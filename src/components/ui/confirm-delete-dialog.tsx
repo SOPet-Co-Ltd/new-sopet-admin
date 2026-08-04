@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,7 +20,11 @@ export interface ConfirmDeleteDialogProps {
   title: string;
   confirmLabel: string;
   description?: ReactNode;
+  /** When set, replaces the default generic-delete DialogDescription. */
+  dialogDescription?: ReactNode;
   confirmButtonLabel?: string;
+  confirmPendingLabel?: string;
+  errorFallbackMessage?: string;
   isDeleting?: boolean;
   onConfirm: () => Promise<void>;
 }
@@ -31,19 +35,24 @@ export function ConfirmDeleteDialog({
   title,
   confirmLabel,
   description,
+  dialogDescription,
   confirmButtonLabel = 'ลบ',
+  confirmPendingLabel = 'กำลังลบ...',
+  errorFallbackMessage = 'ลบไม่สำเร็จ',
   isDeleting = false,
   onConfirm,
 }: ConfirmDeleteDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [confirmText, setConfirmText] = useState('');
+  const [prevOpen, setPrevOpen] = useState(open);
 
-  useEffect(() => {
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (!open) {
       setError(null);
       setConfirmText('');
     }
-  }, [open]);
+  }
 
   const textConfirmed = confirmText.trim() === confirmLabel.trim();
 
@@ -57,7 +66,7 @@ export function ConfirmDeleteDialog({
       await onConfirm();
       onOpenChange(false);
     } catch (err) {
-      setError(isApiError(err) ? err.message : 'ลบไม่สำเร็จ');
+      setError(isApiError(err) ? err.message : errorFallbackMessage);
     }
   }
 
@@ -67,7 +76,7 @@ export function ConfirmDeleteDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            การลบ &quot;{confirmLabel}&quot; ไม่สามารถย้อนกลับได้
+            {dialogDescription ?? <>การลบ &quot;{confirmLabel}&quot; ไม่สามารถย้อนกลับได้</>}
           </DialogDescription>
         </DialogHeader>
 
@@ -117,7 +126,7 @@ export function ConfirmDeleteDialog({
             aria-busy={isDeleting}
             onClick={() => void handleConfirm()}
           >
-            {isDeleting ? 'กำลังลบ...' : confirmButtonLabel}
+            {isDeleting ? confirmPendingLabel : confirmButtonLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

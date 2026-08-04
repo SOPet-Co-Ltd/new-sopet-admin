@@ -5,15 +5,17 @@ import { useMemo } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { TaxonomyDeleteButton } from '@/components/admin/taxonomy/taxonomy-delete-button';
 import type { TaxonomyDeleteKind } from '@/components/admin/taxonomy/taxonomy-delete-dialog';
+import { TableSkeleton } from '@/components/admin/taxonomy/taxonomy-hub-primitives';
 import { Button } from '@/components/ui/button';
-import { Card, CardBody } from '@/components/ui/card';
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
-import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import type { TaxonomyItem } from '@/types';
 
 function taxonomyEditHref(kind: TaxonomyDeleteKind, id: string): string | null {
   if (kind === 'category') return `/admin/taxonomy/categories/${id}/edit`;
+  if (kind === 'tag') return `/admin/taxonomy/tags/${id}/edit`;
   if (kind === 'petType') return `/admin/taxonomy/pet-types/${id}/edit`;
+  if (kind === 'brand') return `/admin/taxonomy/brands/${id}/edit`;
   return null;
 }
 
@@ -23,6 +25,7 @@ export interface ApprovedTaxonomyTableProps {
   kind: TaxonomyDeleteKind;
   showImage?: boolean;
   disabled?: boolean;
+  isLoading?: boolean;
 }
 
 export function ApprovedTaxonomyTable({
@@ -31,6 +34,7 @@ export function ApprovedTaxonomyTable({
   kind,
   showImage = false,
   disabled = false,
+  isLoading = false,
 }: ApprovedTaxonomyTableProps) {
   const columns = useMemo<ColumnDef<TaxonomyItem>[]>(() => {
     const cols: ColumnDef<TaxonomyItem>[] = [];
@@ -45,7 +49,7 @@ export function ApprovedTaxonomyTable({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={url}
-              alt=""
+              alt={row.original.name}
               className="h-10 w-10 rounded-md border border-border object-cover"
             />
           ) : (
@@ -67,14 +71,6 @@ export function ApprovedTaxonomyTable({
         header: ({ column }) => <SortableHeader column={column}>Slug</SortableHeader>,
         cell: ({ row }) => <span className="text-sm text-muted">{row.original.slug}</span>,
         meta: { className: 'hidden md:table-cell' },
-      },
-      {
-        accessorKey: 'status',
-        header: 'สถานะ',
-        cell: ({ row }) => (
-          <span className="text-sm text-muted">{labelTaxonomyStatus(row.original.status)}</span>
-        ),
-        meta: { className: 'hidden sm:table-cell' },
       },
       {
         id: 'actions',
@@ -100,9 +96,25 @@ export function ApprovedTaxonomyTable({
 
   return (
     <Card>
+      <CardHeader>
+        <h2 className="font-display font-medium text-balance text-ink">
+          {title}
+          {!isLoading ? (
+            <span
+              aria-hidden="true"
+              className="ml-1.5 text-base font-normal text-muted-foreground tabular-nums"
+            >
+              ({items.length.toLocaleString('th-TH')})
+            </span>
+          ) : null}
+        </h2>
+      </CardHeader>
       <CardBody className="space-y-3">
-        <h2 className="font-display font-medium text-ink">{title}</h2>
-        <DataTable columns={columns} data={items} emptyMessage="ไม่มีรายการ" />
+        {isLoading ? (
+          <TableSkeleton rows={showImage ? 5 : 4} />
+        ) : (
+          <DataTable columns={columns} data={items} emptyMessage="ยังไม่มีรายการที่อนุมัติ" />
+        )}
       </CardBody>
     </Card>
   );

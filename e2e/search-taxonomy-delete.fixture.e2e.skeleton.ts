@@ -49,18 +49,17 @@
 // - Empty states match UI Spec Thai copy without GraphQL error page
 //
 // ---------------------------------------------------------------------------
-// Journey AC3: "Requests category approve blocked without image (AC-034, AC-035)"
+// Journey AC3: "Pending category approve blocked without image (AC-034, AC-035)"
 // ROI: 63 (BV:8 × Freq:7 + Legal:0 + Defect:7)
-// Behavior: /admin/requests?tab=taxonomy → pending category row → Approve disabled until image
-// uploaded → hint ต้องอัปโหลดรูปภาพก่อนอนุมัติ visible
+// Behavior: /admin/taxonomy → หมวดหมู่รออนุมัติ → Approve disabled until image uploaded →
+// hint ต้องอัปโหลดรูปภาพก่อนอนุมัติ visible
 // @category: fixture-e2e
 // @lane: fixture-e2e
-// @dependency: full-ui (mocked backend) — RequestsPendingCategoryRow, upload fixtures
+// @dependency: full-ui (mocked backend) — PendingCategoryRow, upload fixtures
 // @complexity: medium
 // Primary failure mode: approve enabled without image; missing hint copy; setCategoryImage not called
 // Proof obligation: fixture pending category without imageUrl; assert Approve disabled and hint
-// visible; mock upload → setCategoryImage → Approve enabled and succeeds. Boundary: image gate on
-// requests tab (not taxonomy page only)
+// visible; mock upload → setCategoryImage → Approve enabled and succeeds.
 // Verification points / expected results / pass criteria:
 // - Approve button disabled when imageUrl absent (AC-034)
 // - Hint ต้องอัปโหลดรูปภาพก่อนอนุมัติ visible with aria-describedby (AC-035)

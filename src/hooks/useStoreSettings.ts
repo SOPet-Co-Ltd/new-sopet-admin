@@ -35,7 +35,7 @@ export function useUpdateStorePayout() {
       >,
     ) => updateStorePayout(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.stores.detail('current') });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stores.all });
     },
   });
 }

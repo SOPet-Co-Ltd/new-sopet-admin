@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAccessToken } from '@/lib/api/client';
+import { hasClientSession } from '@/lib/api/client';
 import { useAuthStore } from '@/stores/auth.store';
 
 interface AuthGuardProps {
@@ -15,7 +15,7 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
-  const hasToken = typeof window !== 'undefined' && !!getAccessToken();
+  const hasToken = typeof window !== 'undefined' ? hasClientSession() : false;
 
   useEffect(() => {
     if (!hasHydrated) {
@@ -52,5 +52,3 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
 
   return <>{children}</>;
 }
-
-export default AuthGuard;

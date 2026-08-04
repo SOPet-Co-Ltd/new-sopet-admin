@@ -47,6 +47,12 @@ test.describe('proxy auth gate', () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
+  test('redirects authenticated vendor away from register via proxy', async ({ page }) => {
+    await authenticateAsVendor(page);
+    await page.goto('/register');
+    await expect(page).toHaveURL(/\/vendor$/);
+  });
+
   test('does not flash loading text during protected-to-protected navigation', async ({ page }) => {
     await authenticateAsAdmin(page);
     await installTaxonomyGraphQLMocks(page);
@@ -55,9 +61,7 @@ test.describe('proxy auth gate', () => {
 
     await page.getByRole('link', { name: 'หมวดหมู่และแท็ก' }).click();
     await page.waitForURL(/\/admin\/taxonomy$/);
-    await expect(
-      page.getByRole('heading', { name: 'หมวดหมู่ แท็ก ประเภทสัตว์เลี้ยง และแบรนด์' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'จัดการหมวดหมู่และแท็กสินค้า' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'สร้างหมวดหมู่' })).toBeVisible();
     await expect(page.locator('body')).not.toContainText('กำลังโหลด...');
   });

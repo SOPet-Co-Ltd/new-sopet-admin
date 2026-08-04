@@ -7,8 +7,37 @@ import {
 } from '@/lib/graphql/documents';
 import { mapAdminStore } from '@/lib/graphql/mappers';
 import type { AdminStore, CreateStoreAsAdminInput, UpdateStoreAsAdminInput } from '@/types';
+import type { AdminStoreFormValues } from '@/lib/validations';
 
 type GqlAdminStore = Parameters<typeof mapAdminStore>[0];
+
+export function buildCreateStoreAsAdminInput(
+  values: AdminStoreFormValues,
+): CreateStoreAsAdminInput {
+  return {
+    ownerUserId: values.ownerId,
+    name: values.name,
+    description: values.description || undefined,
+    contactPhone: values.contactPhone || undefined,
+    contactEmail: values.contactEmail || undefined,
+    address: values.address || undefined,
+  };
+}
+
+export function buildUpdateStoreAsAdminInput(
+  values: AdminStoreFormValues,
+): UpdateStoreAsAdminInput {
+  return {
+    name: values.name,
+    slug: values.slug || undefined,
+    description: values.description || undefined,
+    status: values.status,
+    contactPhone: values.contactPhone || undefined,
+    contactEmail: values.contactEmail || undefined,
+    address: values.address || undefined,
+    ownerId: values.ownerId ? values.ownerId : null,
+  };
+}
 
 export function getAdminStores(): Promise<AdminStore[]> {
   return executeQuery<{ adminStores: GqlAdminStore[] }>(ADMIN_STORES_QUERY).then((data) =>

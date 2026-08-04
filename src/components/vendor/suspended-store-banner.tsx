@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useMyStores } from '@/hooks/useMyStores';
@@ -8,6 +9,7 @@ import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 
 export function SuspendedStoreBanner() {
   const storeId = useVendorStoreId();
+  const pathname = usePathname();
   const { data: stores = [] } = useMyStores();
 
   const suspendedStore = useMemo(() => {
@@ -21,6 +23,10 @@ export function SuspendedStoreBanner() {
 
   const canManage =
     suspendedStore.membershipRole === 'owner' || suspendedStore.membershipRole === 'manager';
+  // Vendor is already on the reactivation page - its own submit button is the real
+  // CTA. Showing this banner's link there too duplicates it with a dead no-op click
+  // (navigating to the URL you're already on), which reads as a broken button (row 43).
+  const onReactivationPage = pathname?.startsWith('/vendor/reactivation') ?? false;
 
   return (
     <div
@@ -36,7 +42,7 @@ export function SuspendedStoreBanner() {
           ? ' กรุณาส่งคำขอเปิดใช้งานพร้อมเหตุผลและหลักฐานประกอบ'
           : ' กรุณาติดต่อเจ้าของร้านหรือผู้จัดการเพื่อส่งคำขอเปิดใช้งาน'}
       </p>
-      {canManage ? (
+      {canManage && !onReactivationPage ? (
         <Button type="button" size="sm" className="mt-3" asChild>
           <Link href={`/vendor/reactivation?storeId=${suspendedStore.store.id}`}>
             ส่งคำขอเปิดใช้งานร้าน

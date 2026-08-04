@@ -1,44 +1,44 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { login } from '@/lib/api/auth';
-import { setTokens, clearTokens } from '@/lib/api/client';
-import { getStoreIdFromToken } from '@/lib/jwt';
+import { clearTokens } from '@/lib/api/client';
+import { applyAuthenticatedSession } from '@/lib/auth/apply-session';
+import { clearAuthSession, resetSessionCaches } from '@/lib/auth-session';
 import { useAuthStore } from '@/stores/auth.store';
 import { useVendorStore } from '@/stores/vendor.store';
 import type { LoginInput, LoginResult } from '@/types';
+import { useRouter } from 'next/navigation';
 
 const PORTAL_ROLES = new Set(['admin', 'vendor']);
 
 export function useLogin() {
-  const setUser = useAuthStore((s) => s.setUser);
+  const queryClient = useQueryClient();
 
   return useMutation<LoginResult, Error, LoginInput>({
     mutationFn: async (input) => {
+      await clearTokens();
+      useAuthStore.getState().clearAuth();
+      useVendorStore.getState().clearVendor();
       const result = await login(input);
       if (!PORTAL_ROLES.has(result.user.role)) {
         throw new Error('พอร์ทัลนี้สำหรับผู้ดูแลระบบและผู้ขายเท่านั้น');
       }
       return result;
     },
-    onSuccess: (result) => {
-      setTokens(result.accessToken, result.refreshToken);
-      const storeId = getStoreIdFromToken(result.accessToken);
-      setUser({ ...result.user, storeId });
-      if (storeId) {
-        useVendorStore.getState().setActiveStoreId(storeId);
-      }
+    onSuccess: async (result) => {
+      await applyAuthenticatedSession(result.user);
+      resetSessionCaches(queryClient);
     },
   });
 }
 
 export function useLogout() {
-  const clearAuth = useAuthStore((s) => s.clearAuth);
-  const clearVendor = useVendorStore((s) => s.clearVendor);
+  const queryClient = useQueryClient();
+  const router = useRouter();
   return () => {
-    clearTokens();
-    clearAuth();
-    clearVendor();
+    clearAuthSession(queryClient);
+    router.replace('/login');
   };
 }
 

@@ -1,7 +1,11 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getVendorCustomer, getVendorCustomers } from '@/lib/api/vendor-customers';
+import {
+  getVendorCustomer,
+  getVendorCustomerDetail,
+  getVendorCustomers,
+} from '@/lib/api/vendor-customers';
 import { queryKeys } from '@/lib/react-query/keys';
 import type { CustomersQueryParams } from '@/types';
 
@@ -16,6 +20,14 @@ export function useVendorCustomer(id: string) {
   return useQuery({
     queryKey: queryKeys.vendorCustomers.detail(id),
     queryFn: () => getVendorCustomer(id),
+    enabled: !!id,
+  });
+}
+
+export function useVendorCustomerDetail(id: string) {
+  return useQuery({
+    queryKey: queryKeys.vendorCustomers.detailInsights(id),
+    queryFn: () => getVendorCustomerDetail(id),
     enabled: !!id,
   });
 }

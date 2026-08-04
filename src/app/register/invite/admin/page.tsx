@@ -1,0 +1,205 @@
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Card, CardBody } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { getDashboardPath, useCurrentUser } from '@/hooks/useAuth';
+import { useAcceptAdminInvitation, useAdminInvitationByToken } from '@/hooks/useAdminTeam';
+import { hasClientSession } from '@/lib/api/client';
+import { getErrorMessage } from '@/lib/api/errors';
+import { useAuthStore } from '@/stores/auth.store';
+
+const schema = z.object({
+  fullName: z.string().trim().min(1, 'กรุณากรอกชื่อ'),
+  password: z.string().min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+function AcceptAdminInviteForm() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const token = searchParams.get('token') ?? '';
+  const {
+    data: invitation,
+    isLoading: loadingInvitation,
+    error: invitationError,
+  } = useAdminInvitationByToken(token);
+  const acceptMutation = useAcceptAdminInvitation();
+  const { user, isAuthenticated } = useCurrentUser();
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
+    if (isAuthenticated && hasClientSession() && user) {
+      router.replace(getDashboardPath(user.role));
+    }
+  }, [hasHydrated, isAuthenticated, router, user]);
+
+  const isRedirecting = hasHydrated && isAuthenticated && hasClientSession() && !!user;
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { fullName: '', password: '' },
+  });
+
+  useEffect(() => {
+    if (!token) {
+      form.setError('root', { message: 'ลิงก์คำเชิญไม่ถูกต้อง' });
+    }
+  }, [form, token]);
+
+  if (!hasHydrated || isRedirecting) {
+    return <p className="text-muted">กำลังเปลี่ยนหน้า...</p>;
+  }
+
+  async function onSubmit(values: FormValues) {
+    if (!token) return;
+    try {
+      await acceptMutation.mutateAsync({
+        token,
+        password: values.password,
+        fullName: values.fullName,
+      });
+      router.push('/admin/analytics');
+    } catch (err) {
+      form.setError('root', {
+        message: getErrorMessage(err, 'ตอบรับคำเชิญไม่สำเร็จ'),
+      });
+    }
+  }
+
+  if (!token || invitationError || (!loadingInvitation && !invitation)) {
+    return (
+      <Card className="w-full max-w-lg">
+        <CardBody className="space-y-3">
+          <h1 className="font-display text-xl font-semibold text-ink">ลิงก์คำเชิญไม่ถูกต้อง</h1>
+          <p className="text-sm text-muted">
+            ลิงก์คำเชิญนี้อาจถูกใช้ไปแล้ว ถูกยกเลิก หรือหมดอายุ
+            กรุณาติดต่อผู้ดูแลระบบเพื่อขอคำเชิญใหม่
+          </p>
+          <Button variant="outline" asChild>
+            <Link href="/login">เข้าสู่ระบบ</Link>
+          </Button>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  if (loadingInvitation) {
+    return <p className="text-muted">กำลังโหลด...</p>;
+  }
+
+  if (invitation && invitation.status !== 'pending') {
+    return (
+      <Card className="w-full max-w-lg">
+        <CardBody className="space-y-3">
+          <h1 className="font-display text-xl font-semibold text-ink">คำเชิญนี้ถูกใช้ไปแล้ว</h1>
+          <p className="text-sm text-muted">
+            คำเชิญสำหรับ {invitation.email} ไม่สามารถใช้งานได้อีก
+            กรุณาติดต่อผู้ดูแลระบบเพื่อขอคำเชิญใหม่
+          </p>
+          <Button variant="outline" asChild>
+            <Link href="/login">เข้าสู่ระบบ</Link>
+          </Button>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full max-w-lg">
+      <CardBody>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <h1 className="font-display text-xl font-semibold text-ink">คำเชิญเป็นผู้ดูแลระบบ</h1>
+            <p className="mt-1 text-sm text-muted">
+              ตั้งรหัสผ่านและชื่อเพื่อสร้างบัญชีผู้ดูแลระบบสำหรับ{' '}
+              <span className="font-medium text-ink">{invitation?.email}</span>
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="fullName" required>
+              ชื่อ-นามสกุล
+            </Label>
+            <Input
+              id="fullName"
+              autoComplete="name"
+              placeholder="ชื่อ-นามสกุล"
+              aria-invalid={!!form.formState.errors.fullName}
+              aria-describedby={form.formState.errors.fullName ? 'fullName-error' : undefined}
+              className="mt-1.5"
+              {...form.register('fullName')}
+            />
+            {form.formState.errors.fullName ? (
+              <p id="fullName-error" role="alert" className="mt-1 text-xs text-danger">
+                {form.formState.errors.fullName.message}
+              </p>
+            ) : null}
+          </div>
+
+          <div>
+            <Label htmlFor="password" required>
+              รหัสผ่าน
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="อย่างน้อย 8 ตัวอักษร"
+              aria-invalid={!!form.formState.errors.password}
+              aria-describedby={form.formState.errors.password ? 'password-error' : undefined}
+              className="mt-1.5"
+              {...form.register('password')}
+            />
+            {form.formState.errors.password ? (
+              <p id="password-error" role="alert" className="mt-1 text-xs text-danger">
+                {form.formState.errors.password.message}
+              </p>
+            ) : null}
+          </div>
+
+          {form.formState.errors.root ? (
+            <p role="alert" className="text-sm text-danger">
+              {form.formState.errors.root.message}
+            </p>
+          ) : null}
+
+          <div className="flex gap-3">
+            <Button
+              type="submit"
+              disabled={!token || acceptMutation.isPending}
+              aria-busy={acceptMutation.isPending}
+            >
+              {acceptMutation.isPending ? 'กำลังสร้างบัญชี...' : 'สร้างบัญชีและเข้าใช้งาน'}
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/login">เข้าสู่ระบบ</Link>
+            </Button>
+          </div>
+        </form>
+      </CardBody>
+    </Card>
+  );
+}
+
+export default function AcceptAdminInvitePage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-cream px-4 py-12">
+      <Suspense fallback={<p className="text-muted">กำลังโหลด...</p>}>
+        <AcceptAdminInviteForm />
+      </Suspense>
+    </div>
+  );
+}

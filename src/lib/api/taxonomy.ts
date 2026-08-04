@@ -29,6 +29,8 @@ import {
   RejectTagDocument,
   RejectedCategoriesDocument,
   RejectedTagsDocument,
+  RejectedPetTypesDocument,
+  RejectedBrandsDocument,
   RejectBrandDocument,
   RejectPetTypeDocument,
   SetCategoryImageDocument,
@@ -36,6 +38,8 @@ import {
   TagDeleteImpactDocument,
   UpdateCategoryDocument,
   UpdatePetTypeDocument,
+  UpdateTagDocument,
+  UpdateBrandDocument,
   type ApprovedBrandsQuery,
   type ApprovedCategoriesQuery,
   type ApprovedPetTypesQuery,
@@ -65,6 +69,8 @@ import {
   type RejectTagMutation,
   type RejectedCategoriesQuery,
   type RejectedTagsQuery,
+  type RejectedPetTypesQuery,
+  type RejectedBrandsQuery,
   type RejectBrandMutation,
   type RejectPetTypeMutation,
   type SetCategoryImageMutation,
@@ -72,6 +78,8 @@ import {
   type TagDeleteImpactQuery,
   type UpdateCategoryMutation,
   type UpdatePetTypeMutation,
+  type UpdateTagMutation,
+  type UpdateBrandMutation,
 } from '@/lib/graphql/generated/graphql';
 import type {
   CategoryDeleteImpact,
@@ -90,6 +98,8 @@ import type {
   TaxonomyItem,
   UpdateCategoryInput,
   UpdatePetTypeInput,
+  UpdateTagInput,
+  UpdateBrandInput,
 } from '@/types';
 
 type GqlTaxonomyItem = {
@@ -149,6 +159,18 @@ export function getRejectedCategories(): Promise<TaxonomyItem[]> {
 export function getRejectedTags(): Promise<TaxonomyItem[]> {
   return executeQuery<RejectedTagsQuery>(RejectedTagsDocument).then((data) =>
     data.rejectedTags.map(mapTaxonomyItem),
+  );
+}
+
+export function getRejectedPetTypes(): Promise<TaxonomyItem[]> {
+  return executeQuery<RejectedPetTypesQuery>(RejectedPetTypesDocument).then((data) =>
+    data.rejectedPetTypes.map(mapTaxonomyItem),
+  );
+}
+
+export function getRejectedBrands(): Promise<TaxonomyItem[]> {
+  return executeQuery<RejectedBrandsQuery>(RejectedBrandsDocument).then((data) =>
+    data.rejectedBrands.map(mapTaxonomyItem),
   );
 }
 
@@ -226,6 +248,22 @@ export function updatePetType(input: UpdatePetTypeInput): Promise<TaxonomyItem> 
     { input },
     TAXONOMY_MUTATION_OPTIONS,
   ).then((data) => mapTaxonomyItem(data.updatePetType));
+}
+
+export function updateTag(input: UpdateTagInput): Promise<TaxonomyItem> {
+  return executeMutation<UpdateTagMutation>(
+    UpdateTagDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.updateTag));
+}
+
+export function updateBrand(input: UpdateBrandInput): Promise<TaxonomyItem> {
+  return executeMutation<UpdateBrandMutation>(
+    UpdateBrandDocument,
+    { input },
+    TAXONOMY_MUTATION_OPTIONS,
+  ).then((data) => mapTaxonomyItem(data.updateBrand));
 }
 
 export function approveCategory(id: string): Promise<TaxonomyItem> {

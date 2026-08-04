@@ -16,6 +16,7 @@ export interface User {
   role: UserRole | string;
   storeId?: string;
   profilePhotoUrl?: string | null;
+  emailVerified?: boolean;
 }
 
 export type StoreStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
@@ -119,11 +120,25 @@ export interface SetCategoryImageInput {
 export interface UpdateCategoryInput {
   categoryId: string;
   name: string;
+  slug?: string;
 }
 
 export interface UpdatePetTypeInput {
   petTypeId: string;
   name: string;
+  slug?: string;
+}
+
+export interface UpdateTagInput {
+  tagId: string;
+  name: string;
+  slug?: string;
+}
+
+export interface UpdateBrandInput {
+  brandId: string;
+  name: string;
+  slug?: string;
 }
 
 export interface DeleteCategoryInput {
@@ -157,6 +172,16 @@ export interface StoreMemberInvitation {
   role: StoreMemberRole | string;
   status: string;
   expiresAt: string;
+}
+
+export interface MyPendingStoreInvitation {
+  id: string;
+  storeId: string;
+  storeName: string;
+  role: StoreMemberRole | string;
+  status: string;
+  expiresAt: string;
+  token: string;
 }
 
 export interface InviteStoreMemberInput {
@@ -207,6 +232,26 @@ export interface OrderItem {
   trackingNumber?: string | null;
   fulfillmentProvider?: string | null;
   trackingUrl?: string | null;
+  /** Parsed snapshot options from GraphQL JSON string; omit/empty when absent. */
+  variantOptions?: Record<string, string> | null;
+}
+
+export type VariantRemovalBlockReason = 'HAS_ORDERS' | 'HAS_OPEN_CARTS';
+
+export interface ProductVariantSyncImpactRemoved {
+  id: string;
+  sku: string;
+  optionKey: string;
+  optionsJson?: string | null;
+  reasons: VariantRemovalBlockReason[];
+}
+
+export interface ProductVariantSyncImpact {
+  kept: number;
+  new: number;
+  removed: number;
+  blocked: boolean;
+  removedVariants: ProductVariantSyncImpactRemoved[];
 }
 
 export interface OrderShippingAddress {
@@ -250,14 +295,14 @@ export interface LoginInput {
 }
 
 export interface LoginResult {
-  accessToken: string;
-  refreshToken: string;
+  accessToken: string | null;
+  refreshToken: string | null;
   user: User;
 }
 
 export interface RefreshResult {
-  accessToken: string;
-  refreshToken: string;
+  accessToken: string | null;
+  refreshToken: string | null;
 }
 
 export interface UpdateOrderStatusInput {
@@ -305,6 +350,7 @@ export interface Product {
   slug: string;
   description?: string;
   basePrice: number;
+  compareAtPrice?: number;
   warning?: string;
   expiryDate?: string;
   thumbnailUrl?: string;
@@ -317,12 +363,18 @@ export interface Product {
   tagIds?: string[];
   images?: ProductImage[];
   variants?: ProductVariant[];
+  averageRating?: number;
+  reviewCount?: number;
+  soldCount?: number;
 }
 
 export interface ProductsQueryParams {
   search?: string;
   storeId?: string;
   category?: string;
+  tag?: string;
+  petTypeIds?: string[];
+  brandIds?: string[];
   page?: number;
   limit?: number;
 }
@@ -457,7 +509,6 @@ export interface CreatePromotionInput {
   name: string;
   description?: string;
   type: PromotionType | string;
-  scope?: PromotionScope | string;
   storeId?: string;
   discountValue: number;
   minPurchaseAmount?: number;
@@ -558,11 +609,9 @@ export interface AdminStore extends StoreDetail {
 }
 
 export interface CreateStoreAsAdminInput {
+  ownerUserId: string;
   name: string;
-  slug?: string;
   description?: string;
-  ownerId?: string;
-  ownerEmail?: string;
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
@@ -578,8 +627,7 @@ export interface UpdateStoreAsAdminInput {
   contactPhone?: string;
   contactEmail?: string;
   address?: string;
-  ownerId?: string;
-  ownerEmail?: string;
+  ownerId?: string | null;
 }
 
 export interface AdminVendor {
@@ -591,6 +639,50 @@ export interface AdminVendor {
   lastLoginAt?: string;
   createdAt?: string;
   storeCount?: number;
+  stores?: AdminVendorStore[];
+}
+
+export interface AdminVendorStore {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+}
+
+export interface AdminVendorMembership {
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  storeStatus: string;
+  role: string;
+  joinedAt: string;
+}
+
+export interface AdminVendorActivity {
+  kind: string;
+  occurredAt: string;
+  storeId?: string | null;
+  storeName?: string | null;
+  orderNumber?: string | null;
+}
+
+export interface AdminVendorInsights {
+  storeCount: number;
+  membershipCount: number;
+  totalRevenue: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  lastActivityAt?: string | null;
+  memberships: AdminVendorMembership[];
+  activities: AdminVendorActivity[];
+  recentOrders: AdminCustomerRecentOrder[];
+}
+
+export interface AdminVendorDetail extends AdminVendor {
+  emailVerified: boolean;
+  stores: AdminVendorStore[];
+  insights: AdminVendorInsights;
 }
 
 export interface UpdateVendorAsAdminInput {
@@ -612,6 +704,36 @@ export interface AdminCustomer {
   updatedAt?: string;
 }
 
+export interface AdminCustomerOrderItemSummary {
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface AdminCustomerRecentOrder {
+  id: string;
+  orderNumber: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  items: AdminCustomerOrderItemSummary[];
+}
+
+export interface AdminCustomerInsights {
+  totalSpent: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  addressCount: number;
+  favoriteCount: number;
+  recentOrders: AdminCustomerRecentOrder[];
+}
+
+export interface AdminCustomerDetail extends AdminCustomer {
+  insights: AdminCustomerInsights;
+}
+
 export interface UpdateCustomerAsAdminInput {
   fullName?: string;
   email?: string;
@@ -627,6 +749,35 @@ export interface VendorCustomer {
   isVerified: boolean;
   lastLoginAt?: string | null;
   createdAt?: string;
+}
+
+export interface VendorCustomerStoreReviewSummary {
+  id: string;
+  productName: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: string;
+}
+
+export interface VendorCustomerFavoriteProductSummary {
+  productName: string;
+  createdAt: string;
+}
+
+export interface VendorCustomerStoreInsights {
+  totalSpent: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  favoriteCount: number;
+  reviewCount: number;
+  recentOrders: AdminCustomerRecentOrder[];
+  recentReviews: VendorCustomerStoreReviewSummary[];
+  favoriteProducts: VendorCustomerFavoriteProductSummary[];
+}
+
+export interface VendorCustomerDetail extends VendorCustomer {
+  insights: VendorCustomerStoreInsights;
 }
 
 export interface CustomersQueryParams {
@@ -839,6 +990,19 @@ export interface UpdatePlatformAdInput {
   isActive?: boolean;
 }
 
+/** Singleton login page branding — not PlatformBanner (uses desktopImageUrl, not imageUrl). */
+export interface LoginPageImages {
+  desktopImageUrl: string | null;
+  mobileImageUrl: string | null;
+  altText: string | null;
+}
+
+export interface UpdateLoginPageImagesInput {
+  desktopImageUrl: string;
+  mobileImageUrl?: string | null;
+  altText?: string | null;
+}
+
 export interface AdminTeamMember {
   id: string;
   email: string;
@@ -857,3 +1021,29 @@ export interface AdminInvitation {
 export interface InviteAdminInput {
   email: string;
 }
+
+export interface PayoutSummary {
+  storeId: string;
+  grossRevenue: number;
+  totalPaidOut: number;
+  availableBalance: number;
+  pendingPayoutAmount: number;
+  minimumPayoutAmount: number;
+  canRequestPayout: boolean;
+}
+
+export interface Payout {
+  id: string;
+  storeId: string;
+  amount: number;
+  netAmount: number;
+  status: string;
+  createdAt: string;
+}
+
+export type {
+  AuditActorType,
+  AdminAuditLog,
+  AdminAuditLogsFilter,
+  AdminAuditLogsQueryParams,
+} from './audit-logs';

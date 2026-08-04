@@ -1,11 +1,16 @@
 'use client';
 
-import { Card, CardBody } from '@/components/ui/card';
+import {
+  ListRowSkeleton,
+  taxonomyListItemMetaClassName,
+  taxonomyPendingRowClassName,
+} from '@/components/admin/taxonomy/taxonomy-hub-primitives';
+import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { TaxonomyDeleteButton } from '@/components/admin/taxonomy/taxonomy-delete-button';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import type { TaxonomyItem } from '@/types';
 
-export type RejectedTaxonomyKind = 'category' | 'tag';
+export type RejectedTaxonomyKind = 'category' | 'tag' | 'petType' | 'brand';
 
 const SECTION_COPY: Record<RejectedTaxonomyKind, { title: string; empty: string; error: string }> =
   {
@@ -18,6 +23,16 @@ const SECTION_COPY: Record<RejectedTaxonomyKind, { title: string; empty: string;
       title: 'แท็กที่ปฏิเสธแล้ว',
       empty: 'ไม่มีแท็กที่ปฏิเสธ',
       error: 'โหลดแท็กที่ปฏิเสธไม่สำเร็จ',
+    },
+    petType: {
+      title: 'ประเภทสัตว์เลี้ยงที่ปฏิเสธแล้ว',
+      empty: 'ไม่มีประเภทสัตว์เลี้ยงที่ปฏิเสธ',
+      error: 'โหลดประเภทสัตว์เลี้ยงที่ปฏิเสธไม่สำเร็จ',
+    },
+    brand: {
+      title: 'แบรนด์ที่ปฏิเสธแล้ว',
+      empty: 'ไม่มีแบรนด์ที่ปฏิเสธ',
+      error: 'โหลดแบรนด์ที่ปฏิเสธไม่สำเร็จ',
     },
   };
 
@@ -38,34 +53,48 @@ export function RejectedTaxonomySection({
 }: RejectedTaxonomySectionProps) {
   const copy = SECTION_COPY[kind];
 
-  if (isLoading) {
-    return <p className="text-muted">กำลังโหลด...</p>;
-  }
-
   if (error) {
     return (
-      <p role="alert" className="text-sm text-danger">
-        {copy.error}: {error.message}
-      </p>
+      <Card>
+        <CardHeader>
+          <h2 className="font-display font-medium text-balance text-ink">{copy.title}</h2>
+        </CardHeader>
+        <CardBody>
+          <p role="alert" className="text-sm text-danger">
+            {copy.error}: {error.message}
+          </p>
+        </CardBody>
+      </Card>
     );
   }
 
   return (
     <Card>
+      <CardHeader>
+        <h2 className="font-display font-medium text-balance text-ink">
+          {copy.title}
+          {!isLoading ? (
+            <span
+              aria-hidden="true"
+              className="ml-1.5 text-base font-normal text-muted-foreground tabular-nums"
+            >
+              ({items.length.toLocaleString('th-TH')})
+            </span>
+          ) : null}
+        </h2>
+      </CardHeader>
       <CardBody className="space-y-3">
-        <h2 className="font-display font-medium text-ink">{copy.title}</h2>
-        {items.length === 0 ? (
-          <p className="text-sm text-muted">{copy.empty}</p>
+        {isLoading ? (
+          <ListRowSkeleton rows={2} />
+        ) : items.length === 0 ? (
+          <p className="text-sm text-pretty text-muted-foreground">{copy.empty}</p>
         ) : (
           <ul className="space-y-2">
             {items.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface/50 px-4 py-3"
-              >
-                <div>
-                  <p className="font-medium text-ink">{item.name}</p>
-                  <p className="text-xs text-muted">
+              <li key={item.id} className={taxonomyPendingRowClassName}>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-ink">{item.name}</p>
+                  <p className={taxonomyListItemMetaClassName}>
                     {item.slug} · {labelTaxonomyStatus(item.status)}
                   </p>
                 </div>

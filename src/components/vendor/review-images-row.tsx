@@ -8,12 +8,12 @@ export function ReviewImagesRow({ images = [] }: ReviewImagesRowProps) {
   }
 
   return (
-    <div className="mt-2 flex flex-wrap gap-2" data-testid="review-images-row">
-      {images.map((image) => (
+    <div className="mt-1 flex flex-wrap gap-2" data-testid="review-images-row">
+      {images.map((image, index) => (
         <img
           key={image.id}
           src={image.url}
-          alt=""
+          alt={`รูปแนบรีวิว ${index + 1}`}
           className="h-16 w-16 rounded-lg border border-border object-cover"
         />
       ))}

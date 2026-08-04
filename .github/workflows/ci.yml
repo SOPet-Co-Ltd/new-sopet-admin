@@ -1,16 +1,39 @@
 # SOPET Admin CI
-# Triggers on pull request open, update, and reopen.
-# Runs: yarn type-check → yarn test → yarn build → yarn test:e2e
+# Lite (format + lint): PRs whose base is NOT deploy/production or deploy/uat
+# Full (format + type-check + test + build + e2e): PRs targeting deploy/production or deploy/uat
 
 name: CI
 
 on:
   pull_request:
-    branches: [main, uat]
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
-  check:
+  lite:
+    if: github.base_ref != 'deploy/production' && github.base_ref != 'deploy/uat'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout admin
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Format check
+        run: yarn format:check
+
+      - name: Lint
+        run: yarn lint
+
+  full:
+    if: github.base_ref == 'deploy/production' || github.base_ref == 'deploy/uat'
     runs-on: ubuntu-latest
 
     env:
@@ -24,7 +47,7 @@ jobs:
       - name: Checkout backend schema
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/sopet-backend
+          repository: ${{ github.repository_owner }}/new-sopet-backend
           path: sopet-backend
           sparse-checkout: |
             src/schema.gql
@@ -33,7 +56,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: yarn
 
       - name: Install dependencies

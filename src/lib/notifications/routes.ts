@@ -56,9 +56,11 @@ export function getNotificationHref(
       return storeId ? `/vendor/stores?storeId=${encodeURIComponent(storeId)}` : '/vendor/stores';
     }
     case 'new_order':
-    case 'order_status_changed': {
+    case 'order_status_changed':
+    case 'vendor_order_items_on_hold':
+    case 'vendor_order_items_hold_resumed': {
       const orderId = asString(parsedMetadata?.orderId);
-      return orderId ? `/vendor/orders?orderId=${encodeURIComponent(orderId)}` : '/vendor/orders';
+      return orderId ? `/vendor/orders/${encodeURIComponent(orderId)}` : '/vendor/orders';
     }
     case 'request_status_changed': {
       if (parsedMetadata?.type === 'store_request') {

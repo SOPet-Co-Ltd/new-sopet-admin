@@ -2,6 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  clearLoginPageDesktopImage,
+  clearLoginPageMobileImage,
   createPlatformAd,
   createPlatformBanner,
   createPlatformSponsor,
@@ -11,13 +13,17 @@ import {
   getAllPlatformAds,
   getAllPlatformBanners,
   getAllPlatformSponsors,
+  getLoginPageImages,
+  loginImagesFormToUpdateInput,
   reorderPlatformBanners,
   reorderPlatformSponsors,
+  updateLoginPageImages,
   updatePlatformAd,
   updatePlatformBanner,
   updatePlatformSponsor,
 } from '@/lib/api/platform';
 import { queryKeys } from '@/lib/react-query/keys';
+import type { LoginImagesFormValues } from '@/lib/validations';
 import type {
   CreatePlatformAdInput,
   CreatePlatformBannerInput,
@@ -39,7 +45,7 @@ export function useCreatePlatformBanner() {
   return useMutation({
     mutationFn: (input: CreatePlatformBannerInput) => createPlatformBanner(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
     },
   });
 }
@@ -49,7 +55,7 @@ export function useUpdatePlatformBanner() {
   return useMutation({
     mutationFn: (input: UpdatePlatformBannerInput) => updatePlatformBanner(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
     },
   });
 }
@@ -59,7 +65,7 @@ export function useDeletePlatformBanner() {
   return useMutation({
     mutationFn: (id: string) => deletePlatformBanner(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
     },
   });
 }
@@ -69,7 +75,7 @@ export function useReorderPlatformBanners() {
   return useMutation({
     mutationFn: (ids: string[]) => reorderPlatformBanners(ids),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.banners() });
     },
   });
 }
@@ -86,7 +92,7 @@ export function useCreatePlatformSponsor() {
   return useMutation({
     mutationFn: (input: CreatePlatformSponsorInput) => createPlatformSponsor(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
     },
   });
 }
@@ -96,7 +102,7 @@ export function useUpdatePlatformSponsor() {
   return useMutation({
     mutationFn: (input: UpdatePlatformSponsorInput) => updatePlatformSponsor(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
     },
   });
 }
@@ -106,7 +112,7 @@ export function useDeletePlatformSponsor() {
   return useMutation({
     mutationFn: (id: string) => deletePlatformSponsor(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
     },
   });
 }
@@ -116,7 +122,7 @@ export function useReorderPlatformSponsors() {
   return useMutation({
     mutationFn: (ids: string[]) => reorderPlatformSponsors(ids),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.sponsors() });
     },
   });
 }
@@ -133,7 +139,7 @@ export function useCreatePlatformAd() {
   return useMutation({
     mutationFn: (input: CreatePlatformAdInput) => createPlatformAd(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
     },
   });
 }
@@ -143,7 +149,7 @@ export function useUpdatePlatformAd() {
   return useMutation({
     mutationFn: (input: UpdatePlatformAdInput) => updatePlatformAd(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
     },
   });
 }
@@ -153,7 +159,45 @@ export function useDeletePlatformAd() {
   return useMutation({
     mutationFn: (id: string) => deletePlatformAd(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.ads() });
+    },
+  });
+}
+
+export function useLoginPageImages() {
+  return useQuery({
+    queryKey: queryKeys.platform.loginPageImages(),
+    queryFn: getLoginPageImages,
+  });
+}
+
+export function useUpdateLoginPageImages() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (form: LoginImagesFormValues) =>
+      updateLoginPageImages(loginImagesFormToUpdateInput(form)),
+    onSuccess: () => {
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
+    },
+  });
+}
+
+export function useClearLoginPageDesktopImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => clearLoginPageDesktopImage(),
+    onSuccess: () => {
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
+    },
+  });
+}
+
+export function useClearLoginPageMobileImage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => clearLoginPageMobileImage(),
+    onSuccess: () => {
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
     },
   });
 }

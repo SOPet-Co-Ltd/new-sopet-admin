@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthGuard } from '@/components/auth-guard';
+import { hasClientSession } from '@/lib/api/client';
 
 const replace = vi.fn();
 
@@ -9,7 +10,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('@/lib/api/client', () => ({
-  getAccessToken: vi.fn(() => 'token'),
+  hasClientSession: vi.fn(),
 }));
 
 const mockUseAuthStore = vi.fn();
@@ -36,6 +37,7 @@ function mockAuthState(state: {
 describe('AuthGuard', () => {
   beforeEach(() => {
     replace.mockClear();
+    vi.mocked(hasClientSession).mockReturnValue(true);
   });
 
   it('renders children directly while auth store is hydrating', () => {

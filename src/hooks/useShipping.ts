@@ -30,10 +30,11 @@ export function useShippingProviders(includeInactive?: boolean) {
   });
 }
 
-export function useMyStoreShippingOptions() {
+export function useMyStoreShippingOptions(enabled = true) {
   return useQuery({
     queryKey: queryKeys.storeShippingOptions.mine(),
     queryFn: getMyStoreShippingOptions,
+    enabled,
   });
 }
 

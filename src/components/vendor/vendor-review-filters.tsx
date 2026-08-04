@@ -25,7 +25,10 @@ export function VendorReviewFilters({
   return (
     <div className="flex flex-wrap items-end gap-3">
       <div className="w-44">
-        <label htmlFor="reviews-reply-filter" className="mb-1 block text-xs font-medium text-muted">
+        <label
+          htmlFor="reviews-reply-filter"
+          className="mb-1.5 block text-xs font-medium text-muted-foreground"
+        >
           สถานะการตอบกลับ
         </label>
         <Select
@@ -46,7 +49,7 @@ export function VendorReviewFilters({
       <div className="w-44">
         <label
           htmlFor="reviews-rating-filter"
-          className="mb-1 block text-xs font-medium text-muted"
+          className="mb-1.5 block text-xs font-medium text-muted-foreground"
         >
           กรองตามคะแนน
         </label>

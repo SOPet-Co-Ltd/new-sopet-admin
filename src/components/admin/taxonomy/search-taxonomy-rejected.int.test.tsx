@@ -65,6 +65,52 @@ describe('search taxonomy rejected integration', () => {
     expect(within(screen.getByRole('listitem')).getByText(/ปฏิเสธแล้ว/)).toBeInTheDocument();
   });
 
+  it('renders rejected pet types and brands sections', () => {
+    const { rerender } = renderWithQueryClient(
+      <RejectedTaxonomySection
+        kind="petType"
+        items={[
+          {
+            id: 'pet-rejected-1',
+            name: 'สัตว์เลี้ยงที่ปฏิเสธ',
+            slug: 'rejected-pet',
+            status: 'rejected',
+          },
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'ประเภทสัตว์เลี้ยงที่ปฏิเสธแล้ว' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('สัตว์เลี้ยงที่ปฏิเสธ')).toBeInTheDocument();
+
+    rerender(
+      <QueryClientProvider
+        client={
+          new QueryClient({
+            defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+          })
+        }
+      >
+        <RejectedTaxonomySection
+          kind="brand"
+          items={[
+            {
+              id: 'brand-rejected-1',
+              name: 'แบรนด์ที่ปฏิเสธ',
+              slug: 'rejected-brand',
+              status: 'rejected',
+            },
+          ]}
+        />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByRole('heading', { name: 'แบรนด์ที่ปฏิเสธแล้ว' })).toBeInTheDocument();
+    expect(screen.getByText('แบรนด์ที่ปฏิเสธ')).toBeInTheDocument();
+  });
+
   it('shows empty copy for empty rejected lists without error (AC-030)', () => {
     const { rerender } = renderWithQueryClient(
       <RejectedTaxonomySection kind="category" items={[]} />,

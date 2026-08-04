@@ -10,6 +10,7 @@ export const ME_QUERY = gql`
         role
         storeId
         profilePhotoUrl
+        emailVerified
       }
     }
   }
@@ -27,6 +28,7 @@ export const VENDOR_LOGIN = gql`
         email
         fullName
         role
+        emailVerified
       }
     }
   }
@@ -44,6 +46,7 @@ export const ADMIN_LOGIN = gql`
         email
         fullName
         role
+        emailVerified
       }
     }
   }
@@ -155,6 +158,7 @@ export const VENDOR_ORDERS_QUERY = gql`
         trackingNumber
         fulfillmentProvider
         trackingUrl
+        variantOptions
       }
       storeShippings {
         storeId
@@ -376,6 +380,10 @@ export const PRODUCT_QUERY = gql`
   query Product($id: String!) {
     vendorProduct(id: $id) {
       ${PRODUCT_LIST_FIELDS}
+      averageRating
+      reviewCount
+      soldCount
+      compareAtPrice
     }
   }
 `;
@@ -406,10 +414,21 @@ export const VENDOR_PRODUCTS_QUERY = gql`
   query VendorProducts(
     $search: String
     $category: String
+    $tag: String
+    $petTypeIds: [String!]
+    $brandIds: [String!]
     $page: Int
     $limit: Int
   ) {
-    vendorProducts(search: $search, category: $category, page: $page, limit: $limit) {
+    vendorProducts(
+      search: $search
+      category: $category
+      tag: $tag
+      petTypeIds: $petTypeIds
+      brandIds: $brandIds
+      page: $page
+      limit: $limit
+    ) {
       items {
         ${PRODUCT_LIST_FIELDS}
       }
@@ -431,6 +450,36 @@ export const SYNC_PRODUCT_VARIANTS = gql`
       price
       stockQuantity
       optionsJson
+    }
+  }
+`;
+
+export const UPDATE_PRODUCT_VARIANT = gql`
+  mutation UpdateProductVariant($variantId: String!, $input: UpdateProductVariantInput!) {
+    updateProductVariant(variantId: $variantId, input: $input) {
+      id
+      sku
+      price
+      stockQuantity
+      optionsJson
+    }
+  }
+`;
+
+export const PRODUCT_VARIANT_SYNC_IMPACT = gql`
+  query ProductVariantSyncImpact($productId: String!, $variants: [SyncProductVariantItemInput!]!) {
+    productVariantSyncImpact(productId: $productId, variants: $variants) {
+      kept
+      new
+      removed
+      blocked
+      removedVariants {
+        id
+        sku
+        optionKey
+        optionsJson
+        reasons
+      }
     }
   }
 `;
@@ -576,6 +625,26 @@ export const STORE_INVITATIONS_QUERY = gql`
   }
 `;
 
+export const MY_PENDING_STORE_INVITATIONS_QUERY = gql`
+  query MyPendingStoreInvitations {
+    myPendingStoreInvitations {
+      id
+      storeId
+      storeName
+      role
+      status
+      expiresAt
+      token
+    }
+  }
+`;
+
+export const DECLINE_STORE_INVITATION = gql`
+  mutation DeclineStoreInvitation($token: String!) {
+    declineStoreInvitation(token: $token)
+  }
+`;
+
 export const INVITE_STORE_MEMBER = gql`
   mutation InviteStoreMember($input: InviteStoreMemberInput!) {
     inviteStoreMember(input: $input) {
@@ -654,6 +723,7 @@ export const ACCEPT_STORE_MEMBER_INVITATION = gql`
         email
         fullName
         role
+        emailVerified
       }
     }
   }
@@ -829,6 +899,7 @@ export const REGISTER_VENDOR = gql`
         email
         fullName
         role
+        emailVerified
       }
     }
   }
@@ -861,6 +932,14 @@ export const MY_STORE_REQUESTS_QUERY = gql`
 export const PENDING_STORE_REQUESTS_QUERY = gql`
   query PendingStoreRequests {
     pendingStoreRequests {
+      ${STORE_REQUEST_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_STORE_REQUESTS_QUERY = gql`
+  query AdminStoreRequests {
+    adminStoreRequests {
       ${STORE_REQUEST_FIELDS}
     }
   }
@@ -1016,6 +1095,44 @@ const ADMIN_VENDOR_FIELDS = `
   }
 `;
 
+const ADMIN_VENDOR_INSIGHTS_FIELDS = `
+  storeCount
+  membershipCount
+  totalRevenue
+  orderCount
+  averageOrderValue
+  lastOrderAt
+  lastActivityAt
+  memberships {
+    storeId
+    storeName
+    storeSlug
+    storeStatus
+    role
+    joinedAt
+  }
+  activities {
+    kind
+    occurredAt
+    storeId
+    storeName
+    orderNumber
+  }
+  recentOrders {
+    id
+    orderNumber
+    status
+    total
+    createdAt
+    items {
+      productName
+      quantity
+      unitPrice
+      subtotal
+    }
+  }
+`;
+
 export const ADMIN_VENDORS_QUERY = gql`
   query AdminVendors($search: String) {
     adminVendors(search: $search) {
@@ -1032,6 +1149,18 @@ export const ADMIN_VENDOR_QUERY = gql`
   }
 `;
 
+export const ADMIN_VENDOR_DETAIL_QUERY = gql`
+  query AdminVendorDetail($id: String!) {
+    adminVendorDetail(id: $id) {
+      ${ADMIN_VENDOR_FIELDS}
+      emailVerified
+      insights {
+        ${ADMIN_VENDOR_INSIGHTS_FIELDS}
+      }
+    }
+  }
+`;
+
 export const UPDATE_VENDOR_AS_ADMIN = gql`
   mutation UpdateVendorAsAdmin($input: UpdateVendorAsAdminInput!) {
     updateVendorAsAdmin(input: $input) {
@@ -1043,6 +1172,38 @@ export const UPDATE_VENDOR_AS_ADMIN = gql`
 export const ADMIN_TRIGGER_VENDOR_PASSWORD_RESET = gql`
   mutation AdminTriggerVendorPasswordReset($vendorId: String!) {
     adminTriggerVendorPasswordReset(vendorId: $vendorId) {
+      message
+    }
+  }
+`;
+
+export const ADMIN_RESEND_VENDOR_EMAIL_VERIFICATION = gql`
+  mutation AdminResendVendorEmailVerification($vendorId: String!) {
+    adminResendVendorEmailVerification(vendorId: $vendorId) {
+      message
+    }
+  }
+`;
+
+export const ADMIN_VERIFY_VENDOR_EMAIL = gql`
+  mutation AdminVerifyVendorEmail($vendorId: String!) {
+    adminVerifyVendorEmail(vendorId: $vendorId) {
+      message
+    }
+  }
+`;
+
+export const VERIFY_EMAIL = gql`
+  mutation VerifyEmail($input: VerifyEmailInput!) {
+    verifyEmail(input: $input) {
+      message
+    }
+  }
+`;
+
+export const RESEND_EMAIL_VERIFICATION = gql`
+  mutation ResendEmailVerification {
+    resendEmailVerification {
       message
     }
   }
@@ -1084,6 +1245,7 @@ export const ACCEPT_VENDOR_INVITATION = gql`
         email
         fullName
         role
+        emailVerified
       }
     }
   }
@@ -1432,6 +1594,44 @@ export const DELETE_PLATFORM_AD = gql`
   }
 `;
 
+const LOGIN_PAGE_IMAGES_FIELDS = `
+  desktopImageUrl
+  mobileImageUrl
+  altText
+`;
+
+export const LOGIN_PAGE_IMAGES_QUERY = gql`
+  query LoginPageImages {
+    loginPageImages {
+      ${LOGIN_PAGE_IMAGES_FIELDS}
+    }
+  }
+`;
+
+export const UPDATE_LOGIN_PAGE_IMAGES = gql`
+  mutation UpdateLoginPageImages($input: UpdateLoginPageImagesInput!) {
+    updateLoginPageImages(input: $input) {
+      ${LOGIN_PAGE_IMAGES_FIELDS}
+    }
+  }
+`;
+
+export const CLEAR_LOGIN_PAGE_DESKTOP_IMAGE = gql`
+  mutation ClearLoginPageDesktopImage {
+    clearLoginPageDesktopImage {
+      ${LOGIN_PAGE_IMAGES_FIELDS}
+    }
+  }
+`;
+
+export const CLEAR_LOGIN_PAGE_MOBILE_IMAGE = gql`
+  mutation ClearLoginPageMobileImage {
+    clearLoginPageMobileImage {
+      ${LOGIN_PAGE_IMAGES_FIELDS}
+    }
+  }
+`;
+
 const ADMIN_TEAM_MEMBER_FIELDS = `
   id
   email
@@ -1487,6 +1687,32 @@ export const SET_ADMIN_ACTIVE = gql`
   }
 `;
 
+export const ADMIN_INVITATION_BY_TOKEN_QUERY = gql`
+  query GetAdminInvitationByToken($token: String!) {
+    getAdminInvitationByToken(token: $token) {
+      ${ADMIN_INVITATION_FIELDS}
+    }
+  }
+`;
+
+export const ACCEPT_ADMIN_INVITATION = gql`
+  mutation AcceptAdminInvitation($input: AcceptAdminInvitationInput!) {
+    acceptAdminInvitation(input: $input) {
+      tokens {
+        accessToken
+        refreshToken
+      }
+      user {
+        id
+        email
+        fullName
+        role
+        emailVerified
+      }
+    }
+  }
+`;
+
 export const REQUEST_PASSWORD_RESET = gql`
   mutation RequestPasswordReset($input: RequestPasswordResetInput!) {
     requestPasswordReset(input: $input) {
@@ -1503,11 +1729,42 @@ export const RESET_PASSWORD = gql`
   }
 `;
 
+export const PASSWORD_RESET_TOKEN_STATUS_QUERY = gql`
+  query GetPasswordResetTokenStatus($token: String!) {
+    getPasswordResetTokenStatus(token: $token) {
+      valid
+      status
+    }
+  }
+`;
+
 export const UPLOAD_IMAGE = gql`
   mutation UploadImage($base64: String!, $folder: String) {
     uploadImage(base64: $base64, folder: $folder) {
       url
       key
+    }
+  }
+`;
+
+const ADMIN_CUSTOMER_INSIGHTS_FIELDS = `
+  totalSpent
+  orderCount
+  averageOrderValue
+  lastOrderAt
+  addressCount
+  favoriteCount
+  recentOrders {
+    id
+    orderNumber
+    status
+    total
+    createdAt
+    items {
+      productName
+      quantity
+      unitPrice
+      subtotal
     }
   }
 `;
@@ -1523,6 +1780,39 @@ const ADMIN_CUSTOMER_FIELDS = `
   lastLoginAt
   createdAt
   updatedAt
+`;
+
+const VENDOR_CUSTOMER_INSIGHTS_FIELDS = `
+  totalSpent
+  orderCount
+  averageOrderValue
+  lastOrderAt
+  favoriteCount
+  reviewCount
+  recentOrders {
+    id
+    orderNumber
+    status
+    total
+    createdAt
+    items {
+      productName
+      quantity
+      unitPrice
+      subtotal
+    }
+  }
+  recentReviews {
+    id
+    productName
+    rating
+    comment
+    createdAt
+  }
+  favoriteProducts {
+    productName
+    createdAt
+  }
 `;
 
 const VENDOR_CUSTOMER_FIELDS = `
@@ -1555,6 +1845,17 @@ export const ADMIN_CUSTOMER_QUERY = gql`
   query AdminCustomer($id: String!) {
     adminCustomer(id: $id) {
       ${ADMIN_CUSTOMER_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_CUSTOMER_DETAIL_QUERY = gql`
+  query AdminCustomerDetail($id: String!) {
+    adminCustomerDetail(id: $id) {
+      ${ADMIN_CUSTOMER_FIELDS}
+      insights {
+        ${ADMIN_CUSTOMER_INSIGHTS_FIELDS}
+      }
     }
   }
 `;
@@ -1599,8 +1900,19 @@ export const VENDOR_CUSTOMER_QUERY = gql`
   }
 `;
 
+export const VENDOR_CUSTOMER_DETAIL_QUERY = gql`
+  query VendorCustomerDetail($id: String!) {
+    vendorCustomerDetail(id: $id) {
+      ${VENDOR_CUSTOMER_FIELDS}
+      insights {
+        ${VENDOR_CUSTOMER_INSIGHTS_FIELDS}
+      }
+    }
+  }
+`;
+
 export const STORE_API_KEYS_QUERY = gql`
-  query StoreApiKeys($storeId: ID!) {
+  query StoreApiKeys($storeId: String!) {
     storeApiKeys(storeId: $storeId) {
       id
       name
@@ -1613,7 +1925,7 @@ export const STORE_API_KEYS_QUERY = gql`
 `;
 
 export const CREATE_STORE_API_KEY = gql`
-  mutation CreateStoreApiKey($storeId: ID!, $name: String!) {
+  mutation CreateStoreApiKey($storeId: String!, $name: String!) {
     createStoreApiKey(storeId: $storeId, name: $name) {
       apiKey {
         id
@@ -1628,7 +1940,7 @@ export const CREATE_STORE_API_KEY = gql`
 `;
 
 export const REVOKE_STORE_API_KEY = gql`
-  mutation RevokeStoreApiKey($storeId: ID!, $id: ID!) {
+  mutation RevokeStoreApiKey($storeId: String!, $id: String!) {
     revokeStoreApiKey(storeId: $storeId, id: $id)
   }
 `;
@@ -1793,6 +2105,102 @@ export const PLATFORM_SETTINGS_FOR_VENDOR_QUERY = gql`
   query PlatformSettingsForVendor {
     platformSettings {
       storefrontUrl
+    }
+  }
+`;
+
+const PAYOUT_SUMMARY_FIELDS = `
+  storeId
+  grossRevenue
+  totalPaidOut
+  availableBalance
+  pendingPayoutAmount
+  minimumPayoutAmount
+  canRequestPayout
+`;
+
+const PAYOUT_FIELDS = `
+  id
+  storeId
+  amount
+  netAmount
+  status
+  createdAt
+`;
+
+export const STORE_PAYOUT_SUMMARY_QUERY = gql`
+  query StorePayoutSummary {
+    storePayoutSummary {
+      ${PAYOUT_SUMMARY_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_STORE_PAYOUT_SUMMARY_QUERY = gql`
+  query AdminStorePayoutSummary($storeId: String!) {
+    adminStorePayoutSummary(storeId: $storeId) {
+      ${PAYOUT_SUMMARY_FIELDS}
+    }
+  }
+`;
+
+export const STORE_PAYOUTS_QUERY = gql`
+  query StorePayouts {
+    storePayouts {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_STORE_PAYOUTS_QUERY = gql`
+  query AdminStorePayouts($storeId: String!) {
+    adminStorePayouts(storeId: $storeId) {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const REQUEST_PAYOUT_MUTATION = gql`
+  mutation RequestPayout {
+    requestPayout {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const TRIGGER_PAYOUT_MUTATION = gql`
+  mutation TriggerPayout($input: TriggerPayoutInput!) {
+    triggerPayout(input: $input) {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+const ADMIN_AUDIT_LOG_FIELDS = `
+  id
+  actorType
+  actorId
+  actorLabel
+  action
+  resourceType
+  resourceId
+  metadata
+  ipAddress
+  createdAt
+`;
+
+export const ADMIN_AUDIT_LOGS_QUERY = gql`
+  query AdminAuditLogs($page: Int!, $limit: Int!, $filter: AdminAuditLogFilterInput) {
+    adminAuditLogs(page: $page, limit: $limit, filter: $filter) {
+      items {
+        ${ADMIN_AUDIT_LOG_FIELDS}
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
     }
   }
 `;

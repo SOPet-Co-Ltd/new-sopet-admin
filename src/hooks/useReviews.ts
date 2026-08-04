@@ -32,7 +32,9 @@ export function useCreateReviewReply(storeId: string) {
     meta: { toastError: false },
     mutationFn: (input: { reviewId: string; body: string }) => createReviewReply(input),
     onSuccess: () => {
+      // Prefix without params so all paginated store queries match
       queryClient.invalidateQueries({ queryKey: ['reviews', 'store', storeId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.reviews.summary(storeId) });
     },
   });
 }
@@ -44,6 +46,7 @@ export function useUpdateReviewReply(storeId: string) {
     mutationFn: (input: { replyId: string; body: string }) => updateReviewReply(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviews', 'store', storeId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.reviews.summary(storeId) });
     },
   });
 }

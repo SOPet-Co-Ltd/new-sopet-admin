@@ -24,6 +24,7 @@ type GqlUser = {
   fullName: string;
   role: string;
   profilePhotoUrl?: string | null;
+  emailVerified?: boolean;
 };
 
 type GqlStore = {
@@ -47,6 +48,7 @@ type GqlOrderItem = {
   trackingNumber?: string | null;
   fulfillmentProvider?: string | null;
   trackingUrl?: string | null;
+  variantOptions?: string | null;
 };
 
 type GqlOrderShippingAddress = {
@@ -92,6 +94,7 @@ export function mapUser(user: GqlUser, storeId?: string): User {
     role: user.role,
     storeId,
     profilePhotoUrl: user.profilePhotoUrl ?? null,
+    emailVerified: user.emailVerified ?? false,
   };
 }
 
@@ -139,19 +142,45 @@ export function mapOrder(order: GqlOrder): Order {
         optionName: shipping.optionName,
         shippingFee: shipping.shippingFee,
       })) ?? [],
-    items: order.items.map((item) => ({
-      id: item.id,
-      storeId: item.storeId,
-      productName: item.productName,
-      unitPrice: item.unitPrice,
-      quantity: item.quantity,
-      subtotal: item.subtotal,
-      fulfillmentStatus: item.fulfillmentStatus,
-      trackingNumber: item.trackingNumber ?? undefined,
-      fulfillmentProvider: item.fulfillmentProvider ?? undefined,
-      trackingUrl: item.trackingUrl ?? undefined,
-    })),
+    items: order.items.map((item) => {
+      const parsedOptions = parseOrderVariantOptions(item.variantOptions);
+      return {
+        id: item.id,
+        storeId: item.storeId,
+        productName: item.productName,
+        unitPrice: item.unitPrice,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+        fulfillmentStatus: item.fulfillmentStatus,
+        trackingNumber: item.trackingNumber ?? undefined,
+        fulfillmentProvider: item.fulfillmentProvider ?? undefined,
+        trackingUrl: item.trackingUrl ?? undefined,
+        variantOptions: parsedOptions,
+      };
+    }),
   };
+}
+
+/** Parse GraphQL JSON-string snapshot; null when empty/invalid (UI omits the line). */
+function parseOrderVariantOptions(variantOptions?: string | null): Record<string, string> | null {
+  if (variantOptions == null || variantOptions === '' || variantOptions === '{}') {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(variantOptions) as Record<string, unknown>;
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      return null;
+    }
+    const options: Record<string, string> = {};
+    for (const [key, value] of Object.entries(parsed)) {
+      if (value != null) {
+        options[key] = String(value);
+      }
+    }
+    return Object.keys(options).length > 0 ? options : null;
+  } catch {
+    return null;
+  }
 }
 
 type GqlProductImage = {
@@ -176,6 +205,7 @@ type GqlProduct = {
   slug: string;
   description?: string | null;
   basePrice: number;
+  compareAtPrice?: number | null;
   warning?: string | null;
   expiryDate?: string | null;
   thumbnailUrl?: string | null;
@@ -188,6 +218,9 @@ type GqlProduct = {
   tagIds?: string[] | null;
   images?: GqlProductImage[] | null;
   variants?: GqlProductVariant[] | null;
+  averageRating?: number | null;
+  reviewCount?: number | null;
+  soldCount?: number | null;
 };
 
 type GqlPagination = {
@@ -213,6 +246,7 @@ export function mapProduct(product: GqlProduct): Product {
     slug: product.slug,
     description: product.description ?? undefined,
     basePrice: product.basePrice,
+    compareAtPrice: product.compareAtPrice ?? undefined,
     warning: product.warning ?? undefined,
     expiryDate: product.expiryDate ?? undefined,
     thumbnailUrl: product.thumbnailUrl ?? undefined,
@@ -236,6 +270,9 @@ export function mapProduct(product: GqlProduct): Product {
       stockQuantity: variant.stockQuantity,
       optionsJson: variant.optionsJson,
     })),
+    averageRating: product.averageRating ?? undefined,
+    reviewCount: product.reviewCount ?? undefined,
+    soldCount: product.soldCount ?? undefined,
   };
 }
 
@@ -482,6 +519,95 @@ export function mapAdminVendor(vendor: GqlAdminVendor): AdminVendor {
     lastLoginAt: vendor.lastLoginAt ?? undefined,
     createdAt: vendor.createdAt ?? undefined,
     storeCount: vendor.stores?.length,
+    stores: vendor.stores?.map((store) => ({
+      id: store.id,
+      name: store.name,
+      slug: store.slug,
+      status: store.status,
+    })),
+  };
+}
+
+type GqlAdminVendorActivity = {
+  kind: string;
+  occurredAt: string;
+  storeId?: string | null;
+  storeName?: string | null;
+  orderNumber?: string | null;
+};
+
+type GqlAdminVendorMembership = {
+  storeId: string;
+  storeName: string;
+  storeSlug: string;
+  storeStatus: string;
+  role: string;
+  joinedAt: string;
+};
+
+type GqlAdminVendorInsights = {
+  storeCount: number;
+  membershipCount: number;
+  totalRevenue: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  lastActivityAt?: string | null;
+  memberships: GqlAdminVendorMembership[];
+  activities: GqlAdminVendorActivity[];
+  recentOrders: GqlAdminCustomerRecentOrder[];
+};
+
+type GqlAdminVendorDetail = GqlAdminVendor & {
+  emailVerified: boolean;
+  insights: GqlAdminVendorInsights;
+};
+
+export function mapAdminVendorDetail(
+  vendor: GqlAdminVendorDetail,
+): import('@/types').AdminVendorDetail {
+  const mapped = mapAdminVendor(vendor);
+  return {
+    ...mapped,
+    emailVerified: vendor.emailVerified,
+    stores: mapped.stores ?? [],
+    insights: {
+      storeCount: vendor.insights.storeCount,
+      membershipCount: vendor.insights.membershipCount,
+      totalRevenue: vendor.insights.totalRevenue,
+      orderCount: vendor.insights.orderCount,
+      averageOrderValue: vendor.insights.averageOrderValue,
+      lastOrderAt: vendor.insights.lastOrderAt ?? undefined,
+      lastActivityAt: vendor.insights.lastActivityAt ?? undefined,
+      memberships: vendor.insights.memberships.map((membership) => ({
+        storeId: membership.storeId,
+        storeName: membership.storeName,
+        storeSlug: membership.storeSlug,
+        storeStatus: membership.storeStatus,
+        role: membership.role,
+        joinedAt: membership.joinedAt,
+      })),
+      activities: vendor.insights.activities.map((activity) => ({
+        kind: activity.kind,
+        occurredAt: activity.occurredAt,
+        storeId: activity.storeId ?? undefined,
+        storeName: activity.storeName ?? undefined,
+        orderNumber: activity.orderNumber ?? undefined,
+      })),
+      recentOrders: vendor.insights.recentOrders.map((order) => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        total: order.total,
+        createdAt: order.createdAt,
+        items: order.items.map((item) => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          subtotal: item.subtotal,
+        })),
+      })),
+    },
   };
 }
 
@@ -633,6 +759,65 @@ export function mapAdminCustomer(customer: GqlAdminCustomer): import('@/types').
   };
 }
 
+type GqlAdminCustomerOrderItemSummary = {
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+};
+
+type GqlAdminCustomerRecentOrder = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  items: GqlAdminCustomerOrderItemSummary[];
+};
+
+type GqlAdminCustomerInsights = {
+  totalSpent: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  addressCount: number;
+  favoriteCount: number;
+  recentOrders: GqlAdminCustomerRecentOrder[];
+};
+
+type GqlAdminCustomerDetail = GqlAdminCustomer & {
+  insights: GqlAdminCustomerInsights;
+};
+
+export function mapAdminCustomerDetail(
+  customer: GqlAdminCustomerDetail,
+): import('@/types').AdminCustomerDetail {
+  return {
+    ...mapAdminCustomer(customer),
+    insights: {
+      totalSpent: customer.insights.totalSpent,
+      orderCount: customer.insights.orderCount,
+      averageOrderValue: customer.insights.averageOrderValue,
+      lastOrderAt: customer.insights.lastOrderAt ?? undefined,
+      addressCount: customer.insights.addressCount,
+      favoriteCount: customer.insights.favoriteCount,
+      recentOrders: customer.insights.recentOrders.map((order) => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        total: order.total,
+        createdAt: order.createdAt,
+        items: order.items.map((item) => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          subtotal: item.subtotal,
+        })),
+      })),
+    },
+  };
+}
+
 type GqlVendorCustomer = {
   id: string;
   phone: string;
@@ -652,5 +837,70 @@ export function mapVendorCustomer(customer: GqlVendorCustomer): import('@/types'
     isVerified: customer.isVerified,
     lastLoginAt: customer.lastLoginAt ?? undefined,
     createdAt: customer.createdAt,
+  };
+}
+
+type GqlVendorCustomerStoreInsights = {
+  totalSpent: number;
+  orderCount: number;
+  averageOrderValue: number;
+  lastOrderAt?: string | null;
+  favoriteCount: number;
+  reviewCount: number;
+  recentOrders: GqlAdminCustomerRecentOrder[];
+  recentReviews: Array<{
+    id: string;
+    productName: string;
+    rating: number;
+    comment?: string | null;
+    createdAt: string;
+  }>;
+  favoriteProducts: Array<{
+    productName: string;
+    createdAt: string;
+  }>;
+};
+
+type GqlVendorCustomerDetail = GqlVendorCustomer & {
+  insights: GqlVendorCustomerStoreInsights;
+};
+
+export function mapVendorCustomerDetail(
+  customer: GqlVendorCustomerDetail,
+): import('@/types').VendorCustomerDetail {
+  return {
+    ...mapVendorCustomer(customer),
+    insights: {
+      totalSpent: customer.insights.totalSpent,
+      orderCount: customer.insights.orderCount,
+      averageOrderValue: customer.insights.averageOrderValue,
+      lastOrderAt: customer.insights.lastOrderAt ?? undefined,
+      favoriteCount: customer.insights.favoriteCount,
+      reviewCount: customer.insights.reviewCount,
+      recentOrders: customer.insights.recentOrders.map((order) => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        total: order.total,
+        createdAt: order.createdAt,
+        items: order.items.map((item) => ({
+          productName: item.productName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          subtotal: item.subtotal,
+        })),
+      })),
+      recentReviews: customer.insights.recentReviews.map((review) => ({
+        id: review.id,
+        productName: review.productName,
+        rating: review.rating,
+        comment: review.comment,
+        createdAt: review.createdAt,
+      })),
+      favoriteProducts: customer.insights.favoriteProducts.map((favorite) => ({
+        productName: favorite.productName,
+        createdAt: favorite.createdAt,
+      })),
+    },
   };
 }

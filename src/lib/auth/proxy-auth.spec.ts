@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getAuthRedirectPath, getRoleFromAccessToken } from '@/lib/auth/proxy-auth';
+import {
+  getAuthRedirectPath,
+  getGuestOnlyRedirectPath,
+  getRoleFromAccessToken,
+} from '@/lib/auth/proxy-auth';
 
 function createFakeJwt(payload: Record<string, unknown>): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
@@ -10,6 +14,11 @@ function createFakeJwt(payload: Record<string, unknown>): string {
 describe('proxy-auth', () => {
   it('returns null role for malformed tokens', () => {
     expect(getRoleFromAccessToken('not-a-jwt')).toBeNull();
+  });
+
+  it('returns null role for expired tokens', () => {
+    const token = createFakeJwt({ role: 'admin', exp: Math.floor(Date.now() / 1000) - 60 });
+    expect(getRoleFromAccessToken(token)).toBeNull();
   });
 
   it('redirects unauthenticated admin requests to login', () => {
@@ -39,5 +48,35 @@ describe('proxy-auth', () => {
   it('allows matching vendor role through vendor routes', () => {
     const token = createFakeJwt({ role: 'vendor' });
     expect(getAuthRedirectPath('/vendor/products', 'vendor', token)).toBeNull();
+  });
+
+  it('allows unauthenticated access to vendor API llms.txt', () => {
+    expect(getAuthRedirectPath('/vendor/api/llms.txt', null, undefined)).toBeNull();
+  });
+
+  it('still protects other vendor API pages', () => {
+    expect(getAuthRedirectPath('/vendor/api', null, undefined)).toBe('/login');
+    expect(getAuthRedirectPath('/vendor/api/docs', null, undefined)).toBe('/login');
+  });
+
+  it('redirects authenticated users away from register', () => {
+    const vendorToken = createFakeJwt({ role: 'vendor' });
+    expect(getGuestOnlyRedirectPath('/register', 'vendor', vendorToken)).toBe('/vendor');
+
+    const adminToken = createFakeJwt({ role: 'admin' });
+    expect(getGuestOnlyRedirectPath('/register', 'admin', adminToken)).toBe('/admin/stores');
+    expect(getGuestOnlyRedirectPath('/register/invite', 'vendor', vendorToken)).toBe('/vendor');
+  });
+
+  it('allows unauthenticated users to access register', () => {
+    expect(getAuthRedirectPath('/register', null, undefined)).toBeNull();
+    expect(getAuthRedirectPath('/register/invite', null, undefined)).toBeNull();
+    expect(getGuestOnlyRedirectPath('/register', null, undefined)).toBeNull();
+    expect(getGuestOnlyRedirectPath('/register', null, 'token')).toBeNull();
+  });
+
+  it('ignores non-register routes for guest-only redirect', () => {
+    const token = createFakeJwt({ role: 'vendor' });
+    expect(getGuestOnlyRedirectPath('/login', 'vendor', token)).toBeNull();
   });
 });

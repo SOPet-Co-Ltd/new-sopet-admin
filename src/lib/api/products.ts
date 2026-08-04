@@ -4,9 +4,11 @@ import {
   DELETE_PRODUCT,
   PRODUCT_PUBLISH_CHECKLIST_QUERY,
   PRODUCT_QUERY,
+  PRODUCT_VARIANT_SYNC_IMPACT,
   PUBLISH_PRODUCT,
   SYNC_PRODUCT_VARIANTS,
   UPDATE_PRODUCT,
+  UPDATE_PRODUCT_VARIANT,
   VENDOR_PRODUCTS_QUERY,
 } from '@/lib/graphql/documents';
 import { mapPagination, mapProduct } from '@/lib/graphql/mappers';
@@ -15,11 +17,37 @@ import type {
   CreateProductInput,
   Product,
   ProductPublishChecklist,
+  ProductVariantSyncImpact,
   ProductsQueryParams,
   ProductsResult,
   SyncVariantInput,
   UpdateProductInput,
 } from '@/types';
+
+/** Shared GraphQL variables for impact preview and sync — keep payloads identical. */
+export function toSyncVariantGraphqlVariables(
+  variants: SyncVariantInput[] | VariantItem[],
+  productBasePrice = 0,
+): Array<{
+  id?: string;
+  sku: string;
+  stockQuantity: number;
+  priceModifier?: number;
+  attributes: string;
+}> {
+  const payload =
+    variants.length > 0 && 'options' in variants[0]
+      ? variantItemsToSyncInput(variants as VariantItem[], productBasePrice)
+      : (variants as SyncVariantInput[]);
+
+  return payload.map((variant) => ({
+    id: variant.id,
+    sku: variant.sku,
+    stockQuantity: variant.stockQuantity,
+    priceModifier: variant.priceModifier,
+    attributes: JSON.stringify(variant.attributes),
+  }));
+}
 
 export function getProduct(id: string): Promise<Product> {
   return executeQuery<{ vendorProduct: Parameters<typeof mapProduct>[0] }>(PRODUCT_QUERY, {
@@ -72,16 +100,25 @@ export function deleteProduct(id: string): Promise<boolean> {
   );
 }
 
+export function getProductVariantSyncImpact(
+  productId: string,
+  variants: SyncVariantInput[] | VariantItem[],
+  productBasePrice = 0,
+): Promise<ProductVariantSyncImpact> {
+  return executeQuery<{ productVariantSyncImpact: ProductVariantSyncImpact }>(
+    PRODUCT_VARIANT_SYNC_IMPACT,
+    {
+      productId,
+      variants: toSyncVariantGraphqlVariables(variants, productBasePrice),
+    },
+  ).then((data) => data.productVariantSyncImpact);
+}
+
 export function syncProductVariants(
   productId: string,
   variants: SyncVariantInput[] | VariantItem[],
   productBasePrice = 0,
 ): Promise<NonNullable<Product['variants']>> {
-  const payload =
-    variants.length > 0 && 'options' in variants[0]
-      ? variantItemsToSyncInput(variants as VariantItem[], productBasePrice)
-      : (variants as SyncVariantInput[]);
-
   return executeMutation<{
     syncProductVariants: Array<{
       id: string;
@@ -92,13 +129,7 @@ export function syncProductVariants(
     }>;
   }>(SYNC_PRODUCT_VARIANTS, {
     productId,
-    variants: payload.map((variant) => ({
-      id: variant.id,
-      sku: variant.sku,
-      stockQuantity: variant.stockQuantity,
-      priceModifier: variant.priceModifier,
-      attributes: JSON.stringify(variant.attributes),
-    })),
+    variants: toSyncVariantGraphqlVariables(variants, productBasePrice),
   }).then((data) =>
     data.syncProductVariants.map((variant) => ({
       id: variant.id,
@@ -108,4 +139,28 @@ export function syncProductVariants(
       optionsJson: variant.optionsJson,
     })),
   );
+}
+
+export function updateProductVariantStock(
+  variantId: string,
+  stockQuantity: number,
+): Promise<NonNullable<Product['variants']>[number]> {
+  return executeMutation<{
+    updateProductVariant: {
+      id: string;
+      sku: string;
+      price: number;
+      stockQuantity: number;
+      optionsJson?: string | null;
+    };
+  }>(UPDATE_PRODUCT_VARIANT, {
+    variantId,
+    input: { stockQuantity },
+  }).then((data) => ({
+    id: data.updateProductVariant.id,
+    sku: data.updateProductVariant.sku,
+    price: data.updateProductVariant.price,
+    stockQuantity: data.updateProductVariant.stockQuantity,
+    optionsJson: data.updateProductVariant.optionsJson,
+  }));
 }

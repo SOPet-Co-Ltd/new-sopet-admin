@@ -8,6 +8,15 @@ export function getStoreOrderItems(order: Order, storeId?: string): OrderItem[] 
   return order.items.filter((item) => item.storeId === storeId);
 }
 
+const TERMINAL_FULFILLMENT_STATUSES = new Set(['shipped', 'delivered', 'cancelled', 'refunded']);
+
+function isHeldActionableSet(fulfillmentStatuses: string[]): boolean {
+  const actionable = fulfillmentStatuses.filter(
+    (status) => !TERMINAL_FULFILLMENT_STATUSES.has(status),
+  );
+  return actionable.length > 0 && actionable.every((status) => status === 'on_hold');
+}
+
 export function getVendorOrderWorkflowAction(
   order: Order,
   storeId?: string,
@@ -19,11 +28,20 @@ export function getVendorOrderWorkflowAction(
     return order.status === 'delivered' ? 'completed' : 'none';
   }
 
-  if (order.status === 'pending_payment') {
-    return 'mark_paid';
+  if (order.status === 'on_hold') {
+    return 'none';
   }
 
   const fulfillmentStatuses = storeItems.map((item) => item.fulfillmentStatus);
+
+  // Held store items are not fulfillable work (AC-034) — including unpaid sticky holds.
+  if (isHeldActionableSet(fulfillmentStatuses)) {
+    return 'none';
+  }
+
+  if (order.status === 'pending_payment') {
+    return 'mark_paid';
+  }
 
   if (fulfillmentStatuses.every((status) => status === 'delivered')) {
     return 'completed';
@@ -92,6 +110,10 @@ export function canVendorCancelOrder(order: Order, storeId?: string): boolean {
 
   const storeItems = getStoreOrderItems(order, storeId);
   if (storeItems.length === 0) {
+    return false;
+  }
+
+  if (storeItems.some((item) => item.fulfillmentStatus === 'on_hold')) {
     return false;
   }
 

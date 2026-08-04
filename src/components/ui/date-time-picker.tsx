@@ -124,13 +124,15 @@ export function DateTimePicker({
   const parsed = parseDateValue(value);
   const [viewYear, setViewYear] = useState(parsed?.year ?? today.getFullYear());
   const [viewMonth, setViewMonth] = useState(parsed?.month ?? today.getMonth() + 1);
+  const [prevValue, setPrevValue] = useState(value);
 
-  useEffect(() => {
+  if (value !== prevValue) {
+    setPrevValue(value);
     if (parsed) {
       setViewYear(parsed.year);
       setViewMonth(parsed.month);
     }
-  }, [value]);
+  }
 
   const selectedDay = parsed?.day ?? null;
   const time = parseTimeValue(value);

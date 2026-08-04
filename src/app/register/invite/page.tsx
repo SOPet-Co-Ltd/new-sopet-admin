@@ -10,10 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getDashboardPath, useCurrentUser } from '@/hooks/useAuth';
 import { useAcceptVendorInvitation } from '@/hooks/useVendorInvitations';
+import { hasClientSession } from '@/lib/api/client';
+import { useAuthStore } from '@/stores/auth.store';
 
 const schema = z.object({
-  fullName: z.string().min(1, 'กรุณากรอกชื่อ'),
+  fullName: z.string().trim().min(1, 'กรุณากรอกชื่อ'),
   password: z.string().min(8, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'),
 });
 
@@ -24,6 +27,20 @@ function AcceptVendorInviteForm() {
   const router = useRouter();
   const token = searchParams.get('token') ?? '';
   const acceptMutation = useAcceptVendorInvitation();
+  const { user, isAuthenticated } = useCurrentUser();
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
+    if (isAuthenticated && hasClientSession() && user) {
+      router.replace(getDashboardPath(user.role));
+    }
+  }, [hasHydrated, isAuthenticated, router, user]);
+
+  const isRedirecting = hasHydrated && isAuthenticated && hasClientSession() && !!user;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -35,6 +52,10 @@ function AcceptVendorInviteForm() {
       form.setError('root', { message: 'ลิงก์คำเชิญไม่ถูกต้อง' });
     }
   }, [form, token]);
+
+  if (!hasHydrated || isRedirecting) {
+    return <p className="text-muted">กำลังเปลี่ยนหน้า...</p>;
+  }
 
   async function onSubmit(values: FormValues) {
     if (!token) return;

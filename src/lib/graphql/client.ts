@@ -7,7 +7,6 @@ import {
   type OperationVariables,
   type TypedDocumentNode,
 } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { CombinedGraphQLErrors, ServerError, ServerParseError } from '@apollo/client/errors';
@@ -16,15 +15,9 @@ import { getGraphqlWsUrl, GRAPHQL_URL } from '@/lib/config';
 import { ApiError } from '@/lib/api/errors-core';
 import { normalizeError } from '@/lib/api/errors';
 import { ERROR_MESSAGES } from '@/lib/api/error-messages';
-import {
-  clearTokens,
-  getAccessToken,
-  getRefreshToken,
-  notifyAuthFailure,
-  setTokens,
-} from './tokens';
+import { clearTokens, hasClientSession, notifyAuthFailure, refreshViaBff } from './tokens';
 
-let refreshPromise: Promise<string> | null = null;
+let refreshPromise: Promise<boolean> | null = null;
 let apolloClient: ApolloClient | null = null;
 
 type WsReconnectListener = () => void;
@@ -51,10 +44,8 @@ function createWsLink(): GraphQLWsLink | null {
   return new GraphQLWsLink(
     createClient({
       url: getGraphqlWsUrl(),
-      connectionParams: () => {
-        const token = getAccessToken();
-        return token ? { authorization: `Bearer ${token}` } : {};
-      },
+      // Auth-gated subscriptions are out of scope; paymentStatusUpdated is @Public.
+      connectionParams: () => ({}),
       on: {
         connected: (_socket, _payload, wasReconnect) => {
           if (wasReconnect) {
@@ -66,59 +57,12 @@ function createWsLink(): GraphQLWsLink | null {
   );
 }
 
-async function refreshAccessToken(): Promise<string> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) {
-    throw new Error('No refresh token available.');
-  }
-
-  const response = await fetch(GRAPHQL_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: `
-        mutation RefreshToken($input: RefreshTokenInput!) {
-          refreshToken(input: $input) {
-            accessToken
-            refreshToken
-          }
-        }
-      `,
-      variables: { input: { refreshToken } },
-    }),
-  });
-
-  const payload = (await response.json()) as {
-    data?: { refreshToken?: { accessToken: string; refreshToken: string } };
-    errors?: Array<{ message: string }>;
-  };
-
-  if (!response.ok || payload.errors?.length || !payload.data?.refreshToken) {
-    throw new Error(payload.errors?.[0]?.message ?? 'Token refresh failed.');
-  }
-
-  const { accessToken, refreshToken: newRefreshToken } = payload.data.refreshToken;
-  setTokens(accessToken, newRefreshToken);
-  return accessToken;
-}
-
 function createApolloClient(): ApolloClient {
   const httpLink = new HttpLink({
     uri: GRAPHQL_URL,
     credentials: 'include',
   });
 
-  const authLink = setContext((_, { headers }) => {
-    const token = getAccessToken();
-    return {
-      headers: {
-        ...headers,
-        ...(token ? { authorization: `Bearer ${token}` } : {}),
-      },
-    };
-  });
-
-  const authenticatedHttpLink = authLink.concat(httpLink);
   const wsLink = createWsLink();
 
   const link = wsLink
@@ -130,9 +74,9 @@ function createApolloClient(): ApolloClient {
           );
         },
         wsLink,
-        authenticatedHttpLink,
+        httpLink,
       )
-    : authenticatedHttpLink;
+    : httpLink;
 
   return new ApolloClient({
     link,
@@ -155,8 +99,6 @@ function getErrorStatus(error: unknown): number | undefined {
   if (ServerError.is(error) || ServerParseError.is(error)) {
     return error.statusCode;
   }
-  // GraphQL auth failures surface as a 200 response with an UNAUTHENTICATED
-  // code in `errors[]`; treat them as 401 so the token refresh retry runs.
   if (CombinedGraphQLErrors.is(error)) {
     const code = error.errors[0]?.extensions?.code;
     if (code === 'UNAUTHENTICATED' || code === 'UNAUTHORIZED') {
@@ -174,21 +116,39 @@ async function withAuthRetry<T>(run: () => Promise<T>): Promise<T> {
   try {
     return await run();
   } catch (error) {
+    const normalized = normalizeError(error);
+    if (normalized.code === 'ACCOUNT_SUSPENDED') {
+      notifyAuthFailure(ERROR_MESSAGES.ACCOUNT_SUSPENDED);
+      throw normalized;
+    }
+
     const status = getErrorStatus(error);
-    if (status !== 401 || !getRefreshToken()) {
-      throw normalizeError(error);
+    if (status !== 401 || !hasClientSession()) {
+      throw normalized;
     }
 
     try {
       if (!refreshPromise) {
-        refreshPromise = refreshAccessToken().finally(() => {
+        refreshPromise = refreshViaBff().finally(() => {
           refreshPromise = null;
         });
       }
-      await refreshPromise;
+      const ok = await refreshPromise;
+      if (!ok) {
+        throw new Error('Token refresh failed.');
+      }
       return await run();
-    } catch {
-      clearTokens();
+    } catch (refreshError) {
+      const refreshNormalized = normalizeError(refreshError);
+      if (refreshNormalized.code === 'ACCOUNT_SUSPENDED') {
+        notifyAuthFailure(ERROR_MESSAGES.ACCOUNT_SUSPENDED);
+        throw new ApiError({
+          code: 'ACCOUNT_SUSPENDED',
+          message: ERROR_MESSAGES.ACCOUNT_SUSPENDED,
+          status: 403,
+        });
+      }
+      await clearTokens();
       notifyAuthFailure();
       throw new ApiError({
         code: 'SESSION_EXPIRED',
@@ -217,7 +177,7 @@ export async function executeQuery<
     const result = await getApolloClient().query({
       query: document,
       ...(variables ? { variables } : {}),
-      fetchPolicy: options?.fetchPolicy ?? 'cache-first',
+      fetchPolicy: options?.fetchPolicy ?? 'network-only',
     });
     if (!result.data) {
       throw new ApiError({
@@ -257,7 +217,7 @@ export async function executeMutation<
     }
 
     if (!options?.skipCacheReset) {
-      getApolloClient().cache.reset();
+      await getApolloClient().cache.reset();
     }
     return result.data as TData;
   });

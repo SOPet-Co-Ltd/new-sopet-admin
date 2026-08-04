@@ -4,7 +4,11 @@ import { notFound } from 'next/navigation';
 import { use } from 'react';
 import { PromotionCreateForm } from '@/components/promotions/promotion-create-form';
 import { useCreatePromotion } from '@/hooks/usePromotions';
-import { getPromotionTypeMeta, isPromotionType } from '@/lib/promotions/metadata';
+import {
+  getPromotionTypeMeta,
+  isAdminCreatablePromotionType,
+  isPromotionType,
+} from '@/lib/promotions/metadata';
 
 export default function AdminPromotionCreatePage({
   params,
@@ -14,7 +18,7 @@ export default function AdminPromotionCreatePage({
   const { type: rawType } = use(params);
   const createMutation = useCreatePromotion();
 
-  if (!isPromotionType(rawType)) {
+  if (!isPromotionType(rawType) || !isAdminCreatablePromotionType(rawType)) {
     notFound();
   }
   const type = rawType;
@@ -30,10 +34,7 @@ export default function AdminPromotionCreatePage({
       listHref="/admin/promotions"
       isPending={createMutation.isPending}
       onSubmit={async (input) => {
-        await createMutation.mutateAsync({
-          ...input,
-          scope: 'platform',
-        });
+        await createMutation.mutateAsync(input);
       }}
     />
   );

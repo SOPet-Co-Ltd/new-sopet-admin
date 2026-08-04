@@ -1,7 +1,16 @@
 import { executeQuery } from '@/lib/graphql/client';
-import { VENDOR_CUSTOMER_QUERY, VENDOR_CUSTOMERS_QUERY } from '@/lib/graphql/documents';
-import { mapVendorCustomer } from '@/lib/graphql/mappers';
-import type { CustomersQueryParams, Paginated, VendorCustomer } from '@/types';
+import {
+  VENDOR_CUSTOMER_DETAIL_QUERY,
+  VENDOR_CUSTOMER_QUERY,
+  VENDOR_CUSTOMERS_QUERY,
+} from '@/lib/graphql/documents';
+import { mapVendorCustomer, mapVendorCustomerDetail } from '@/lib/graphql/mappers';
+import type {
+  CustomersQueryParams,
+  Paginated,
+  VendorCustomer,
+  VendorCustomerDetail,
+} from '@/types';
 
 type GqlVendorCustomer = Parameters<typeof mapVendorCustomer>[0];
 
@@ -27,4 +36,11 @@ export function getVendorCustomer(id: string): Promise<VendorCustomer> {
   return executeQuery<{ vendorCustomer: GqlVendorCustomer }>(VENDOR_CUSTOMER_QUERY, { id }).then(
     (data) => mapVendorCustomer(data.vendorCustomer),
   );
+}
+
+export function getVendorCustomerDetail(id: string): Promise<VendorCustomerDetail> {
+  return executeQuery<{ vendorCustomerDetail: Parameters<typeof mapVendorCustomerDetail>[0] }>(
+    VENDOR_CUSTOMER_DETAIL_QUERY,
+    { id },
+  ).then((data) => mapVendorCustomerDetail(data.vendorCustomerDetail));
 }

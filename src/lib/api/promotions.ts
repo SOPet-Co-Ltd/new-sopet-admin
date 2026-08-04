@@ -15,6 +15,15 @@ import type { CreatePromotionInput, Promotion, UpdatePromotionInput } from '@/ty
 
 type GqlPromotion = Parameters<typeof mapPromotion>[0];
 
+/** Backend CreatePromotionInput has no `scope` — role derives it. Strip if callers still pass it. */
+function toCreatePromotionVariables(
+  input: CreatePromotionInput & { scope?: unknown },
+): CreatePromotionInput {
+  const { scope, ...rest } = input;
+  void scope;
+  return rest;
+}
+
 export function getStorePromotions(storeId: string): Promise<Promotion[]> {
   return executeQuery<StorePromotionsQuery>(StorePromotionsDocument, { storeId }).then((data) =>
     data.storePromotions.map(mapPromotion),
@@ -29,7 +38,7 @@ export function getPlatformPromotions(): Promise<Promotion[]> {
 
 export function createPromotion(input: CreatePromotionInput): Promise<Promotion> {
   return executeMutation<{ createPromotion: GqlPromotion }>(CREATE_PROMOTION, {
-    input,
+    input: toCreatePromotionVariables(input),
   }).then((data) => mapPromotion(data.createPromotion));
 }
 

@@ -9,14 +9,25 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useResetPassword } from '@/hooks/usePasswordReset';
+import { usePasswordResetTokenStatus, useResetPassword } from '@/hooks/usePasswordReset';
 import { resetPasswordSchema, type ResetPasswordFormValues } from '@/lib/validations';
+
+const TOKEN_STATUS_MESSAGES: Record<string, string> = {
+  expired: 'ลิงก์นี้หมดอายุแล้ว กรุณาขอลิงก์ตั้งรหัสผ่านใหม่อีกครั้ง',
+  used: 'ลิงก์นี้ถูกใช้ไปแล้ว กรุณาขอลิงก์ตั้งรหัสผ่านใหม่อีกครั้ง',
+  invalid: 'ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้อง',
+};
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
   const resetMutation = useResetPassword();
+  const {
+    data: tokenStatus,
+    isLoading: isCheckingToken,
+    isError: tokenStatusCheckFailed,
+  } = usePasswordResetTokenStatus(token);
 
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -38,17 +49,27 @@ function ResetPasswordForm() {
     }
   }
 
-  if (!token) {
+  if (!token || tokenStatusCheckFailed || (tokenStatus && !tokenStatus.valid)) {
+    const message =
+      !token || tokenStatusCheckFailed
+        ? 'ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้องหรือหมดอายุ'
+        : (TOKEN_STATUS_MESSAGES[tokenStatus!.status] ??
+          'ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้องหรือหมดอายุ');
+
     return (
       <Card className="w-full max-w-md">
         <CardBody className="space-y-4 text-center">
-          <p className="text-danger">ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้องหรือหมดอายุ</p>
+          <p className="text-danger">{message}</p>
           <Button asChild variant="outline">
             <Link href="/login">กลับไปเข้าสู่ระบบ</Link>
           </Button>
         </CardBody>
       </Card>
     );
+  }
+
+  if (isCheckingToken) {
+    return <p className="text-muted">กำลังตรวจสอบลิงก์...</p>;
   }
 
   return (

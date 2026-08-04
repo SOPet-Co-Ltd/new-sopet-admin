@@ -304,6 +304,29 @@ query RejectedTags {
   }
 }
 
+query RejectedPetTypes {
+  rejectedPetTypes {
+    id
+    name
+    slug
+    approvalStatus
+    imageUrl
+    createdBy
+    createdAt
+  }
+}
+
+query RejectedBrands {
+  rejectedBrands {
+    id
+    name
+    slug
+    approvalStatus
+    createdBy
+    createdAt
+  }
+}
+
 mutation SetCategoryImage($input: SetCategoryImageInput!) {
   setCategoryImage(input: $input) {
     id
@@ -331,6 +354,24 @@ mutation UpdatePetType($input: UpdatePetTypeInput!) {
     slug
     approvalStatus
     imageUrl
+  }
+}
+
+mutation UpdateTag($input: UpdateTagInput!) {
+  updateTag(input: $input) {
+    id
+    name
+    slug
+    approvalStatus
+  }
+}
+
+mutation UpdateBrand($input: UpdateBrandInput!) {
+  updateBrand(input: $input) {
+    id
+    name
+    slug
+    approvalStatus
   }
 }
 
