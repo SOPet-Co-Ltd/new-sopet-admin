@@ -11,7 +11,7 @@ function buildLlmsTxtContent(adminOrigin: string): string {
 
 > REST API for approved SOPET stores to create product drafts and update product info / variant stock·price from external systems (ERP, POS, inventory tools).
 
-> Managed in the vendor dashboard. API keys are store-scoped. Products created via this API are always saved as draft and must be reviewed/published in the vendor UI. Image upload is not supported.
+> Managed in the vendor dashboard. API keys are store-scoped. Products created via this API are always saved as draft and must be reviewed/published in the vendor UI. Product images may be supplied as remote URLs; the server downloads them into object storage (source URLs are never stored).
 
 ## Documentation
 
@@ -60,6 +60,7 @@ Use the UUID Store ID shown at ${adminOrigin}/vendor/api in every request path u
 | tags | string[] | no | Approved tag **names**; case-insensitive |
 | petType | string | no | Approved pet type **name**; recommended — required later to publish |
 | brand | string | no | Approved brand **name**; case-insensitive |
+| images | string[] | no | Remote image URLs (http/https), max 10; each ≤ 5 MB; jpeg/png/webp/gif. Server downloads → WebP → object storage; only storage URLs are persisted. First image = thumbnail. Any failure fails the whole create. |
 | variants | array | yes | Option groups / dimensions (≥ 1). No sku/stock/price here |
 | variantItems | array | yes | Purchasable combinations (≥ 1). Holds sku/stock/price |
 
@@ -81,8 +82,8 @@ Create rules: base price = min(variantItems[].price); always \`draft\`; taxonomy
 - Method: \`PATCH\`
 - Path: \`/api/v1/stores/{storeId}/products/{productId}\`
 - Success: \`200\` with the updated product
-- Body: all fields optional; at least one required. Allowed: \`name\`, \`description\`, \`warning\`, \`expiryDate\`, \`category\`, \`tags\`, \`petType\`, \`brand\` (same name semantics as create).
-- Not allowed: stock, price, status, variants, images.
+- Body: all fields optional; at least one required. Allowed: \`name\`, \`description\`, \`warning\`, \`expiryDate\`, \`category\`, \`tags\`, \`petType\`, \`brand\`, \`images\` (same semantics as create; \`images\` replaces the full set when sent, including \`[]\` to clear).
+- Not allowed: stock, price, status, variants.
 
 ### Update variant stock / price (by id)
 
@@ -130,13 +131,15 @@ Shape:
 | 400 | INVALID_VARIANT_OPTIONS | options missing a group or using undeclared values |
 | 400 | CATEGORY_NOT_FOUND / TAG_NOT_FOUND / PET_TYPE_NOT_FOUND / BRAND_NOT_FOUND | Unknown or unapproved taxonomy name |
 | 400 | SKU_EXISTS | SKU already exists (create) |
+| 400 | INVALID_IMAGE_URL / INVALID_IMAGE_TYPE / IMAGE_TOO_LARGE | Image download or validation failed |
+| 400 | TOO_MANY_IMAGES | More than 10 images |
 | 404 | PRODUCT_NOT_FOUND | Missing product or wrong store |
 | 404 | VARIANT_NOT_FOUND | Missing variant, wrong store, or not under productId |
 
 ## Out of scope
 
 - Listing, deleting, or publishing products via REST
-- Image upload
+- Multipart / base64 image upload on REST (use image URLs instead)
 - Creating new variants after product create
 - Orders or GraphQL / admin JWT flows
 

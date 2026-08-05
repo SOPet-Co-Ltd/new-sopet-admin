@@ -44,6 +44,10 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
   "tags": ["ออร์แกนิค", "เกรดพรีเมียม"],
   "petType": "แมว",
   "brand": "Royal Canin",
+  "images": [
+    "https://cdn.example.com/catalog/cat-food-1.jpg",
+    "https://cdn.example.com/catalog/cat-food-2.jpg"
+  ],
   "variants": [
     { "name": "รสชาติ", "values": ["ไก่", "ปลา"] },
     { "name": "ขนาด", "values": ["2kg"] }
@@ -64,7 +68,10 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
   "category": "อาหารแมว",
   "tags": ["ออร์แกนิค"],
   "petType": "แมว",
-  "brand": "Royal Canin"
+  "brand": "Royal Canin",
+  "images": [
+    "https://cdn.example.com/catalog/cat-food-1.jpg"
+  ]
 }`;
   const productPatchCurl = `curl -X PATCH "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/products/{productId}" \\
   -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
@@ -229,6 +236,16 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
                     </td>
                   </tr>
                   <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">images</td>
+                    <td className="px-4 py-2">string[]</td>
+                    <td className="px-4 py-2">ไม่</td>
+                    <td className="px-4 py-2">
+                      URL รูปภาพ (http/https) สูงสุด 10 รูป แต่ละไฟล์ไม่เกิน 5 MB
+                      (jpeg/png/webp/gif) — เซิร์ฟเวอร์จะดาวน์โหลดแล้วเก็บใน storage ไม่บันทึก URL
+                      ต้นทาง รูปแรกเป็นรูปปก หาก URL ใดล้มเหลวทั้งคำขอจะล้มเหลว
+                    </td>
+                  </tr>
+                  <tr className="border-b border-border/60">
                     <td className="px-4 py-2 font-mono text-ink">variants</td>
                     <td className="px-4 py-2">array</td>
                     <td className="px-4 py-2">ใช่</td>
@@ -349,8 +366,11 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
                 ต้องตรวจสอบและเผยแพร่จากหน้าผู้ดูแล
               </li>
               <li>
-                <strong className="text-ink">รูปภาพ/สื่อ:</strong> ยังไม่รองรับการอัปโหลดรูปภาพ —
-                API นี้ยังไม่สามารถอัปโหลดรูปภาพหรือสื่อได้
+                <strong className="text-ink">รูปภาพ (images):</strong> ส่งเป็น URL ได้ (ไม่บังคับ)
+                ระบบจะดาวน์โหลดรูป แปลงเป็น WebP แล้วเก็บใน object storage —{' '}
+                <strong className="text-ink">ไม่บันทึก URL ต้นทาง</strong> สูงสุด 10 รูป /
+                ไฟล์ละไม่เกิน 5 MB (jpeg, png, webp, gif) รูปแรกเป็นรูปปก
+                หากดาวน์โหลดหรือตรวจสอบรูปใดไม่ผ่าน ทั้งคำขอ create จะล้มเหลว (HTTP 400)
               </li>
               <li>
                 <strong className="text-ink">หมวดหมู่ แท็ก ประเภทสัตว์เลี้ยง และแบรนด์:</strong>{' '}
@@ -401,7 +421,7 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
           </div>
           <p className="text-muted">
             แก้ไขเฉพาะข้อมูลทั่วไปของสินค้า (ชื่อ รายละเอียด หมวดหมู่ แท็ก ประเภทสัตว์เลี้ยง แบรนด์
-            ฯลฯ) — ไม่ใช้แก้สต็อกหรือราคา (ดู endpoint ตัวแปรด้านล่าง)
+            รูปภาพ ฯลฯ) — ไม่ใช้แก้สต็อกหรือราคา (ดู endpoint ตัวแปรด้านล่าง)
           </p>
           <div>
             <p className="mb-2 font-medium text-ink">
@@ -452,10 +472,18 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
                     <td className="px-4 py-2">string</td>
                     <td className="px-4 py-2">ชื่อประเภทสัตว์เลี้ยง</td>
                   </tr>
-                  <tr>
+                  <tr className="border-b border-border/60">
                     <td className="px-4 py-2 font-mono text-ink">brand</td>
                     <td className="px-4 py-2">string</td>
                     <td className="px-4 py-2">ชื่อแบรนด์</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 font-mono text-ink">images</td>
+                    <td className="px-4 py-2">string[]</td>
+                    <td className="px-4 py-2">
+                      แทนที่ชุดรูปทั้งหมดเมื่อส่ง (กฎเดียวกับตอนสร้าง)
+                      ส่งอาร์เรย์ว่างเพื่อลบรูปทั้งหมด ไม่ส่ง = คงรูปเดิม
+                    </td>
                   </tr>
                 </tbody>
               </table>

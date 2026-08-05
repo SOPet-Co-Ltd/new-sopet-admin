@@ -39,6 +39,8 @@ describe('vendor api llms.txt route', () => {
     expect(body).toContain('PRODUCT_NOT_FOUND');
     expect(body).toContain('VARIANT_NOT_FOUND');
     expect(body).toContain('draft');
+    expect(body).toContain('| images | string[] |');
+    expect(body).toContain('source URLs are never stored');
     expect(body).not.toMatch(/Listing, updating, deleting/);
   });
 
