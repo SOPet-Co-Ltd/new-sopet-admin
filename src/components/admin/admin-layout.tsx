@@ -7,6 +7,7 @@ import {
   HiChartBarSquare,
   HiClipboardDocumentList,
   HiCog6Tooth,
+  HiChatBubbleLeftRight,
   HiInboxArrowDown,
   HiMagnifyingGlass,
   HiShieldCheck,
@@ -28,14 +29,17 @@ import {
   usePendingTags,
 } from '@/hooks/useTaxonomy';
 import { usePendingVendorInvitations } from '@/hooks/useVendorInvitations';
+import { usePendingImportedReviews } from '@/hooks/useAdminReviews';
 
 export function buildAdminNavSections({
   pendingRequestCount,
   pendingTaxonomyCount,
+  pendingImportedReviewCount,
   unreadNotificationCount,
 }: {
   pendingRequestCount?: number;
   pendingTaxonomyCount?: number;
+  pendingImportedReviewCount?: number;
   unreadNotificationCount?: number;
 } = {}): DashboardNavSection[] {
   return [
@@ -61,6 +65,12 @@ export function buildAdminNavSections({
           badge: pendingRequestCount,
         },
         { href: '/admin/reactivation-requests', label: 'เปิดใช้งานร้าน', icon: HiArrowPath },
+        {
+          href: '/admin/reviews',
+          label: 'รีวิวนำเข้า',
+          icon: HiChatBubbleLeftRight,
+          badge: pendingImportedReviewCount,
+        },
       ],
     },
     {
@@ -110,13 +120,16 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const { data: pendingPetTypes = [] } = usePendingPetTypes();
   const { data: pendingBrands = [] } = usePendingBrands();
   const { data: unreadNotificationCount } = useUnreadCount();
+  const { data: pendingImportedReviews } = usePendingImportedReviews(1);
 
   const pendingRequestCount = storeRequests.length + invitations.length;
   const pendingTaxonomyCount =
     pendingCategories.length + pendingTags.length + pendingPetTypes.length + pendingBrands.length;
+  const pendingImportedReviewCount = pendingImportedReviews?.pagination.total ?? 0;
   const navSections = buildAdminNavSections({
     pendingRequestCount,
     pendingTaxonomyCount,
+    pendingImportedReviewCount,
     unreadNotificationCount,
   });
 

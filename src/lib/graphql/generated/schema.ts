@@ -145,6 +145,27 @@ export type AdminCustomerType = {
   updatedAt: Scalars['DateTime']['output'];
 };
 
+export type AdminImportedReviewConnection = {
+  __typename?: 'AdminImportedReviewConnection';
+  items: Array<AdminImportedReviewType>;
+  pagination: PaginationMeta;
+};
+
+export type AdminImportedReviewType = {
+  __typename?: 'AdminImportedReviewType';
+  comment?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  customerName: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  images: Array<ReviewImageType>;
+  productId: Scalars['String']['output'];
+  productName: Scalars['String']['output'];
+  productSlug?: Maybe<Scalars['String']['output']>;
+  rating: Scalars['Int']['output'];
+  source: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+};
+
 export type AdminInvitationType = {
   __typename?: 'AdminInvitationType';
   email: Scalars['String']['output'];
@@ -542,7 +563,7 @@ export type CustomerReviewType = {
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
   images: Array<ReviewImageType>;
-  orderId: Scalars['String']['output'];
+  orderId?: Maybe<Scalars['String']['output']>;
   productId: Scalars['String']['output'];
   productImageUrl?: Maybe<Scalars['String']['output']>;
   productName: Scalars['String']['output'];
@@ -650,6 +671,7 @@ export type Mutation = {
   approveBrand: BrandType;
   approveCategory: CategoryType;
   approvePetType: PetTypeType;
+  approveReview: ReviewType;
   approveStore: StoreType;
   approveStoreReactivationRequest: StoreReactivationRequestType;
   approveStoreRequest: StoreRequestType;
@@ -714,6 +736,7 @@ export type Mutation = {
   rejectBrand: BrandType;
   rejectCategory: CategoryType;
   rejectPetType: PetTypeType;
+  rejectReview: ReviewType;
   rejectStore: StoreType;
   rejectStoreReactivationRequest: StoreReactivationRequestType;
   rejectStoreRequest: StoreRequestType;
@@ -858,6 +881,10 @@ export type MutationApproveCategoryArgs = {
 };
 
 export type MutationApprovePetTypeArgs = {
+  id: Scalars['String']['input'];
+};
+
+export type MutationApproveReviewArgs = {
   id: Scalars['String']['input'];
 };
 
@@ -1104,6 +1131,10 @@ export type MutationRejectCategoryArgs = {
 };
 
 export type MutationRejectPetTypeArgs = {
+  id: Scalars['String']['input'];
+};
+
+export type MutationRejectReviewArgs = {
   id: Scalars['String']['input'];
 };
 
@@ -1833,6 +1864,7 @@ export type Query = {
   pendingAdminInvitations: Array<AdminInvitationType>;
   pendingBrands: Array<BrandType>;
   pendingCategories: Array<CategoryType>;
+  pendingImportedReviews: AdminImportedReviewConnection;
   pendingPetTypes: Array<PetTypeType>;
   pendingStoreRequests: Array<StoreRequestType>;
   pendingStores: Array<StoreType>;
@@ -2020,6 +2052,11 @@ export type QueryPaymentArgs = {
 
 export type QueryPaymentByOrderIdArgs = {
   orderId: Scalars['String']['input'];
+};
+
+export type QueryPendingImportedReviewsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type QueryPetTypeDeleteImpactArgs = {
@@ -2316,6 +2353,7 @@ export type ReviewType = {
   productId: Scalars['String']['output'];
   rating: Scalars['Int']['output'];
   reply?: Maybe<ReviewReplyType>;
+  source: Scalars['String']['output'];
   status: Scalars['String']['output'];
 };
 

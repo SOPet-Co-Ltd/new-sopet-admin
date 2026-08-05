@@ -41,6 +41,12 @@ vi.mock('@/hooks/useNotifications', () => ({
   useUnreadCount: vi.fn(),
 }));
 
+vi.mock('@/hooks/useAdminReviews', () => ({
+  usePendingImportedReviews: vi.fn(() => ({
+    data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 1 } },
+  })),
+}));
+
 vi.mock('@/components/auth-guard', () => ({
   AuthGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -167,11 +173,22 @@ describe('buildAdminNavSections', () => {
     const items = sections.flatMap((section) => section.items);
     const requestsItem = items.find((item) => item.href === '/admin/requests');
     const taxonomyItem = items.find((item) => item.href === '/admin/taxonomy');
+    const reviewsItem = items.find((item) => item.href === '/admin/reviews');
     const notificationsItem = items.find((item) => item.href === '/admin/notifications');
 
     expect(requestsItem?.badge).toBeUndefined();
     expect(taxonomyItem?.badge).toBeUndefined();
+    expect(reviewsItem?.badge).toBeUndefined();
     expect(notificationsItem?.badge).toBeUndefined();
+  });
+
+  it('adds a badge to รีวิวนำเข้า when pending imported reviews exist', () => {
+    const sections = buildAdminNavSections({ pendingImportedReviewCount: 2 });
+    const reviewsItem = sections
+      .flatMap((section) => section.items)
+      .find((item) => item.href === '/admin/reviews');
+
+    expect(reviewsItem).toEqual(expect.objectContaining({ label: 'รีวิวนำเข้า', badge: 2 }));
   });
 });
 

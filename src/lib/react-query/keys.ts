@@ -126,6 +126,7 @@ export const queryKeys = {
     store: (storeId: string, params?: StoreProductReviewsParams) =>
       ['reviews', 'store', storeId, params] as const,
     summary: (storeId: string) => ['reviews', 'summary', storeId] as const,
+    pendingImported: (page: number) => ['reviews', 'pendingImported', page] as const,
   },
   platform: {
     all: ['platform'] as const,

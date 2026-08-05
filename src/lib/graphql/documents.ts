@@ -1319,6 +1319,55 @@ export const UPDATE_REVIEW_REPLY_MUTATION = gql`
   }
 `;
 
+export const PENDING_IMPORTED_REVIEWS_QUERY = gql`
+  query PendingImportedReviews($page: Int, $limit: Int) {
+    pendingImportedReviews(page: $page, limit: $limit) {
+      items {
+        id
+        productId
+        productName
+        productSlug
+        rating
+        comment
+        status
+        source
+        customerName
+        createdAt
+        images {
+          id
+          url
+        }
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+    }
+  }
+`;
+
+export const APPROVE_REVIEW_MUTATION = gql`
+  mutation ApproveReview($id: String!) {
+    approveReview(id: $id) {
+      id
+      status
+      customerName
+    }
+  }
+`;
+
+export const REJECT_REVIEW_MUTATION = gql`
+  mutation RejectReview($id: String!) {
+    rejectReview(id: $id) {
+      id
+      status
+      customerName
+    }
+  }
+`;
+
 export const STORE_REVIEW_SUMMARY_QUERY = gql`
   query StoreReviewSummary($storeId: String!) {
     storeReviewSummary(storeId: $storeId) {
