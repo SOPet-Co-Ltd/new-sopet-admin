@@ -157,7 +157,11 @@ export function VendorPayoutAccountPanel({
                   control={form.control}
                   name="bankCode"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select
+                      key={field.value ?? 'empty'}
+                      value={field.value ?? ''}
+                      onValueChange={field.onChange}
+                    >
                       <SelectTrigger
                         id="bankCode"
                         aria-invalid={!!form.formState.errors.bankCode}
