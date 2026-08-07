@@ -6,6 +6,7 @@ import type {
   Product,
   ProductReview,
   Promotion,
+  SaleCampaign,
   SalesBreakdownItem,
   SalesTimePoint,
   Store,
@@ -194,6 +195,7 @@ type GqlProductVariant = {
   id: string;
   sku: string;
   price: number;
+  compareAtPrice?: number | null;
   stockQuantity: number;
   optionsJson?: string | null;
 };
@@ -267,6 +269,7 @@ export function mapProduct(product: GqlProduct): Product {
       id: variant.id,
       sku: variant.sku,
       price: variant.price,
+      compareAtPrice: variant.compareAtPrice ?? null,
       stockQuantity: variant.stockQuantity,
       optionsJson: variant.optionsJson,
     })),
@@ -404,6 +407,56 @@ export function mapPromotion(promotion: GqlPromotion): Promotion {
     startsAt: promotion.startsAt ?? undefined,
     expiresAt: promotion.expiresAt ?? undefined,
     createdAt: promotion.createdAt ?? undefined,
+  };
+}
+
+type GqlSaleCampaignItem = {
+  id: string;
+  campaignId: string;
+  productId: string;
+  variantId?: string | null;
+  compareAtPrice?: number | null;
+  discountPercent?: number | null;
+  productName?: string | null;
+  variantSku?: string | null;
+};
+
+type GqlSaleCampaign = {
+  id: string;
+  storeId: string;
+  name: string;
+  description?: string | null;
+  startsAt?: string | null;
+  expiresAt?: string | null;
+  isActive: boolean;
+  priority: number;
+  items: GqlSaleCampaignItem[];
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
+
+export function mapSaleCampaign(campaign: GqlSaleCampaign): SaleCampaign {
+  return {
+    id: campaign.id,
+    storeId: campaign.storeId,
+    name: campaign.name,
+    description: campaign.description ?? undefined,
+    startsAt: campaign.startsAt ?? undefined,
+    expiresAt: campaign.expiresAt ?? undefined,
+    isActive: campaign.isActive,
+    priority: campaign.priority,
+    items: campaign.items.map((item) => ({
+      id: item.id,
+      campaignId: item.campaignId,
+      productId: item.productId,
+      variantId: item.variantId ?? undefined,
+      compareAtPrice: item.compareAtPrice ?? undefined,
+      discountPercent: item.discountPercent ?? undefined,
+      productName: item.productName ?? undefined,
+      variantSku: item.variantSku ?? undefined,
+    })),
+    createdAt: campaign.createdAt ?? undefined,
+    updatedAt: campaign.updatedAt ?? undefined,
   };
 }
 

@@ -339,6 +339,8 @@ export interface ProductVariant {
   id: string;
   sku: string;
   price: number;
+  /** Per-SKU strikethrough price; falls back to product.compareAtPrice on storefront when null. */
+  compareAtPrice?: number | null;
   stockQuantity: number;
   optionsJson?: string | null;
 }
@@ -375,6 +377,8 @@ export interface ProductsQueryParams {
   tag?: string;
   petTypeIds?: string[];
   brandIds?: string[];
+  /** Vendor list filter — e.g. `published` for campaign published-only pickers. */
+  status?: string;
   page?: number;
   limit?: number;
 }
@@ -435,6 +439,7 @@ export interface SyncVariantInput {
   sku: string;
   stockQuantity: number;
   priceModifier?: number;
+  compareAtPrice?: number | null;
   attributes: Record<string, string>;
 }
 
@@ -540,6 +545,59 @@ export interface UpdatePromotionInput {
   conditions?: string;
   startsAt?: string;
   expiresAt?: string;
+}
+
+export interface SaleCampaignItem {
+  id: string;
+  campaignId: string;
+  productId: string;
+  variantId?: string | null;
+  compareAtPrice?: number | null;
+  discountPercent?: number | null;
+  productName?: string | null;
+  variantSku?: string | null;
+}
+
+export interface SaleCampaign {
+  id: string;
+  storeId: string;
+  name: string;
+  description?: string | null;
+  startsAt?: string | null;
+  expiresAt?: string | null;
+  isActive: boolean;
+  priority: number;
+  items: SaleCampaignItem[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SaleCampaignItemInput {
+  productId: string;
+  variantId?: string;
+  compareAtPrice?: number;
+  discountPercent?: number;
+}
+
+export interface CreateSaleCampaignInput {
+  name: string;
+  description?: string;
+  startsAt?: string;
+  expiresAt?: string;
+  isActive?: boolean;
+  priority?: number;
+  storeId?: string;
+  items: SaleCampaignItemInput[];
+}
+
+export interface UpdateSaleCampaignInput {
+  name?: string;
+  description?: string;
+  startsAt?: string;
+  expiresAt?: string;
+  isActive?: boolean;
+  priority?: number;
+  items?: SaleCampaignItemInput[];
 }
 
 export type StoreRequestStatus = 'pending' | 'approved' | 'rejected';

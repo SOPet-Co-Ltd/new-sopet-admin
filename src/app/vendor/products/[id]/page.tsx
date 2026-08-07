@@ -448,6 +448,26 @@ export default function VendorProductDetailPage() {
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
           <div>
+            <SectionTitle>ส่วนลดแคตตาล็อก</SectionTitle>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              แคมเปญแสดงราคาขีดฆ่าบนหน้าร้าน — ไม่เปลี่ยนราคาที่ชำระในตะกร้า
+            </p>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/vendor/campaigns">ไปที่แคมเปญ</Link>
+          </Button>
+        </CardHeader>
+        <CardBody>
+          <p className="text-sm text-muted-foreground">
+            ตั้งราคาขายให้เป็นราคาที่ต้องการขายก่อน แล้วใช้แคมเปญเพื่อแสดงราคาเดิม/% ตามช่วงเวลา
+            หากต้องการลดตอนชำระเงินให้ใช้โปรโมชัน
+          </p>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+          <div>
             <SectionTitle>รีวิวล่าสุด</SectionTitle>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {reviewCount > 0

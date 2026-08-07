@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BxGyProductPicker, filterPublishedProducts } from './bxgy-product-picker';
+import { BxGyProductPicker, filterPublishedProducts, filterCampaignProducts } from './bxgy-product-picker';
 import { PromotionFormFields } from './promotion-form-fields';
 import { getPromotionTypeMeta } from '@/lib/promotions/metadata';
 import {
@@ -67,6 +67,15 @@ describe('filterPublishedProducts', () => {
   });
 });
 
+describe('filterCampaignProducts', () => {
+  it('includes draft and published but excludes archived', () => {
+    expect(filterCampaignProducts([published, draft, archived]).map((p) => p.id)).toEqual([
+      'p-pub',
+      'p-draft',
+    ]);
+  });
+});
+
 describe('BxGyProductPicker', () => {
   it('shows only published products in the dropdown', async () => {
     const user = userEvent.setup();
@@ -80,6 +89,20 @@ describe('BxGyProductPicker', () => {
     expect(within(list).queryByRole('option', { name: 'เก็บถาวร' })).not.toBeInTheDocument();
   });
 
+  it('shows draft products when productFilter is campaign', async () => {
+    const user = userEvent.setup();
+    render(
+      <BxGyProductPicker scope="store" productFilter="campaign" value="" onChange={vi.fn()} />,
+    );
+
+    await user.click(screen.getByRole('combobox'));
+
+    const list = screen.getByRole('listbox');
+    expect(within(list).getByRole('option', { name: /อาหารแมว/ })).toBeInTheDocument();
+    expect(within(list).getByRole('option', { name: /ร่างสินค้า/ })).toBeInTheDocument();
+    expect(within(list).queryByRole('option', { name: /เก็บถาวร/ })).not.toBeInTheDocument();
+  });
+
   it('uses vendor products hook for store scope without requiring storeId', async () => {
     const user = userEvent.setup();
     render(<BxGyProductPicker scope="store" value="" onChange={vi.fn()} />);
@@ -89,8 +112,21 @@ describe('BxGyProductPicker', () => {
     expect(mockUseVendorProducts).toHaveBeenCalled();
     const [params, options] = mockUseVendorProducts.mock.calls.at(-1)!;
     expect(params).not.toHaveProperty('storeId');
+    expect(params).toMatchObject({ status: 'published' });
     expect(options).toMatchObject({ enabled: true });
     expect(mockUsePlatformProducts.mock.calls.at(-1)?.[1]).toMatchObject({ enabled: false });
+  });
+
+  it('does not send status when productFilter is campaign', async () => {
+    const user = userEvent.setup();
+    render(
+      <BxGyProductPicker scope="store" productFilter="campaign" value="" onChange={vi.fn()} />,
+    );
+
+    await user.click(screen.getByRole('combobox'));
+
+    const [params] = mockUseVendorProducts.mock.calls.at(-1)!;
+    expect(params).not.toHaveProperty('status');
   });
 
   it('uses platform catalog hook without storeId for platform scope', async () => {

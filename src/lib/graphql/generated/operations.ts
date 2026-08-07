@@ -88,6 +88,153 @@ export type StorePromotionsQuery = {
   }>;
 };
 
+export type SaleCampaignFieldsFragment = {
+  id: string;
+  storeId: string;
+  name: string;
+  description: string | null;
+  startsAt: string | null;
+  expiresAt: string | null;
+  isActive: boolean;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+  items: Array<{
+    id: string;
+    campaignId: string;
+    productId: string;
+    variantId: string | null;
+    compareAtPrice: number | null;
+    discountPercent: number | null;
+    productName: string | null;
+    variantSku: string | null;
+  }>;
+};
+
+export type StoreSaleCampaignsQueryVariables = Exact<{
+  storeId: string;
+}>;
+
+export type StoreSaleCampaignsQuery = {
+  storeSaleCampaigns: Array<{
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | null;
+    startsAt: string | null;
+    expiresAt: string | null;
+    isActive: boolean;
+    priority: number;
+    createdAt: string;
+    updatedAt: string;
+    items: Array<{
+      id: string;
+      campaignId: string;
+      productId: string;
+      variantId: string | null;
+      compareAtPrice: number | null;
+      discountPercent: number | null;
+      productName: string | null;
+      variantSku: string | null;
+    }>;
+  }>;
+};
+
+export type CreateSaleCampaignMutationVariables = Exact<{
+  input: Types.CreateSaleCampaignInput;
+}>;
+
+export type CreateSaleCampaignMutation = {
+  createSaleCampaign: {
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | null;
+    startsAt: string | null;
+    expiresAt: string | null;
+    isActive: boolean;
+    priority: number;
+    createdAt: string;
+    updatedAt: string;
+    items: Array<{
+      id: string;
+      campaignId: string;
+      productId: string;
+      variantId: string | null;
+      compareAtPrice: number | null;
+      discountPercent: number | null;
+      productName: string | null;
+      variantSku: string | null;
+    }>;
+  };
+};
+
+export type UpdateSaleCampaignMutationVariables = Exact<{
+  id: string;
+  input: Types.UpdateSaleCampaignInput;
+}>;
+
+export type UpdateSaleCampaignMutation = {
+  updateSaleCampaign: {
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | null;
+    startsAt: string | null;
+    expiresAt: string | null;
+    isActive: boolean;
+    priority: number;
+    createdAt: string;
+    updatedAt: string;
+    items: Array<{
+      id: string;
+      campaignId: string;
+      productId: string;
+      variantId: string | null;
+      compareAtPrice: number | null;
+      discountPercent: number | null;
+      productName: string | null;
+      variantSku: string | null;
+    }>;
+  };
+};
+
+export type DeleteSaleCampaignMutationVariables = Exact<{
+  id: string;
+}>;
+
+export type DeleteSaleCampaignMutation = { deleteSaleCampaign: boolean };
+
+export type ToggleSaleCampaignMutationVariables = Exact<{
+  id: string;
+  isActive: boolean;
+}>;
+
+export type ToggleSaleCampaignMutation = {
+  toggleSaleCampaign: {
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | null;
+    startsAt: string | null;
+    expiresAt: string | null;
+    isActive: boolean;
+    priority: number;
+    createdAt: string;
+    updatedAt: string;
+    items: Array<{
+      id: string;
+      campaignId: string;
+      productId: string;
+      variantId: string | null;
+      compareAtPrice: number | null;
+      discountPercent: number | null;
+      productName: string | null;
+      variantSku: string | null;
+    }>;
+  };
+};
+
 export type SearchRankingWeightsQueryVariables = Exact<{ [key: string]: never }>;
 
 export type SearchRankingWeightsQuery = {
@@ -759,6 +906,48 @@ export const PromotionFieldsFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<PromotionFieldsFragment, unknown>;
+export const SaleCampaignFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'SaleCampaignFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'SaleCampaignType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'items' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'campaignId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'compareAtPrice' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'discountPercent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantSku' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SaleCampaignFieldsFragment, unknown>;
 export const NotificationsDocument = {
   kind: 'Document',
   definitions: [
@@ -943,6 +1132,384 @@ export const StorePromotionsDocument = {
     },
   ],
 } as unknown as DocumentNode<StorePromotionsQuery, StorePromotionsQueryVariables>;
+export const StoreSaleCampaignsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'StoreSaleCampaigns' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'storeId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'storeSaleCampaigns' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'storeId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'storeId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'SaleCampaignFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'SaleCampaignFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'SaleCampaignType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'items' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'campaignId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'compareAtPrice' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'discountPercent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantSku' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<StoreSaleCampaignsQuery, StoreSaleCampaignsQueryVariables>;
+export const CreateSaleCampaignDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'CreateSaleCampaign' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'CreateSaleCampaignInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'createSaleCampaign' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'SaleCampaignFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'SaleCampaignFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'SaleCampaignType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'items' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'campaignId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'compareAtPrice' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'discountPercent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantSku' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<CreateSaleCampaignMutation, CreateSaleCampaignMutationVariables>;
+export const UpdateSaleCampaignDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateSaleCampaign' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'UpdateSaleCampaignInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'updateSaleCampaign' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'SaleCampaignFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'SaleCampaignFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'SaleCampaignType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'items' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'campaignId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'compareAtPrice' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'discountPercent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantSku' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateSaleCampaignMutation, UpdateSaleCampaignMutationVariables>;
+export const DeleteSaleCampaignDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteSaleCampaign' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'deleteSaleCampaign' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteSaleCampaignMutation, DeleteSaleCampaignMutationVariables>;
+export const ToggleSaleCampaignDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'ToggleSaleCampaign' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'isActive' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Boolean' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'toggleSaleCampaign' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'isActive' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'isActive' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'SaleCampaignFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'SaleCampaignFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'SaleCampaignType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'items' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'campaignId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'compareAtPrice' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'discountPercent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantSku' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ToggleSaleCampaignMutation, ToggleSaleCampaignMutationVariables>;
 export const SearchRankingWeightsDocument = {
   kind: 'Document',
   definitions: [

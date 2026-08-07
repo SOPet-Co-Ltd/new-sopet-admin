@@ -294,6 +294,7 @@ const PRODUCT_LIST_FIELDS = `
     id
     sku
     price
+    compareAtPrice
     stockQuantity
     optionsJson
   }
@@ -418,6 +419,7 @@ export const VENDOR_PRODUCTS_QUERY = gql`
     $tag: String
     $petTypeIds: [String!]
     $brandIds: [String!]
+    $status: String
     $page: Int
     $limit: Int
   ) {
@@ -427,6 +429,7 @@ export const VENDOR_PRODUCTS_QUERY = gql`
       tag: $tag
       petTypeIds: $petTypeIds
       brandIds: $brandIds
+      status: $status
       page: $page
       limit: $limit
     ) {
@@ -449,6 +452,7 @@ export const SYNC_PRODUCT_VARIANTS = gql`
       id
       sku
       price
+      compareAtPrice
       stockQuantity
       optionsJson
     }
@@ -461,6 +465,7 @@ export const UPDATE_PRODUCT_VARIANT = gql`
       id
       sku
       price
+      compareAtPrice
       stockQuantity
       optionsJson
     }

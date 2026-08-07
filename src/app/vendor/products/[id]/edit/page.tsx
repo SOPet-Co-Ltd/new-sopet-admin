@@ -429,8 +429,7 @@ export default function EditProductPage() {
             <CardHeader>
               <h2 className="text-balance font-display font-medium text-ink">ราคาขีดฆ่า</h2>
               <p className="mt-1 text-sm text-muted">
-                ราคาเดิมสำหรับแสดงขีดฆ่าและป้ายส่วนลด % บนหน้าร้าน (ไม่ใช่คูปอง) —
-                ใช้เมื่อสูงกว่าราคาขายของตัวเลือก
+                ราคาเดิมถาวรระดับสินค้า (ไม่แยก SKU) — ส่วนลดตามช่วงเวลาให้ตั้งที่แคมเปญ
               </p>
             </CardHeader>
             <CardBody className="space-y-4">

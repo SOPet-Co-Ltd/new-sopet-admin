@@ -81,6 +81,10 @@ export const queryKeys = {
     store: (storeId: string) => ['promotions', 'store', storeId] as const,
     platform: () => ['promotions', 'platform'] as const,
   },
+  saleCampaigns: {
+    all: ['saleCampaigns'] as const,
+    store: (storeId: string) => ['saleCampaigns', 'store', storeId] as const,
+  },
   storeRequests: {
     all: ['storeRequests'] as const,
     mine: () => ['storeRequests', 'mine'] as const,

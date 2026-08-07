@@ -9,6 +9,7 @@ import {
   HiCube,
   HiHome,
   HiInboxArrowDown,
+  HiMegaphone,
   HiShoppingBag,
   HiStar,
   HiTicket,
@@ -60,7 +61,10 @@ const salesSection = (pendingOrderCount?: number): DashboardNavSection => ({
 
 const marketingSection: DashboardNavSection = {
   title: 'การตลาด',
-  items: [{ href: '/vendor/promotions', label: 'โปรโมชัน', icon: HiTicket }],
+  items: [
+    { href: '/vendor/promotions', label: 'โปรโมชัน', icon: HiTicket },
+    { href: '/vendor/campaigns', label: 'แคมเปญ', icon: HiMegaphone },
+  ],
 };
 
 const teamSection: DashboardNavSection = {

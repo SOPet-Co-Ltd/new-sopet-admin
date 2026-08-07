@@ -227,7 +227,7 @@ describe('EditProductPage', () => {
     expect(screen.getByText('บันทึกอัตโนมัติเมื่อมีการเปลี่ยนแปลง')).toBeInTheDocument();
     expect(screen.getByText('คำเตือนและวันหมดอายุ (ถ้ามี)')).toBeInTheDocument();
     expect(
-      screen.getByText(/ราคาเดิมสำหรับแสดงขีดฆ่าและป้ายส่วนลด % บนหน้าร้าน/),
+      screen.getByText(/ราคาเดิมถาวรระดับสินค้า \(ไม่แยก SKU\)/),
     ).toBeInTheDocument();
   });
 
