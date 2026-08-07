@@ -393,6 +393,7 @@ export interface CreateProductInput {
   name: string;
   description?: string;
   basePrice: number;
+  compareAtPrice?: number | null;
   category?: string;
   categoryId?: string;
   tags?: string[];
@@ -405,6 +406,8 @@ export interface UpdateProductInput {
   name?: string;
   description?: string;
   basePrice?: number;
+  /** Pass null to clear the strikethrough / discount display price. */
+  compareAtPrice?: number | null;
   warning?: string;
   expiryDate?: string;
   status?: ProductStatus | string;

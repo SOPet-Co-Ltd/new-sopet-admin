@@ -150,6 +150,22 @@ describe('productFormSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('accepts null compareAtPrice to clear strikethrough discount', () => {
+    const result = productFormSchema.safeParse({
+      name: 'Dog Treats',
+      compareAtPrice: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects negative compareAtPrice', () => {
+    const result = productFormSchema.safeParse({
+      name: 'Dog Treats',
+      compareAtPrice: -10,
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('adminStoreFormSchema', () => {

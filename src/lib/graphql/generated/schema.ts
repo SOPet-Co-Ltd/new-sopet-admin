@@ -1574,6 +1574,7 @@ export type PaymentType = {
   expiresAt?: Maybe<Scalars['DateTime']['output']>;
   id: Scalars['String']['output'];
   orderId: Scalars['String']['output'];
+  orderNumber?: Maybe<Scalars['String']['output']>;
   paymentMethod: Scalars['String']['output'];
   qrCodeUrl?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];

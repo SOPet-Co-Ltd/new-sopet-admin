@@ -353,16 +353,17 @@ export const UPDATE_PRODUCT = gql`
       slug
       description
       basePrice
+      compareAtPrice
       warning
       expiryDate
       thumbnailUrl
       status
       category
-  categoryId
-  petTypeId
-  brandId
-  tags
-  tagIds
+      categoryId
+      petTypeId
+      brandId
+      tags
+      tagIds
       images {
         ${PRODUCT_IMAGE_FIELDS}
       }

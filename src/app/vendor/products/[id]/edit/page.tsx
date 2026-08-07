@@ -68,6 +68,7 @@ export default function EditProductPage() {
   const { data: product, isLoading, error } = useProduct(productId);
   const { data: shippingOptions = [], isLoading: shippingLoading } = useMyStoreShippingOptions();
   const updateBasicMutation = useUpdateProduct();
+  const updatePricingMutation = useUpdateProduct();
   const updateExtrasMutation = useUpdateProduct();
   const updateTaxonomyMutation = useUpdateProduct();
   const updateStatusMutation = useUpdateProduct();
@@ -77,11 +78,13 @@ export default function EditProductPage() {
 
   const [taxonomySaveState, setTaxonomySaveState] = useState<TaxonomySaveState>('idle');
   const [basicSaveState, setBasicSaveState] = useState<SectionSaveState>('idle');
+  const [pricingSaveState, setPricingSaveState] = useState<SectionSaveState>('idle');
   const [extrasSaveState, setExtrasSaveState] = useState<SectionSaveState>('idle');
   const initializedProductIdRef = useRef<string | null>(null);
   const taxonomyBaselineRef = useRef<string | null>(null);
   const taxonomyAutosaveReadyRef = useRef(false);
   const basicSavedTimerRef = useRef<number | null>(null);
+  const pricingSavedTimerRef = useRef<number | null>(null);
   const extrasSavedTimerRef = useRef<number | null>(null);
 
   const form = useForm<ProductFormValues>({
@@ -90,6 +93,7 @@ export default function EditProductPage() {
       name: '',
       description: '',
       basePrice: 0,
+      compareAtPrice: null,
       warning: '',
       expiryDate: '',
       categoryId: '',
@@ -109,6 +113,7 @@ export default function EditProductPage() {
       name: product.name,
       description: product.description ?? '',
       basePrice: product.basePrice,
+      compareAtPrice: product.compareAtPrice ?? null,
       warning: product.warning ?? '',
       expiryDate: toDateInputValue(product.expiryDate),
       categoryId: product.categoryId ?? '',
@@ -206,6 +211,26 @@ export default function EditProductPage() {
     }
   }
 
+  async function savePricing() {
+    if (!product) return;
+    const valid = await form.trigger(['compareAtPrice']);
+    if (!valid) return;
+    const values = form.getValues();
+    setPricingSaveState('idle');
+    try {
+      await updatePricingMutation.mutateAsync({
+        id: product.id,
+        input: {
+          // Always send so clearing the field removes the storefront discount badge.
+          compareAtPrice: values.compareAtPrice ?? null,
+        },
+      });
+      flashSectionSaved(setPricingSaveState, pricingSavedTimerRef);
+    } catch {
+      // surfaced via mutation state
+    }
+  }
+
   async function saveExtras() {
     if (!product) return;
     const valid = await form.trigger(['warning', 'expiryDate']);
@@ -282,6 +307,7 @@ export default function EditProductPage() {
 
   const anyPending =
     updateBasicMutation.isPending ||
+    updatePricingMutation.isPending ||
     updateExtrasMutation.isPending ||
     updateTaxonomyMutation.isPending ||
     updateStatusMutation.isPending ||
@@ -396,6 +422,80 @@ export default function EditProductPage() {
             </CardHeader>
             <CardBody>
               <ProductImagesManager product={product} />
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h2 className="text-balance font-display font-medium text-ink">ราคาขีดฆ่า</h2>
+              <p className="mt-1 text-sm text-muted">
+                ราคาเดิมสำหรับแสดงขีดฆ่าและป้ายส่วนลด % บนหน้าร้าน (ไม่ใช่คูปอง) —
+                ใช้เมื่อสูงกว่าราคาขายของตัวเลือก
+              </p>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <div className="max-w-xs">
+                <Label htmlFor="compareAtPrice">ราคาขีดฆ่า (บาท)</Label>
+                <Controller
+                  name="compareAtPrice"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Input
+                      id="compareAtPrice"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      inputMode="decimal"
+                      placeholder="เช่น 1000"
+                      disabled={updatePricingMutation.isPending || deleteMutation.isPending}
+                      aria-invalid={!!form.formState.errors.compareAtPrice}
+                      aria-describedby={
+                        form.formState.errors.compareAtPrice
+                          ? 'compareAtPrice-error'
+                          : 'compareAtPrice-hint'
+                      }
+                      value={field.value ?? ''}
+                      onChange={(event) => {
+                        const raw = event.target.value;
+                        field.onChange(raw === '' ? null : Number(raw));
+                      }}
+                      onBlur={field.onBlur}
+                      className="mt-1.5"
+                    />
+                  )}
+                />
+                {form.formState.errors.compareAtPrice ? (
+                  <p id="compareAtPrice-error" className="mt-1 text-xs text-danger" role="alert">
+                    {form.formState.errors.compareAtPrice.message}
+                  </p>
+                ) : (
+                  <p id="compareAtPrice-hint" className="mt-1 text-xs text-muted">
+                    เว้นว่างเพื่อไม่แสดงส่วนลด — ราคาขายตั้งที่หน้ารายการตัวเลือก
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
+                {updatePricingMutation.error ? (
+                  <p className="mr-auto text-xs text-danger" role="alert">
+                    {updatePricingMutation.error instanceof Error
+                      ? updatePricingMutation.error.message
+                      : 'บันทึกไม่สำเร็จ'}
+                  </p>
+                ) : pricingSaveState === 'saved' ? (
+                  <p className="mr-auto text-xs text-success" role="status" aria-live="polite">
+                    บันทึกแล้ว
+                  </p>
+                ) : null}
+                <Button
+                  type="button"
+                  onClick={() => void savePricing()}
+                  disabled={updatePricingMutation.isPending || deleteMutation.isPending}
+                  aria-busy={updatePricingMutation.isPending}
+                >
+                  {updatePricingMutation.isPending ? 'กำลังบันทึก...' : 'บันทึกส่วนนี้'}
+                </Button>
+              </div>
             </CardBody>
           </Card>
 

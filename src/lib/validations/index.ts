@@ -94,6 +94,8 @@ export const productFormSchema = z.object({
   name: z.string().min(1, 'กรุณากรอกชื่อสินค้า'),
   description: z.string().optional(),
   basePrice: z.number().min(0, 'ราคาต้องไม่ต่ำกว่า 0').optional(),
+  /** Original / strikethrough price for storefront discount % badge (not a coupon). */
+  compareAtPrice: z.number().min(0, 'ราคาต้องไม่ต่ำกว่า 0').nullable().optional(),
   warning: z.string().optional(),
   expiryDate: z
     .string()

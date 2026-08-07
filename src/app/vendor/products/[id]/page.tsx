@@ -316,6 +316,9 @@ export default function VendorProductDetailPage() {
             <DetailRow label="ช่วงราคา">
               {variants.length > 0 ? formatPriceRange(variantPrices) : '—'}
             </DetailRow>
+            <DetailRow label="ราคาขีดฆ่า">
+              {product.compareAtPrice != null ? formatCurrency(product.compareAtPrice) : '—'}
+            </DetailRow>
           </CardBody>
         </Card>
       </div>

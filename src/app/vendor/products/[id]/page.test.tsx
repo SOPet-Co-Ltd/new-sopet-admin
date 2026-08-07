@@ -132,7 +132,8 @@ describe('VendorProductDetailPage', () => {
 
     expect(screen.getByText('ช่วงราคาตามตัวเลือก')).toBeInTheDocument();
     expect(screen.queryByText('ราคาฐาน')).not.toBeInTheDocument();
-    expect(screen.queryByText('ราคาขีดฆ่า')).not.toBeInTheDocument();
+    expect(screen.getByText('ราคาขีดฆ่า')).toBeInTheDocument();
+    expect(screen.getByText(/690/)).toBeInTheDocument();
 
     expect(screen.getByRole('link', { name: 'แก้ไขสินค้า' })).toHaveAttribute(
       'href',
