@@ -19,6 +19,17 @@ vi.mock('@/hooks/useVendorStoreId', () => ({
   useVendorStoreId: vi.fn(),
 }));
 
+vi.mock('@/hooks/useVendorOrderWorkflow', () => ({
+  useMarkVendorOrderPaid: () => ({ mutate: vi.fn(), isPending: false }),
+  useAcknowledgeVendorOrder: () => ({ mutate: vi.fn(), isPending: false }),
+  useShipVendorOrder: () => ({ mutate: vi.fn(), isPending: false }),
+  useCancelVendorOrder: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
+vi.mock('@/hooks/useShipping', () => ({
+  useShippingProviders: () => ({ data: [] }),
+}));
+
 vi.mock('@/components/vendor/vendor-order-tracking-link-dialog', () => ({
   VendorOrderTrackingLinkDialog: ({
     open,
@@ -92,7 +103,18 @@ describe('VendorOrdersPage', () => {
     mockVendorOrdersPage();
     render(<VendorOrdersPage />);
 
-    expect(screen.getByRole('link', { name: 'ยืนยันชำระเงิน' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ยืนยันชำระเงิน' })).toBeInTheDocument();
+  });
+
+  it('opens workflow action dialog when next-step button is clicked', async () => {
+    mockVendorOrdersPage();
+    render(<VendorOrdersPage />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'ยืนยันชำระเงิน' }));
+
+    expect(screen.getByRole('heading', { name: 'ยืนยันชำระเงิน' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ยืนยันแล้ว' })).toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
   });
 
   it('navigates to order detail page when view details menu item is selected', async () => {
@@ -184,5 +206,15 @@ describe('VendorOrdersPage', () => {
     expect(screen.getByLabelText('กำลังโหลดคำสั่งซื้อ')).toBeInTheDocument();
     expect(screen.queryByText('ยังไม่มีคำสั่งซื้อ')).not.toBeInTheDocument();
     expect(screen.queryByText('ไม่มีออเดอร์ที่ต้องดำเนินการ')).not.toBeInTheDocument();
+  });
+
+  it('renders search, queue, and always-visible status filters', () => {
+    mockVendorOrdersPage();
+    render(<VendorOrdersPage />);
+
+    expect(screen.getByLabelText('ค้นหาคำสั่งซื้อ')).toBeInTheDocument();
+    expect(screen.getByRole('tablist', { name: 'มุมมองคำสั่งซื้อ' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'สถานะคำสั่งซื้อ' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ตัวกรองเพิ่มเติม' })).toBeInTheDocument();
   });
 });

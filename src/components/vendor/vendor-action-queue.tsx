@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { HiArrowRight, HiCheckCircle, HiShoppingBag } from 'react-icons/hi2';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
+import { VendorOrderWorkflowActionDialog } from '@/components/vendor/vendor-order-workflow-action-dialog';
 import {
   filterVendorActionableOrders,
   labelVendorWorkflowAction,
@@ -17,6 +19,7 @@ import type { Order } from '@/types';
 const PREVIEW_LIMIT = 5;
 
 export function VendorActionQueue({ orders, storeId }: { orders: Order[]; storeId: string }) {
+  const [workflowOrder, setWorkflowOrder] = useState<Order | null>(null);
   const actionable = filterVendorActionableOrders(orders, storeId);
   const preview = actionable.slice(0, PREVIEW_LIMIT);
   const remaining = actionable.length - preview.length;
@@ -72,15 +75,16 @@ export function VendorActionQueue({ orders, storeId }: { orders: Order[]; storeI
       <ul className="space-y-2">
         {preview.map((order) => {
           const action = getVendorOrderWorkflowAction(order, storeId);
+          const label = labelVendorWorkflowAction(action);
           return (
             <li key={order.id}>
-              <Link
-                href={`/vendor/orders/${order.id}`}
-                className="group flex flex-col gap-2.5 rounded-xl border border-border bg-card px-4 py-3 transition-colors duration-150 hover:border-border hover:bg-surface/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex min-w-0 items-start gap-3">
+              <div className="flex flex-col gap-2.5 rounded-xl border border-border bg-card px-4 py-3 transition-colors duration-150 hover:border-border hover:bg-surface/80 sm:flex-row sm:items-center sm:justify-between">
+                <Link
+                  href={`/vendor/orders/${order.id}`}
+                  className="flex min-w-0 items-start gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                >
                   <div
-                    className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-surface text-muted-foreground transition-colors duration-150 group-hover:bg-primary-tint group-hover:text-brand"
+                    className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-surface text-muted-foreground"
                     aria-hidden="true"
                   >
                     <HiShoppingBag className="size-4" />
@@ -91,17 +95,23 @@ export function VendorActionQueue({ orders, storeId }: { orders: Order[]; storeI
                       {formatDateTime(order.createdAt)}
                     </p>
                   </div>
-                </div>
+                </Link>
                 <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                   <Badge status={order.status}>{labelOrderStatus(order.status)}</Badge>
-                  <span className="rounded-full bg-primary-tint px-2.5 py-0.5 text-xs font-medium text-brand">
-                    {labelVendorWorkflowAction(action)}
-                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-8 rounded-full px-3 text-xs shadow-none"
+                    aria-haspopup="dialog"
+                    onClick={() => setWorkflowOrder(order)}
+                  >
+                    {label}
+                  </Button>
                   <span className="text-sm font-medium tabular-nums text-ink">
                     {formatCurrency(order.total)}
                   </span>
                 </div>
-              </Link>
+              </div>
             </li>
           );
         })}
@@ -118,6 +128,15 @@ export function VendorActionQueue({ orders, storeId }: { orders: Order[]; storeI
           </Link>
         </p>
       ) : null}
+
+      <VendorOrderWorkflowActionDialog
+        order={workflowOrder}
+        storeId={storeId}
+        open={workflowOrder !== null}
+        onOpenChange={(open) => {
+          if (!open) setWorkflowOrder(null);
+        }}
+      />
     </section>
   );
 }

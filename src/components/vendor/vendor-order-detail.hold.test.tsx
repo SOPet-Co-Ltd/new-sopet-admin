@@ -14,6 +14,10 @@ vi.mock('@/hooks/useShipping', () => ({
   useShippingProviders: () => ({ data: [] }),
 }));
 
+vi.mock('@/components/ui/toast', () => ({
+  useToast: () => ({ show: vi.fn() }),
+}));
+
 describe('VendorOrderDetail hold UX (AC-016 / AC-034)', () => {
   it('shows hold labels without fulfill CTA or hold toggle controls', () => {
     render(<VendorOrderDetail order={createOnHoldOrder()} storeId="store-1" />);

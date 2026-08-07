@@ -78,3 +78,23 @@ export function formatShippingAddress(order: Order): string | undefined {
 
   return parts.join(' ');
 }
+
+/** Multi-line block for courier / clipboard: recipient, phone, address. */
+export function formatCustomerShippingCopyText(order: Order): string | undefined {
+  const address = formatShippingAddress(order);
+  const phone = order.shippingAddress?.phone ?? order.guestPhone ?? undefined;
+  const explicitName = order.shippingAddress?.fullName ?? order.guestName ?? undefined;
+
+  if (!address && !phone && !explicitName) {
+    return undefined;
+  }
+
+  const lines = [
+    explicitName ?? (address || phone ? getOrderCustomerName(order) : undefined),
+    phone,
+    address,
+  ].filter((value): value is string => Boolean(value?.trim()));
+
+  if (lines.length === 0) return undefined;
+  return lines.join('\n');
+}

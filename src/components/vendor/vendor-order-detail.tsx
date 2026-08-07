@@ -1,6 +1,10 @@
+'use client';
+
 import type { ReactNode } from 'react';
+import { HiOutlineClipboardDocument } from 'react-icons/hi2';
 import { VendorOrderWorkflow } from '@/components/vendor/vendor-order-workflow';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import {
   Table,
@@ -10,8 +14,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useToast } from '@/components/ui/toast';
 import { labelFulfillmentStatus, labelOrderStatus } from '@/lib/i18n/th';
 import {
+  formatCustomerShippingCopyText,
   formatShippingAddress,
   getOrderCustomerEmail,
   getOrderCustomerName,
@@ -36,23 +42,44 @@ export interface VendorOrderDetailProps {
 function DetailRow({
   label,
   children,
+  copyText,
+  onCopy,
   className,
 }: {
   label: string;
   children: ReactNode;
+  copyText?: string | null;
+  onCopy?: (text: string, fieldLabel: string) => void;
   className?: string;
 }) {
+  const normalized = copyText?.trim();
+  const canCopy = Boolean(normalized && normalized !== '—' && onCopy);
+
   return (
     <div
       className={cn(
-        'flex items-start justify-between gap-4 border-b border-border pb-3 last:border-b-0 last:pb-0',
+        'grid grid-cols-[auto_minmax(0,1fr)_1.75rem] items-start gap-x-3 border-b border-border pb-3 last:border-b-0 last:pb-0',
         className,
       )}
     >
-      <span className="shrink-0 text-sm text-muted">{label}</span>
+      <span className="pt-0.5 text-sm text-muted">{label}</span>
       <span className="min-w-0 text-right text-sm font-medium break-words text-ink">
         {children}
       </span>
+      <div className="flex size-7 shrink-0 items-center justify-center">
+        {canCopy ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="size-7 p-0 text-muted hover:text-ink"
+            aria-label={`คัดลอก${label}`}
+            onClick={() => onCopy?.(normalized!, label)}
+          >
+            <HiOutlineClipboardDocument className="size-3.5" aria-hidden="true" />
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -97,6 +124,7 @@ function MoneyRow({
 }
 
 export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
+  const { show } = useToast();
   const storeItems = getStoreOrderItems(order, storeId);
   const storeShipping = getStoreShipping(order, storeId);
   const storeSubtotal = sumItemSubtotals(storeItems);
@@ -105,9 +133,25 @@ export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
   const customerPhone = getOrderCustomerPhone(order);
   const customerEmail = getOrderCustomerEmail(order);
   const shippingAddress = formatShippingAddress(order);
+  const shippingCopyText = formatCustomerShippingCopyText(order);
   const hasMultipleStores = getUniqueStoreIds(order).length > 1;
   const recipientName = order.shippingAddress?.fullName ?? getOrderCustomerName(order);
   const recipientPhone = order.shippingAddress?.phone ?? customerPhone ?? '—';
+  const customerName = getOrderCustomerName(order);
+
+  async function copyText(value: string, fieldLabel: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      show(`คัดลอก${fieldLabel}แล้ว`, 'success');
+    } catch {
+      show('ไม่สามารถคัดลอกได้', 'error');
+    }
+  }
+
+  async function handleCopyAddress() {
+    if (!shippingCopyText) return;
+    await copyText(shippingCopyText, 'ข้อมูลจัดส่ง');
+  }
 
   return (
     <div className="space-y-6">
@@ -180,9 +224,9 @@ export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
             <h2 className="font-display text-lg font-semibold text-ink">ลูกค้า</h2>
           </CardHeader>
           <CardBody className="space-y-3">
-            <DetailRow label="ชื่อ">
+            <DetailRow label="ชื่อ" copyText={customerName} onCopy={copyText}>
               <span className="inline-flex flex-wrap items-center justify-end gap-2">
-                {getOrderCustomerName(order)}
+                {customerName}
                 {isGuestOrder(order) ? (
                   <Badge status="draft" className="font-normal">
                     ลูกค้าทั่วไป
@@ -194,18 +238,43 @@ export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
                 )}
               </span>
             </DetailRow>
-            <DetailRow label="เบอร์โทรศัพท์">{customerPhone ?? '—'}</DetailRow>
-            {customerEmail ? <DetailRow label="อีเมล">{customerEmail}</DetailRow> : null}
+            <DetailRow label="เบอร์โทรศัพท์" copyText={customerPhone} onCopy={copyText}>
+              {customerPhone ?? '—'}
+            </DetailRow>
+            {customerEmail ? (
+              <DetailRow label="อีเมล" copyText={customerEmail} onCopy={copyText}>
+                {customerEmail}
+              </DetailRow>
+            ) : null}
           </CardBody>
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-lg font-semibold text-ink">การจัดส่ง</h2>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!shippingCopyText}
+              onClick={() => void handleCopyAddress()}
+              aria-label="คัดลอกที่อยู่ลูกค้าทั้งหมด"
+            >
+              <HiOutlineClipboardDocument className="size-4" aria-hidden="true" />
+              คัดลอกทั้งหมด
+            </Button>
           </CardHeader>
           <CardBody className="space-y-3">
-            <DetailRow label="ผู้รับ">{recipientName}</DetailRow>
-            <DetailRow label="เบอร์โทรผู้รับ">{recipientPhone}</DetailRow>
+            <DetailRow label="ผู้รับ" copyText={recipientName} onCopy={copyText}>
+              {recipientName}
+            </DetailRow>
+            <DetailRow
+              label="เบอร์โทรผู้รับ"
+              copyText={recipientPhone !== '—' ? recipientPhone : null}
+              onCopy={copyText}
+            >
+              {recipientPhone}
+            </DetailRow>
             {storeShipping ? (
               <>
                 <DetailRow label="วิธีจัดส่ง">{storeShipping.optionName}</DetailRow>
@@ -215,8 +284,8 @@ export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
               </>
             ) : null}
             {shippingAddress ? (
-              <DetailRow label="ที่อยู่">
-                <span className="max-w-[28ch] text-pretty">{shippingAddress}</span>
+              <DetailRow label="ที่อยู่" copyText={shippingAddress} onCopy={copyText}>
+                <span className="text-pretty">{shippingAddress}</span>
               </DetailRow>
             ) : null}
           </CardBody>
