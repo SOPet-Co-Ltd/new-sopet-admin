@@ -419,6 +419,8 @@ export const VENDOR_PRODUCTS_QUERY = gql`
     $tag: String
     $petTypeIds: [String!]
     $brandIds: [String!]
+    $minPrice: Float
+    $maxPrice: Float
     $status: String
     $page: Int
     $limit: Int
@@ -429,6 +431,8 @@ export const VENDOR_PRODUCTS_QUERY = gql`
       tag: $tag
       petTypeIds: $petTypeIds
       brandIds: $brandIds
+      minPrice: $minPrice
+      maxPrice: $maxPrice
       status: $status
       page: $page
       limit: $limit

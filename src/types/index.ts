@@ -379,6 +379,8 @@ export interface ProductsQueryParams {
   brandIds?: string[];
   /** Vendor list filter — e.g. `published` for campaign published-only pickers. */
   status?: string;
+  minPrice?: number;
+  maxPrice?: number;
   page?: number;
   limit?: number;
 }
