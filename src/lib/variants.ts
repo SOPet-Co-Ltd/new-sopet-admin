@@ -146,10 +146,7 @@ export function variantItemsToSyncInput(
 }
 
 /** Compare-at from sell price + discount percent (e.g. 25% off 750 → 1000). */
-export function compareAtFromDiscountPercent(
-  sellPrice: number,
-  percent: number,
-): number | null {
+export function compareAtFromDiscountPercent(sellPrice: number, percent: number): number | null {
   if (!(sellPrice > 0) || !(percent > 0) || !(percent < 100)) {
     return null;
   }

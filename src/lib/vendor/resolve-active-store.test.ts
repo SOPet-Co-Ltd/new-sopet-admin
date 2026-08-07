@@ -21,9 +21,9 @@ describe('pickPreferredAccessibleStoreId', () => {
   });
 
   it('falls back to a suspended store when that is all the vendor has', () => {
-    expect(
-      pickPreferredAccessibleStoreId([{ store: { id: 'only', status: 'suspended' } }]),
-    ).toBe('only');
+    expect(pickPreferredAccessibleStoreId([{ store: { id: 'only', status: 'suspended' } }])).toBe(
+      'only',
+    );
   });
 });
 

@@ -226,9 +226,7 @@ describe('EditProductPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('บันทึกอัตโนมัติเมื่อมีการเปลี่ยนแปลง')).toBeInTheDocument();
     expect(screen.getByText('คำเตือนและวันหมดอายุ (ถ้ามี)')).toBeInTheDocument();
-    expect(
-      screen.getByText(/ราคาเดิมถาวรระดับสินค้า \(ไม่แยก SKU\)/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/ราคาเดิมถาวรระดับสินค้า \(ไม่แยก SKU\)/)).toBeInTheDocument();
   });
 
   it('updates the publish checklist when the name field is cleared', async () => {

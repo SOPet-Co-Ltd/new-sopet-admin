@@ -6,7 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import { HiArrowLeft, HiOutlineExclamationCircle, HiOutlinePlus, HiOutlineTrash } from 'react-icons/hi2';
+import {
+  HiArrowLeft,
+  HiOutlineExclamationCircle,
+  HiOutlinePlus,
+  HiOutlineTrash,
+} from 'react-icons/hi2';
 import { BxGyProductPicker } from '@/components/promotions/bxgy-product-picker';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
@@ -123,9 +128,7 @@ export function SaleCampaignForm({
       });
       router.push(listHref);
     } catch (err) {
-      setSubmitError(
-        err instanceof Error ? err.message : 'บันทึกแคมเปญไม่สำเร็จ กรุณาลองอีกครั้ง',
-      );
+      setSubmitError(err instanceof Error ? err.message : 'บันทึกแคมเปญไม่สำเร็จ กรุณาลองอีกครั้ง');
     }
   }
 

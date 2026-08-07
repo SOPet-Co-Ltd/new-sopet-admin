@@ -58,8 +58,8 @@ function CampaignsEmptyState() {
       </div>
       <h2 className="text-balance text-base font-medium text-ink">ยังไม่มีแคมเปญ</h2>
       <p className="mt-1.5 max-w-sm text-pretty text-sm text-muted-foreground">
-        สร้างแคมเปญเพื่อแสดงราคาเดิมขีดฆ่าและป้าย % บนหน้าร้าน ราคาขายสินค้ายังเป็นราคาที่ลูกค้าชำระ —
-        หากต้องการลดตอนเช็คเอาต์ให้ใช้โปรโมชัน
+        สร้างแคมเปญเพื่อแสดงราคาเดิมขีดฆ่าและป้าย % บนหน้าร้าน ราคาขายสินค้ายังเป็นราคาที่ลูกค้าชำระ
+        — หากต้องการลดตอนเช็คเอาต์ให้ใช้โปรโมชัน
       </p>
       <div className="mt-5">
         <Button variant="secondary" asChild>

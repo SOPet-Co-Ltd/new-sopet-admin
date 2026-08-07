@@ -19,9 +19,7 @@ function isAccessible(
 }
 
 /** Prefer a non-suspended store; fall back to any accessible store. */
-export function pickPreferredAccessibleStoreId(
-  stores: AccessibleStoreEntry[],
-): string | undefined {
+export function pickPreferredAccessibleStoreId(stores: AccessibleStoreEntry[]): string | undefined {
   if (stores.length === 0) return undefined;
   return (stores.find((entry) => entry.store.status !== 'suspended') ?? stores[0]).store.id;
 }

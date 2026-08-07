@@ -3,7 +3,11 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BxGyProductPicker, filterPublishedProducts, filterCampaignProducts } from './bxgy-product-picker';
+import {
+  BxGyProductPicker,
+  filterPublishedProducts,
+  filterCampaignProducts,
+} from './bxgy-product-picker';
 import { PromotionFormFields } from './promotion-form-fields';
 import { getPromotionTypeMeta } from '@/lib/promotions/metadata';
 import {
