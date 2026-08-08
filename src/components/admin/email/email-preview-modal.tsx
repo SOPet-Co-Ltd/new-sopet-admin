@@ -205,7 +205,10 @@ export function EmailPreviewModal({
                 <iframe
                   title="ตัวอย่างอีเมล"
                   srcDoc={html}
-                  sandbox=""
+                  // allow-same-origin: load absolute logo/images from API/CDN in srcDoc.
+                  // Scripts stay blocked (no allow-scripts).
+                  sandbox="allow-same-origin"
+                  referrerPolicy="no-referrer"
                   className="block w-full bg-white"
                   style={{ height: 'min(70vh, 720px)', minHeight: 420 }}
                 />
