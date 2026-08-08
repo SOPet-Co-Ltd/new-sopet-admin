@@ -195,4 +195,11 @@ export const queryKeys = {
     adminSummary: (storeId: string) => ['payouts', 'adminSummary', storeId] as const,
     adminHistory: (storeId: string) => ['payouts', 'adminHistory', storeId] as const,
   },
+  emailCms: {
+    all: ['emailCms'] as const,
+    containers: () => ['emailCms', 'containers'] as const,
+    container: (id: string) => ['emailCms', 'container', id] as const,
+    contentTemplates: () => ['emailCms', 'contentTemplates'] as const,
+    contentTemplateByKey: (key: string) => ['emailCms', 'contentTemplateByKey', key] as const,
+  },
 } as const;

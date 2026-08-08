@@ -8,8 +8,10 @@ import {
   HiClipboardDocumentList,
   HiCog6Tooth,
   HiChatBubbleLeftRight,
+  HiEnvelope,
   HiInboxArrowDown,
   HiMagnifyingGlass,
+  HiRectangleGroup,
   HiShieldCheck,
   HiTag,
   HiTicket,
@@ -92,6 +94,13 @@ export function buildAdminNavSections({
         { href: '/admin/search/synonyms', label: 'คำพ้องความหมาย', icon: HiMagnifyingGlass },
         { href: '/admin/search/tuning', label: 'ปรับการจัดอันดับ', icon: HiMagnifyingGlass },
         { href: '/admin/search/analytics', label: 'วิเคราะห์การค้นหา', icon: HiMagnifyingGlass },
+      ],
+    },
+    {
+      title: 'ระบบ',
+      items: [
+        { href: '/admin/email/templates', label: 'เทมเพลตอีเมล', icon: HiEnvelope },
+        { href: '/admin/email/containers', label: 'คอนเทนเนอร์อีเมล', icon: HiRectangleGroup },
       ],
     },
     {

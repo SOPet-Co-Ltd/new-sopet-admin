@@ -1,0 +1,100 @@
+fragment EmailPlaceholderInfoFields on EmailPlaceholderInfoType {
+  name
+  required
+  sample
+  trustedHtml
+}
+
+fragment EmailContainerFields on EmailContainerType {
+  id
+  name
+  htmlShell
+  isDefault
+  createdAt
+  updatedAt
+  warnings
+}
+
+fragment EmailContentTemplateFields on EmailContentTemplateType {
+  id
+  key
+  name
+  subjectTemplate
+  bodyHtml
+  textTemplate
+  containerId
+  enabled
+  createdAt
+  updatedAt
+  warnings
+  allowedPlaceholders {
+    ...EmailPlaceholderInfoFields
+  }
+  container {
+    id
+    name
+    isDefault
+  }
+}
+
+query EmailContainers {
+  emailContainers {
+    ...EmailContainerFields
+  }
+}
+
+query EmailContainer($id: ID!) {
+  emailContainer(id: $id) {
+    ...EmailContainerFields
+  }
+}
+
+mutation CreateEmailContainer($input: CreateEmailContainerInput!) {
+  createEmailContainer(input: $input) {
+    ...EmailContainerFields
+  }
+}
+
+mutation UpdateEmailContainer($id: ID!, $input: UpdateEmailContainerInput!) {
+  updateEmailContainer(id: $id, input: $input) {
+    ...EmailContainerFields
+  }
+}
+
+mutation SetDefaultEmailContainer($id: ID!) {
+  setDefaultEmailContainer(id: $id) {
+    ...EmailContainerFields
+  }
+}
+
+query EmailContentTemplates {
+  emailContentTemplates {
+    ...EmailContentTemplateFields
+  }
+}
+
+query EmailContentTemplateByKey($key: EmailTemplateKey!) {
+  emailContentTemplateByKey(key: $key) {
+    ...EmailContentTemplateFields
+  }
+}
+
+mutation UpdateEmailContentTemplate($id: ID!, $input: UpdateEmailContentTemplateInput!) {
+  updateEmailContentTemplate(id: $id, input: $input) {
+    ...EmailContentTemplateFields
+  }
+}
+
+mutation PreviewEmailContentTemplate($input: PreviewEmailContentTemplateInput!) {
+  previewEmailContentTemplate(input: $input) {
+    subject
+    html
+    text
+    missingPlaceholders
+    warnings
+  }
+}
+
+mutation SendTestEmailContentTemplate($input: SendTestEmailContentTemplateInput!) {
+  sendTestEmailContentTemplate(input: $input)
+}
