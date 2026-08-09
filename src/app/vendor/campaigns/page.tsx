@@ -58,8 +58,8 @@ function CampaignsEmptyState() {
       </div>
       <h2 className="text-balance text-base font-medium text-ink">ยังไม่มีแคมเปญ</h2>
       <p className="mt-1.5 max-w-sm text-pretty text-sm text-muted-foreground">
-        สร้างแคมเปญเพื่อแสดงราคาเดิมขีดฆ่าและป้าย % บนหน้าร้าน ราคาขายสินค้ายังเป็นราคาที่ลูกค้าชำระ
-        — หากต้องการลดตอนเช็คเอาต์ให้ใช้โปรโมชัน
+        สร้างแคมเปญเพื่อลดราคาขายตาม % และแสดงราคาเดิมขีดฆ่าอย่างซื่อสัตย์ โปรโมชัน (โค้ด/ใช้ทันที)
+        ยังใช้ลดเพิ่มตอนเช็คเอาต์ได้
       </p>
       <div className="mt-5">
         <Button variant="secondary" asChild>
@@ -88,7 +88,7 @@ export default function VendorSaleCampaignsPage() {
     <div className="space-y-6">
       <PageHeader
         title="แคมเปญ"
-        description="แสดงราคาขีดฆ่าและป้าย % บนหน้าร้าน — ราคาขายสินค้าคือราคาที่ลูกค้าชำระ (ส่วนลดตอนชำระเงินใช้โปรโมชัน)"
+        description="ลดราคาจริงตาม % บนสินค้าที่เลือก — ราคาหลังลดคือราคาที่ลูกค้าชำระ (โปรโมชันตอนเช็คเอาต์ยังใช้ต่อท้ายได้)"
         action={
           storeId ? (
             <Button asChild>

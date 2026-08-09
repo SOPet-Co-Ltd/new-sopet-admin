@@ -578,7 +578,7 @@ export interface SaleCampaignItemInput {
   productId: string;
   variantId?: string;
   compareAtPrice?: number;
-  discountPercent?: number;
+  discountPercent: number;
 }
 
 export interface CreateSaleCampaignInput {

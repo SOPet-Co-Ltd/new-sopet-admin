@@ -1601,6 +1601,7 @@ export type OrderItemInput = {
 
 export type OrderItemType = {
   __typename?: 'OrderItemType';
+  catalogUnitPrice?: Maybe<Scalars['Float']['output']>;
   fulfillmentProvider?: Maybe<Scalars['String']['output']>;
   fulfillmentStatus: Scalars['String']['output'];
   id: Scalars['String']['output'];
@@ -1608,6 +1609,8 @@ export type OrderItemType = {
   productImageUrl?: Maybe<Scalars['String']['output']>;
   productName: Scalars['String']['output'];
   quantity: Scalars['Int']['output'];
+  saleCampaignId?: Maybe<Scalars['String']['output']>;
+  saleDiscountPercent?: Maybe<Scalars['Float']['output']>;
   storeId: Scalars['String']['output'];
   subtotal: Scalars['Float']['output'];
   trackingNumber?: Maybe<Scalars['String']['output']>;
@@ -2549,7 +2552,7 @@ export type ReviewType = {
 
 export type SaleCampaignItemInput = {
   compareAtPrice?: InputMaybe<Scalars['Float']['input']>;
-  discountPercent?: InputMaybe<Scalars['Float']['input']>;
+  discountPercent: Scalars['Float']['input'];
   productId: Scalars['String']['input'];
   variantId?: InputMaybe<Scalars['String']['input']>;
 };
