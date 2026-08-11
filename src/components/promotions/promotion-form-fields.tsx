@@ -231,7 +231,11 @@ export function PromotionFormFields({
               spellCheck={false}
               aria-invalid={!!errors.code}
               aria-describedby={errors.code ? `${idPrefix}-code-error` : undefined}
-              {...register('code')}
+              {...register('code', {
+                onChange: (e) => {
+                  e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                },
+              })}
               className="mt-1.5"
             />
             <FieldError id={`${idPrefix}-code-error`} message={errors.code?.message} />
@@ -596,11 +600,20 @@ export function PromotionFormFields({
               type="number"
               inputMode="numeric"
               step="1"
-              min={0}
+              min={1}
               placeholder="ไม่จำกัด"
               aria-invalid={!!errors.usageLimit}
               aria-describedby={errors.usageLimit ? `${idPrefix}-limit-error` : undefined}
-              {...register('usageLimit', numberRegisterOptions)}
+              {...register('usageLimit', {
+                ...numberRegisterOptions,
+                onChange: (e) => {
+                  const value = e.target.value;
+
+                  if (value !== '' && Number(value) < 1) {
+                    e.target.value = '1';
+                  }
+                },
+              })}
               className="mt-1.5"
             />
             <FieldError id={`${idPrefix}-limit-error`} message={errors.usageLimit?.message} />
@@ -612,13 +625,22 @@ export function PromotionFormFields({
               type="number"
               inputMode="numeric"
               step="1"
-              min={0}
+              min={1}
               placeholder="1"
               aria-invalid={!!errors.usagePerCustomer}
               aria-describedby={
                 errors.usagePerCustomer ? `${idPrefix}-per-customer-error` : undefined
               }
-              {...register('usagePerCustomer', numberRegisterOptions)}
+              {...register('usageLimit', {
+                ...numberRegisterOptions,
+                onChange: (e) => {
+                  const value = e.target.value;
+
+                  if (value !== '' && Number(value) < 1) {
+                    e.target.value = '1';
+                  }
+                },
+              })}
               className="mt-1.5"
             />
             <FieldError

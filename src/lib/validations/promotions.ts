@@ -15,12 +15,16 @@ const promotionTypeEnum = z.enum([
 ]);
 
 const commonFields = {
-  code: z.string().min(1, 'กรุณากรอกรหัสโปรโมชัน').max(50),
+  code: z
+    .string()
+    .min(1, 'กรุณากรอกรหัสโปรโมชัน')
+    .max(50, 'รหัสโปรโมชันต้องไม่เกิน 50 ตัวอักษร')
+    .regex(/^[a-zA-Z0-9]+$/, 'รหัสโปรโมชันต้องเป็นภาษาอังกฤษและตัวเลขเท่านั้น'),
   name: z.string().min(1, 'กรุณากรอกชื่อโปรโมชัน'),
   description: z.string().optional(),
   minPurchaseAmount: z.number().min(0, 'ยอดซื้อขั้นต่ำต้องไม่ต่ำกว่า 0').optional(),
   maxDiscountAmount: z.number().min(0, 'ส่วนลดสูงสุดต้องไม่ต่ำกว่า 0').optional(),
-  usageLimit: z.number().min(0, 'จำกัดการใช้ทั้งหมดต้องไม่ต่ำกว่า 0').optional(),
+  usageLimit: z.number().min(1, 'จำกัดการใช้ทั้งหมดต้องไม่ต่ำกว่า 1').optional(),
   usagePerCustomer: z.number().min(0, 'จำนวนครั้งต่อลูกค้าต้องไม่ต่ำกว่า 0').optional(),
   autoApply: z.boolean().optional(),
   priority: z.number().optional(),
