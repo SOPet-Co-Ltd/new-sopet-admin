@@ -1,7 +1,6 @@
 'use client';
 
-import { notFound } from 'next/navigation';
-import { use } from 'react';
+import { notFound, useParams } from 'next/navigation';
 import { PromotionCreateForm } from '@/components/promotions/promotion-create-form';
 import { useCreatePromotion } from '@/hooks/usePromotions';
 import {
@@ -10,12 +9,9 @@ import {
   isPromotionType,
 } from '@/lib/promotions/metadata';
 
-export default function AdminPromotionCreatePage({
-  params,
-}: {
-  params: Promise<{ type: string }>;
-}) {
-  const { type: rawType } = use(params);
+export default function AdminPromotionCreatePage() {
+  const params = useParams<{ type: string }>();
+  const rawType = typeof params.type === 'string' ? params.type : '';
   const createMutation = useCreatePromotion();
 
   if (!isPromotionType(rawType) || !isAdminCreatablePromotionType(rawType)) {

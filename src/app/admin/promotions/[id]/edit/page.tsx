@@ -1,11 +1,12 @@
 'use client';
 
-import { use } from 'react';
+import { useParams } from 'next/navigation';
 import { PromotionEditForm } from '@/components/promotions/promotion-edit-form';
 import { usePlatformPromotion, useUpdatePromotion } from '@/hooks/usePromotions';
 
-export default function AdminPromotionEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function AdminPromotionEditPage() {
+  const params = useParams<{ id: string }>();
+  const id = typeof params.id === 'string' ? params.id : '';
   const { data: promotion, isLoading, error, isNotFound } = usePlatformPromotion(id);
   const updateMutation = useUpdatePromotion();
 

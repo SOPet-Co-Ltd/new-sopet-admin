@@ -1,18 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { use } from 'react';
+import { useParams } from 'next/navigation';
 import { SaleCampaignForm } from '@/components/vendor/sale-campaign-form';
 import { Card, CardBody } from '@/components/ui/card';
 import { useStoreSaleCampaign, useUpdateSaleCampaign } from '@/hooks/useSaleCampaigns';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 
-export default function VendorSaleCampaignEditPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+export default function VendorSaleCampaignEditPage() {
+  const params = useParams<{ id: string }>();
+  const id = typeof params.id === 'string' ? params.id : '';
   const storeId = useVendorStoreId();
   const { data: campaign, isLoading, error, isNotFound } = useStoreSaleCampaign(id, storeId);
   const updateMutation = useUpdateSaleCampaign();
