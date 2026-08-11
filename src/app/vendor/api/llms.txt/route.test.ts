@@ -58,7 +58,9 @@ describe('vendor api llms.txt route', () => {
     expect(body).toContain('draft');
     expect(body).toContain('| images | string[] |');
     expect(body).toContain('source URLs are never stored');
-    expect(body).toContain('persist these for later PATCH/DELETE');
+    expect(body).toContain('persist these for later GET/PATCH/DELETE');
+    expect(body).toContain('### List products');
+    expect(body).toContain('### Get product by id');
     expect(body).not.toMatch(/Listing, updating, deleting/);
   });
 

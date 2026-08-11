@@ -9,7 +9,7 @@ function buildLlmsTxtContent(adminOrigin: string): string {
 
   return `# SOPET Vendor API
 
-> REST API for approved SOPET stores: create/update/delete product drafts, configure order webhooks, and push tracking numbers from external systems (ERP, POS, n8n, Zapier).
+> REST API for approved SOPET stores: list/get/create/update/delete product drafts, configure order webhooks, and push tracking numbers from external systems (ERP, POS, n8n, Zapier).
 
 > Managed in the vendor dashboard. API keys are store-scoped. Products created via this API are always saved as draft and must be reviewed/published in the vendor UI. Product images may be supplied as remote URLs; the server downloads them into object storage (source URLs are never stored).
 
@@ -42,12 +42,27 @@ Use the UUID Store ID shown at ${adminOrigin}/vendor/api in every request path u
 
 ## Endpoints
 
+### List products
+
+- Method: \`GET\`
+- Path: \`/api/v1/stores/{storeId}/products\`
+- Success: \`200\` with \`{ items: Product[], pagination: { page, limit, total, totalPages } }\`
+- Query (all optional): \`page\` (default 1), \`limit\` (default 20, max 100), \`status\` (\`draft\`|\`published\`|\`archived\`; omit = all), \`search\` (product name)
+- Includes draft/published/archived for this store (soft-deleted excluded). Same product shape as create response (with variants).
+
+### Get product by id
+
+- Method: \`GET\`
+- Path: \`/api/v1/stores/{storeId}/products/{productId}\`
+- Success: \`200\` with the product object (same shape as create)
+- Errors: \`404 PRODUCT_NOT_FOUND\` if missing or wrong store
+
 ### Create product (draft)
 
 - Method: \`POST\`
 - Path: \`/api/v1/stores/{storeId}/products\`
 - Success: \`201\` with the created product object (status \`draft\`)
-- **Important:** response includes product \`id\` (UUID) and each variant's \`id\` — persist these for later PATCH/DELETE.
+- **Important:** response includes product \`id\` (UUID) and each variant's \`id\` — persist these for later GET/PATCH/DELETE.
 
 #### Request body fields
 
@@ -217,7 +232,7 @@ Shape:
 
 ## Out of scope
 
-- Listing / publishing products via REST
+- Publishing products via REST
 - Multipart / base64 image upload on REST (use image URLs instead)
 - Creating new variants after product create
 - GraphQL / admin JWT flows for these integrations
