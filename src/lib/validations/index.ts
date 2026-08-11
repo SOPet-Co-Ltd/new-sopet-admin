@@ -277,3 +277,20 @@ export const loginImagesFormSchema = z.object({
 });
 
 export type LoginImagesFormValues = z.infer<typeof loginImagesFormSchema>;
+
+export const bankTransferFormSchema = z.object({
+  enabled: z.boolean(),
+  bankName: z.string().trim().min(1, 'กรุณาเลือกธนาคาร').max(255),
+  accountName: z.string().trim().min(1, 'ต้องระบุชื่อบัญชี').max(255),
+  accountNumber: z
+    .string()
+    .trim()
+    .min(1, 'ต้องระบุเลขบัญชี')
+    .max(255)
+    .refine((value) => {
+      const digits = value.replace(/\D/g, '');
+      return digits.length >= 10 && digits.length <= 15;
+    }, 'เลขบัญชีต้องมี 10–15 หลัก'),
+});
+
+export type BankTransferFormValues = z.infer<typeof bankTransferFormSchema>;

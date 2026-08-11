@@ -132,12 +132,17 @@ export const queryKeys = {
     summary: (storeId: string) => ['reviews', 'summary', storeId] as const,
     pendingImported: (page: number) => ['reviews', 'pendingImported', page] as const,
   },
+  bankTransfers: {
+    all: ['bankTransfers'] as const,
+    pending: (page: number) => ['bankTransfers', 'pending', page] as const,
+  },
   platform: {
     all: ['platform'] as const,
     banners: () => ['platform', 'banners'] as const,
     sponsors: () => ['platform', 'sponsors'] as const,
     ads: () => ['platform', 'ads'] as const,
     loginPageImages: () => ['platform', 'loginPageImages'] as const,
+    bankTransfer: () => ['platform', 'bankTransfer'] as const,
   },
   adminTeam: {
     all: ['adminTeam'] as const,

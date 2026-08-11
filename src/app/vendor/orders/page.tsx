@@ -35,7 +35,7 @@ import type { Order } from '@/types';
 const ALL = 'all';
 const SEARCH_DEBOUNCE_MS = 300;
 const ORDER_STATUS_SET = new Set<string>(ORDER_STATUSES);
-const PAYMENT_METHOD_SET = new Set(['promptpay', 'credit_card', 'cod']);
+const PAYMENT_METHOD_SET = new Set(['promptpay', 'credit_card', 'cod', 'bank_transfer']);
 
 function buildOrdersQuery(params: { queue?: OrderQueueView; status?: string; payment?: string }) {
   const search = new URLSearchParams();

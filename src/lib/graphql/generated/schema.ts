@@ -296,6 +296,23 @@ export type AuthTokens = {
   refreshToken: Scalars['String']['output'];
 };
 
+export type BankTransferDetailsType = {
+  __typename?: 'BankTransferDetailsType';
+  accountName: Scalars['String']['output'];
+  accountNumber: Scalars['String']['output'];
+  bankName: Scalars['String']['output'];
+  branchName?: Maybe<Scalars['String']['output']>;
+};
+
+export type BankTransferSettingsType = {
+  __typename?: 'BankTransferSettingsType';
+  accountName: Scalars['String']['output'];
+  accountNumber: Scalars['String']['output'];
+  bankName: Scalars['String']['output'];
+  branchName?: Maybe<Scalars['String']['output']>;
+  enabled: Scalars['Boolean']['output'];
+};
+
 export type BrandType = {
   __typename?: 'BrandType';
   approvalStatus: Scalars['String']['output'];
@@ -768,6 +785,7 @@ export type Mutation = {
   changePassword: MessagePayload;
   clearLoginPageDesktopImage: LoginPageImagesType;
   clearLoginPageMobileImage: LoginPageImagesType;
+  confirmBankTransferPaid: OrderType;
   confirmGuestOrderDelivered: OrderType;
   confirmOrderDelivered: OrderType;
   createAddress: SavedAddressType;
@@ -866,6 +884,7 @@ export type Mutation = {
   toggleSaleCampaign: SaleCampaignType;
   triggerPayout: PayoutType;
   updateAddress: SavedAddressType;
+  updateBankTransferDetails: BankTransferSettingsType;
   updateBrand: BrandType;
   updateCartItem: CartType;
   updateCategory: CategoryType;
@@ -1011,6 +1030,11 @@ export type MutationChangeCustomerPhoneArgs = {
 
 export type MutationChangePasswordArgs = {
   input: ChangePasswordInput;
+};
+
+export type MutationConfirmBankTransferPaidArgs = {
+  note?: InputMaybe<Scalars['String']['input']>;
+  orderId: Scalars['String']['input'];
 };
 
 export type MutationConfirmGuestOrderDeliveredArgs = {
@@ -1394,6 +1418,10 @@ export type MutationTriggerPayoutArgs = {
 export type MutationUpdateAddressArgs = {
   id: Scalars['String']['input'];
   input: UpdateAddressInput;
+};
+
+export type MutationUpdateBankTransferDetailsArgs = {
+  input: UpdateBankTransferDetailsInput;
 };
 
 export type MutationUpdateBrandArgs = {
@@ -1982,6 +2010,8 @@ export type Query = {
   approvedCategories: Array<CategoryType>;
   approvedPetTypes: Array<PetTypeType>;
   approvedTags: Array<TagType>;
+  bankTransferDetails?: Maybe<BankTransferDetailsType>;
+  bankTransferSettings: BankTransferSettingsType;
   brandDeleteImpact: TaxonomyDeleteImpactType;
   cart: CartType;
   categoryDeleteImpact: TaxonomyDeleteImpactType;
@@ -2021,6 +2051,7 @@ export type Query = {
   paymentByOrderId: PaymentType;
   paymentMethods: Array<SavedPaymentMethodType>;
   pendingAdminInvitations: Array<AdminInvitationType>;
+  pendingBankTransferOrders: OrderConnection;
   pendingBrands: Array<BrandType>;
   pendingCategories: Array<CategoryType>;
   pendingImportedReviews: AdminImportedReviewConnection;
@@ -2233,6 +2264,11 @@ export type QueryPaymentArgs = {
 
 export type QueryPaymentByOrderIdArgs = {
   orderId: Scalars['String']['input'];
+};
+
+export type QueryPendingBankTransferOrdersArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type QueryPendingImportedReviewsArgs = {
@@ -2991,6 +3027,14 @@ export type UpdateAddressInput = {
   recipientName?: InputMaybe<Scalars['String']['input']>;
   recipientPhone?: InputMaybe<Scalars['String']['input']>;
   tumbon?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateBankTransferDetailsInput = {
+  accountName: Scalars['String']['input'];
+  accountNumber: Scalars['String']['input'];
+  bankName: Scalars['String']['input'];
+  branchName?: InputMaybe<Scalars['String']['input']>;
+  enabled: Scalars['Boolean']['input'];
 };
 
 export type UpdateBrandInput = {

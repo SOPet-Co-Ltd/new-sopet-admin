@@ -19,6 +19,7 @@ export const paymentMethodLabels: Record<string, string> = {
   promptpay: 'พร้อมเพย์',
   credit_card: 'บัตรเครดิต',
   cod: 'เก็บเงินปลายทาง',
+  bank_transfer: 'โอนเงินเข้าบัญชี',
 };
 
 export const fulfillmentStatusLabels: Record<string, string> = {
@@ -100,6 +101,7 @@ export const platformSettingsTabLabels = {
   sponsors: 'สปอนเซอร์',
   ads: 'โฆษณาป๊อปอัพ',
   loginImages: 'รูปหน้าเข้าสู่ระบบ',
+  bankTransfer: 'บัญชีรับโอน',
 } as const;
 
 export const userRoleLabels: Record<string, string> = {

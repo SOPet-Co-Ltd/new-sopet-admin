@@ -1066,6 +1066,29 @@ export interface UpdateLoginPageImagesInput {
   altText?: string | null;
 }
 
+export interface BankTransferDetails {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branchName: string | null;
+}
+
+export interface BankTransferSettings {
+  enabled: boolean;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branchName: string | null;
+}
+
+export interface UpdateBankTransferDetailsInput {
+  enabled: boolean;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branchName?: string | null;
+}
+
 export interface AdminTeamMember {
   id: string;
   email: string;

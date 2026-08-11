@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 const ALL = 'all';
 
-export const ORDER_PAYMENT_METHODS = ['promptpay', 'credit_card', 'cod'] as const;
+export const ORDER_PAYMENT_METHODS = ['promptpay', 'credit_card', 'cod', 'bank_transfer'] as const;
 
 export type OrderQueueView = 'action' | 'all';
 export type OrderStatusFilter = (typeof ORDER_STATUSES)[number] | typeof ALL;

@@ -211,6 +211,48 @@ export const MARK_VENDOR_ORDER_PAID = gql`
   }
 `;
 
+export const PENDING_BANK_TRANSFER_ORDERS_QUERY = gql`
+  query PendingBankTransferOrders($page: Int, $limit: Int) {
+    pendingBankTransferOrders(page: $page, limit: $limit) {
+      items {
+        id
+        orderNumber
+        status
+        paymentMethod
+        total
+        guestName
+        guestPhone
+        guestEmail
+        createdAt
+        items {
+          id
+          productName
+          quantity
+          storeId
+        }
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+    }
+  }
+`;
+
+export const CONFIRM_BANK_TRANSFER_PAID_MUTATION = gql`
+  mutation ConfirmBankTransferPaid($orderId: String!, $note: String) {
+    confirmBankTransferPaid(orderId: $orderId, note: $note) {
+      id
+      orderNumber
+      status
+      paymentMethod
+      total
+    }
+  }
+`;
+
 export const ACKNOWLEDGE_VENDOR_ORDER = gql`
   mutation AcknowledgeVendorOrder($orderId: String!) {
     acknowledgeVendorOrder(orderId: $orderId) {
@@ -1687,6 +1729,34 @@ export const CLEAR_LOGIN_PAGE_MOBILE_IMAGE = gql`
   mutation ClearLoginPageMobileImage {
     clearLoginPageMobileImage {
       ${LOGIN_PAGE_IMAGES_FIELDS}
+    }
+  }
+`;
+
+const BANK_TRANSFER_DETAILS_FIELDS = `
+  bankName
+  accountName
+  accountNumber
+  branchName
+`;
+
+const BANK_TRANSFER_SETTINGS_FIELDS = `
+  enabled
+  ${BANK_TRANSFER_DETAILS_FIELDS}
+`;
+
+export const BANK_TRANSFER_SETTINGS_QUERY = gql`
+  query BankTransferSettings {
+    bankTransferSettings {
+      ${BANK_TRANSFER_SETTINGS_FIELDS}
+    }
+  }
+`;
+
+export const UPDATE_BANK_TRANSFER_DETAILS = gql`
+  mutation UpdateBankTransferDetails($input: UpdateBankTransferDetailsInput!) {
+    updateBankTransferDetails(input: $input) {
+      ${BANK_TRANSFER_SETTINGS_FIELDS}
     }
   }
 `;

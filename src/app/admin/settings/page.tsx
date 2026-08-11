@@ -32,6 +32,7 @@ import {
 } from '@/lib/validations';
 import type { PlatformAd, PlatformBanner, PlatformSponsor } from '@/types';
 import { AdsPanel } from './ads-panel';
+import { BankTransferSettingsPanel } from './bank-transfer-settings-panel';
 import { BannersPanel } from './banners-panel';
 import { LoginImagesPanel } from './login-images-panel';
 import { AdDialog, BannerDialog, SponsorDialog } from './platform-settings-dialogs';
@@ -331,7 +332,7 @@ export default function AdminPlatformSettingsPage() {
     tab === 'banners' ? 'เพิ่มแบนเนอร์' : tab === 'sponsors' ? 'เพิ่มสปอนเซอร์' : 'เพิ่มโฆษณา';
 
   const headerAction =
-    tab === 'loginImages' ? undefined : tab === 'banners' ? (
+    tab === 'loginImages' || tab === 'bankTransfer' ? undefined : tab === 'banners' ? (
       <Button type="button" onClick={openCreateBanner}>
         {createActionLabel}
       </Button>
@@ -349,7 +350,7 @@ export default function AdminPlatformSettingsPage() {
     <div className="space-y-6">
       <PageHeader
         title="ตั้งค่าแพลตฟอร์ม"
-        description="จัดการแบนเนอร์ สปอนเซอร์ และโฆษณาป๊อปอัพบนหน้าแรกร้านค้า"
+        description="จัดการแบนเนอร์ สปอนเซอร์ โฆษณา และบัญชีรับโอนเงินบนแพลตฟอร์ม"
         action={headerAction}
       />
 
@@ -447,6 +448,16 @@ export default function AdminPlatformSettingsPage() {
           aria-labelledby="platform-settings-tab-loginImages"
         >
           <LoginImagesPanel />
+        </div>
+      ) : null}
+
+      {tab === 'bankTransfer' ? (
+        <div
+          id={PLATFORM_SETTINGS_TAB_PANEL_IDS.bankTransfer}
+          role="tabpanel"
+          aria-labelledby="platform-settings-tab-bankTransfer"
+        >
+          <BankTransferSettingsPanel />
         </div>
       ) : null}
 

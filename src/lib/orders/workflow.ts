@@ -40,6 +40,10 @@ export function getVendorOrderWorkflowAction(
   }
 
   if (order.status === 'pending_payment') {
+    // Platform admin confirms SOPET bank transfers — vendors cannot force paid.
+    if (order.paymentMethod === 'bank_transfer') {
+      return 'none';
+    }
     return 'mark_paid';
   }
 
@@ -122,5 +126,9 @@ export function canVendorCancelOrder(order: Order, storeId?: string): boolean {
 }
 
 export function vendorCancelWillRefund(order: Order): boolean {
-  return order.status !== 'pending_payment' && order.paymentMethod !== 'cod';
+  return (
+    order.status !== 'pending_payment' &&
+    order.paymentMethod !== 'cod' &&
+    order.paymentMethod !== 'bank_transfer'
+  );
 }

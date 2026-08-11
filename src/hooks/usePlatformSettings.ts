@@ -13,17 +13,19 @@ import {
   getAllPlatformAds,
   getAllPlatformBanners,
   getAllPlatformSponsors,
+  getBankTransferSettings,
   getLoginPageImages,
   loginImagesFormToUpdateInput,
   reorderPlatformBanners,
   reorderPlatformSponsors,
+  updateBankTransferDetails,
   updateLoginPageImages,
   updatePlatformAd,
   updatePlatformBanner,
   updatePlatformSponsor,
 } from '@/lib/api/platform';
 import { queryKeys } from '@/lib/react-query/keys';
-import type { LoginImagesFormValues } from '@/lib/validations';
+import type { BankTransferFormValues, LoginImagesFormValues } from '@/lib/validations';
 import type {
   CreatePlatformAdInput,
   CreatePlatformBannerInput,
@@ -198,6 +200,31 @@ export function useClearLoginPageMobileImage() {
     mutationFn: () => clearLoginPageMobileImage(),
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: queryKeys.platform.loginPageImages() });
+    },
+  });
+}
+
+export function useBankTransferSettings() {
+  return useQuery({
+    queryKey: queryKeys.platform.bankTransfer(),
+    queryFn: getBankTransferSettings,
+  });
+}
+
+export function useUpdateBankTransferDetails() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (form: BankTransferFormValues) =>
+      updateBankTransferDetails({
+        enabled: form.enabled,
+        bankName: form.bankName,
+        accountName: form.accountName,
+        accountNumber: form.accountNumber,
+        // Branch is unused on storefront; always clear on save.
+        branchName: null,
+      }),
+    onSuccess: () => {
+      return queryClient.invalidateQueries({ queryKey: queryKeys.platform.bankTransfer() });
     },
   });
 }

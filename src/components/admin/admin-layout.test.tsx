@@ -47,6 +47,12 @@ vi.mock('@/hooks/useAdminReviews', () => ({
   })),
 }));
 
+vi.mock('@/hooks/useAdminBankTransfers', () => ({
+  usePendingBankTransferOrders: vi.fn(() => ({
+    data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 1 } },
+  })),
+}));
+
 vi.mock('@/components/auth-guard', () => ({
   AuthGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
