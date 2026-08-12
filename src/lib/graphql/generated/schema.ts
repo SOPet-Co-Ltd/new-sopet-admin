@@ -195,6 +195,10 @@ export type AdminManualPayoutConnection = {
 export type AdminManualPayoutType = {
   __typename?: 'AdminManualPayoutType';
   amount: Scalars['Float']['output'];
+  bankAccountName?: Maybe<Scalars['String']['output']>;
+  bankAccountNumber?: Maybe<Scalars['String']['output']>;
+  bankCode?: Maybe<Scalars['String']['output']>;
+  bankName?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
   netAmount: Scalars['Float']['output'];
