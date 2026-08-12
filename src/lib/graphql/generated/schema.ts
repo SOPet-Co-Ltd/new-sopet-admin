@@ -186,6 +186,24 @@ export type AdminInvitationType = {
   status: Scalars['String']['output'];
 };
 
+export type AdminManualPayoutConnection = {
+  __typename?: 'AdminManualPayoutConnection';
+  items: Array<AdminManualPayoutType>;
+  pagination: PaginationMeta;
+};
+
+export type AdminManualPayoutType = {
+  __typename?: 'AdminManualPayoutType';
+  amount: Scalars['Float']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  netAmount: Scalars['Float']['output'];
+  settlementRail: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  storeId: Scalars['String']['output'];
+  storeName: Scalars['String']['output'];
+};
+
 export type AdminStoreType = {
   __typename?: 'AdminStoreType';
   address?: Maybe<Scalars['String']['output']>;
@@ -832,6 +850,7 @@ export type Mutation = {
   inviteAdmin: AdminInvitationType;
   inviteStoreMember: StoreMemberInvitationType;
   inviteVendor: VendorInvitationType;
+  linkStoreOmiseRecipient: MyStoreType;
   markAllNotificationsRead: Scalars['Boolean']['output'];
   markNotificationRead: Scalars['Boolean']['output'];
   markVendorOrderPaid: OrderType;
@@ -844,6 +863,7 @@ export type Mutation = {
   registerVendor: VendorAuthPayload;
   rejectBrand: BrandType;
   rejectCategory: CategoryType;
+  rejectManualPayout: PayoutType;
   rejectPetType: PetTypeType;
   rejectReview: ReviewType;
   rejectStore: StoreType;
@@ -857,6 +877,7 @@ export type Mutation = {
   reorderPlatformSponsors: Array<PlatformSponsorType>;
   reorderProductImages: Array<ProductImageType>;
   requestAccountDeletion: Scalars['Boolean']['output'];
+  requestManualPayout: PayoutType;
   requestPasswordReset: MessagePayload;
   requestPayout: PayoutType;
   resendEmailVerification: MessagePayload;
@@ -875,6 +896,7 @@ export type Mutation = {
   setDefaultPaymentMethod: SavedPaymentMethodType;
   setPetTypeImage: PetTypeType;
   setProductThumbnail: ProductImageType;
+  settleManualPayout: PayoutType;
   shipVendorOrder: OrderType;
   submitStoreReactivationRequest: StoreReactivationRequestType;
   submitStoreRequest: StoreRequestType;
@@ -1267,6 +1289,10 @@ export type MutationRejectCategoryArgs = {
   id: Scalars['String']['input'];
 };
 
+export type MutationRejectManualPayoutArgs = {
+  input: RejectManualPayoutInput;
+};
+
 export type MutationRejectPetTypeArgs = {
   id: Scalars['String']['input'];
 };
@@ -1378,6 +1404,10 @@ export type MutationSetPetTypeImageArgs = {
 export type MutationSetProductThumbnailArgs = {
   imageId: Scalars['String']['input'];
   productId: Scalars['String']['input'];
+};
+
+export type MutationSettleManualPayoutArgs = {
+  input: SettleManualPayoutInput;
 };
 
 export type MutationShipVendorOrderArgs = {
@@ -1749,12 +1779,23 @@ export type PaymentType = {
   status: Scalars['String']['output'];
 };
 
+export type PayoutRailSummaryType = {
+  __typename?: 'PayoutRailSummaryType';
+  availableBalance: Scalars['Float']['output'];
+  canRequestPayout: Scalars['Boolean']['output'];
+  grossRevenue: Scalars['Float']['output'];
+  pendingPayoutAmount: Scalars['Float']['output'];
+  totalPaidOut: Scalars['Float']['output'];
+};
+
 export type PayoutSummaryType = {
   __typename?: 'PayoutSummaryType';
   availableBalance: Scalars['Float']['output'];
   canRequestPayout: Scalars['Boolean']['output'];
   grossRevenue: Scalars['Float']['output'];
+  manual: PayoutRailSummaryType;
   minimumPayoutAmount: Scalars['Float']['output'];
+  omise: PayoutRailSummaryType;
   pendingPayoutAmount: Scalars['Float']['output'];
   storeId: Scalars['String']['output'];
   totalPaidOut: Scalars['Float']['output'];
@@ -1766,6 +1807,7 @@ export type PayoutType = {
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
   netAmount: Scalars['Float']['output'];
+  settlementRail: Scalars['String']['output'];
   status: Scalars['String']['output'];
   storeId: Scalars['String']['output'];
 };
@@ -2055,6 +2097,7 @@ export type Query = {
   pendingBrands: Array<BrandType>;
   pendingCategories: Array<CategoryType>;
   pendingImportedReviews: AdminImportedReviewConnection;
+  pendingManualPayouts: AdminManualPayoutConnection;
   pendingPetTypes: Array<PetTypeType>;
   pendingStoreRequests: Array<StoreRequestType>;
   pendingStores: Array<StoreType>;
@@ -2272,6 +2315,11 @@ export type QueryPendingBankTransferOrdersArgs = {
 };
 
 export type QueryPendingImportedReviewsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type QueryPendingManualPayoutsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -2526,6 +2574,12 @@ export type RegisterVendorInput = {
   password: Scalars['String']['input'];
 };
 
+export type RejectManualPayoutInput = {
+  notes?: InputMaybe<Scalars['String']['input']>;
+  payoutId?: InputMaybe<Scalars['String']['input']>;
+  storeId: Scalars['String']['input'];
+};
+
 export type RejectStoreInput = {
   rejectionReason?: InputMaybe<Scalars['String']['input']>;
   storeId: Scalars['String']['input'];
@@ -2749,6 +2803,12 @@ export type SetCategoryImageInput = {
 export type SetPetTypeImageInput = {
   imageUrl: Scalars['String']['input'];
   petTypeId: Scalars['String']['input'];
+};
+
+export type SettleManualPayoutInput = {
+  notes?: InputMaybe<Scalars['String']['input']>;
+  payoutId?: InputMaybe<Scalars['String']['input']>;
+  storeId: Scalars['String']['input'];
 };
 
 export type ShipVendorOrderInput = {

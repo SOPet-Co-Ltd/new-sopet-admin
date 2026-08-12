@@ -16,38 +16,9 @@ import {
 } from '@/components/ui/select';
 import { THAI_BANKS } from '@/lib/constants/thai-banks';
 import type { PayoutFormValues } from '@/lib/validations';
-import type { OmiseRecipientStatus, StoreDetail } from '@/types';
+import type { StoreDetail } from '@/types';
 import { cn } from '@/lib/utils';
-
-const OMISE_STATUS_INFO: Record<
-  OmiseRecipientStatus,
-  { label: string; description: string; className: string; dotClassName: string }
-> = {
-  not_connected: {
-    label: 'ยังไม่ได้เชื่อมต่อ',
-    description: 'บันทึกบัญชีธนาคารเพื่อเริ่มรับเงินจากยอดขาย',
-    className: 'border-border bg-surface text-ink',
-    dotClassName: 'bg-muted',
-  },
-  pending: {
-    label: 'รอการยืนยันบัญชี',
-    description: 'ระบบกำลังตรวจสอบบัญชี คุณสามารถขอรับเงินได้เมื่อสถานะเป็น “พร้อมรับเงิน”',
-    className: 'border-warning-text/20 bg-warning-bg text-warning-text',
-    dotClassName: 'bg-warning-text',
-  },
-  active: {
-    label: 'พร้อมรับเงิน',
-    description: 'บัญชีพร้อมรับเงินแล้ว ระบบสามารถโอนเงินเข้าบัญชีนี้ได้',
-    className: 'border-success/25 bg-success-bg text-success',
-    dotClassName: 'bg-success',
-  },
-  failed: {
-    label: 'เชื่อมต่อไม่สำเร็จ',
-    description: 'ตรวจสอบข้อมูลบัญชีแล้วบันทึกใหม่ หรือติดต่อทีมสนับสนุน',
-    className: 'border-danger/30 bg-danger-bg text-danger',
-    dotClassName: 'bg-danger',
-  },
-};
+import { formatThaiBankAccountNumber } from '@/lib/banks/formatThaiBankAccountNumber';
 
 type VendorPayoutAccountPanelProps = {
   form: UseFormReturn<PayoutFormValues>;
@@ -60,7 +31,6 @@ type VendorPayoutAccountPanelProps = {
 function AccountSkeleton() {
   return (
     <div className="space-y-4" aria-busy="true" aria-live="polite">
-      <div className="h-20 animate-pulse rounded-xl bg-surface motion-reduce:animate-none" />
       <div className="h-10 animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
       <div className="h-10 animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
       <div className="h-10 animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
@@ -76,12 +46,6 @@ export function VendorPayoutAccountPanel({
   saving,
   onSubmit,
 }: VendorPayoutAccountPanelProps) {
-  const status = (store?.omiseRecipientStatus ?? 'not_connected') as OmiseRecipientStatus;
-  const info = OMISE_STATUS_INFO[status] ?? OMISE_STATUS_INFO.not_connected;
-  const maskedAccount =
-    store?.bankAccountNumber && store.bankAccountNumber.length > 4
-      ? `•••• ${store.bankAccountNumber.slice(-4)}`
-      : store?.bankAccountNumber;
   const [saveFeedback, setSaveFeedback] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -97,7 +61,11 @@ export function VendorPayoutAccountPanel({
     setSaveFeedback(null);
     try {
       await onSubmit(values);
-      setSaveFeedback({ type: 'success', message: 'บันทึกบัญชีรับเงินแล้ว' });
+      setSaveFeedback({
+        type: 'success',
+        message:
+          'บันทึกบัญชีธนาคารในระบบแล้ว — ขั้นถัดไปกดยืนยันกับ Omise (ถ้าต้องการรับเงิน Omise)',
+      });
     } catch (err) {
       setSaveFeedback({
         type: 'error',
@@ -107,11 +75,16 @@ export function VendorPayoutAccountPanel({
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader className="space-y-1 bg-surface/60">
-        <h2 className="font-display text-lg font-medium text-ink text-balance">บัญชีรับเงิน</h2>
+    <Card>
+      <CardHeader className="space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          ขั้นตอน 1
+        </p>
+        <h2 className="font-display text-lg font-medium text-ink text-balance">
+          บัญชีธนาคารรับเงิน
+        </h2>
         <p className="text-sm text-muted-foreground">
-          บัญชีธนาคารที่ระบบจะโอนเงินรายได้เข้าให้ร้าน
+          บันทึกลงฐานข้อมูล SOPET เท่านั้น — ยังไม่ส่งไป Omise จนกว่าจะกดยืนยันในขั้นตอนถัดไป
         </p>
       </CardHeader>
       <CardBody>
@@ -122,34 +95,18 @@ export function VendorPayoutAccountPanel({
             onSubmit={form.handleSubmit((values) => void handleSubmit(values))}
             className="space-y-5"
           >
-            <div
-              className={cn('rounded-xl border px-4 py-3', info.className)}
-              role="status"
-              aria-live="polite"
-            >
-              <div className="flex items-start gap-3">
-                <span
-                  className={cn('mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full', info.dotClassName)}
-                  aria-hidden
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{info.label}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed opacity-90">{info.description}</p>
-                  {status === 'failed' && store?.omiseRecipientFailureMessage ? (
-                    <p className="mt-2 text-xs font-medium">{store.omiseRecipientFailureMessage}</p>
-                  ) : null}
-                  {status === 'active' && store?.bankName && maskedAccount ? (
-                    <p className="mt-2 text-xs opacity-80">
-                      {store.bankName} · {maskedAccount}
-                      {store.bankAccountName ? ` · ${store.bankAccountName}` : ''}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-            </div>
+            {store?.bankName && store.bankAccountNumber ? (
+              <p className="text-sm text-muted-foreground">
+                บัญชีที่บันทึกไว้:{' '}
+                <span className="font-medium text-ink">
+                  {store.bankName} · •••• {store.bankAccountNumber.slice(-4)}
+                  {store.bankAccountName ? ` · ${store.bankAccountName}` : ''}
+                </span>
+              </p>
+            ) : null}
 
-            <div className="space-y-4">
-              <div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
                 <Label htmlFor="bankCode" required>
                   ธนาคาร
                 </Label>
@@ -215,18 +172,35 @@ export function VendorPayoutAccountPanel({
                 <Label htmlFor="bankAccountNumber" required>
                   เลขที่บัญชี
                 </Label>
-                <Input
-                  id="bankAccountNumber"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  placeholder="เลขที่บัญชีธนาคาร"
-                  aria-invalid={!!form.formState.errors.bankAccountNumber}
-                  aria-describedby={
-                    form.formState.errors.bankAccountNumber ? 'bankAccountNumber-error' : undefined
-                  }
-                  {...form.register('bankAccountNumber')}
-                  className="mt-1.5"
+                <Controller
+                  control={form.control}
+                  name="bankAccountNumber"
+                  render={({ field }) => (
+                    <Input
+                      id="bankAccountNumber"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder="xxx-x-xxxxx-x"
+                      aria-invalid={!!form.formState.errors.bankAccountNumber}
+                      aria-describedby={
+                        form.formState.errors.bankAccountNumber
+                          ? 'bankAccountNumber-error'
+                          : 'bankAccountNumber-hint'
+                      }
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                      onChange={(event) => {
+                        field.onChange(formatThaiBankAccountNumber(event.target.value));
+                      }}
+                      className="mt-1.5 tabular-nums tracking-wide"
+                    />
+                  )}
                 />
+                <p id="bankAccountNumber-hint" className="mt-1 text-xs text-muted-foreground">
+                  รูปแบบทั่วไป xxx-x-xxxxx-x (10–15 หลัก)
+                </p>
                 {form.formState.errors.bankAccountNumber ? (
                   <p id="bankAccountNumber-error" className="mt-1 text-xs text-danger" role="alert">
                     {form.formState.errors.bankAccountNumber.message}
@@ -254,7 +228,7 @@ export function VendorPayoutAccountPanel({
             ) : null}
 
             <Button type="submit" disabled={saving} aria-busy={saving} className="w-full sm:w-auto">
-              {saving ? 'กำลังบันทึก...' : 'บันทึกบัญชีรับเงิน'}
+              {saving ? 'กำลังบันทึก...' : 'บันทึกบัญชีธนาคาร'}
             </Button>
           </form>
         )}

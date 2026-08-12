@@ -34,18 +34,21 @@ import {
 import { usePendingVendorInvitations } from '@/hooks/useVendorInvitations';
 import { usePendingImportedReviews } from '@/hooks/useAdminReviews';
 import { usePendingBankTransferOrders } from '@/hooks/useAdminBankTransfers';
+import { usePendingManualPayouts } from '@/hooks/usePayouts';
 
 export function buildAdminNavSections({
   pendingRequestCount,
   pendingTaxonomyCount,
   pendingImportedReviewCount,
   pendingBankTransferCount,
+  pendingManualPayoutCount,
   unreadNotificationCount,
 }: {
   pendingRequestCount?: number;
   pendingTaxonomyCount?: number;
   pendingImportedReviewCount?: number;
   pendingBankTransferCount?: number;
+  pendingManualPayoutCount?: number;
   unreadNotificationCount?: number;
 } = {}): DashboardNavSection[] {
   return [
@@ -82,6 +85,12 @@ export function buildAdminNavSections({
           label: 'โอนเงินเข้าบัญชี',
           icon: HiBanknotes,
           badge: pendingBankTransferCount,
+        },
+        {
+          href: '/admin/manual-payouts',
+          label: 'Payout Manual',
+          icon: HiTicket,
+          badge: pendingManualPayoutCount,
         },
       ],
     },
@@ -141,17 +150,20 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const { data: unreadNotificationCount } = useUnreadCount();
   const { data: pendingImportedReviews } = usePendingImportedReviews(1);
   const { data: pendingBankTransfers } = usePendingBankTransferOrders(1);
+  const { data: pendingManualPayouts } = usePendingManualPayouts(1);
 
   const pendingRequestCount = storeRequests.length + invitations.length;
   const pendingTaxonomyCount =
     pendingCategories.length + pendingTags.length + pendingPetTypes.length + pendingBrands.length;
   const pendingImportedReviewCount = pendingImportedReviews?.pagination.total ?? 0;
   const pendingBankTransferCount = pendingBankTransfers?.pagination.total ?? 0;
+  const pendingManualPayoutCount = pendingManualPayouts?.pagination.total ?? 0;
   const navSections = buildAdminNavSections({
     pendingRequestCount,
     pendingTaxonomyCount,
     pendingImportedReviewCount,
     pendingBankTransferCount,
+    pendingManualPayoutCount,
     unreadNotificationCount,
   });
 

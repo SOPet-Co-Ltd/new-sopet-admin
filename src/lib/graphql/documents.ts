@@ -833,6 +833,21 @@ export const UPDATE_STORE_PAYOUT = gql`
   }
 `;
 
+export const LINK_STORE_OMISE_RECIPIENT = gql`
+  mutation LinkStoreOmiseRecipient {
+    linkStoreOmiseRecipient {
+      id
+      bankAccountName
+      bankAccountNumber
+      bankName
+      bankCode
+      omiseRecipientId
+      omiseRecipientStatus
+      omiseRecipientFailureMessage
+    }
+  }
+`;
+
 export const MY_STORE_QUERY = gql`
   query MyStore {
     myStore {
@@ -2252,6 +2267,20 @@ const PAYOUT_SUMMARY_FIELDS = `
   pendingPayoutAmount
   minimumPayoutAmount
   canRequestPayout
+  omise {
+    grossRevenue
+    totalPaidOut
+    availableBalance
+    pendingPayoutAmount
+    canRequestPayout
+  }
+  manual {
+    grossRevenue
+    totalPaidOut
+    availableBalance
+    pendingPayoutAmount
+    canRequestPayout
+  }
 `;
 
 const PAYOUT_FIELDS = `
@@ -2260,6 +2289,7 @@ const PAYOUT_FIELDS = `
   amount
   netAmount
   status
+  settlementRail
   createdAt
 `;
 
@@ -2295,6 +2325,27 @@ export const ADMIN_STORE_PAYOUTS_QUERY = gql`
   }
 `;
 
+export const PENDING_MANUAL_PAYOUTS_QUERY = gql`
+  query PendingManualPayouts($page: Int, $limit: Int) {
+    pendingManualPayouts(page: $page, limit: $limit) {
+      items {
+        ${PAYOUT_FIELDS}
+        storeName
+        bankName
+        bankCode
+        bankAccountName
+        bankAccountNumber
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+    }
+  }
+`;
+
 export const REQUEST_PAYOUT_MUTATION = gql`
   mutation RequestPayout {
     requestPayout {
@@ -2303,9 +2354,33 @@ export const REQUEST_PAYOUT_MUTATION = gql`
   }
 `;
 
+export const REQUEST_MANUAL_PAYOUT_MUTATION = gql`
+  mutation RequestManualPayout {
+    requestManualPayout {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
 export const TRIGGER_PAYOUT_MUTATION = gql`
   mutation TriggerPayout($input: TriggerPayoutInput!) {
     triggerPayout(input: $input) {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const SETTLE_MANUAL_PAYOUT_MUTATION = gql`
+  mutation SettleManualPayout($input: SettleManualPayoutInput!) {
+    settleManualPayout(input: $input) {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const REJECT_MANUAL_PAYOUT_MUTATION = gql`
+  mutation RejectManualPayout($input: RejectManualPayoutInput!) {
+    rejectManualPayout(input: $input) {
       ${PAYOUT_FIELDS}
     }
   }

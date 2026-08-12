@@ -50,7 +50,7 @@ export function VendorPayoutHistoryPanel() {
           <span className="text-xs text-muted-foreground">{payouts.length} รายการ</span>
         ) : null}
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody>
         {isLoading ? (
           <HistorySkeleton />
         ) : payouts.length === 0 ? (
@@ -73,6 +73,8 @@ export function VendorPayoutHistoryPanel() {
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {formatDateTime(payout.createdAt)}
+                    {' · '}
+                    {payout.settlementRail === 'manual' ? 'โอนเงินเข้าบัญชี' : 'Omise'}
                   </p>
                 </div>
                 <Badge

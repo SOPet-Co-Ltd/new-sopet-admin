@@ -5,7 +5,11 @@ import { HiArrowRight } from 'react-icons/hi2';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { useIsStoreOwner } from '@/hooks/useMembershipRole';
-import { useStorePayoutSummary } from '@/hooks/usePayouts';
+import {
+  useRequestManualPayout,
+  useRequestPayout,
+  useStorePayoutSummary,
+} from '@/hooks/usePayouts';
 import { useMyStore } from '@/hooks/useStoreSettings';
 import { formatCurrency } from '@/lib/utils';
 
@@ -13,13 +17,17 @@ export function VendorPayoutSnapshot() {
   const { isOwner } = useIsStoreOwner();
   const { data: summary, isLoading: summaryLoading } = useStorePayoutSummary(isOwner);
   const { data: store, isLoading: storeLoading } = useMyStore();
+  const requestOmise = useRequestPayout();
+  const requestManual = useRequestManualPayout();
 
   if (!isOwner) return null;
 
   const isLoading = summaryLoading || storeLoading;
-  const needsSetup =
-    store?.omiseRecipientStatus === 'not_connected' || store?.omiseRecipientStatus === 'failed';
-  const isPending = store?.omiseRecipientStatus === 'pending';
+  const omiseVerified = store?.omiseRecipientStatus === 'active';
+  const needsBankSetup = !store?.bankAccountNumber;
+  const omise = summary?.omise;
+  const manual = summary?.manual;
+  const canRequestOmise = Boolean(omiseVerified && omise?.canRequestPayout);
 
   return (
     <section aria-labelledby="vendor-payout-snapshot-heading" className="space-y-3">
@@ -39,40 +47,109 @@ export function VendorPayoutSnapshot() {
       </div>
 
       <Card>
-        <CardBody className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <CardBody className="space-y-5">
           {isLoading ? (
             <p className="text-sm text-muted">กำลังโหลดยอดเงิน...</p>
-          ) : summary ? (
+          ) : summary && omise && manual ? (
             <>
-              <div>
-                <p className="text-sm text-muted">ยอดพร้อมถอน</p>
-                <p className="mt-1 text-2xl font-semibold text-ink">
-                  {formatCurrency(summary.availableBalance)}
-                </p>
-                {summary.pendingPayoutAmount > 0 ? (
-                  <p className="mt-1 text-sm text-amber-800">
-                    กำลังรอโอน {formatCurrency(summary.pendingPayoutAmount)}
-                  </p>
-                ) : null}
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="space-y-3 rounded-lg border border-brand/25 bg-brand-tint/40 p-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand">
+                      Manual · ส่งให้แอดมิน
+                    </p>
+                    <p className="mt-1 text-sm text-muted">ยอดจากลูกค้าโอนเข้าบัญชี SOPET</p>
+                    <p className="mt-1 text-2xl font-semibold text-ink tabular-nums">
+                      {formatCurrency(manual.availableBalance)}
+                    </p>
+                    {manual.pendingPayoutAmount > 0 ? (
+                      <p className="mt-1 text-sm text-amber-800">
+                        ส่งคำขอแล้ว — รอแอดมินโอนและอนุมัติ{' '}
+                        {formatCurrency(manual.pendingPayoutAmount)}
+                      </p>
+                    ) : null}
+                  </div>
+                  <Button
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={() => requestManual.mutate()}
+                    disabled={!manual.canRequestPayout || requestManual.isPending}
+                    aria-busy={requestManual.isPending}
+                  >
+                    {requestManual.isPending
+                      ? 'กำลังส่งคำขอ...'
+                      : 'ขอรับเงิน Manual (ส่งให้แอดมิน)'}
+                  </Button>
+                </div>
+
+                <div className="space-y-3 rounded-lg border border-border p-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Omise · อัตโนมัติ
+                    </p>
+                    <p className="mt-1 text-sm text-muted">ยอด PromptPay / บัตร</p>
+                    <p className="mt-1 text-2xl font-semibold text-ink tabular-nums">
+                      {formatCurrency(omise.availableBalance)}
+                    </p>
+                    {!omiseVerified ? (
+                      <p className="mt-1 text-sm text-amber-800">
+                        บัญชียังไม่ผ่าน Omise — ไปยืนยันที่หน้า รับเงิน
+                      </p>
+                    ) : omise.pendingPayoutAmount > 0 ? (
+                      <p className="mt-1 text-sm text-amber-800">
+                        กำลังรอโอน Omise {formatCurrency(omise.pendingPayoutAmount)}
+                      </p>
+                    ) : null}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                    onClick={() => requestOmise.mutate()}
+                    disabled={!canRequestOmise || requestOmise.isPending}
+                    aria-busy={requestOmise.isPending}
+                  >
+                    {requestOmise.isPending ? 'กำลังส่งคำขอ...' : 'ขอรับเงิน Omise'}
+                  </Button>
+                </div>
               </div>
-              <div className="flex flex-col gap-2 sm:items-end">
-                {needsSetup ? (
-                  <p className="text-sm text-amber-900">
-                    ยังไม่ได้ตั้งบัญชีรับเงิน — บันทึกบัญชีธนาคารเพื่อเริ่มรับเงินจากยอดขาย
-                  </p>
-                ) : null}
-                {isPending ? (
-                  <p className="text-sm text-muted">ระบบกำลังตรวจสอบบัญชีธนาคารของคุณ</p>
-                ) : null}
-                <Button size="sm" asChild className="w-full sm:w-auto">
+
+              {needsBankSetup ? (
+                <p className="text-sm text-amber-900">
+                  ยังไม่ได้ตั้งบัญชีรับเงิน — บันทึกบัญชีธนาคารเพื่อเริ่มรับเงินจากยอดขาย
+                </p>
+              ) : null}
+
+              {requestManual.isError ? (
+                <p className="text-sm text-danger" role="alert">
+                  {requestManual.error instanceof Error
+                    ? requestManual.error.message
+                    : 'ส่งคำขอ Manual ไม่สำเร็จ'}
+                </p>
+              ) : null}
+              {requestOmise.isError ? (
+                <p className="text-sm text-danger" role="alert">
+                  {requestOmise.error instanceof Error
+                    ? requestOmise.error.message
+                    : 'ส่งคำขอ Omise ไม่สำเร็จ'}
+                </p>
+              ) : null}
+              {requestManual.isSuccess ? (
+                <p className="text-sm text-success" role="status">
+                  ส่งคำขอ Manual สำเร็จ — รอแอดมินโอนแล้วอนุมัติ
+                </p>
+              ) : null}
+
+              <div>
+                <Button size="sm" variant="ghost" asChild>
                   <Link href="/vendor/settings?tab=payout">
-                    {needsSetup ? 'ตั้งบัญชีรับเงิน' : 'ดูรายละเอียดรับเงิน'}
+                    {needsBankSetup ? 'ตั้งบัญชีรับเงิน' : 'ดูรายละเอียด / ประวัติรับเงิน'}
                   </Link>
                 </Button>
               </div>
             </>
           ) : (
-            <p className="text-sm text-muted">ไม่พบข้อมูลรายได้</p>
+            <p className="text-sm text-muted">ไม่พบข้อมูลรายได้ — ลองโหลดหน้าใหม่</p>
           )}
         </CardBody>
       </Card>

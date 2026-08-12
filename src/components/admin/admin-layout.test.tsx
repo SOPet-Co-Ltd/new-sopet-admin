@@ -53,6 +53,12 @@ vi.mock('@/hooks/useAdminBankTransfers', () => ({
   })),
 }));
 
+vi.mock('@/hooks/usePayouts', () => ({
+  usePendingManualPayouts: vi.fn(() => ({
+    data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 1 } },
+  })),
+}));
+
 vi.mock('@/components/auth-guard', () => ({
   AuthGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -195,6 +201,15 @@ describe('buildAdminNavSections', () => {
       .find((item) => item.href === '/admin/reviews');
 
     expect(reviewsItem).toEqual(expect.objectContaining({ label: 'รีวิวนำเข้า', badge: 2 }));
+  });
+
+  it('adds a badge to Payout Manual when pending manual payouts exist', () => {
+    const sections = buildAdminNavSections({ pendingManualPayoutCount: 3 });
+    const item = sections
+      .flatMap((section) => section.items)
+      .find((navItem) => navItem.href === '/admin/manual-payouts');
+
+    expect(item).toEqual(expect.objectContaining({ label: 'Payout Manual', badge: 3 }));
   });
 });
 

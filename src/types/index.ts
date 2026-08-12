@@ -1108,6 +1108,14 @@ export interface InviteAdminInput {
   email: string;
 }
 
+export interface PayoutRailSummary {
+  grossRevenue: number;
+  totalPaidOut: number;
+  availableBalance: number;
+  pendingPayoutAmount: number;
+  canRequestPayout: boolean;
+}
+
 export interface PayoutSummary {
   storeId: string;
   grossRevenue: number;
@@ -1116,6 +1124,8 @@ export interface PayoutSummary {
   pendingPayoutAmount: number;
   minimumPayoutAmount: number;
   canRequestPayout: boolean;
+  omise: PayoutRailSummary;
+  manual: PayoutRailSummary;
 }
 
 export interface Payout {
@@ -1124,6 +1134,7 @@ export interface Payout {
   amount: number;
   netAmount: number;
   status: string;
+  settlementRail: 'omise' | 'manual' | string;
   createdAt: string;
 }
 

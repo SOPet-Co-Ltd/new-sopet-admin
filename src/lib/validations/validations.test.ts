@@ -52,6 +52,24 @@ describe('payoutFormSchema', () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it('accepts formatted Thai bank account numbers', () => {
+    const result = payoutFormSchema.safeParse({
+      bankCode: '014',
+      bankAccountName: 'SOPet Co.',
+      bankAccountNumber: '123-4-56789-0',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects bank account numbers shorter than 10 digits', () => {
+    const result = payoutFormSchema.safeParse({
+      bankCode: '014',
+      bankAccountName: 'SOPet Co.',
+      bankAccountNumber: '123-4-567',
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('registerVendorSchema', () => {

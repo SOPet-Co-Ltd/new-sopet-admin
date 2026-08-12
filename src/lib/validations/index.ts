@@ -52,7 +52,15 @@ export type StoreInfoFormValues = z.infer<typeof storeInfoFormSchema>;
 export const payoutFormSchema = z.object({
   bankCode: z.string().min(1, 'กรุณาเลือกธนาคาร'),
   bankAccountName: z.string().min(1, 'กรุณากรอกชื่อบัญชี'),
-  bankAccountNumber: z.string().min(1, 'กรุณากรอกเลขที่บัญชี'),
+  bankAccountNumber: z
+    .string()
+    .min(1, 'กรุณากรอกเลขที่บัญชี')
+    .refine((value) => value.replace(/\D/g, '').length >= 10, {
+      message: 'เลขที่บัญชีต้องมีอย่างน้อย 10 หลัก',
+    })
+    .refine((value) => value.replace(/\D/g, '').length <= 15, {
+      message: 'เลขที่บัญชีต้องไม่เกิน 15 หลัก',
+    }),
 });
 
 export type PayoutFormValues = z.infer<typeof payoutFormSchema>;

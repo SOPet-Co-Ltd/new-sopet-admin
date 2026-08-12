@@ -1,7 +1,12 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getMyStore, updateStore, updateStorePayout } from '@/lib/api/stores';
+import {
+  getMyStore,
+  linkStoreOmiseRecipient,
+  updateStore,
+  updateStorePayout,
+} from '@/lib/api/stores';
 import { changePassword, updateUserProfile } from '@/lib/api/users';
 import { queryKeys } from '@/lib/react-query/keys';
 import { useAuthStore } from '@/stores/auth.store';
@@ -36,6 +41,17 @@ export function useUpdateStorePayout() {
     ) => updateStorePayout(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.stores.all });
+    },
+  });
+}
+
+export function useLinkStoreOmiseRecipient() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: linkStoreOmiseRecipient,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.stores.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
     },
   });
 }

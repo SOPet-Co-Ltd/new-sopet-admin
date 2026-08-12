@@ -199,6 +199,10 @@ export const queryKeys = {
     vendorHistory: () => ['payouts', 'vendorHistory'] as const,
     adminSummary: (storeId: string) => ['payouts', 'adminSummary', storeId] as const,
     adminHistory: (storeId: string) => ['payouts', 'adminHistory', storeId] as const,
+    pendingManual: (page?: number) =>
+      page == null
+        ? (['payouts', 'pendingManual'] as const)
+        : (['payouts', 'pendingManual', page] as const),
   },
   emailCms: {
     all: ['emailCms'] as const,
