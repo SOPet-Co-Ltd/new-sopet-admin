@@ -1144,3 +1144,34 @@ export type {
   AdminAuditLogsFilter,
   AdminAuditLogsQueryParams,
 } from './audit-logs';
+
+export type OrderAuditEventType =
+  'ORDER_PLACED' | 'PAYMENT_METHOD_CHANGED' | 'PAYMENT_APPROVED' | 'ORDER_ACCEPTED';
+
+export type OrderAuditActorType = 'customer' | 'admin' | 'vendor' | 'system';
+
+export interface OrderAuditLogDetails {
+  paymentMethod?: string | null;
+  previousPaymentMethod?: string | null;
+  newPaymentMethod?: string | null;
+  approvalMethod?: string | null;
+  note?: string | null;
+  storeId?: string | null;
+}
+
+export interface OrderAuditLogEntry {
+  id: string;
+  orderId: string;
+  eventType: OrderAuditEventType;
+  occurredAt: string;
+  actorType: OrderAuditActorType;
+  actorId?: string | null;
+  actorLabel?: string | null;
+  storeId?: string | null;
+  details: OrderAuditLogDetails;
+}
+
+export interface OrderAuditLog {
+  orderId: string;
+  entries: OrderAuditLogEntry[];
+}

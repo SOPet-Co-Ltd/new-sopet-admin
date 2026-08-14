@@ -2414,3 +2414,29 @@ export const ADMIN_AUDIT_LOGS_QUERY = gql`
     }
   }
 `;
+
+export const ORDER_AUDIT_LOG_QUERY = gql`
+  query OrderAuditLog($orderId: String!, $storeId: String!) {
+    orderAuditLog(orderId: $orderId, storeId: $storeId) {
+      orderId
+      entries {
+        id
+        orderId
+        eventType
+        occurredAt
+        actorType
+        actorId
+        actorLabel
+        storeId
+        details {
+          paymentMethod
+          previousPaymentMethod
+          newPaymentMethod
+          approvalMethod
+          note
+          storeId
+        }
+      }
+    }
+  }
+`;

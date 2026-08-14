@@ -3,6 +3,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { VendorOrderDetail } from '@/components/vendor/vendor-order-detail';
 import { createOnHoldOrder } from '@/test/fixtures/on-hold-order';
 
+vi.mock('@/hooks/useOrderAuditLog', () => ({
+  useOrderAuditLog: () => ({
+    data: { orderId: 'ord-1', entries: [] },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+    isFetching: false,
+  }),
+}));
+
 vi.mock('@/hooks/useVendorOrderWorkflow', () => ({
   useAcknowledgeVendorOrder: () => ({ mutate: vi.fn(), isPending: false }),
   useCancelVendorOrder: () => ({ mutate: vi.fn(), isPending: false }),

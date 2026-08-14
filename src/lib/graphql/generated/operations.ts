@@ -253,6 +253,35 @@ export type UnreadNotificationsCountQueryVariables = Exact<{ [key: string]: neve
 
 export type UnreadNotificationsCountQuery = { unreadNotificationsCount: number };
 
+export type OrderAuditLogQueryVariables = Exact<{
+  orderId: string;
+  storeId: string;
+}>;
+
+export type OrderAuditLogQuery = {
+  orderAuditLog: {
+    orderId: string;
+    entries: Array<{
+      id: string;
+      orderId: string;
+      eventType: Types.OrderAuditEventType;
+      occurredAt: string;
+      actorType: Types.OrderAuditActorType;
+      actorId: string | null;
+      actorLabel: string | null;
+      storeId: string | null;
+      details: {
+        paymentMethod: string | null;
+        previousPaymentMethod: string | null;
+        newPaymentMethod: string | null;
+        approvalMethod: string | null;
+        note: string | null;
+        storeId: string | null;
+      };
+    }>;
+  };
+};
+
 export type PromotionFieldsFragment = {
   id: string;
   storeId: string | null;
@@ -2118,6 +2147,96 @@ export const UnreadNotificationsCountDocument = {
     },
   ],
 } as unknown as DocumentNode<UnreadNotificationsCountQuery, UnreadNotificationsCountQueryVariables>;
+export const OrderAuditLogDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'OrderAuditLog' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'orderId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'storeId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'orderAuditLog' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'orderId' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'storeId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'storeId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'orderId' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'entries' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'orderId' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'eventType' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'occurredAt' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'actorType' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'actorId' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'actorLabel' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'details' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'paymentMethod' } },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'previousPaymentMethod' },
+                            },
+                            { kind: 'Field', name: { kind: 'Name', value: 'newPaymentMethod' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'approvalMethod' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'note' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<OrderAuditLogQuery, OrderAuditLogQueryVariables>;
 export const StorePromotionsDocument = {
   kind: 'Document',
   definitions: [

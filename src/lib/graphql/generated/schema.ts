@@ -1648,6 +1648,49 @@ export type NotificationType = {
   type: Scalars['String']['output'];
 };
 
+export enum OrderAuditActorType {
+  Admin = 'admin',
+  Customer = 'customer',
+  System = 'system',
+  Vendor = 'vendor',
+}
+
+export enum OrderAuditEventType {
+  OrderAccepted = 'ORDER_ACCEPTED',
+  OrderPlaced = 'ORDER_PLACED',
+  PaymentApproved = 'PAYMENT_APPROVED',
+  PaymentMethodChanged = 'PAYMENT_METHOD_CHANGED',
+}
+
+export type OrderAuditLogDetailsType = {
+  __typename?: 'OrderAuditLogDetailsType';
+  approvalMethod?: Maybe<Scalars['String']['output']>;
+  newPaymentMethod?: Maybe<Scalars['String']['output']>;
+  note?: Maybe<Scalars['String']['output']>;
+  paymentMethod?: Maybe<Scalars['String']['output']>;
+  previousPaymentMethod?: Maybe<Scalars['String']['output']>;
+  storeId?: Maybe<Scalars['String']['output']>;
+};
+
+export type OrderAuditLogEntryType = {
+  __typename?: 'OrderAuditLogEntryType';
+  actorId?: Maybe<Scalars['String']['output']>;
+  actorLabel?: Maybe<Scalars['String']['output']>;
+  actorType: OrderAuditActorType;
+  details: OrderAuditLogDetailsType;
+  eventType: OrderAuditEventType;
+  id: Scalars['ID']['output'];
+  occurredAt: Scalars['DateTime']['output'];
+  orderId: Scalars['ID']['output'];
+  storeId?: Maybe<Scalars['String']['output']>;
+};
+
+export type OrderAuditLogType = {
+  __typename?: 'OrderAuditLogType';
+  entries: Array<OrderAuditLogEntryType>;
+  orderId: Scalars['ID']['output'];
+};
+
 export type OrderConnection = {
   __typename?: 'OrderConnection';
   items: Array<OrderType>;
@@ -2091,6 +2134,7 @@ export type Query = {
   myTagProposals: Array<TagType>;
   notifications: Array<NotificationType>;
   order: OrderType;
+  orderAuditLog: OrderAuditLogType;
   orderTracking: OrderTrackingType;
   orders: OrderConnection;
   payment: PaymentType;
@@ -2293,6 +2337,11 @@ export type QueryNotificationsArgs = {
 
 export type QueryOrderArgs = {
   id: Scalars['String']['input'];
+};
+
+export type QueryOrderAuditLogArgs = {
+  orderId: Scalars['String']['input'];
+  storeId: Scalars['String']['input'];
 };
 
 export type QueryOrderTrackingArgs = {
