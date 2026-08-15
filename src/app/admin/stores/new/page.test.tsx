@@ -58,4 +58,15 @@ describe('AdminStoreNewPage', () => {
     expect(screen.getByLabelText('เบอร์โทร')).toHaveAttribute('aria-invalid', 'true');
     expect(mutateAsync).not.toHaveBeenCalled();
   });
+
+  it('does not render a commission rate field (AC-F-003c)', () => {
+    render(<AdminStoreNewPage />);
+
+    expect(screen.queryByLabelText(/อัตราค่าคอมมิชชัน/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+    expect(screen.queryByText(/ค่าเริ่มต้นของแพลตฟอร์มคือ 7%/)).not.toBeInTheDocument();
+    expect(document.querySelector('#commissionRate')).toBeNull();
+    expect(document.querySelector('[name="commissionRate"]')).toBeNull();
+    expect(screen.getByRole('button', { name: 'สร้างร้านค้า' })).toBeInTheDocument();
+  });
 });

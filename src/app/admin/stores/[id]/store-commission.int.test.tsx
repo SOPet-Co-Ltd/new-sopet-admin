@@ -1,14 +1,26 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { print } from 'graphql';
+import { useForm } from 'react-hook-form';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AdminManualPayoutsPage from '@/app/admin/manual-payouts/page';
+import AdminStoreNewPage from '@/app/admin/stores/new/page';
+import { buildAdminNavSections } from '@/components/admin/admin-layout';
 import { AdminStorePayoutPanel } from '@/components/admin/admin-store-payout-panel';
 import { VendorPayoutBalancePanel } from '@/components/vendor/vendor-payout-balance-panel';
 import { VendorPayoutHistoryPanel } from '@/components/vendor/vendor-payout-history-panel';
 import { VendorPayoutSnapshot } from '@/components/vendor/vendor-payout-snapshot';
-import { commissionCopy } from '@/lib/i18n/th';
+import { VendorStoreSettingsPanel } from '@/components/vendor/vendor-store-settings-panel';
+import { UPDATE_STORE, UPDATE_STORE_PAYOUT } from '@/lib/graphql/documents';
+import { commissionCopy, platformSettingsTabLabels } from '@/lib/i18n/th';
 import { formatBreakdownAmount } from '@/lib/payouts/commission-display';
 import { formatCurrency } from '@/lib/utils';
+import {
+  adminStoreFormSchema,
+  payoutFormSchema,
+  storeInfoFormSchema,
+  type StoreInfoFormValues,
+} from '@/lib/validations';
 import AdminStoreEditPage from './page';
 import {
   createPendingManualPayoutsMockResult,
@@ -66,6 +78,10 @@ vi.mock('@/hooks/useAdminStores', () => ({
     createUseUpdateStoreAsAdminMockResult({
       mutateAsync,
     }),
+  useCreateStoreAsAdmin: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 vi.mock('@/hooks/useAdminVendors', () => ({
@@ -153,6 +169,10 @@ vi.mock('@/components/admin/vendor-combobox', () => ({
   VendorCombobox: () => <input aria-label="เจ้าของร้านค้า" readOnly />,
 }));
 
+vi.mock('@/components/ui/image-upload-field', () => ({
+  ImageUploadField: ({ label }: { label: string }) => <div>{label}</div>,
+}));
+
 function rateInput() {
   return screen.getByLabelText(/อัตราค่าคอมมิชชัน/);
 }
@@ -172,6 +192,36 @@ function lastMutationInput(): Record<string, unknown> | undefined {
   const call = mutateAsync.mock.calls.at(-1)?.[0] as
     { id: string; input: Record<string, unknown> } | undefined;
   return call?.input;
+}
+
+function assertNoRateControl() {
+  expect(screen.queryByLabelText(/อัตราค่าคอมมิชชัน/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+  expect(screen.queryByText(HINT_DEFAULT)).not.toBeInTheDocument();
+  expect(document.querySelector('#commissionRate')).toBeNull();
+  expect(document.querySelector('[name="commissionRate"]')).toBeNull();
+}
+
+function VendorStoreSettingsAbsenceHarness({ loading = false }: { loading?: boolean }) {
+  const form = useForm<StoreInfoFormValues>({
+    defaultValues: {
+      name: 'Shop',
+      description: '',
+      contactPhone: '',
+      contactEmail: '',
+      address: '',
+      logoUrl: '',
+      bannerUrl: '',
+    },
+  });
+  return (
+    <VendorStoreSettingsPanel
+      form={form}
+      loading={loading}
+      saving={false}
+      onSubmit={async () => undefined}
+    />
+  );
 }
 
 function resetPayoutsQueryState() {
@@ -497,5 +547,88 @@ describe('store commission — snapshot bind and omit-amount trigger [integratio
     expect(screen.queryByText(formatCurrency(140))).not.toBeInTheDocument();
     expect(screen.getAllByText('—').length).toBeGreaterThan(0);
     expect(screen.getAllByText(commissionCopy.breakdown.hint.frozen).length).toBeGreaterThan(0);
+  });
+});
+
+describe('store commission — absence locks [AC-004 / AC-005 / AC-F-003c / AC-F-004 / AC-F-005]', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('has no /admin/commissions nav item or settings default-rate editor', () => {
+    const navHrefs = buildAdminNavSections().flatMap((section) =>
+      section.items.map((item) => item.href),
+    );
+    expect(navHrefs).not.toContain('/admin/commissions');
+    expect(navHrefs).toContain('/admin/settings');
+    expect(navHrefs).toContain('/admin/manual-payouts');
+    expect(navHrefs.some((href) => /commission/i.test(href))).toBe(false);
+
+    expect(Object.keys(platformSettingsTabLabels)).toEqual([
+      'banners',
+      'sponsors',
+      'ads',
+      'loginImages',
+      'bankTransfer',
+    ]);
+    expect(JSON.stringify(platformSettingsTabLabels)).not.toMatch(/คอมมิชชัน|commission/i);
+  });
+
+  it('keeps /admin/stores/new and the shared create schema rate-free', () => {
+    render(<AdminStoreNewPage />);
+    assertNoRateControl();
+    expect(screen.getByRole('button', { name: 'สร้างร้านค้า' })).toBeInTheDocument();
+
+    const payload = {
+      name: 'Pet Shop',
+      ownerId: '11111111-1111-4111-8111-111111111111',
+    };
+    expect('commissionRate' in adminStoreFormSchema.shape).toBe(false);
+    const parsed = adminStoreFormSchema.safeParse(payload);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect('commissionRate' in parsed.data).toBe(false);
+    }
+  });
+
+  it('shows no vendor rate control on store settings default or loading', () => {
+    const { unmount } = render(<VendorStoreSettingsAbsenceHarness />);
+    expect(screen.getByLabelText(/ชื่อร้านค้า/)).toBeInTheDocument();
+    assertNoRateControl();
+    unmount();
+
+    render(<VendorStoreSettingsAbsenceHarness loading />);
+    expect(screen.getByText('กำลังโหลด...')).toBeInTheDocument();
+    assertNoRateControl();
+  });
+
+  it('omits commissionRate from vendor store and payout write documents and schemas', () => {
+    expect(print(UPDATE_STORE)).not.toMatch(/commissionRate/);
+    expect(print(UPDATE_STORE_PAYOUT)).not.toMatch(/commissionRate/);
+    expect('commissionRate' in storeInfoFormSchema.shape).toBe(false);
+    expect('commissionRate' in payoutFormSchema.shape).toBe(false);
+  });
+
+  it('sends only { status } on a status-only store update', async () => {
+    storeState.current = nullRateStore;
+    mutateAsync.mockReset();
+    mutateAsync.mockResolvedValue({ ...nullRateStore, status: 'approved' });
+
+    render(<AdminStoreEditPage />);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'อนุมัติเปิดใช้งาน' })).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'อนุมัติเปิดใช้งาน' }));
+
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalled();
+    });
+    expect(mutateAsync).toHaveBeenCalledWith({
+      id: 'store-1',
+      input: { status: 'approved' },
+    });
+    expect(lastMutationInput()).toEqual({ status: 'approved' });
+    expect(lastMutationInput()).not.toHaveProperty('commissionRate');
   });
 });
