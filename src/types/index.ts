@@ -669,6 +669,8 @@ export interface AdminStore extends StoreDetail {
   ownerEmail?: string;
   ownerFullName?: string;
   createdAt?: string;
+  /** Nullable Int from AdminStoreType. NULL/undefined = platform default (UI shows 7). */
+  commissionRate?: number | null;
 }
 
 export interface CreateStoreAsAdminInput {
@@ -691,6 +693,7 @@ export interface UpdateStoreAsAdminInput {
   contactEmail?: string;
   address?: string;
   ownerId?: string | null;
+  commissionRate?: number;
 }
 
 export interface AdminVendor {

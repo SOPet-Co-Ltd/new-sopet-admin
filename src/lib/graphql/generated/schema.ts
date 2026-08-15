@@ -215,6 +215,7 @@ export type AdminStoreType = {
   bankAccountNumber?: Maybe<Scalars['String']['output']>;
   bankName?: Maybe<Scalars['String']['output']>;
   bannerUrl?: Maybe<Scalars['String']['output']>;
+  commissionRate?: Maybe<Scalars['Int']['output']>;
   contactEmail?: Maybe<Scalars['String']['output']>;
   contactPhone?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
@@ -3348,6 +3349,7 @@ export type UpdateShippingProviderInput = {
 export type UpdateStoreAsAdminInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   bannerUrl?: InputMaybe<Scalars['String']['input']>;
+  commissionRate?: InputMaybe<Scalars['Int']['input']>;
   contactEmail?: InputMaybe<Scalars['String']['input']>;
   contactPhone?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;

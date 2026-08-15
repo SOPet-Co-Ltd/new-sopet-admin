@@ -536,6 +536,7 @@ type GqlAdminStore = GqlStore & {
   ownerEmail?: string | null;
   ownerFullName?: string | null;
   createdAt?: string | null;
+  commissionRate?: number | null;
 };
 
 export function mapAdminStore(store: GqlAdminStore): AdminStore {
@@ -548,6 +549,7 @@ export function mapAdminStore(store: GqlAdminStore): AdminStore {
     ownerEmail: store.ownerEmail ?? undefined,
     ownerFullName: store.ownerFullName ?? undefined,
     createdAt: store.createdAt ?? undefined,
+    commissionRate: store.commissionRate ?? null,
   };
 }
 

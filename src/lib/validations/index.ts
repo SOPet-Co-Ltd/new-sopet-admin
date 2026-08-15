@@ -194,6 +194,16 @@ export const adminStoreFormSchema = z.object({
 
 export type AdminStoreFormValues = z.infer<typeof adminStoreFormSchema>;
 
+export const adminStoreEditFormSchema = adminStoreFormSchema.extend({
+  commissionRate: z
+    .number({ error: 'กรุณากรอกตัวเลขเปอร์เซ็นต์ที่ถูกต้อง' })
+    .int('กรุณากรอกอัตรา 0 ถึง 100')
+    .min(0, 'กรุณากรอกอัตรา 0 ถึง 100')
+    .max(100, 'กรุณากรอกอัตรา 0 ถึง 100'),
+});
+
+export type AdminStoreEditFormValues = z.infer<typeof adminStoreEditFormSchema>;
+
 export const adminVendorFormSchema = z.object({
   fullName: z.string().min(1, 'กรุณากรอกชื่อ'),
   email: z.email('กรุณากรอกอีเมลที่ถูกต้อง'),

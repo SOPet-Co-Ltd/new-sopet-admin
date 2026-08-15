@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildCreateStoreAsAdminInput, buildUpdateStoreAsAdminInput } from './admin-stores';
-import type { AdminStoreFormValues } from '@/lib/validations';
+import type { AdminStoreEditFormValues, AdminStoreFormValues } from '@/lib/validations';
 
 const baseValues: AdminStoreFormValues = {
   name: 'Pet Shop',
@@ -37,5 +37,26 @@ describe('buildUpdateStoreAsAdminInput', () => {
     });
 
     expect(input.ownerId).toBeNull();
+  });
+
+  it('omits commissionRate when the rate field is clean', () => {
+    const values: AdminStoreEditFormValues = { ...baseValues, commissionRate: 7 };
+    const input = buildUpdateStoreAsAdminInput(values, { commissionRateDirty: false });
+
+    expect(input).not.toHaveProperty('commissionRate');
+  });
+
+  it('includes commissionRate only when the rate field is dirty', () => {
+    const values: AdminStoreEditFormValues = { ...baseValues, commissionRate: 5 };
+    const input = buildUpdateStoreAsAdminInput(values, { commissionRateDirty: true });
+
+    expect(input.commissionRate).toBe(5);
+  });
+
+  it('includes commissionRate 0 when a dirty custom zero is saved', () => {
+    const values: AdminStoreEditFormValues = { ...baseValues, commissionRate: 0 };
+    const input = buildUpdateStoreAsAdminInput(values, { commissionRateDirty: true });
+
+    expect(input.commissionRate).toBe(0);
   });
 });

@@ -17,6 +17,10 @@ import {
   AdminStoreStatusActions,
   AdminStoreStatusPanel,
 } from '@/components/admin/admin-store-status-panel';
+import {
+  AdminStoreCommissionField,
+  numberRegisterOptions,
+} from '@/components/admin/admin-store-commission-field';
 import { VendorCombobox } from '@/components/admin/vendor-combobox';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
@@ -34,8 +38,12 @@ import { useAdminStore, useUpdateStoreAsAdmin } from '@/hooks/useAdminStores';
 import { useAdminVendor } from '@/hooks/useAdminVendors';
 import { buildUpdateStoreAsAdminInput } from '@/lib/api/admin-stores';
 import { labelStoreStatus } from '@/lib/i18n/th';
+import {
+  DEFAULT_COMMISSION_RATE_PERCENT,
+  isCustomCommissionRate,
+} from '@/lib/payouts/commission-display';
 import { formatDateTime } from '@/lib/utils';
-import { adminStoreFormSchema, type AdminStoreFormValues } from '@/lib/validations';
+import { adminStoreEditFormSchema, type AdminStoreEditFormValues } from '@/lib/validations';
 import type { StoreStatus } from '@/types';
 
 export default function AdminStoreEditPage() {
@@ -45,8 +53,8 @@ export default function AdminStoreEditPage() {
   const updateMutation = useUpdateStoreAsAdmin();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-  const form = useForm<AdminStoreFormValues>({
-    resolver: zodResolver(adminStoreFormSchema),
+  const form = useForm<AdminStoreEditFormValues>({
+    resolver: zodResolver(adminStoreEditFormSchema),
     defaultValues: {
       name: '',
       slug: '',
@@ -56,9 +64,11 @@ export default function AdminStoreEditPage() {
       contactEmail: '',
       address: '',
       ownerId: '',
+      commissionRate: DEFAULT_COMMISSION_RATE_PERCENT,
     },
   });
 
+  const { dirtyFields, errors } = form.formState;
   const ownerId = form.watch('ownerId') ?? '';
   const currentStatus = (form.watch('status') ?? store?.status ?? 'approved') as StoreStatus;
   const { data: ownerVendor } = useAdminVendor(ownerId);
@@ -70,21 +80,24 @@ export default function AdminStoreEditPage() {
         name: store.name,
         slug: store.slug,
         description: store.description ?? '',
-        status: store.status as AdminStoreFormValues['status'],
+        status: store.status as AdminStoreEditFormValues['status'],
         contactPhone: store.contactPhone ?? '',
         contactEmail: store.contactEmail ?? '',
         address: store.address ?? '',
         ownerId: store.ownerId ?? '',
+        commissionRate: store.commissionRate ?? DEFAULT_COMMISSION_RATE_PERCENT,
       },
       { keepDirtyValues: true },
     );
   }, [store, form]);
 
-  async function onSubmit(values: AdminStoreFormValues) {
+  async function onSubmit(values: AdminStoreEditFormValues) {
     try {
       await updateMutation.mutateAsync({
         id: params.id,
-        input: buildUpdateStoreAsAdminInput(values),
+        input: buildUpdateStoreAsAdminInput(values, {
+          commissionRateDirty: !!dirtyFields.commissionRate,
+        }),
       });
       router.push('/admin/stores');
     } catch {
@@ -278,6 +291,12 @@ export default function AdminStoreEditPage() {
                   )}
                 />
               </div>
+
+              <AdminStoreCommissionField
+                registration={form.register('commissionRate', numberRegisterOptions)}
+                error={errors.commissionRate?.message}
+                hintMode={isCustomCommissionRate(store.commissionRate) ? 'custom' : 'default'}
+              />
 
               {updateMutation.isError ? (
                 <p className="text-sm text-danger" role="alert">

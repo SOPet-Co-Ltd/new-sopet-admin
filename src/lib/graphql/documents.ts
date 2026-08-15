@@ -1112,6 +1112,7 @@ const ADMIN_STORE_FIELDS = `
   ownerEmail
   ownerFullName
   createdAt
+  commissionRate
 `;
 
 export const ADMIN_STORES_QUERY = gql`

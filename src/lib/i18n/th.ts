@@ -104,6 +104,22 @@ export const platformSettingsTabLabels = {
   bankTransfer: 'บัญชีรับโอน',
 } as const;
 
+export const commissionCopy = {
+  rate: {
+    label: 'อัตราค่าคอมมิชชัน',
+    suffix: '%',
+    hint: {
+      default:
+        'ค่าเริ่มต้นของแพลตฟอร์มคือ 7% หากไม่กำหนดอัตราเฉพาะร้าน · 0% หมายถึงไม่หักค่าคอมมิชชัน',
+      custom: 'อัตรานี้ใช้กับยอดสินค้าหลังวันเปิดใช้สูตรใหม่เท่านั้น — ไม่หักจากค่าจัดส่ง',
+    },
+    error: {
+      range: 'กรุณากรอกอัตรา 0 ถึง 100',
+      invalid: 'กรุณากรอกตัวเลขเปอร์เซ็นต์ที่ถูกต้อง',
+    },
+  },
+} as const;
+
 export const userRoleLabels: Record<string, string> = {
   admin: 'ผู้ดูแลระบบ',
   vendor: 'ผู้ขาย',
