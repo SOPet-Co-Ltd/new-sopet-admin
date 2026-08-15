@@ -1,5 +1,6 @@
 'use client';
 
+import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import {
@@ -8,7 +9,27 @@ import {
   useStorePayoutSummary,
 } from '@/hooks/usePayouts';
 import { useMyStore } from '@/hooks/useStoreSettings';
+import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency } from '@/lib/utils';
+import type { PayoutRailSummary } from '@/types';
+
+function AvailableVendorBreakdown({ rail }: { rail: PayoutRailSummary }) {
+  return (
+    <CommissionBreakdown
+      variant="available"
+      audience="vendor"
+      productSold={rail.productSold}
+      shippingFees={rail.shippingFees}
+      commissionAmount={rail.commissionAmount}
+      netPayable={rail.availableBalance}
+      captions={{
+        combined: commissionCopy.breakdown.hint.combined,
+        shipping: commissionCopy.breakdown.hint.shipping,
+        payoutTime: commissionCopy.breakdown.hint.payoutTime,
+      }}
+    />
+  );
+}
 
 function BalanceSkeleton() {
   return (
@@ -120,6 +141,7 @@ export function VendorPayoutBalancePanel() {
                 {manual.totalPaidOut > 0 ? ` · โอนแล้ว ${formatCurrency(manual.totalPaidOut)}` : ''}
               </p>
             </div>
+            <AvailableVendorBreakdown rail={manual} />
 
             {manual.pendingPayoutAmount > 0 ? (
               <div
@@ -177,6 +199,7 @@ export function VendorPayoutBalancePanel() {
                 {omise.totalPaidOut > 0 ? ` · ถอนแล้ว ${formatCurrency(omise.totalPaidOut)}` : ''}
               </p>
             </div>
+            <AvailableVendorBreakdown rail={omise} />
 
             {omise.pendingPayoutAmount > 0 ? (
               <div

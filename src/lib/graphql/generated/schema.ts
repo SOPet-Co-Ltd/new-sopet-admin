@@ -1831,8 +1831,12 @@ export type PayoutRailSummaryType = {
   __typename?: 'PayoutRailSummaryType';
   availableBalance: Scalars['Float']['output'];
   canRequestPayout: Scalars['Boolean']['output'];
+  commissionAmount: Scalars['Float']['output'];
+  commissionRate: Scalars['Int']['output'];
   grossRevenue: Scalars['Float']['output'];
   pendingPayoutAmount: Scalars['Float']['output'];
+  productSold: Scalars['Float']['output'];
+  shippingFees: Scalars['Float']['output'];
   totalPaidOut: Scalars['Float']['output'];
 };
 
@@ -1840,11 +1844,15 @@ export type PayoutSummaryType = {
   __typename?: 'PayoutSummaryType';
   availableBalance: Scalars['Float']['output'];
   canRequestPayout: Scalars['Boolean']['output'];
+  commissionAmount: Scalars['Float']['output'];
+  commissionRate: Scalars['Int']['output'];
   grossRevenue: Scalars['Float']['output'];
   manual: PayoutRailSummaryType;
   minimumPayoutAmount: Scalars['Float']['output'];
   omise: PayoutRailSummaryType;
   pendingPayoutAmount: Scalars['Float']['output'];
+  productSold: Scalars['Float']['output'];
+  shippingFees: Scalars['Float']['output'];
   storeId: Scalars['String']['output'];
   totalPaidOut: Scalars['Float']['output'];
 };

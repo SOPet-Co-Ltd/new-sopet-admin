@@ -1,5 +1,6 @@
 'use client';
 
+import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { StatCard } from '@/components/vendor/stat-card';
@@ -10,8 +11,10 @@ import {
   useSettleManualPayout,
   useTriggerPayout,
 } from '@/hooks/usePayouts';
+import { commissionCopy } from '@/lib/i18n/th';
 import { PAYOUT_STATUS_LABELS } from '@/lib/payouts/status-labels';
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
+import type { PayoutRailSummary } from '@/types';
 
 type AdminStorePayoutPanelProps = {
   storeId: string;
@@ -43,6 +46,23 @@ function railLabel(rail: string): string {
   if (rail === 'manual') return 'โอนเงินเข้าบัญชี';
   if (rail === 'omise') return 'Omise';
   return rail;
+}
+
+function AvailableRailBreakdown({ rail }: { rail: PayoutRailSummary }) {
+  return (
+    <CommissionBreakdown
+      variant="available"
+      audience="admin"
+      productSold={rail.productSold}
+      shippingFees={rail.shippingFees}
+      commissionAmount={rail.commissionAmount}
+      netPayable={rail.availableBalance}
+      captions={{
+        combined: commissionCopy.breakdown.hint.combined,
+        shipping: commissionCopy.breakdown.hint.shipping,
+      }}
+    />
+  );
 }
 
 export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
@@ -92,6 +112,7 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                     value={formatCurrency(summary.omise.pendingPayoutAmount)}
                   />
                 </div>
+                <AvailableRailBreakdown rail={summary.omise} />
                 <div className="flex flex-wrap items-center gap-3">
                   <Button
                     type="button"
@@ -146,6 +167,7 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                     value={formatCurrency(summary.manual.pendingPayoutAmount)}
                   />
                 </div>
+                <AvailableRailBreakdown rail={summary.manual} />
                 <div className="flex flex-wrap items-center gap-3">
                   <Button
                     type="button"

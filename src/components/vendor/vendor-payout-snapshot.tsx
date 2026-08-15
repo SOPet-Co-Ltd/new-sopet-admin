@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { HiArrowRight } from 'react-icons/hi2';
+import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { useIsStoreOwner } from '@/hooks/useMembershipRole';
@@ -11,7 +12,27 @@ import {
   useStorePayoutSummary,
 } from '@/hooks/usePayouts';
 import { useMyStore } from '@/hooks/useStoreSettings';
+import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency } from '@/lib/utils';
+import type { PayoutRailSummary } from '@/types';
+
+function AvailableVendorSnapshotBreakdown({ rail }: { rail: PayoutRailSummary }) {
+  return (
+    <CommissionBreakdown
+      variant="available"
+      audience="vendor"
+      productSold={rail.productSold}
+      shippingFees={rail.shippingFees}
+      commissionAmount={rail.commissionAmount}
+      netPayable={rail.availableBalance}
+      captions={{
+        combined: commissionCopy.breakdown.hint.combined,
+        shipping: commissionCopy.breakdown.hint.shipping,
+        payoutTime: commissionCopy.breakdown.hint.payoutTime,
+      }}
+    />
+  );
+}
 
 export function VendorPayoutSnapshot() {
   const { isOwner } = useIsStoreOwner();
@@ -62,6 +83,7 @@ export function VendorPayoutSnapshot() {
                     <p className="mt-1 text-2xl font-semibold text-ink tabular-nums">
                       {formatCurrency(manual.availableBalance)}
                     </p>
+                    <AvailableVendorSnapshotBreakdown rail={manual} />
                     {manual.pendingPayoutAmount > 0 ? (
                       <p className="mt-1 text-sm text-amber-800">
                         ส่งคำขอแล้ว — รอแอดมินโอนและอนุมัติ{' '}
@@ -91,6 +113,7 @@ export function VendorPayoutSnapshot() {
                     <p className="mt-1 text-2xl font-semibold text-ink tabular-nums">
                       {formatCurrency(omise.availableBalance)}
                     </p>
+                    <AvailableVendorSnapshotBreakdown rail={omise} />
                     {!omiseVerified ? (
                       <p className="mt-1 text-sm text-amber-800">
                         บัญชียังไม่ผ่าน Omise — ไปยืนยันที่หน้า รับเงิน

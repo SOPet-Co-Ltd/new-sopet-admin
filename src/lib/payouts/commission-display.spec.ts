@@ -47,6 +47,26 @@ describe('isCustomCommissionRate', () => {
   });
 });
 
+type FormatBreakdownAmount = (value: number) => string;
+
+async function loadFormatBreakdownAmount(): Promise<FormatBreakdownAmount> {
+  const mod = (await import('./commission-display')) as {
+    formatBreakdownAmount?: FormatBreakdownAmount;
+  };
+  if (!mod.formatBreakdownAmount) {
+    throw new Error('formatBreakdownAmount is not exported');
+  }
+  return mod.formatBreakdownAmount;
+}
+
+describe('formatBreakdownAmount', () => {
+  it('formats a fixture amount with formatCurrency (th-TH / THB)', async () => {
+    const { formatCurrency } = await import('../utils');
+    expect((await loadFormatBreakdownAmount())(1410)).toBe(formatCurrency(1410));
+    expect((await loadFormatBreakdownAmount())(70)).toBe(formatCurrency(70));
+  });
+});
+
 describe('numberRegisterOptions.setValueAs', () => {
   it('setValueAs("7") → 7', async () => {
     const result = (await loadNumberRegisterOptions()).setValueAs('7');

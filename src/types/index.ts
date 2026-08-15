@@ -1117,6 +1117,10 @@ export interface PayoutRailSummary {
   availableBalance: number;
   pendingPayoutAmount: number;
   canRequestPayout: boolean;
+  productSold: number;
+  shippingFees: number;
+  commissionAmount: number;
+  commissionRate: number | null;
 }
 
 export interface PayoutSummary {
@@ -1127,6 +1131,10 @@ export interface PayoutSummary {
   pendingPayoutAmount: number;
   minimumPayoutAmount: number;
   canRequestPayout: boolean;
+  productSold: number;
+  shippingFees: number;
+  commissionAmount: number;
+  commissionRate: number | null;
   omise: PayoutRailSummary;
   manual: PayoutRailSummary;
 }

@@ -2268,12 +2268,20 @@ const PAYOUT_SUMMARY_FIELDS = `
   pendingPayoutAmount
   minimumPayoutAmount
   canRequestPayout
+  productSold
+  shippingFees
+  commissionAmount
+  commissionRate
   omise {
     grossRevenue
     totalPaidOut
     availableBalance
     pendingPayoutAmount
     canRequestPayout
+    productSold
+    shippingFees
+    commissionAmount
+    commissionRate
   }
   manual {
     grossRevenue
@@ -2281,6 +2289,10 @@ const PAYOUT_SUMMARY_FIELDS = `
     availableBalance
     pendingPayoutAmount
     canRequestPayout
+    productSold
+    shippingFees
+    commissionAmount
+    commissionRate
   }
 `;
 

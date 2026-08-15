@@ -24,6 +24,10 @@ function mapRail(rail: PayoutRailSummary): PayoutRailSummary {
     availableBalance: Number(rail.availableBalance),
     pendingPayoutAmount: Number(rail.pendingPayoutAmount),
     canRequestPayout: rail.canRequestPayout,
+    productSold: Number(rail.productSold),
+    shippingFees: Number(rail.shippingFees),
+    commissionAmount: Number(rail.commissionAmount),
+    commissionRate: rail.commissionRate == null ? null : Number(rail.commissionRate),
   };
 }
 
@@ -36,6 +40,10 @@ function mapPayoutSummary(summary: GqlPayoutSummary): PayoutSummary {
     pendingPayoutAmount: Number(summary.pendingPayoutAmount),
     minimumPayoutAmount: Number(summary.minimumPayoutAmount),
     canRequestPayout: summary.canRequestPayout,
+    productSold: Number(summary.productSold),
+    shippingFees: Number(summary.shippingFees),
+    commissionAmount: Number(summary.commissionAmount),
+    commissionRate: summary.commissionRate == null ? null : Number(summary.commissionRate),
     omise: mapRail(summary.omise),
     manual: mapRail(summary.manual),
   };
