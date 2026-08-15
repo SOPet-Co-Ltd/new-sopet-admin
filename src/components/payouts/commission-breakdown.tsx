@@ -72,13 +72,6 @@ export type CommissionBreakdownProps =
       captions: BreakdownCaptions & { frozen: string };
     });
 
-function displayAmount(value: number | null): string {
-  if (value == null) {
-    return '—';
-  }
-  return formatBreakdownAmount(value);
-}
-
 export function CommissionBreakdown(props: CommissionBreakdownProps) {
   const headingId = useId();
   const netLabel =
@@ -135,7 +128,7 @@ export function CommissionBreakdown(props: CommissionBreakdownProps) {
           <MoneyRow
             key={row.label}
             label={row.label}
-            amount={displayAmount(row.amount)}
+            amount={formatBreakdownAmount(row.amount)}
             tone={row.tone}
           />
         ))}
@@ -153,7 +146,7 @@ export function CommissionBreakdown(props: CommissionBreakdownProps) {
       ) : null}
       {isIncomplete ? (
         <p className="text-xs text-muted-foreground" role="status">
-          รายละเอียดยอดไม่ครบถ้วน
+          {commissionCopy.breakdown.incomplete}
         </p>
       ) : null}
     </section>

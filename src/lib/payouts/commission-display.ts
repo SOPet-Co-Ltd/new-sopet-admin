@@ -6,6 +6,9 @@ export function isCustomCommissionRate(rate: number | null | undefined): boolean
   return rate != null;
 }
 
-export function formatBreakdownAmount(value: number): string {
+export function formatBreakdownAmount(value: number | null): string {
+  if (value == null) {
+    return '—';
+  }
   return formatCurrency(value);
 }

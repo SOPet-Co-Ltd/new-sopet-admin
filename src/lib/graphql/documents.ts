@@ -2304,6 +2304,10 @@ const PAYOUT_FIELDS = `
   status
   settlementRail
   createdAt
+  productSold
+  shippingFees
+  commissionAmount
+  commissionRate
 `;
 
 export const STORE_PAYOUT_SUMMARY_QUERY = gql`

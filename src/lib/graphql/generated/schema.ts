@@ -199,10 +199,14 @@ export type AdminManualPayoutType = {
   bankAccountNumber?: Maybe<Scalars['String']['output']>;
   bankCode?: Maybe<Scalars['String']['output']>;
   bankName?: Maybe<Scalars['String']['output']>;
+  commissionAmount?: Maybe<Scalars['Float']['output']>;
+  commissionRate?: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
   netAmount: Scalars['Float']['output'];
+  productSold?: Maybe<Scalars['Float']['output']>;
   settlementRail: Scalars['String']['output'];
+  shippingFees?: Maybe<Scalars['Float']['output']>;
   status: Scalars['String']['output'];
   storeId: Scalars['String']['output'];
   storeName: Scalars['String']['output'];
@@ -1860,10 +1864,14 @@ export type PayoutSummaryType = {
 export type PayoutType = {
   __typename?: 'PayoutType';
   amount: Scalars['Float']['output'];
+  commissionAmount?: Maybe<Scalars['Float']['output']>;
+  commissionRate?: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
   netAmount: Scalars['Float']['output'];
+  productSold?: Maybe<Scalars['Float']['output']>;
   settlementRail: Scalars['String']['output'];
+  shippingFees?: Maybe<Scalars['Float']['output']>;
   status: Scalars['String']['output'];
   storeId: Scalars['String']['output'];
 };

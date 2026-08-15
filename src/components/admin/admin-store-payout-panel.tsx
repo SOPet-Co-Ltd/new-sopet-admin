@@ -14,7 +14,7 @@ import {
 import { commissionCopy } from '@/lib/i18n/th';
 import { PAYOUT_STATUS_LABELS } from '@/lib/payouts/status-labels';
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
-import type { PayoutRailSummary } from '@/types';
+import type { Payout, PayoutRailSummary } from '@/types';
 
 type AdminStorePayoutPanelProps = {
   storeId: string;
@@ -65,6 +65,20 @@ function AvailableRailBreakdown({ rail }: { rail: PayoutRailSummary }) {
   );
 }
 
+function SnapshotPayoutBreakdown({ payout }: { payout: Payout }) {
+  return (
+    <CommissionBreakdown
+      variant="snapshot"
+      audience="admin"
+      productSold={payout.productSold}
+      shippingFees={payout.shippingFees}
+      commissionAmount={payout.commissionAmount}
+      netPayable={payout.amount}
+      captions={{ frozen: commissionCopy.breakdown.hint.frozen }}
+    />
+  );
+}
+
 export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
   const { data: summary, isLoading: summaryLoading } = useAdminStorePayoutSummary(storeId);
   const { data: payouts = [], isLoading: historyLoading } = useAdminStorePayouts(storeId);
@@ -75,6 +89,9 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
   const isLoading = summaryLoading || historyLoading;
   const pendingManual = payouts.find(
     (payout) => payout.settlementRail === 'manual' && payout.status === 'pending',
+  );
+  const pendingOmise = payouts.find(
+    (payout) => payout.settlementRail === 'omise' && payout.status === 'pending',
   );
   const hasPendingManual = Boolean(summary && summary.manual.pendingPayoutAmount > 0);
 
@@ -113,6 +130,7 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                   />
                 </div>
                 <AvailableRailBreakdown rail={summary.omise} />
+                {pendingOmise ? <SnapshotPayoutBreakdown payout={pendingOmise} /> : null}
                 <div className="flex flex-wrap items-center gap-3">
                   <Button
                     type="button"
@@ -168,6 +186,7 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                   />
                 </div>
                 <AvailableRailBreakdown rail={summary.manual} />
+                {pendingManual ? <SnapshotPayoutBreakdown payout={pendingManual} /> : null}
                 <div className="flex flex-wrap items-center gap-3">
                   <Button
                     type="button"
@@ -261,8 +280,16 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                             {formatDateTime(payout.createdAt)}
                           </td>
                           <td className="px-4 py-2.5">{railLabel(payout.settlementRail)}</td>
-                          <td className="px-4 py-2.5 tabular-nums font-medium">
-                            {formatCurrency(payout.amount)}
+                          <td className="px-4 py-2.5">
+                            <p className="tabular-nums font-medium">
+                              {formatCurrency(payout.amount)}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {commissionCopy.transfer.caption}
+                            </p>
+                            <div className="mt-3">
+                              <SnapshotPayoutBreakdown payout={payout} />
+                            </div>
                           </td>
                           <td className="px-4 py-2.5">
                             {PAYOUT_STATUS_LABELS[payout.status] ?? payout.status}

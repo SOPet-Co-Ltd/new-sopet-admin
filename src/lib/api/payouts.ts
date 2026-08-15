@@ -49,6 +49,10 @@ function mapPayoutSummary(summary: GqlPayoutSummary): PayoutSummary {
   };
 }
 
+function mapNullableMoney(value: number | null | undefined): number | null {
+  return value == null ? null : Number(value);
+}
+
 function mapPayout(payout: GqlPayout): Payout {
   return {
     id: payout.id,
@@ -58,6 +62,10 @@ function mapPayout(payout: GqlPayout): Payout {
     status: payout.status,
     settlementRail: payout.settlementRail,
     createdAt: payout.createdAt,
+    productSold: mapNullableMoney(payout.productSold),
+    shippingFees: mapNullableMoney(payout.shippingFees),
+    commissionAmount: mapNullableMoney(payout.commissionAmount),
+    commissionRate: mapNullableMoney(payout.commissionRate),
   };
 }
 

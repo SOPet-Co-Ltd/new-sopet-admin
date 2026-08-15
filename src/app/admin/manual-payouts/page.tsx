@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import {
@@ -10,7 +11,23 @@ import {
   useSettleManualPayoutForQueue,
 } from '@/hooks/usePayouts';
 import { formatThaiBankAccountNumber } from '@/lib/banks/formatThaiBankAccountNumber';
+import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
+import type { AdminManualPayout } from '@/lib/api/payouts';
+
+function SnapshotQueueBreakdown({ payout }: { payout: AdminManualPayout }) {
+  return (
+    <CommissionBreakdown
+      variant="snapshot"
+      audience="admin"
+      productSold={payout.productSold}
+      shippingFees={payout.shippingFees}
+      commissionAmount={payout.commissionAmount}
+      netPayable={payout.amount}
+      captions={{ frozen: commissionCopy.breakdown.hint.frozen }}
+    />
+  );
+}
 
 export default function AdminManualPayoutsPage() {
   const [page, setPage] = useState(1);
@@ -74,6 +91,10 @@ export default function AdminManualPayoutsPage() {
                         <p className="font-display text-lg font-medium tabular-nums text-ink">
                           {formatCurrency(payout.amount)}
                         </p>
+                        <p className="text-xs text-muted-foreground">
+                          {commissionCopy.transfer.caption}
+                        </p>
+                        <SnapshotQueueBreakdown payout={payout} />
                       </div>
 
                       <div className="rounded-lg border border-border bg-surface/60 px-3 py-3">

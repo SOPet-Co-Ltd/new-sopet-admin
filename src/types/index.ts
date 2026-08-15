@@ -1147,6 +1147,10 @@ export interface Payout {
   status: string;
   settlementRail: 'omise' | 'manual' | string;
   createdAt: string;
+  productSold: number | null;
+  shippingFees: number | null;
+  commissionAmount: number | null;
+  commissionRate: number | null;
 }
 
 export type {

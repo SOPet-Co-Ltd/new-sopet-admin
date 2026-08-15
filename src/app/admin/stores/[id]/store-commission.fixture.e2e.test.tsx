@@ -1,12 +1,31 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { buildAdminNavSections } from '@/components/admin/admin-layout';
-import { platformSettingsTabLabels } from '@/lib/i18n/th';
+import AdminManualPayoutsPage from '@/app/admin/manual-payouts/page';
 import AdminPlatformSettingsPage from '@/app/admin/settings/page';
 import AdminStoreNewPage from '@/app/admin/stores/new/page';
+import { AdminStorePayoutPanel } from '@/components/admin/admin-store-payout-panel';
+import { buildAdminNavSections } from '@/components/admin/admin-layout';
+import { VendorPayoutBalancePanel } from '@/components/vendor/vendor-payout-balance-panel';
+import { VendorPayoutHistoryPanel } from '@/components/vendor/vendor-payout-history-panel';
+import { VendorPayoutSnapshot } from '@/components/vendor/vendor-payout-snapshot';
+import { commissionCopy, platformSettingsTabLabels } from '@/lib/i18n/th';
+import { formatCurrency } from '@/lib/utils';
 import AdminStoreEditPage from './page';
-import { createUseUpdateStoreAsAdminMockResult, nullRateStore } from './store-commission.fixtures';
+import {
+  createPendingManualPayoutsMockResult,
+  createUseUpdateStoreAsAdminMockResult,
+  liveTenPercentAvailableSummary,
+  liveTenPercentVsSnapshotSeven,
+  mixedCutoffAvailableWithPendingSummary,
+  mixedCutoffFours,
+  mixedCutoffWithPendingManual,
+  nullRateStore,
+  pendingManualSnapshotPayout,
+  type AdminManualPayoutCommissionFixture,
+  type PayoutCommissionFixture,
+  type PayoutSummaryCommissionFixture,
+} from './store-commission.fixtures';
 
 const HINT_DEFAULT =
   'ค่าเริ่มต้นของแพลตฟอร์มคือ 7% หากไม่กำหนดอัตราเฉพาะร้าน · 0% หมายถึงไม่หักค่าคอมมิชชัน';
@@ -17,6 +36,16 @@ const INVALID_ERROR = 'กรุณากรอกตัวเลขเปอร
 const storeState = { current: nullRateStore };
 const mutateAsync = vi.fn();
 const mockPush = vi.fn();
+const ownerState = { isOwner: true };
+const payoutsQueryState: {
+  summary: PayoutSummaryCommissionFixture | null;
+  isLoading: boolean;
+} = {
+  summary: null,
+  isLoading: false,
+};
+const payoutsHistoryState: { items: PayoutCommissionFixture[] } = { items: [] };
+const pendingManualState: { items: AdminManualPayoutCommissionFixture[] } = { items: [] };
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: 'store-1' }),
@@ -44,8 +73,19 @@ vi.mock('@/hooks/useAdminVendors', () => ({
 }));
 
 vi.mock('@/hooks/usePayouts', () => ({
-  useAdminStorePayoutSummary: () => ({ data: null, isLoading: false }),
-  useAdminStorePayouts: () => ({ data: [], isLoading: false }),
+  useAdminStorePayoutSummary: () => ({
+    data: payoutsQueryState.summary,
+    isLoading: payoutsQueryState.isLoading,
+  }),
+  useAdminStorePayouts: () => ({ data: payoutsHistoryState.items, isLoading: false }),
+  useStorePayouts: () => ({ data: payoutsHistoryState.items, isLoading: false }),
+  useStorePayoutSummary: () => ({
+    data: payoutsQueryState.summary,
+    isLoading: payoutsQueryState.isLoading,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
   useTriggerPayout: () => ({
     mutate: vi.fn(),
     isPending: false,
@@ -66,6 +106,46 @@ vi.mock('@/hooks/usePayouts', () => ({
     isError: false,
     isSuccess: false,
     error: null,
+  }),
+  useRequestPayout: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
+  useRequestManualPayout: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
+  usePendingManualPayouts: () => createPendingManualPayoutsMockResult(pendingManualState.items),
+  useSettleManualPayoutForQueue: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+    variables: undefined,
+  }),
+  useRejectManualPayoutForQueue: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+    variables: undefined,
+  }),
+}));
+
+vi.mock('@/hooks/useMembershipRole', () => ({
+  useIsStoreOwner: () => ({ isOwner: ownerState.isOwner }),
+}));
+
+vi.mock('@/hooks/useStoreSettings', () => ({
+  useMyStore: () => ({
+    data: { omiseRecipientStatus: 'active', bankAccountNumber: '1234567890' },
+    isLoading: false,
   }),
 }));
 
@@ -289,5 +369,111 @@ describe('store commission — admin rate configure journey [fixture-e2e]', () =
     expect(screen.queryByLabelText(/อัตราค่าคอมมิชชัน/)).not.toBeInTheDocument();
     expect(screen.queryByText(HINT_DEFAULT)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'สร้างร้านค้า' })).toBeInTheDocument();
+  });
+});
+
+describe('store commission — admin already-net settlement journey [fixture-e2e]', () => {
+  beforeEach(() => {
+    payoutsQueryState.summary = mixedCutoffAvailableWithPendingSummary;
+    payoutsHistoryState.items = [mixedCutoffWithPendingManual.pendingManual];
+    pendingManualState.items = [pendingManualSnapshotPayout];
+  });
+
+  afterEach(() => {
+    cleanup();
+    payoutsQueryState.summary = null;
+    payoutsHistoryState.items = [];
+    pendingManualState.items = [];
+  });
+
+  it('shows combined fours and a single already-net transfer on the store panel and the manual queue', () => {
+    const { unmount: unmountPanel } = render(<AdminStorePayoutPanel storeId="store-1" />);
+
+    expect(screen.getAllByText(commissionCopy.breakdown.productSold).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(commissionCopy.breakdown.shippingFees).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(commissionCopy.breakdown.commissionDeducted).length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.getAllByText(commissionCopy.breakdown.netPayable.admin).length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.getAllByText(formatCurrency(mixedCutoffFours.net)).length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('button', {
+        name: `อนุมัติหลังโอนแล้ว (${formatCurrency(mixedCutoffFours.net)})`,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /฿1,400/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/ก่อนเปิดใช้/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/หลังเปิดใช้/)).not.toBeInTheDocument();
+    expect(document.querySelector('details')).toBeNull();
+    unmountPanel();
+
+    render(<AdminManualPayoutsPage />);
+    expect(screen.getAllByText(formatCurrency(mixedCutoffFours.net)).length).toBeGreaterThan(0);
+    expect(screen.getByText(commissionCopy.transfer.caption)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.productSold)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.commissionDeducted)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.netPayable.admin)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.hint.frozen)).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /อนุมัติหลังโอนแล้ว.*฿1,400/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/ก่อนเปิดใช้/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/หลังเปิดใช้/)).not.toBeInTheDocument();
+    expect(document.querySelector('details')).toBeNull();
+    expect(screen.queryByText('netAmount')).not.toBeInTheDocument();
+  });
+});
+
+describe('store commission — vendor balance and frozen history journey [fixture-e2e]', () => {
+  beforeEach(() => {
+    ownerState.isOwner = true;
+    payoutsQueryState.summary = liveTenPercentAvailableSummary;
+    payoutsHistoryState.items = [liveTenPercentVsSnapshotSeven.snapshotPayout];
+  });
+
+  afterEach(() => {
+    cleanup();
+    payoutsQueryState.summary = null;
+    payoutsHistoryState.items = [];
+  });
+
+  it('carries the same four numbers from dashboard to รับเงิน and keeps history frozen without a rate editor', () => {
+    const { unmount: unmountSnapshot } = render(<VendorPayoutSnapshot />);
+    expect(screen.getAllByText(commissionCopy.breakdown.productSold).length).toBeGreaterThanOrEqual(
+      2,
+    );
+    expect(
+      screen.getAllByText(commissionCopy.breakdown.shippingFees).length,
+    ).toBeGreaterThanOrEqual(2);
+    expect(
+      screen.getAllByText(commissionCopy.breakdown.commissionDeducted).length,
+    ).toBeGreaterThanOrEqual(2);
+    expect(
+      screen.getAllByText(commissionCopy.breakdown.netPayable.vendor).length,
+    ).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(formatCurrency(mixedCutoffFours.net)).length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText(/อัตราค่าคอมมิชชัน/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+    unmountSnapshot();
+
+    const { unmount: unmountBalance } = render(<VendorPayoutBalancePanel />);
+    expect(screen.getAllByText(commissionCopy.breakdown.productSold).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(formatCurrency(mixedCutoffFours.net)).length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText(/อัตราค่าคอมมิชชัน/)).not.toBeInTheDocument();
+    unmountBalance();
+
+    render(<VendorPayoutHistoryPanel />);
+    expect(screen.getByText(commissionCopy.breakdown.productSold)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.shippingFees)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.commissionDeducted)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.netPayable.vendor)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.hint.frozen)).toBeInTheDocument();
+    expect(screen.getByText(formatCurrency(70))).toBeInTheDocument();
+    expect(screen.queryByText(formatCurrency(140))).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/อัตราค่าคอมมิชชัน/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+    expect(screen.queryByDisplayValue('10')).not.toBeInTheDocument();
   });
 });
