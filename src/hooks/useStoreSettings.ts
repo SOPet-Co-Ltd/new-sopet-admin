@@ -39,8 +39,10 @@ export function useUpdateStorePayout() {
         'bankAccountName' | 'bankAccountNumber' | 'bankName' | 'bankCode'
       >,
     ) => updateStorePayout(input),
-    onSuccess: () => {
+    onSuccess: (store) => {
+      queryClient.setQueryData(queryKeys.stores.detail('current'), store);
       queryClient.invalidateQueries({ queryKey: queryKeys.stores.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
     },
   });
 }
@@ -49,7 +51,8 @@ export function useLinkStoreOmiseRecipient() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: linkStoreOmiseRecipient,
-    onSuccess: () => {
+    onSuccess: (store) => {
+      queryClient.setQueryData(queryKeys.stores.detail('current'), store);
       queryClient.invalidateQueries({ queryKey: queryKeys.stores.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
     },

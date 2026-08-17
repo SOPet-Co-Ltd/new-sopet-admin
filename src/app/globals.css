@@ -43,9 +43,10 @@
   --cream: var(--background);
   --white: var(--card);
 
-  /* Status — softened for ops readability */
+  /* Status — softened for ops readability; *-text must pass ≥4.5:1 on *-bg */
   --success: #2d6a4f;
   --success-bg: #e6f6ea;
+  --success-text: #1b4d36;
   --warning-bg: #fff8e8;
   --warning-text: #8a6a14;
   --danger: #b42318;
@@ -78,7 +79,9 @@
   --tertiary-deep: #f5b335;
   --tertiary-foreground: #171719;
 
+  --success: #8dcbab;
   --success-bg: #1a3d2e;
+  --success-text: #a8dec0;
   --warning-bg: #3d3518;
   --warning-text: #f5d76e;
   --danger-bg: #3d1a18;
@@ -126,6 +129,7 @@
 
   --color-success: var(--success);
   --color-success-bg: var(--success-bg);
+  --color-success-text: var(--success-text);
   --color-warning-bg: var(--warning-bg);
   --color-warning-text: var(--warning-text);
   --color-danger: var(--danger);

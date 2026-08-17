@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { AdminStoreOmisePanel } from '@/components/admin/admin-store-omise-panel';
 import { AdminStorePayoutPanel } from '@/components/admin/admin-store-payout-panel';
 import {
   BackToStoresLink,
@@ -401,6 +402,7 @@ export default function AdminStoreEditPage() {
         </div>
       </div>
 
+      <AdminStoreOmisePanel store={store} />
       <AdminStorePayoutPanel storeId={params.id} />
     </div>
   );

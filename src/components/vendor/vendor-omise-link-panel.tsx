@@ -27,8 +27,8 @@ const OMISE_STATUS_INFO: Record<
   active: {
     label: 'Omise พร้อมรับเงิน',
     description: 'บัญชีผ่านการยืนยันแล้ว สามารถขอรับเงิน Omise ได้',
-    className: 'border-success/25 bg-success-bg text-success',
-    dotClassName: 'bg-success',
+    className: 'border-success-text/30 bg-success-bg text-success-text',
+    dotClassName: 'bg-success-text',
   },
   failed: {
     label: 'ยืนยัน Omise ไม่สำเร็จ',
@@ -101,8 +101,8 @@ export function VendorOmiseLinkPanel({ store, loading }: VendorOmiseLinkPanelPro
                   aria-hidden
                 />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium">{info.label}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed opacity-90">{info.description}</p>
+                  <p className="text-sm font-semibold">{info.label}</p>
+                  <p className="mt-0.5 text-sm leading-relaxed">{info.description}</p>
                   {status === 'failed' && store?.omiseRecipientFailureMessage ? (
                     <p className="mt-2 text-xs font-medium">{store.omiseRecipientFailureMessage}</p>
                   ) : null}
@@ -114,19 +114,23 @@ export function VendorOmiseLinkPanel({ store, loading }: VendorOmiseLinkPanelPro
               <Button
                 type="button"
                 onClick={() => void handleLink()}
-                disabled={!hasBank || linkMutation.isPending || status === 'active'}
+                disabled={!hasBank || linkMutation.isPending}
                 aria-busy={linkMutation.isPending}
               >
                 {linkMutation.isPending
                   ? 'กำลังส่งไป Omise...'
                   : status === 'active'
-                    ? 'ยืนยันแล้ว'
+                    ? 'ส่งยืนยันกับ Omise อีกครั้ง'
                     : status === 'pending' || status === 'failed'
                       ? 'ส่งยืนยันกับ Omise อีกครั้ง'
                       : 'ส่งยืนยันกับ Omise'}
               </Button>
               {!hasBank ? (
                 <p className="text-sm text-muted-foreground">บันทึกบัญชีธนาคารในขั้นตอน 1 ก่อน</p>
+              ) : status === 'active' ? (
+                <p className="text-sm text-muted-foreground">
+                  หากเปลี่ยนบัญชีแล้ว ให้ส่งยืนยันอีกครั้งเพื่ออัปเดต Omise
+                </p>
               ) : null}
             </div>
 
@@ -135,7 +139,7 @@ export function VendorOmiseLinkPanel({ store, loading }: VendorOmiseLinkPanelPro
                 className={cn(
                   'flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm',
                   feedback.type === 'success'
-                    ? 'border-success/25 bg-success-bg text-success'
+                    ? 'border-success-text/30 bg-success-bg text-success-text'
                     : 'border-danger/25 bg-danger-bg text-danger',
                 )}
                 role={feedback.type === 'error' ? 'alert' : 'status'}

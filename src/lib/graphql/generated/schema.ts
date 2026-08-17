@@ -217,6 +217,7 @@ export type AdminStoreType = {
   address?: Maybe<Scalars['String']['output']>;
   bankAccountName?: Maybe<Scalars['String']['output']>;
   bankAccountNumber?: Maybe<Scalars['String']['output']>;
+  bankCode?: Maybe<Scalars['String']['output']>;
   bankName?: Maybe<Scalars['String']['output']>;
   bannerUrl?: Maybe<Scalars['String']['output']>;
   commissionRate?: Maybe<Scalars['Int']['output']>;
@@ -227,6 +228,9 @@ export type AdminStoreType = {
   id: Scalars['String']['output'];
   logoUrl?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
+  omiseRecipientFailureMessage?: Maybe<Scalars['String']['output']>;
+  omiseRecipientId?: Maybe<Scalars['String']['output']>;
+  omiseRecipientStatus: Scalars['String']['output'];
   ownerEmail?: Maybe<Scalars['String']['output']>;
   ownerFullName?: Maybe<Scalars['String']['output']>;
   ownerId: Scalars['String']['output'];
@@ -860,6 +864,7 @@ export type Mutation = {
   inviteStoreMember: StoreMemberInvitationType;
   inviteVendor: VendorInvitationType;
   linkStoreOmiseRecipient: MyStoreType;
+  linkStoreOmiseRecipientAsAdmin: AdminStoreType;
   markAllNotificationsRead: Scalars['Boolean']['output'];
   markNotificationRead: Scalars['Boolean']['output'];
   markVendorOrderPaid: OrderType;
@@ -1252,6 +1257,10 @@ export type MutationInviteStoreMemberArgs = {
 
 export type MutationInviteVendorArgs = {
   input: InviteVendorInput;
+};
+
+export type MutationLinkStoreOmiseRecipientAsAdminArgs = {
+  storeId: Scalars['String']['input'];
 };
 
 export type MutationMarkNotificationReadArgs = {

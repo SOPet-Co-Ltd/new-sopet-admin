@@ -1113,6 +1113,13 @@ const ADMIN_STORE_FIELDS = `
   ownerFullName
   createdAt
   commissionRate
+  bankAccountName
+  bankAccountNumber
+  bankName
+  bankCode
+  omiseRecipientId
+  omiseRecipientStatus
+  omiseRecipientFailureMessage
 `;
 
 export const ADMIN_STORES_QUERY = gql`
@@ -1142,6 +1149,14 @@ export const CREATE_STORE_AS_ADMIN = gql`
 export const UPDATE_STORE_AS_ADMIN = gql`
   mutation UpdateStoreAsAdmin($input: UpdateStoreAsAdminInput!) {
     updateStoreAsAdmin(input: $input) {
+      ${ADMIN_STORE_FIELDS}
+    }
+  }
+`;
+
+export const LINK_STORE_OMISE_RECIPIENT_AS_ADMIN = gql`
+  mutation LinkStoreOmiseRecipientAsAdmin($storeId: String!) {
+    linkStoreOmiseRecipientAsAdmin(storeId: $storeId) {
       ${ADMIN_STORE_FIELDS}
     }
   }

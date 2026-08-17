@@ -3,6 +3,7 @@ import {
   ADMIN_STORE_QUERY,
   ADMIN_STORES_QUERY,
   CREATE_STORE_AS_ADMIN,
+  LINK_STORE_OMISE_RECIPIENT_AS_ADMIN,
   UPDATE_STORE_AS_ADMIN,
 } from '@/lib/graphql/documents';
 import { mapAdminStore } from '@/lib/graphql/mappers';
@@ -71,4 +72,11 @@ export function updateStoreAsAdmin(
   return executeMutation<{ updateStoreAsAdmin: GqlAdminStore }>(UPDATE_STORE_AS_ADMIN, {
     input: { id, ...input },
   }).then((data) => mapAdminStore(data.updateStoreAsAdmin));
+}
+
+export function linkStoreOmiseRecipientAsAdmin(storeId: string): Promise<AdminStore> {
+  return executeMutation<{ linkStoreOmiseRecipientAsAdmin: GqlAdminStore }>(
+    LINK_STORE_OMISE_RECIPIENT_AS_ADMIN,
+    { storeId },
+  ).then((data) => mapAdminStore(data.linkStoreOmiseRecipientAsAdmin));
 }
