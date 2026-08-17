@@ -23,6 +23,7 @@ function SnapshotQueueBreakdown({ payout }: { payout: AdminManualPayout }) {
       productSold={payout.productSold}
       shippingFees={payout.shippingFees}
       commissionAmount={payout.commissionAmount}
+      commissionRate={payout.commissionRate}
       netPayable={payout.amount}
       captions={{ frozen: commissionCopy.breakdown.hint.frozen }}
     />

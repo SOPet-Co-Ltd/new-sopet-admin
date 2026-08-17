@@ -391,7 +391,7 @@ describe('store commission — admin already-net settlement journey [fixture-e2e
 
     expect(screen.getAllByText(commissionCopy.breakdown.productSold).length).toBeGreaterThan(0);
     expect(screen.getAllByText(commissionCopy.breakdown.shippingFees).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(commissionCopy.breakdown.commissionDeducted).length).toBeGreaterThan(
+    expect(screen.getAllByText(commissionCopy.breakdown.commissionDeducted, { exact: false }).length).toBeGreaterThan(
       0,
     );
     expect(screen.getAllByText(commissionCopy.breakdown.netPayable.admin).length).toBeGreaterThan(
@@ -413,7 +413,7 @@ describe('store commission — admin already-net settlement journey [fixture-e2e
     expect(screen.getAllByText(formatCurrency(mixedCutoffFours.net)).length).toBeGreaterThan(0);
     expect(screen.getByText(commissionCopy.transfer.caption)).toBeInTheDocument();
     expect(screen.getByText(commissionCopy.breakdown.productSold)).toBeInTheDocument();
-    expect(screen.getByText(commissionCopy.breakdown.commissionDeducted)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.commissionDeducted, { exact: false })).toBeInTheDocument();
     expect(screen.getByText(commissionCopy.breakdown.netPayable.admin)).toBeInTheDocument();
     expect(screen.getByText(commissionCopy.breakdown.hint.frozen)).toBeInTheDocument();
     expect(
@@ -448,7 +448,7 @@ describe('store commission — vendor balance and frozen history journey [fixtur
       screen.getAllByText(commissionCopy.breakdown.shippingFees).length,
     ).toBeGreaterThanOrEqual(2);
     expect(
-      screen.getAllByText(commissionCopy.breakdown.commissionDeducted).length,
+      screen.getAllByText(commissionCopy.breakdown.commissionDeducted, { exact: false }).length,
     ).toBeGreaterThanOrEqual(2);
     expect(
       screen.getAllByText(commissionCopy.breakdown.netPayable.vendor).length,
@@ -467,7 +467,7 @@ describe('store commission — vendor balance and frozen history journey [fixtur
     render(<VendorPayoutHistoryPanel />);
     expect(screen.getByText(commissionCopy.breakdown.productSold)).toBeInTheDocument();
     expect(screen.getByText(commissionCopy.breakdown.shippingFees)).toBeInTheDocument();
-    expect(screen.getByText(commissionCopy.breakdown.commissionDeducted)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.commissionDeducted, { exact: false })).toBeInTheDocument();
     expect(screen.getByText(commissionCopy.breakdown.netPayable.vendor)).toBeInTheDocument();
     expect(screen.getByText(commissionCopy.breakdown.hint.frozen)).toBeInTheDocument();
     expect(screen.getByText(formatCurrency(70))).toBeInTheDocument();

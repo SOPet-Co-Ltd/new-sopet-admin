@@ -56,6 +56,7 @@ function AvailableRailBreakdown({ rail }: { rail: PayoutRailSummary }) {
       productSold={rail.productSold}
       shippingFees={rail.shippingFees}
       commissionAmount={rail.commissionAmount}
+      commissionRate={rail.commissionRate}
       netPayable={rail.availableBalance}
       captions={{
         combined: commissionCopy.breakdown.hint.combined,
@@ -73,6 +74,7 @@ function SnapshotPayoutBreakdown({ payout }: { payout: Payout }) {
       productSold={payout.productSold}
       shippingFees={payout.shippingFees}
       commissionAmount={payout.commissionAmount}
+      commissionRate={payout.commissionRate}
       netPayable={payout.amount}
       captions={{ frozen: commissionCopy.breakdown.hint.frozen }}
     />

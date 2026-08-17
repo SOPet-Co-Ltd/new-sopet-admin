@@ -237,7 +237,9 @@ function resetPayoutsQueryState() {
 function assertAvailableFours(netLabel: string) {
   const product = screen.getAllByText(commissionCopy.breakdown.productSold)[0];
   const shipping = screen.getAllByText(commissionCopy.breakdown.shippingFees)[0];
-  const commission = screen.getAllByText(commissionCopy.breakdown.commissionDeducted)[0];
+  const commission = screen.getAllByText(commissionCopy.breakdown.commissionDeducted, {
+    exact: false,
+  })[0];
   const net = screen.getAllByText(netLabel)[0];
 
   expect(product.compareDocumentPosition(shipping) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -265,7 +267,9 @@ function assertAvailableFours(netLabel: string) {
 function assertSnapshotFours(netLabel: string) {
   const product = screen.getAllByText(commissionCopy.breakdown.productSold)[0];
   const shipping = screen.getAllByText(commissionCopy.breakdown.shippingFees)[0];
-  const commission = screen.getAllByText(commissionCopy.breakdown.commissionDeducted)[0];
+  const commission = screen.getAllByText(commissionCopy.breakdown.commissionDeducted, {
+    exact: false,
+  })[0];
   const net = screen.getAllByText(netLabel)[0];
 
   expect(product.compareDocumentPosition(shipping) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

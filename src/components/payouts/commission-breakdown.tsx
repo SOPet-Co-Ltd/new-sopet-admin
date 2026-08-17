@@ -2,10 +2,10 @@
 
 import { useId } from 'react';
 import { commissionCopy } from '@/lib/i18n/th';
-import { formatBreakdownAmount } from '@/lib/payouts/commission-display';
+import { commissionDeductedLabel, formatBreakdownAmount } from '@/lib/payouts/commission-display';
 import { cn } from '@/lib/utils';
 
-type MoneyTone = 'muted' | 'success' | 'total';
+type MoneyTone = 'muted' | 'success' | 'total' | 'debit';
 
 function MoneyRow({
   label,
@@ -26,8 +26,10 @@ function MoneyRow({
       <dt
         className={cn(
           'text-sm',
-          tone === 'total' ? 'font-semibold text-ink' : 'text-muted',
+          tone === 'total' && 'font-semibold text-ink',
+          tone === 'muted' && 'text-muted',
           tone === 'success' && 'text-success',
+          tone === 'debit' && 'text-danger',
         )}
       >
         {label}
@@ -38,6 +40,7 @@ function MoneyRow({
           tone === 'total' && 'text-base font-semibold text-ink',
           tone === 'muted' && 'text-ink',
           tone === 'success' && 'text-success',
+          tone === 'debit' && 'font-medium text-danger',
         )}
       >
         {amount}
@@ -58,6 +61,7 @@ type CommissionBreakdownBase = {
   productSold: number | null;
   shippingFees: number | null;
   commissionAmount: number | null;
+  commissionRate?: number | null;
   netPayable: number | null;
   isLoading?: boolean;
 };
@@ -110,9 +114,9 @@ export function CommissionBreakdown(props: CommissionBreakdownProps) {
       tone: 'muted' as const,
     },
     {
-      label: commissionCopy.breakdown.commissionDeducted,
+      label: commissionDeductedLabel(props.commissionRate),
       amount: props.commissionAmount,
-      tone: 'muted' as const,
+      tone: 'debit' as const,
     },
     { label: netLabel, amount: props.netPayable, tone: 'total' as const },
   ];

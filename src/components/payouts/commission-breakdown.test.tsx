@@ -15,6 +15,7 @@ function renderAvailable(
     productSold: number | null;
     shippingFees: number | null;
     commissionAmount: number | null;
+    commissionRate?: number | null;
     netPayable: number | null;
     isLoading: boolean;
     audience: 'admin' | 'vendor';
@@ -27,6 +28,7 @@ function renderAvailable(
       productSold={overrides?.productSold ?? mixedCutoffFours.productSold}
       shippingFees={overrides?.shippingFees ?? mixedCutoffFours.shippingFees}
       commissionAmount={overrides?.commissionAmount ?? mixedCutoffFours.commissionAmount}
+      commissionRate={overrides?.commissionRate ?? 7}
       netPayable={overrides?.netPayable ?? mixedCutoffFours.net}
       captions={AVAILABLE_CAPTIONS}
       isLoading={overrides?.isLoading}
@@ -40,7 +42,9 @@ describe('CommissionBreakdown available variant', () => {
 
     const product = screen.getByText(commissionCopy.breakdown.productSold);
     const shipping = screen.getByText(commissionCopy.breakdown.shippingFees);
-    const commission = screen.getByText(commissionCopy.breakdown.commissionDeducted);
+    const commission = screen.getByText(commissionCopy.breakdown.commissionDeducted, {
+      exact: false,
+    });
     const net = screen.getByText(commissionCopy.breakdown.netPayable.admin);
 
     expect(
@@ -61,12 +65,14 @@ describe('CommissionBreakdown available variant', () => {
     expect(screen.queryByText(commissionCopy.breakdown.hint.frozen)).not.toBeInTheDocument();
   });
 
-  it('uses the vendor net label and does not render commissionRate chrome', () => {
+  it('uses the vendor net label and shows the commission percent on the deducted row', () => {
     renderAvailable({ audience: 'vendor' });
 
     expect(screen.getByText(commissionCopy.breakdown.netPayable.vendor)).toBeInTheDocument();
     expect(screen.queryByText(commissionCopy.breakdown.netPayable.admin)).not.toBeInTheDocument();
-    expect(screen.queryByText(/%/)).not.toBeInTheDocument();
+    expect(screen.getByText(`${commissionCopy.breakdown.commissionDeducted} (7%)`)).toHaveClass(
+      'text-danger',
+    );
   });
 
   it('shows a four-row loading skeleton without inventing ฿0.00 commission', () => {
@@ -88,6 +94,6 @@ describe('CommissionBreakdown available variant', () => {
 
     expect(screen.getAllByText(formatCurrency(0))).toHaveLength(4);
     expect(screen.getByText(commissionCopy.breakdown.productSold)).toBeInTheDocument();
-    expect(screen.getByText(commissionCopy.breakdown.commissionDeducted)).toBeInTheDocument();
+    expect(screen.getByText(commissionCopy.breakdown.commissionDeducted, { exact: false })).toBeInTheDocument();
   });
 });

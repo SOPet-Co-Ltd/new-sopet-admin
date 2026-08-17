@@ -24,6 +24,7 @@ function AvailableVendorSnapshotBreakdown({ rail }: { rail: PayoutRailSummary })
       productSold={rail.productSold}
       shippingFees={rail.shippingFees}
       commissionAmount={rail.commissionAmount}
+      commissionRate={rail.commissionRate}
       netPayable={rail.availableBalance}
       captions={{
         combined: commissionCopy.breakdown.hint.combined,
