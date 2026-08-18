@@ -2428,6 +2428,7 @@ const ADMIN_AUDIT_LOG_FIELDS = `
   resourceId
   metadata
   ipAddress
+  requestId
   createdAt
 `;
 

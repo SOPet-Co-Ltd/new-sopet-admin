@@ -10,6 +10,7 @@ export interface AdminAuditLog {
   resourceId?: string | null;
   metadata?: string | null;
   ipAddress?: string | null;
+  requestId?: string | null;
   createdAt: string;
 }
 
@@ -21,6 +22,7 @@ export interface AdminAuditLogsFilter {
   search?: string;
   fromDate?: string;
   toDate?: string;
+  requestId?: string;
 }
 
 export interface AdminAuditLogsQueryParams extends AdminAuditLogsFilter {

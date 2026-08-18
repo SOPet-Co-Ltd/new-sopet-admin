@@ -12,6 +12,7 @@ type GqlAdminAuditLog = {
   resourceId?: string | null;
   metadata?: string | null;
   ipAddress?: string | null;
+  requestId?: string | null;
   createdAt: string;
 };
 
@@ -26,6 +27,7 @@ function mapAdminAuditLog(log: GqlAdminAuditLog): AdminAuditLog {
     resourceId: log.resourceId,
     metadata: log.metadata,
     ipAddress: log.ipAddress,
+    requestId: log.requestId,
     createdAt: log.createdAt,
   };
 }
@@ -41,6 +43,7 @@ export function getAdminAuditLogs(
     search: params.search || undefined,
     fromDate: params.fromDate || undefined,
     toDate: params.toDate || undefined,
+    requestId: params.requestId || undefined,
   };
 
   return executeQuery<{
