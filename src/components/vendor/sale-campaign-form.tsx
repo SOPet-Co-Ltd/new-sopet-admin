@@ -148,7 +148,7 @@ export function SaleCampaignForm({
     <div className="mx-auto max-w-2xl">
       <PageHeader
         title={title}
-        description="ลดราคาสินค้าที่เลือกโดยตรง ไม่ต้องใช้โค้ดส่วนลด"
+        description="ลดราคาจริงตาม % ที่ตั้ง — ลูกค้าชำระราคาหลังลด ไม่ต้องใช้โค้ด ส่วนลดโค้ด/โปรโมชันยังใช้ต่อท้ายได้"
         back={
           backHref ? (
             <Link
@@ -173,7 +173,7 @@ export function SaleCampaignForm({
             <FormSection
               id={basicsId}
               title="ข้อมูลแคมเปญ"
-              description="แคมเปญใช้แสดงราคาขีดฆ่า/% บนหน้าร้านเท่านั้น — ราคาขายสินค้าคือราคาที่ลูกค้าชำระ ส่วนลดตอนเช็คเอาต์ใช้เมนูโปรโมชัน"
+              description="แต่ละรายการต้องมี % ส่วนลด ราคาที่ลูกค้าชำระ = ราคาขาย × (1 − %) ราคาเปรียบเทียบเป็นตัวเลือก และใช้ได้เฉพาะเมื่อสูงกว่าราคาขายปัจจุบัน"
             >
               <div>
                 <Label htmlFor="campaign-name" required>
@@ -251,7 +251,7 @@ export function SaleCampaignForm({
             <FormSection
               id={itemsId}
               title="สินค้าในแคมเปญ"
-              description="เลือกราคาเปรียบเทียบหรือ % เพื่อแสดงเทียบกับราคาขายปัจจุบัน (ไม่ได้เปลี่ยนราคาที่ชำระ)"
+              description="กรอก % เพื่อลดราคาที่ชำระ ถ้าต้องการขีดฆ่าราคาอ้างอิง ให้กรอกราคาเปรียบเทียบที่สูงกว่าราคาขาย — ระบบจะไม่สร้างราคาขีดฆ่าจาก %"
             >
               <div className="space-y-4">
                 <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
@@ -314,110 +314,65 @@ export function SaleCampaignForm({
                         )}
                       />
 
-                      <Controller
-                        control={control}
-                        name={`items.${index}.discountType`}
-                        render={({ field: discountTypeField }) => (
-                          <div className="space-y-3">
-                            <div
-                              role="radiogroup"
-                              aria-label={`รูปแบบส่วนลดสินค้าที่ ${index + 1}`}
-                              className="grid grid-cols-2 gap-2"
-                            >
-                              {(
-                                [
-                                  { value: 'compare_at' as const, label: 'ราคาเปรียบเทียบ (บาท)' },
-                                  { value: 'percent' as const, label: 'ส่วนลด (%)' },
-                                ] as const
-                              ).map((option) => {
-                                const selected = discountTypeField.value === option.value;
-                                return (
-                                  <button
-                                    key={option.value}
-                                    type="button"
-                                    role="radio"
-                                    aria-checked={selected}
-                                    className={cn(
-                                      'rounded-lg border px-3 py-2 text-left text-sm transition-colors duration-150',
-                                      selected
-                                        ? 'border-brand bg-brand-tint text-brand'
-                                        : 'border-border bg-card text-ink hover:bg-surface',
-                                    )}
-                                    onClick={() => {
-                                      if (selected) return;
-                                      discountTypeField.onChange(option.value);
-                                      if (option.value === 'compare_at') {
-                                        setValue(`items.${index}.discountPercent`, undefined, {
-                                          shouldDirty: true,
-                                          shouldValidate: true,
-                                        });
-                                      } else {
-                                        setValue(`items.${index}.compareAtPrice`, undefined, {
-                                          shouldDirty: true,
-                                          shouldValidate: true,
-                                        });
-                                      }
-                                    }}
-                                  >
-                                    {option.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-
-                            {discountTypeField.value === 'compare_at' ? (
-                              <div>
-                                <Label htmlFor={`campaign-item-${index}-compare`}>
-                                  ราคาเปรียบเทียบ (บาท)
-                                </Label>
-                                <Input
-                                  id={`campaign-item-${index}-compare`}
-                                  type="number"
-                                  inputMode="decimal"
-                                  step="1"
-                                  min={0}
-                                  placeholder="เช่น 199"
-                                  aria-invalid={!!itemErrors?.compareAtPrice}
-                                  {...register(
-                                    `items.${index}.compareAtPrice`,
-                                    numberRegisterOptions,
-                                  )}
-                                  className="mt-1.5"
-                                />
-                                <FieldError
-                                  id={`campaign-item-${index}-compare-error`}
-                                  message={itemErrors?.compareAtPrice?.message}
-                                />
-                              </div>
-                            ) : (
-                              <div>
-                                <Label htmlFor={`campaign-item-${index}-discount`}>
-                                  ส่วนลด (%)
-                                </Label>
-                                <Input
-                                  id={`campaign-item-${index}-discount`}
-                                  type="number"
-                                  inputMode="decimal"
-                                  step="1"
-                                  min={1}
-                                  max={99}
-                                  placeholder="เช่น 20"
-                                  aria-invalid={!!itemErrors?.discountPercent}
-                                  {...register(
-                                    `items.${index}.discountPercent`,
-                                    numberRegisterOptions,
-                                  )}
-                                  className="mt-1.5"
-                                />
-                                <FieldError
-                                  id={`campaign-item-${index}-discount-error`}
-                                  message={itemErrors?.discountPercent?.message}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      />
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <Label htmlFor={`campaign-item-${index}-discount`} required>
+                            ส่วนลด (%)
+                          </Label>
+                          <Input
+                            id={`campaign-item-${index}-discount`}
+                            type="number"
+                            inputMode="decimal"
+                            step="1"
+                            min={1}
+                            max={99}
+                            placeholder="เช่น 20"
+                            aria-invalid={!!itemErrors?.discountPercent}
+                            aria-describedby={
+                              itemErrors?.discountPercent
+                                ? `campaign-item-${index}-discount-error`
+                                : undefined
+                            }
+                            {...register(`items.${index}.discountPercent`, numberRegisterOptions)}
+                            className="mt-1.5"
+                          />
+                          <FieldError
+                            id={`campaign-item-${index}-discount-error`}
+                            message={itemErrors?.discountPercent?.message}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`campaign-item-${index}-compare`}>
+                            ราคาเปรียบเทียบ (บาท) — ไม่บังคับ
+                          </Label>
+                          <Input
+                            id={`campaign-item-${index}-compare`}
+                            type="number"
+                            inputMode="decimal"
+                            step="1"
+                            min={0}
+                            placeholder="เช่น 349"
+                            aria-invalid={!!itemErrors?.compareAtPrice}
+                            aria-describedby={
+                              itemErrors?.compareAtPrice
+                                ? `campaign-item-${index}-compare-error`
+                                : 'campaign-item-compare-hint'
+                            }
+                            {...register(`items.${index}.compareAtPrice`, numberRegisterOptions)}
+                            className="mt-1.5"
+                          />
+                          <p
+                            id="campaign-item-compare-hint"
+                            className="mt-1 text-xs text-muted-foreground"
+                          >
+                            ต้องสูงกว่าราคาขายปัจจุบัน ถ้าเว้นว่าง ระบบจะขีดฆ่าราคาขายเดิม
+                          </p>
+                          <FieldError
+                            id={`campaign-item-${index}-compare-error`}
+                            message={itemErrors?.compareAtPrice?.message}
+                          />
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
@@ -436,7 +391,6 @@ export function SaleCampaignForm({
                     append({
                       productId: '',
                       productName: undefined,
-                      discountType: 'percent',
                       compareAtPrice: undefined,
                       discountPercent: undefined,
                     })

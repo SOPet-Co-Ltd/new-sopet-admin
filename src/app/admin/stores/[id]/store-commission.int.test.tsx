@@ -82,6 +82,14 @@ vi.mock('@/hooks/useAdminStores', () => ({
     mutateAsync: vi.fn(),
     isPending: false,
   }),
+  useLinkStoreOmiseRecipientAsAdmin: () => ({
+    mutateAsync: vi.fn(),
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
 }));
 
 vi.mock('@/hooks/useAdminVendors', () => ({

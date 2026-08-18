@@ -94,6 +94,8 @@ describe('CommissionBreakdown available variant', () => {
 
     expect(screen.getAllByText(formatCurrency(0))).toHaveLength(4);
     expect(screen.getByText(commissionCopy.breakdown.productSold)).toBeInTheDocument();
-    expect(screen.getByText(commissionCopy.breakdown.commissionDeducted, { exact: false })).toBeInTheDocument();
+    expect(
+      screen.getByText(commissionCopy.breakdown.commissionDeducted, { exact: false }),
+    ).toBeInTheDocument();
   });
 });
