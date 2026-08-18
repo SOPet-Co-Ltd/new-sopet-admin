@@ -1,12 +1,25 @@
 const DEFAULT_SERVER_GRAPHQL_URL = 'http://localhost:3002/graphql';
 const DEFAULT_SERVER_GRAPHQL_WS_URL = 'ws://localhost:3002/graphql';
 const DEFAULT_API_BASE_URL = 'http://localhost:3002';
+const DEFAULT_BROWSER_GRAPHQL_URL = '/graphql';
+
+/**
+ * Browser GraphQL must stay same-origin (`/graphql` BFF).
+ * Absolute URLs are ignored: CSP `connect-src 'self'` blocks them, and HttpOnly
+ * auth cookies would not be sent to a different origin.
+ */
+export function resolveBrowserGraphqlUrl(fromEnv = process.env.NEXT_PUBLIC_GRAPHQL_URL): string {
+  if (fromEnv && fromEnv.startsWith('/') && !fromEnv.startsWith('//')) {
+    return fromEnv;
+  }
+  return DEFAULT_BROWSER_GRAPHQL_URL;
+}
 
 /** Browser: same-origin proxy (/graphql). SSR: direct backend URL. */
 export const GRAPHQL_URL =
   typeof window === 'undefined'
     ? (process.env.GRAPHQL_SSR_URL ?? DEFAULT_SERVER_GRAPHQL_URL)
-    : (process.env.NEXT_PUBLIC_GRAPHQL_URL ?? '/graphql');
+    : resolveBrowserGraphqlUrl();
 
 /** WebSocket endpoint for GraphQL subscriptions (browser connects directly to API). */
 export function getGraphqlWsUrl(): string {

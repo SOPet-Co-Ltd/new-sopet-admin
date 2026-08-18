@@ -37,7 +37,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      NEXT_PUBLIC_GRAPHQL_URL: http://localhost:3002/graphql
+      # Same-origin BFF. An absolute backend URL is blocked by CSP connect-src 'self'
+      # and skips HttpOnly auth cookies, which breaks Playwright GraphQL mocks.
+      NEXT_PUBLIC_GRAPHQL_URL: /graphql
       GRAPHQL_SCHEMA_PATH: sopet-backend/src/schema.gql
 
     steps:
