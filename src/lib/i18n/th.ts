@@ -19,6 +19,7 @@ export const paymentMethodLabels: Record<string, string> = {
   promptpay: 'พร้อมเพย์',
   credit_card: 'บัตรเครดิต',
   cod: 'เก็บเงินปลายทาง',
+  bank_transfer: 'โอนเงินเข้าบัญชี',
 };
 
 export const fulfillmentStatusLabels: Record<string, string> = {
@@ -100,6 +101,43 @@ export const platformSettingsTabLabels = {
   sponsors: 'สปอนเซอร์',
   ads: 'โฆษณาป๊อปอัพ',
   loginImages: 'รูปหน้าเข้าสู่ระบบ',
+  bankTransfer: 'บัญชีรับโอน',
+} as const;
+
+export const commissionCopy = {
+  rate: {
+    label: 'อัตราค่าคอมมิชชัน',
+    suffix: '%',
+    hint: {
+      default:
+        'ค่าเริ่มต้นของแพลตฟอร์มคือ 7% หากไม่กำหนดอัตราเฉพาะร้าน · 0% หมายถึงไม่หักค่าคอมมิชชัน',
+      custom: 'อัตรานี้ใช้กับยอดสินค้าหลังวันเปิดใช้สูตรใหม่เท่านั้น — ไม่หักจากค่าจัดส่ง',
+    },
+    error: {
+      range: 'กรุณากรอกอัตรา 0 ถึง 100',
+      invalid: 'กรุณากรอกตัวเลขเปอร์เซ็นต์ที่ถูกต้อง',
+    },
+  },
+  breakdown: {
+    heading: 'รายละเอียดยอด',
+    productSold: 'ยอดสินค้าที่ขาย',
+    shippingFees: 'ค่าจัดส่ง',
+    commissionDeducted: 'ค่าคอมมิชชันหักจากสินค้า',
+    netPayable: {
+      admin: 'ยอดสุทธิที่โอน',
+      vendor: 'ยอดสุทธิที่ได้รับ',
+    },
+    hint: {
+      combined: 'ยอดรวมชุดเดียว (รวมยอดก่อนและหลังวันเปิดใช้สูตรใหม่) — ไม่แยกก่อน/หลัง',
+      shipping: 'ค่าจัดส่งจ่ายเต็มจำนวน และไม่ถูกหักค่าคอมมิชชัน',
+      payoutTime: 'ค่าคอมมิชชันหักตอนขอรับเงิน ไม่กระทบราคาสินค้าที่ลูกค้าเห็น',
+      frozen: 'ยอดนี้ถูกบันทึกตอนขอรับเงินแล้ว — การเปลี่ยนอัตราในภายหลังไม่กระทบรายการนี้',
+    },
+    incomplete: 'รายละเอียดยอดไม่ครบถ้วน',
+  },
+  transfer: {
+    caption: 'ยอดที่ต้องโอน (สุทธิหลังหักค่าคอมมิชชัน)',
+  },
 } as const;
 
 export const userRoleLabels: Record<string, string> = {
@@ -180,6 +218,7 @@ const notificationTypeLabels: Record<string, string> = {
   store_status_changed: 'อัปเดตร้านค้า',
   request_status_changed: 'อัปเดตคำขอ',
   new_store_request: 'คำขอเปิดร้าน',
+  manual_payout_request: 'คำขอ Payout Manual',
   order_confirmation: 'ยืนยันคำสั่งซื้อ',
   order_shipped: 'จัดส่งแล้ว',
   order_delivered: 'ส่งถึงแล้ว',

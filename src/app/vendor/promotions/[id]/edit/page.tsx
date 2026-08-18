@@ -1,14 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { use } from 'react';
+import { useParams } from 'next/navigation';
 import { PromotionEditForm } from '@/components/promotions/promotion-edit-form';
 import { Card, CardBody } from '@/components/ui/card';
 import { useStorePromotion, useUpdatePromotion } from '@/hooks/usePromotions';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 
-export default function VendorPromotionEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function VendorPromotionEditPage() {
+  const params = useParams<{ id: string }>();
+  const id = typeof params.id === 'string' ? params.id : '';
   const storeId = useVendorStoreId();
   const { data: promotion, isLoading, error, isNotFound } = useStorePromotion(id, storeId);
   const updateMutation = useUpdatePromotion();

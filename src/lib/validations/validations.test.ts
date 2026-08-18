@@ -52,6 +52,24 @@ describe('payoutFormSchema', () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it('accepts formatted Thai bank account numbers', () => {
+    const result = payoutFormSchema.safeParse({
+      bankCode: '014',
+      bankAccountName: 'SOPet Co.',
+      bankAccountNumber: '123-4-56789-0',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects bank account numbers shorter than 10 digits', () => {
+    const result = payoutFormSchema.safeParse({
+      bankCode: '014',
+      bankAccountName: 'SOPet Co.',
+      bankAccountNumber: '123-4-567',
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('registerVendorSchema', () => {
@@ -237,6 +255,103 @@ describe('adminStoreFormSchema', () => {
 
   it('no longer has a redundant ownerEmail field (owner is chosen via the ownerId combobox)', () => {
     expect('ownerEmail' in adminStoreFormSchema.shape).toBe(false);
+  });
+
+  it('AC-F-003c: parses a create payload without commissionRate', () => {
+    const payload = {
+      name: 'Pet Shop',
+      ownerId: '11111111-1111-4111-8111-111111111111',
+    };
+    expect('commissionRate' in payload).toBe(false);
+    expect('commissionRate' in adminStoreFormSchema.shape).toBe(false);
+
+    const result = adminStoreFormSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect('commissionRate' in result.data).toBe(false);
+    }
+  });
+});
+
+type AdminStoreEditFormSchema = {
+  safeParse: (data: unknown) => {
+    success: boolean;
+    data?: { commissionRate: number };
+  };
+};
+
+async function loadAdminStoreEditFormSchema(): Promise<AdminStoreEditFormSchema> {
+  const mod = await import('./index');
+  const schema = (mod as { adminStoreEditFormSchema?: AdminStoreEditFormSchema })
+    .adminStoreEditFormSchema;
+  if (!schema) {
+    throw new Error('adminStoreEditFormSchema is not exported');
+  }
+  return schema;
+}
+
+const EDIT_STORE_BASE = {
+  name: 'Pet Shop',
+  ownerId: '11111111-1111-4111-8111-111111111111',
+};
+
+describe('adminStoreEditFormSchema', () => {
+  it('accepts integer commissionRate 0', async () => {
+    const schema = await loadAdminStoreEditFormSchema();
+    const result = schema.safeParse({ ...EDIT_STORE_BASE, commissionRate: 0 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data?.commissionRate).toBe(0);
+    }
+  });
+
+  it('accepts integer commissionRate 7', async () => {
+    const schema = await loadAdminStoreEditFormSchema();
+    const result = schema.safeParse({ ...EDIT_STORE_BASE, commissionRate: 7 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data?.commissionRate).toBe(7);
+      expect(typeof result.data?.commissionRate).toBe('number');
+    }
+  });
+
+  it('accepts integer commissionRate 100', async () => {
+    const schema = await loadAdminStoreEditFormSchema();
+    const result = schema.safeParse({ ...EDIT_STORE_BASE, commissionRate: 100 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data?.commissionRate).toBe(100);
+    }
+  });
+
+  it('rejects commissionRate -1', async () => {
+    const schema = await loadAdminStoreEditFormSchema();
+    const result = schema.safeParse({ ...EDIT_STORE_BASE, commissionRate: -1 });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects commissionRate 101', async () => {
+    const schema = await loadAdminStoreEditFormSchema();
+    const result = schema.safeParse({ ...EDIT_STORE_BASE, commissionRate: 101 });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects fractional commissionRate 7.5', async () => {
+    const schema = await loadAdminStoreEditFormSchema();
+    const result = schema.safeParse({ ...EDIT_STORE_BASE, commissionRate: 7.5 });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a create-shaped payload that omits commissionRate', async () => {
+    const schema = await loadAdminStoreEditFormSchema();
+    const result = schema.safeParse(EDIT_STORE_BASE);
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects string "7" so setValueAs must coerce before Zod', async () => {
+    const schema = await loadAdminStoreEditFormSchema();
+    const result = schema.safeParse({ ...EDIT_STORE_BASE, commissionRate: '7' });
+    expect(result.success).toBe(false);
   });
 });
 

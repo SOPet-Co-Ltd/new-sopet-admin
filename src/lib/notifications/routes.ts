@@ -45,6 +45,9 @@ export function getNotificationHref(
           ? `/admin/requests?tab=stores&requestId=${encodeURIComponent(requestId)}`
           : '/admin/requests?tab=stores';
       }
+      case 'manual_payout_request': {
+        return '/admin/manual-payouts';
+      }
       default:
         return null;
     }

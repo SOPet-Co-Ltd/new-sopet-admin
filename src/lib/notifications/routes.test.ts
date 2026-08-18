@@ -32,6 +32,18 @@ describe('getNotificationHref', () => {
     expect(href).toBe('/admin/requests?tab=stores&requestId=req-1');
   });
 
+  it('routes admin manual payout requests to the manual payouts queue', () => {
+    const href = getNotificationHref(
+      notification({
+        type: 'manual_payout_request',
+        metadata: { payoutId: 'payout-1', storeId: 'store-1' },
+      }),
+      'admin',
+    );
+
+    expect(href).toBe('/admin/manual-payouts');
+  });
+
   it('routes vendor enter-hold and resume notifications to order detail', () => {
     expect(
       getNotificationHref(

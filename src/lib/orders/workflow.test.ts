@@ -77,6 +77,16 @@ describe('getVendorOrderWorkflowAction hold exclusion (AC-034)', () => {
 
     expect(getVendorOrderWorkflowAction(paid, 'store-1')).toBe('acknowledge');
   });
+
+  it('hides mark_paid for bank_transfer pending_payment orders', () => {
+    const unpaid = order({
+      status: 'pending_payment',
+      paymentMethod: 'bank_transfer',
+      items: [item({ id: 'i1', storeId: 'store-1', fulfillmentStatus: 'pending' })],
+    });
+
+    expect(getVendorOrderWorkflowAction(unpaid, 'store-1')).toBe('none');
+  });
 });
 
 describe('canVendorCancelOrder hold denial', () => {

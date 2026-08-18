@@ -669,6 +669,8 @@ export interface AdminStore extends StoreDetail {
   ownerEmail?: string;
   ownerFullName?: string;
   createdAt?: string;
+  /** Nullable Int from AdminStoreType. NULL/undefined = platform default (UI shows 7). */
+  commissionRate?: number | null;
 }
 
 export interface CreateStoreAsAdminInput {
@@ -691,6 +693,7 @@ export interface UpdateStoreAsAdminInput {
   contactEmail?: string;
   address?: string;
   ownerId?: string | null;
+  commissionRate?: number;
 }
 
 export interface AdminVendor {
@@ -1066,6 +1069,29 @@ export interface UpdateLoginPageImagesInput {
   altText?: string | null;
 }
 
+export interface BankTransferDetails {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branchName: string | null;
+}
+
+export interface BankTransferSettings {
+  enabled: boolean;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branchName: string | null;
+}
+
+export interface UpdateBankTransferDetailsInput {
+  enabled: boolean;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branchName?: string | null;
+}
+
 export interface AdminTeamMember {
   id: string;
   email: string;
@@ -1085,6 +1111,18 @@ export interface InviteAdminInput {
   email: string;
 }
 
+export interface PayoutRailSummary {
+  grossRevenue: number;
+  totalPaidOut: number;
+  availableBalance: number;
+  pendingPayoutAmount: number;
+  canRequestPayout: boolean;
+  productSold: number;
+  shippingFees: number;
+  commissionAmount: number;
+  commissionRate: number | null;
+}
+
 export interface PayoutSummary {
   storeId: string;
   grossRevenue: number;
@@ -1093,6 +1131,12 @@ export interface PayoutSummary {
   pendingPayoutAmount: number;
   minimumPayoutAmount: number;
   canRequestPayout: boolean;
+  productSold: number;
+  shippingFees: number;
+  commissionAmount: number;
+  commissionRate: number | null;
+  omise: PayoutRailSummary;
+  manual: PayoutRailSummary;
 }
 
 export interface Payout {
@@ -1101,7 +1145,12 @@ export interface Payout {
   amount: number;
   netAmount: number;
   status: string;
+  settlementRail: 'omise' | 'manual' | string;
   createdAt: string;
+  productSold: number | null;
+  shippingFees: number | null;
+  commissionAmount: number | null;
+  commissionRate: number | null;
 }
 
 export type {
@@ -1110,3 +1159,34 @@ export type {
   AdminAuditLogsFilter,
   AdminAuditLogsQueryParams,
 } from './audit-logs';
+
+export type OrderAuditEventType =
+  'ORDER_PLACED' | 'PAYMENT_METHOD_CHANGED' | 'PAYMENT_APPROVED' | 'ORDER_ACCEPTED';
+
+export type OrderAuditActorType = 'customer' | 'admin' | 'vendor' | 'system';
+
+export interface OrderAuditLogDetails {
+  paymentMethod?: string | null;
+  previousPaymentMethod?: string | null;
+  newPaymentMethod?: string | null;
+  approvalMethod?: string | null;
+  note?: string | null;
+  storeId?: string | null;
+}
+
+export interface OrderAuditLogEntry {
+  id: string;
+  orderId: string;
+  eventType: OrderAuditEventType;
+  occurredAt: string;
+  actorType: OrderAuditActorType;
+  actorId?: string | null;
+  actorLabel?: string | null;
+  storeId?: string | null;
+  details: OrderAuditLogDetails;
+}
+
+export interface OrderAuditLog {
+  orderId: string;
+  entries: OrderAuditLogEntry[];
+}

@@ -54,6 +54,20 @@ vi.mock('@/hooks/usePayouts', () => ({
     isSuccess: false,
     error: null,
   }),
+  useSettleManualPayout: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
+  useRejectManualPayout: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
 }));
 
 vi.mock('@/components/admin/vendor-combobox', () => ({

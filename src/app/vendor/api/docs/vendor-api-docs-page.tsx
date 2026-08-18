@@ -62,6 +62,12 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
   -H "Content-Type: application/json" \\
   -d '${jsonExample.replace(/\n/g, '\n  ')}'`;
 
+  const listProductsCurl = `curl -X GET "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/products?page=1&limit=20" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx"`;
+
+  const getProductCurl = `curl -X GET "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/products/{productId}" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx"`;
+
   const productPatchExample = `{
   "name": "อาหารแมวออร์แกนิค 2kg (อัปเดต)",
   "description": "รายละเอียดใหม่",
@@ -220,6 +226,98 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
         </CardHeader>
         <CardBody>
           <StoreIdField description="รหัสร้านค้าที่กำลังใช้งาน ใช้แทน {storeId} ใน URL ของ API ด้านล่าง — ตัวอย่างในหน้านี้เติมรหัสจริงให้แล้ว" />
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="font-display font-medium text-ink">ดูรายการสินค้า</h2>
+        </CardHeader>
+        <CardBody className="space-y-4 text-sm">
+          <div>
+            <p className="font-medium text-ink">Endpoint</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink">
+              GET /api/v1/stores/&#123;storeId&#125;/products
+            </pre>
+          </div>
+          <div>
+            <p className="mb-2 font-medium text-ink">Query parameters (ไม่บังคับ)</p>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full min-w-[480px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-surface text-muted">
+                    <th className="px-4 py-2 font-medium">ฟิลด์</th>
+                    <th className="px-4 py-2 font-medium">ประเภท</th>
+                    <th className="px-4 py-2 font-medium">คำอธิบาย</th>
+                  </tr>
+                </thead>
+                <tbody className="text-muted">
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">page</td>
+                    <td className="px-4 py-2">integer</td>
+                    <td className="px-4 py-2">หน้า (เริ่มที่ 1, ค่าเริ่มต้น 1)</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">limit</td>
+                    <td className="px-4 py-2">integer</td>
+                    <td className="px-4 py-2">จำนวนต่อหน้า (ค่าเริ่มต้น 20, สูงสุด 100)</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">status</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">
+                      กรองสถานะ: draft / published / archived — ไม่ส่ง = ทุกสถานะของร้านนี้
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 font-mono text-ink">search</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">ค้นหาจากชื่อสินค้า</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <p className="font-medium text-ink">Success</p>
+            <p className="mt-1 text-muted">
+              200 พร้อม <span className="font-mono text-ink">items</span>{' '}
+              (รูปแบบเดียวกับสร้างสินค้า) และ <span className="font-mono text-ink">pagination</span>
+            </p>
+          </div>
+          <div>
+            <p className="font-medium text-ink">ตัวอย่าง curl</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink whitespace-pre-wrap">
+              {listProductsCurl}
+            </pre>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="font-display font-medium text-ink">ดูรายละเอียดสินค้า</h2>
+        </CardHeader>
+        <CardBody className="space-y-4 text-sm">
+          <div>
+            <p className="font-medium text-ink">Endpoint</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink">
+              GET /api/v1/stores/&#123;storeId&#125;/products/&#123;productId&#125;
+            </pre>
+          </div>
+          <div>
+            <p className="font-medium text-ink">Success</p>
+            <p className="mt-1 text-muted">
+              200 พร้อม object สินค้า (รูปแบบเดียวกับสร้างสินค้า) — 404 PRODUCT_NOT_FOUND
+              ถ้าไม่มีหรือคนละร้าน
+            </p>
+          </div>
+          <div>
+            <p className="font-medium text-ink">ตัวอย่าง curl</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink whitespace-pre-wrap">
+              {getProductCurl}
+            </pre>
+          </div>
         </CardBody>
       </Card>
 

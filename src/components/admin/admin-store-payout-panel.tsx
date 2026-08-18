@@ -1,15 +1,20 @@
 'use client';
 
+import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { StatCard } from '@/components/vendor/stat-card';
 import {
   useAdminStorePayoutSummary,
   useAdminStorePayouts,
+  useRejectManualPayout,
+  useSettleManualPayout,
   useTriggerPayout,
 } from '@/hooks/usePayouts';
+import { commissionCopy } from '@/lib/i18n/th';
 import { PAYOUT_STATUS_LABELS } from '@/lib/payouts/status-labels';
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
+import type { Payout, PayoutRailSummary } from '@/types';
 
 type AdminStorePayoutPanelProps = {
   storeId: string;
@@ -37,89 +42,219 @@ function PayoutPanelSkeleton() {
   );
 }
 
+function railLabel(rail: string): string {
+  if (rail === 'manual') return 'โอนเงินเข้าบัญชี';
+  if (rail === 'omise') return 'Omise';
+  return rail;
+}
+
+function AvailableRailBreakdown({ rail }: { rail: PayoutRailSummary }) {
+  return (
+    <CommissionBreakdown
+      variant="available"
+      audience="admin"
+      productSold={rail.productSold}
+      shippingFees={rail.shippingFees}
+      commissionAmount={rail.commissionAmount}
+      commissionRate={rail.commissionRate}
+      netPayable={rail.availableBalance}
+      captions={{
+        combined: commissionCopy.breakdown.hint.combined,
+        shipping: commissionCopy.breakdown.hint.shipping,
+      }}
+    />
+  );
+}
+
+function SnapshotPayoutBreakdown({ payout }: { payout: Payout }) {
+  return (
+    <CommissionBreakdown
+      variant="snapshot"
+      audience="admin"
+      productSold={payout.productSold}
+      shippingFees={payout.shippingFees}
+      commissionAmount={payout.commissionAmount}
+      commissionRate={payout.commissionRate}
+      netPayable={payout.amount}
+      captions={{ frozen: commissionCopy.breakdown.hint.frozen }}
+    />
+  );
+}
+
 export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
   const { data: summary, isLoading: summaryLoading } = useAdminStorePayoutSummary(storeId);
   const { data: payouts = [], isLoading: historyLoading } = useAdminStorePayouts(storeId);
   const triggerMutation = useTriggerPayout(storeId);
+  const settleManualMutation = useSettleManualPayout(storeId);
+  const rejectManualMutation = useRejectManualPayout(storeId);
 
   const isLoading = summaryLoading || historyLoading;
-  const unpaidBalance = summary ? Math.max(0, summary.grossRevenue - summary.totalPaidOut) : 0;
+  const pendingManual = payouts.find(
+    (payout) => payout.settlementRail === 'manual' && payout.status === 'pending',
+  );
+  const pendingOmise = payouts.find(
+    (payout) => payout.settlementRail === 'omise' && payout.status === 'pending',
+  );
+  const hasPendingManual = Boolean(summary && summary.manual.pendingPayoutAmount > 0);
 
   return (
-    <section aria-labelledby="store-payout-heading">
+    <section aria-labelledby="store-payout-heading" className="space-y-6">
       <Card>
         <CardHeader>
           <h2 id="store-payout-heading" className="font-display text-lg font-semibold text-ink">
             Payout ร้านค้า
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            แอดมินสามารถ trigger payout ได้ทุกเมื่อ แม้ยอดจะต่ำกว่าขั้นต่ำของ vendor
+            แยกยอด Omise (PromptPay/บัตร) กับยอดโอนเงินเข้าบัญชี — โอนด้วยรางที่ต่างกัน
           </p>
         </CardHeader>
         <CardBody>
           {isLoading ? (
             <PayoutPanelSkeleton />
           ) : summary ? (
-            <div className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <StatCard
-                  label="ยอดที่ถอนได้"
-                  value={formatCurrency(summary.availableBalance)}
-                  hint={`ขั้นต่ำ vendor ${formatCurrency(summary.minimumPayoutAmount)}`}
-                />
-                <StatCard
-                  label="โอนแล้ว"
-                  value={formatCurrency(summary.totalPaidOut)}
-                  hint={`จากรายได้รวม ${formatCurrency(summary.grossRevenue)}`}
-                />
-                <StatCard
-                  label="ยังไม่ได้รับจากระบบ"
-                  value={formatCurrency(unpaidBalance)}
-                  hint={
-                    summary.pendingPayoutAmount > 0
-                      ? `รอโอน ${formatCurrency(summary.pendingPayoutAmount)}`
-                      : undefined
-                  }
-                />
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  type="button"
-                  onClick={() => triggerMutation.mutate(undefined)}
-                  disabled={
-                    triggerMutation.isPending ||
-                    (summary.availableBalance <= 0 && !summary.canRequestPayout)
-                  }
-                  aria-busy={triggerMutation.isPending}
-                >
-                  {triggerMutation.isPending
-                    ? 'กำลัง trigger...'
-                    : summary.canRequestPayout && summary.pendingPayoutAmount > 0
-                      ? 'ส่งคำขอไป Omise อีกครั้ง'
-                      : `Trigger payout (${formatCurrency(summary.availableBalance)})`}
-                </Button>
-                {summary.availableBalance <= 0 && !summary.canRequestPayout ? (
-                  <p className="text-sm text-muted-foreground">ไม่มียอดที่ถอนได้ในขณะนี้</p>
-                ) : summary.canRequestPayout && summary.pendingPayoutAmount > 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    มีรายการที่ยังไม่ได้ส่งไป Omise — กดเพื่อส่งอีกครั้ง
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-ink">Omise (PromptPay / บัตร)</h3>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <StatCard
+                    label="ยอดที่ถอนได้ (Omise)"
+                    value={formatCurrency(summary.omise.availableBalance)}
+                    hint={`ขั้นต่ำ vendor ${formatCurrency(summary.minimumPayoutAmount)}`}
+                  />
+                  <StatCard
+                    label="โอนแล้ว (Omise)"
+                    value={formatCurrency(summary.omise.totalPaidOut)}
+                    hint={`จากรายได้รวม ${formatCurrency(summary.omise.grossRevenue)}`}
+                  />
+                  <StatCard
+                    label="รอดำเนินการ (Omise)"
+                    value={formatCurrency(summary.omise.pendingPayoutAmount)}
+                  />
+                </div>
+                <AvailableRailBreakdown rail={summary.omise} />
+                {pendingOmise ? <SnapshotPayoutBreakdown payout={pendingOmise} /> : null}
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => triggerMutation.mutate(undefined)}
+                    disabled={
+                      triggerMutation.isPending ||
+                      (summary.omise.availableBalance <= 0 && !summary.omise.canRequestPayout)
+                    }
+                    aria-busy={triggerMutation.isPending}
+                  >
+                    {triggerMutation.isPending
+                      ? 'กำลัง trigger...'
+                      : summary.omise.canRequestPayout && summary.omise.pendingPayoutAmount > 0
+                        ? 'ส่งคำขอไป Omise อีกครั้ง'
+                        : `Trigger Omise (${formatCurrency(summary.omise.availableBalance)})`}
+                  </Button>
+                  {summary.omise.availableBalance <= 0 && !summary.omise.canRequestPayout ? (
+                    <p className="text-sm text-muted-foreground">ไม่มียอด Omise ที่ถอนได้</p>
+                  ) : null}
+                </div>
+                {triggerMutation.isError ? (
+                  <p className="text-sm text-danger" role="alert">
+                    {triggerMutation.error instanceof Error
+                      ? triggerMutation.error.message
+                      : 'Trigger Omise payout ไม่สำเร็จ'}
+                  </p>
+                ) : null}
+                {triggerMutation.isSuccess ? (
+                  <p className="text-sm text-success" role="status">
+                    Trigger Omise payout สำเร็จ
                   </p>
                 ) : null}
               </div>
 
-              {triggerMutation.isError ? (
-                <p className="text-sm text-danger" role="alert">
-                  {triggerMutation.error instanceof Error
-                    ? triggerMutation.error.message
-                    : 'Trigger payout ไม่สำเร็จ'}
+              <div className="space-y-4 border-t border-border pt-6">
+                <h3 className="text-sm font-semibold text-ink">โอนเงินเข้าบัญชี (Manual)</h3>
+                <p className="text-sm text-muted-foreground">
+                  ร้านต้องขอรับเงินก่อน — แอดมินโอนนอกระบบแล้วกดอนุมัติ (หรือปฏิเสธคำขอ)
                 </p>
-              ) : null}
-              {triggerMutation.isSuccess ? (
-                <p className="text-sm text-success" role="status">
-                  Trigger payout สำเร็จ
-                </p>
-              ) : null}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <StatCard
+                    label="ยอดรอโอน (Manual)"
+                    value={formatCurrency(summary.manual.availableBalance)}
+                    hint={`จากรายได้รวม ${formatCurrency(summary.manual.grossRevenue)}`}
+                  />
+                  <StatCard
+                    label="โอนแล้ว (Manual)"
+                    value={formatCurrency(summary.manual.totalPaidOut)}
+                  />
+                  <StatCard
+                    label="รออนุมัติ (Manual)"
+                    value={formatCurrency(summary.manual.pendingPayoutAmount)}
+                  />
+                </div>
+                <AvailableRailBreakdown rail={summary.manual} />
+                {pendingManual ? <SnapshotPayoutBreakdown payout={pendingManual} /> : null}
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      settleManualMutation.mutate({
+                        payoutId: pendingManual?.id,
+                        notes: 'Admin transferred and approved',
+                      })
+                    }
+                    disabled={settleManualMutation.isPending || !hasPendingManual}
+                    aria-busy={settleManualMutation.isPending}
+                  >
+                    {settleManualMutation.isPending
+                      ? 'กำลังอนุมัติ...'
+                      : hasPendingManual
+                        ? `อนุมัติหลังโอนแล้ว (${formatCurrency(summary.manual.pendingPayoutAmount)})`
+                        : 'อนุมัติหลังโอนแล้ว'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() =>
+                      rejectManualMutation.mutate({
+                        payoutId: pendingManual?.id,
+                        notes: 'Admin rejected manual payout request',
+                      })
+                    }
+                    disabled={rejectManualMutation.isPending || !hasPendingManual}
+                    aria-busy={rejectManualMutation.isPending}
+                  >
+                    {rejectManualMutation.isPending ? 'กำลังปฏิเสธ...' : 'ปฏิเสธคำขอ'}
+                  </Button>
+                  {!hasPendingManual ? (
+                    <p className="text-sm text-muted-foreground">
+                      {summary.manual.availableBalance > 0
+                        ? 'รอร้านกดขอรับเงินโอนเข้าบัญชี'
+                        : 'ไม่มียอด Manual ที่ต้องโอน'}
+                    </p>
+                  ) : null}
+                </div>
+                {settleManualMutation.isError ? (
+                  <p className="text-sm text-danger" role="alert">
+                    {settleManualMutation.error instanceof Error
+                      ? settleManualMutation.error.message
+                      : 'อนุมัติ Manual payout ไม่สำเร็จ'}
+                  </p>
+                ) : null}
+                {settleManualMutation.isSuccess ? (
+                  <p className="text-sm text-success" role="status">
+                    อนุมัติ Manual payout สำเร็จ
+                  </p>
+                ) : null}
+                {rejectManualMutation.isError ? (
+                  <p className="text-sm text-danger" role="alert">
+                    {rejectManualMutation.error instanceof Error
+                      ? rejectManualMutation.error.message
+                      : 'ปฏิเสธ Manual payout ไม่สำเร็จ'}
+                  </p>
+                ) : null}
+                {rejectManualMutation.isSuccess ? (
+                  <p className="text-sm text-success" role="status">
+                    ปฏิเสธคำขอ Manual payout แล้ว — ร้านสามารถขอใหม่ได้
+                  </p>
+                ) : null}
+              </div>
 
               {payouts.length > 0 ? (
                 <div className="overflow-x-auto rounded-lg border border-border">
@@ -128,6 +263,9 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                       <tr className="border-b border-border bg-surface text-left text-muted-foreground">
                         <th className="px-4 py-2.5 font-medium" scope="col">
                           วันที่
+                        </th>
+                        <th className="px-4 py-2.5 font-medium" scope="col">
+                          ราง
                         </th>
                         <th className="px-4 py-2.5 font-medium" scope="col">
                           จำนวนเงิน
@@ -143,8 +281,17 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                           <td className="px-4 py-2.5 tabular-nums">
                             {formatDateTime(payout.createdAt)}
                           </td>
-                          <td className="px-4 py-2.5 tabular-nums font-medium">
-                            {formatCurrency(payout.amount)}
+                          <td className="px-4 py-2.5">{railLabel(payout.settlementRail)}</td>
+                          <td className="px-4 py-2.5">
+                            <p className="tabular-nums font-medium">
+                              {formatCurrency(payout.amount)}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {commissionCopy.transfer.caption}
+                            </p>
+                            <div className="mt-3">
+                              <SnapshotPayoutBreakdown payout={payout} />
+                            </div>
                           </td>
                           <td className="px-4 py-2.5">
                             {PAYOUT_STATUS_LABELS[payout.status] ?? payout.status}

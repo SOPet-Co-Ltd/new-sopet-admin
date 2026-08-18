@@ -61,7 +61,7 @@ export function VendorActionQueue({ orders, storeId }: { orders: Order[]; storeI
             ออเดอร์ที่ต้องทำ
           </h2>
           <p className="text-sm text-muted-foreground">
-            {actionable.length.toLocaleString('th-TH')} รายการรอดำเนินการ — เรียงจากเก่าที่สุด
+            {actionable.length.toLocaleString('th-TH')} รายการรอดำเนินการ — เรียงจากใหม่ที่สุด
           </p>
         </div>
         <Button size="sm" asChild className="rounded-full shadow-none">

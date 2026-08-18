@@ -17,6 +17,7 @@ export function useMarkVendorOrderPaid() {
     mutationFn: (orderId: string) => markVendorOrderPaid(orderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendorRoot() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
     },
   });
 }
@@ -28,6 +29,7 @@ export function useAcknowledgeVendorOrder() {
     mutationFn: (orderId: string) => acknowledgeVendorOrder(orderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendorRoot() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
     },
   });
 }
@@ -39,6 +41,7 @@ export function useShipVendorOrder() {
     mutationFn: (input: ShipVendorOrderInput) => shipVendorOrder(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendorRoot() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
     },
   });
 }
@@ -50,6 +53,7 @@ export function useCancelVendorOrder() {
     mutationFn: (orderId: string) => cancelVendorOrder(orderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.vendorRoot() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
     },
   });
 }

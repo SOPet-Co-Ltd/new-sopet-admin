@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { HiOutlineClipboardDocument } from 'react-icons/hi2';
 import { VendorOrderWorkflow } from '@/components/vendor/vendor-order-workflow';
+import { VendorOrderAuditLog } from '@/components/vendor/vendor-order-audit-log';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
@@ -321,6 +322,8 @@ export function VendorOrderDetail({ order, storeId }: VendorOrderDetailProps) {
           ) : null}
         </CardBody>
       </Card>
+
+      <VendorOrderAuditLog orderId={order.id} storeId={storeId} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type {
   AdminStore,
   AdminVendor,
+  OmiseRecipientStatus,
   Order,
   PlatformAnalytics,
   Product,
@@ -536,6 +537,14 @@ type GqlAdminStore = GqlStore & {
   ownerEmail?: string | null;
   ownerFullName?: string | null;
   createdAt?: string | null;
+  commissionRate?: number | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+  bankName?: string | null;
+  bankCode?: string | null;
+  omiseRecipientId?: string | null;
+  omiseRecipientStatus?: string | null;
+  omiseRecipientFailureMessage?: string | null;
 };
 
 export function mapAdminStore(store: GqlAdminStore): AdminStore {
@@ -548,6 +557,14 @@ export function mapAdminStore(store: GqlAdminStore): AdminStore {
     ownerEmail: store.ownerEmail ?? undefined,
     ownerFullName: store.ownerFullName ?? undefined,
     createdAt: store.createdAt ?? undefined,
+    commissionRate: store.commissionRate ?? null,
+    bankAccountName: store.bankAccountName ?? undefined,
+    bankAccountNumber: store.bankAccountNumber ?? undefined,
+    bankName: store.bankName ?? undefined,
+    bankCode: store.bankCode ?? undefined,
+    omiseRecipientId: store.omiseRecipientId ?? undefined,
+    omiseRecipientStatus: (store.omiseRecipientStatus as OmiseRecipientStatus | null) ?? undefined,
+    omiseRecipientFailureMessage: store.omiseRecipientFailureMessage ?? undefined,
   };
 }
 

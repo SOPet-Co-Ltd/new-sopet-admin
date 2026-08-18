@@ -35,7 +35,7 @@ import type { Order } from '@/types';
 const ALL = 'all';
 const SEARCH_DEBOUNCE_MS = 300;
 const ORDER_STATUS_SET = new Set<string>(ORDER_STATUSES);
-const PAYMENT_METHOD_SET = new Set(['promptpay', 'credit_card', 'cod']);
+const PAYMENT_METHOD_SET = new Set(['promptpay', 'credit_card', 'cod', 'bank_transfer']);
 
 function buildOrdersQuery(params: { queue?: OrderQueueView; status?: string; payment?: string }) {
   const search = new URLSearchParams();
@@ -336,7 +336,7 @@ export default function VendorOrdersPage() {
         title="คำสั่งซื้อ"
         description={
           queueFilter
-            ? 'คิวออเดอร์ที่ต้องดำเนินการ — เรียงจากเก่าที่สุด'
+            ? 'คิวออเดอร์ที่ต้องดำเนินการ — เรียงจากใหม่ที่สุด'
             : 'ดูและดำเนินการคำสั่งซื้อจากลูกค้า'
         }
       />

@@ -11,6 +11,7 @@ import {
   SWITCH_STORE,
   UPDATE_STORE,
   UPDATE_STORE_PAYOUT,
+  LINK_STORE_OMISE_RECIPIENT,
 } from '@/lib/graphql/documents';
 import { mapStore, mapUser } from '@/lib/graphql/mappers';
 import type {
@@ -94,6 +95,12 @@ export function updateStorePayout(
   return executeMutation<{ updateStorePayout: GqlStoreDetail }>(UPDATE_STORE_PAYOUT, {
     input,
   }).then((data) => mapStoreDetail(data.updateStorePayout));
+}
+
+export function linkStoreOmiseRecipient(): Promise<StoreDetail> {
+  return executeMutation<{ linkStoreOmiseRecipient: GqlStoreDetail }>(
+    LINK_STORE_OMISE_RECIPIENT,
+  ).then((data) => mapStoreDetail(data.linkStoreOmiseRecipient));
 }
 
 export function approveStore(storeId: string): Promise<Store> {

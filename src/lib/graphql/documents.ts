@@ -211,6 +211,48 @@ export const MARK_VENDOR_ORDER_PAID = gql`
   }
 `;
 
+export const PENDING_BANK_TRANSFER_ORDERS_QUERY = gql`
+  query PendingBankTransferOrders($page: Int, $limit: Int) {
+    pendingBankTransferOrders(page: $page, limit: $limit) {
+      items {
+        id
+        orderNumber
+        status
+        paymentMethod
+        total
+        guestName
+        guestPhone
+        guestEmail
+        createdAt
+        items {
+          id
+          productName
+          quantity
+          storeId
+        }
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+    }
+  }
+`;
+
+export const CONFIRM_BANK_TRANSFER_PAID_MUTATION = gql`
+  mutation ConfirmBankTransferPaid($orderId: String!, $note: String) {
+    confirmBankTransferPaid(orderId: $orderId, note: $note) {
+      id
+      orderNumber
+      status
+      paymentMethod
+      total
+    }
+  }
+`;
+
 export const ACKNOWLEDGE_VENDOR_ORDER = gql`
   mutation AcknowledgeVendorOrder($orderId: String!) {
     acknowledgeVendorOrder(orderId: $orderId) {
@@ -791,6 +833,21 @@ export const UPDATE_STORE_PAYOUT = gql`
   }
 `;
 
+export const LINK_STORE_OMISE_RECIPIENT = gql`
+  mutation LinkStoreOmiseRecipient {
+    linkStoreOmiseRecipient {
+      id
+      bankAccountName
+      bankAccountNumber
+      bankName
+      bankCode
+      omiseRecipientId
+      omiseRecipientStatus
+      omiseRecipientFailureMessage
+    }
+  }
+`;
+
 export const MY_STORE_QUERY = gql`
   query MyStore {
     myStore {
@@ -1055,6 +1112,14 @@ const ADMIN_STORE_FIELDS = `
   ownerEmail
   ownerFullName
   createdAt
+  commissionRate
+  bankAccountName
+  bankAccountNumber
+  bankName
+  bankCode
+  omiseRecipientId
+  omiseRecipientStatus
+  omiseRecipientFailureMessage
 `;
 
 export const ADMIN_STORES_QUERY = gql`
@@ -1084,6 +1149,14 @@ export const CREATE_STORE_AS_ADMIN = gql`
 export const UPDATE_STORE_AS_ADMIN = gql`
   mutation UpdateStoreAsAdmin($input: UpdateStoreAsAdminInput!) {
     updateStoreAsAdmin(input: $input) {
+      ${ADMIN_STORE_FIELDS}
+    }
+  }
+`;
+
+export const LINK_STORE_OMISE_RECIPIENT_AS_ADMIN = gql`
+  mutation LinkStoreOmiseRecipientAsAdmin($storeId: String!) {
+    linkStoreOmiseRecipientAsAdmin(storeId: $storeId) {
       ${ADMIN_STORE_FIELDS}
     }
   }
@@ -1691,6 +1764,34 @@ export const CLEAR_LOGIN_PAGE_MOBILE_IMAGE = gql`
   }
 `;
 
+const BANK_TRANSFER_DETAILS_FIELDS = `
+  bankName
+  accountName
+  accountNumber
+  branchName
+`;
+
+const BANK_TRANSFER_SETTINGS_FIELDS = `
+  enabled
+  ${BANK_TRANSFER_DETAILS_FIELDS}
+`;
+
+export const BANK_TRANSFER_SETTINGS_QUERY = gql`
+  query BankTransferSettings {
+    bankTransferSettings {
+      ${BANK_TRANSFER_SETTINGS_FIELDS}
+    }
+  }
+`;
+
+export const UPDATE_BANK_TRANSFER_DETAILS = gql`
+  mutation UpdateBankTransferDetails($input: UpdateBankTransferDetailsInput!) {
+    updateBankTransferDetails(input: $input) {
+      ${BANK_TRANSFER_SETTINGS_FIELDS}
+    }
+  }
+`;
+
 const ADMIN_TEAM_MEMBER_FIELDS = `
   id
   email
@@ -2182,6 +2283,32 @@ const PAYOUT_SUMMARY_FIELDS = `
   pendingPayoutAmount
   minimumPayoutAmount
   canRequestPayout
+  productSold
+  shippingFees
+  commissionAmount
+  commissionRate
+  omise {
+    grossRevenue
+    totalPaidOut
+    availableBalance
+    pendingPayoutAmount
+    canRequestPayout
+    productSold
+    shippingFees
+    commissionAmount
+    commissionRate
+  }
+  manual {
+    grossRevenue
+    totalPaidOut
+    availableBalance
+    pendingPayoutAmount
+    canRequestPayout
+    productSold
+    shippingFees
+    commissionAmount
+    commissionRate
+  }
 `;
 
 const PAYOUT_FIELDS = `
@@ -2190,7 +2317,12 @@ const PAYOUT_FIELDS = `
   amount
   netAmount
   status
+  settlementRail
   createdAt
+  productSold
+  shippingFees
+  commissionAmount
+  commissionRate
 `;
 
 export const STORE_PAYOUT_SUMMARY_QUERY = gql`
@@ -2225,6 +2357,27 @@ export const ADMIN_STORE_PAYOUTS_QUERY = gql`
   }
 `;
 
+export const PENDING_MANUAL_PAYOUTS_QUERY = gql`
+  query PendingManualPayouts($page: Int, $limit: Int) {
+    pendingManualPayouts(page: $page, limit: $limit) {
+      items {
+        ${PAYOUT_FIELDS}
+        storeName
+        bankName
+        bankCode
+        bankAccountName
+        bankAccountNumber
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+    }
+  }
+`;
+
 export const REQUEST_PAYOUT_MUTATION = gql`
   mutation RequestPayout {
     requestPayout {
@@ -2233,9 +2386,33 @@ export const REQUEST_PAYOUT_MUTATION = gql`
   }
 `;
 
+export const REQUEST_MANUAL_PAYOUT_MUTATION = gql`
+  mutation RequestManualPayout {
+    requestManualPayout {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
 export const TRIGGER_PAYOUT_MUTATION = gql`
   mutation TriggerPayout($input: TriggerPayoutInput!) {
     triggerPayout(input: $input) {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const SETTLE_MANUAL_PAYOUT_MUTATION = gql`
+  mutation SettleManualPayout($input: SettleManualPayoutInput!) {
+    settleManualPayout(input: $input) {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
+export const REJECT_MANUAL_PAYOUT_MUTATION = gql`
+  mutation RejectManualPayout($input: RejectManualPayoutInput!) {
+    rejectManualPayout(input: $input) {
       ${PAYOUT_FIELDS}
     }
   }
@@ -2265,6 +2442,32 @@ export const ADMIN_AUDIT_LOGS_QUERY = gql`
         limit
         total
         totalPages
+      }
+    }
+  }
+`;
+
+export const ORDER_AUDIT_LOG_QUERY = gql`
+  query OrderAuditLog($orderId: String!, $storeId: String!) {
+    orderAuditLog(orderId: $orderId, storeId: $storeId) {
+      orderId
+      entries {
+        id
+        orderId
+        eventType
+        occurredAt
+        actorType
+        actorId
+        actorLabel
+        storeId
+        details {
+          paymentMethod
+          previousPaymentMethod
+          newPaymentMethod
+          approvalMethod
+          note
+          storeId
+        }
       }
     }
   }

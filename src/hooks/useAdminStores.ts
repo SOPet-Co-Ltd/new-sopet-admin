@@ -5,6 +5,7 @@ import {
   createStoreAsAdmin,
   getAdminStore,
   getAdminStores,
+  linkStoreOmiseRecipientAsAdmin,
   updateStoreAsAdmin,
 } from '@/lib/api/admin-stores';
 import { queryKeys } from '@/lib/react-query/keys';
@@ -45,6 +46,18 @@ export function useUpdateStoreAsAdmin() {
       queryClient.invalidateQueries({ queryKey: queryKeys.adminStores.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.adminStores.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.stores.all });
+    },
+  });
+}
+
+export function useLinkStoreOmiseRecipientAsAdmin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (storeId: string) => linkStoreOmiseRecipientAsAdmin(storeId),
+    onSuccess: (_data, storeId) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminStores.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminStores.detail(storeId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
     },
   });
 }

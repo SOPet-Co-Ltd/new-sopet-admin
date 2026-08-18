@@ -8,6 +8,7 @@ export const PLATFORM_SETTINGS_TAB_PANEL_IDS = {
   sponsors: 'platform-settings-panel-sponsors',
   ads: 'platform-settings-panel-ads',
   loginImages: 'platform-settings-panel-loginImages',
+  bankTransfer: 'platform-settings-panel-bankTransfer',
 } as const;
 
 function queryErrorMessage(error: unknown, fallback: string): string {

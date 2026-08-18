@@ -52,7 +52,15 @@ export type StoreInfoFormValues = z.infer<typeof storeInfoFormSchema>;
 export const payoutFormSchema = z.object({
   bankCode: z.string().min(1, 'กรุณาเลือกธนาคาร'),
   bankAccountName: z.string().min(1, 'กรุณากรอกชื่อบัญชี'),
-  bankAccountNumber: z.string().min(1, 'กรุณากรอกเลขที่บัญชี'),
+  bankAccountNumber: z
+    .string()
+    .min(1, 'กรุณากรอกเลขที่บัญชี')
+    .refine((value) => value.replace(/\D/g, '').length >= 10, {
+      message: 'เลขที่บัญชีต้องมีอย่างน้อย 10 หลัก',
+    })
+    .refine((value) => value.replace(/\D/g, '').length <= 15, {
+      message: 'เลขที่บัญชีต้องไม่เกิน 15 หลัก',
+    }),
 });
 
 export type PayoutFormValues = z.infer<typeof payoutFormSchema>;
@@ -186,6 +194,16 @@ export const adminStoreFormSchema = z.object({
 
 export type AdminStoreFormValues = z.infer<typeof adminStoreFormSchema>;
 
+export const adminStoreEditFormSchema = adminStoreFormSchema.extend({
+  commissionRate: z
+    .number({ error: 'กรุณากรอกตัวเลขเปอร์เซ็นต์ที่ถูกต้อง' })
+    .int('กรุณากรอกอัตรา 0 ถึง 100')
+    .min(0, 'กรุณากรอกอัตรา 0 ถึง 100')
+    .max(100, 'กรุณากรอกอัตรา 0 ถึง 100'),
+});
+
+export type AdminStoreEditFormValues = z.infer<typeof adminStoreEditFormSchema>;
+
 export const adminVendorFormSchema = z.object({
   fullName: z.string().min(1, 'กรุณากรอกชื่อ'),
   email: z.email('กรุณากรอกอีเมลที่ถูกต้อง'),
@@ -277,3 +295,20 @@ export const loginImagesFormSchema = z.object({
 });
 
 export type LoginImagesFormValues = z.infer<typeof loginImagesFormSchema>;
+
+export const bankTransferFormSchema = z.object({
+  enabled: z.boolean(),
+  bankName: z.string().trim().min(1, 'กรุณาเลือกธนาคาร').max(255),
+  accountName: z.string().trim().min(1, 'ต้องระบุชื่อบัญชี').max(255),
+  accountNumber: z
+    .string()
+    .trim()
+    .min(1, 'ต้องระบุเลขบัญชี')
+    .max(255)
+    .refine((value) => {
+      const digits = value.replace(/\D/g, '');
+      return digits.length >= 10 && digits.length <= 15;
+    }, 'เลขบัญชีต้องมี 10–15 หลัก'),
+});
+
+export type BankTransferFormValues = z.infer<typeof bankTransferFormSchema>;

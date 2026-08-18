@@ -186,13 +186,41 @@ export type AdminInvitationType = {
   status: Scalars['String']['output'];
 };
 
+export type AdminManualPayoutConnection = {
+  __typename?: 'AdminManualPayoutConnection';
+  items: Array<AdminManualPayoutType>;
+  pagination: PaginationMeta;
+};
+
+export type AdminManualPayoutType = {
+  __typename?: 'AdminManualPayoutType';
+  amount: Scalars['Float']['output'];
+  bankAccountName?: Maybe<Scalars['String']['output']>;
+  bankAccountNumber?: Maybe<Scalars['String']['output']>;
+  bankCode?: Maybe<Scalars['String']['output']>;
+  bankName?: Maybe<Scalars['String']['output']>;
+  commissionAmount?: Maybe<Scalars['Float']['output']>;
+  commissionRate?: Maybe<Scalars['Int']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  netAmount: Scalars['Float']['output'];
+  productSold?: Maybe<Scalars['Float']['output']>;
+  settlementRail: Scalars['String']['output'];
+  shippingFees?: Maybe<Scalars['Float']['output']>;
+  status: Scalars['String']['output'];
+  storeId: Scalars['String']['output'];
+  storeName: Scalars['String']['output'];
+};
+
 export type AdminStoreType = {
   __typename?: 'AdminStoreType';
   address?: Maybe<Scalars['String']['output']>;
   bankAccountName?: Maybe<Scalars['String']['output']>;
   bankAccountNumber?: Maybe<Scalars['String']['output']>;
+  bankCode?: Maybe<Scalars['String']['output']>;
   bankName?: Maybe<Scalars['String']['output']>;
   bannerUrl?: Maybe<Scalars['String']['output']>;
+  commissionRate?: Maybe<Scalars['Int']['output']>;
   contactEmail?: Maybe<Scalars['String']['output']>;
   contactPhone?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
@@ -200,6 +228,9 @@ export type AdminStoreType = {
   id: Scalars['String']['output'];
   logoUrl?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
+  omiseRecipientFailureMessage?: Maybe<Scalars['String']['output']>;
+  omiseRecipientId?: Maybe<Scalars['String']['output']>;
+  omiseRecipientStatus: Scalars['String']['output'];
   ownerEmail?: Maybe<Scalars['String']['output']>;
   ownerFullName?: Maybe<Scalars['String']['output']>;
   ownerId: Scalars['String']['output'];
@@ -294,6 +325,23 @@ export type AuthTokens = {
   __typename?: 'AuthTokens';
   accessToken: Scalars['String']['output'];
   refreshToken: Scalars['String']['output'];
+};
+
+export type BankTransferDetailsType = {
+  __typename?: 'BankTransferDetailsType';
+  accountName: Scalars['String']['output'];
+  accountNumber: Scalars['String']['output'];
+  bankName: Scalars['String']['output'];
+  branchName?: Maybe<Scalars['String']['output']>;
+};
+
+export type BankTransferSettingsType = {
+  __typename?: 'BankTransferSettingsType';
+  accountName: Scalars['String']['output'];
+  accountNumber: Scalars['String']['output'];
+  bankName: Scalars['String']['output'];
+  branchName?: Maybe<Scalars['String']['output']>;
+  enabled: Scalars['Boolean']['output'];
 };
 
 export type BrandType = {
@@ -768,6 +816,7 @@ export type Mutation = {
   changePassword: MessagePayload;
   clearLoginPageDesktopImage: LoginPageImagesType;
   clearLoginPageMobileImage: LoginPageImagesType;
+  confirmBankTransferPaid: OrderType;
   confirmGuestOrderDelivered: OrderType;
   confirmOrderDelivered: OrderType;
   createAddress: SavedAddressType;
@@ -814,6 +863,8 @@ export type Mutation = {
   inviteAdmin: AdminInvitationType;
   inviteStoreMember: StoreMemberInvitationType;
   inviteVendor: VendorInvitationType;
+  linkStoreOmiseRecipient: MyStoreType;
+  linkStoreOmiseRecipientAsAdmin: AdminStoreType;
   markAllNotificationsRead: Scalars['Boolean']['output'];
   markNotificationRead: Scalars['Boolean']['output'];
   markVendorOrderPaid: OrderType;
@@ -826,6 +877,7 @@ export type Mutation = {
   registerVendor: VendorAuthPayload;
   rejectBrand: BrandType;
   rejectCategory: CategoryType;
+  rejectManualPayout: PayoutType;
   rejectPetType: PetTypeType;
   rejectReview: ReviewType;
   rejectStore: StoreType;
@@ -839,6 +891,7 @@ export type Mutation = {
   reorderPlatformSponsors: Array<PlatformSponsorType>;
   reorderProductImages: Array<ProductImageType>;
   requestAccountDeletion: Scalars['Boolean']['output'];
+  requestManualPayout: PayoutType;
   requestPasswordReset: MessagePayload;
   requestPayout: PayoutType;
   resendEmailVerification: MessagePayload;
@@ -857,6 +910,7 @@ export type Mutation = {
   setDefaultPaymentMethod: SavedPaymentMethodType;
   setPetTypeImage: PetTypeType;
   setProductThumbnail: ProductImageType;
+  settleManualPayout: PayoutType;
   shipVendorOrder: OrderType;
   submitStoreReactivationRequest: StoreReactivationRequestType;
   submitStoreRequest: StoreRequestType;
@@ -866,6 +920,7 @@ export type Mutation = {
   toggleSaleCampaign: SaleCampaignType;
   triggerPayout: PayoutType;
   updateAddress: SavedAddressType;
+  updateBankTransferDetails: BankTransferSettingsType;
   updateBrand: BrandType;
   updateCartItem: CartType;
   updateCategory: CategoryType;
@@ -1011,6 +1066,11 @@ export type MutationChangeCustomerPhoneArgs = {
 
 export type MutationChangePasswordArgs = {
   input: ChangePasswordInput;
+};
+
+export type MutationConfirmBankTransferPaidArgs = {
+  note?: InputMaybe<Scalars['String']['input']>;
+  orderId: Scalars['String']['input'];
 };
 
 export type MutationConfirmGuestOrderDeliveredArgs = {
@@ -1199,6 +1259,10 @@ export type MutationInviteVendorArgs = {
   input: InviteVendorInput;
 };
 
+export type MutationLinkStoreOmiseRecipientAsAdminArgs = {
+  storeId: Scalars['String']['input'];
+};
+
 export type MutationMarkNotificationReadArgs = {
   id: Scalars['String']['input'];
 };
@@ -1241,6 +1305,10 @@ export type MutationRejectBrandArgs = {
 
 export type MutationRejectCategoryArgs = {
   id: Scalars['String']['input'];
+};
+
+export type MutationRejectManualPayoutArgs = {
+  input: RejectManualPayoutInput;
 };
 
 export type MutationRejectPetTypeArgs = {
@@ -1356,6 +1424,10 @@ export type MutationSetProductThumbnailArgs = {
   productId: Scalars['String']['input'];
 };
 
+export type MutationSettleManualPayoutArgs = {
+  input: SettleManualPayoutInput;
+};
+
 export type MutationShipVendorOrderArgs = {
   input: ShipVendorOrderInput;
 };
@@ -1394,6 +1466,10 @@ export type MutationTriggerPayoutArgs = {
 export type MutationUpdateAddressArgs = {
   id: Scalars['String']['input'];
   input: UpdateAddressInput;
+};
+
+export type MutationUpdateBankTransferDetailsArgs = {
+  input: UpdateBankTransferDetailsInput;
 };
 
 export type MutationUpdateBrandArgs = {
@@ -1586,6 +1662,49 @@ export type NotificationType = {
   type: Scalars['String']['output'];
 };
 
+export enum OrderAuditActorType {
+  Admin = 'admin',
+  Customer = 'customer',
+  System = 'system',
+  Vendor = 'vendor',
+}
+
+export enum OrderAuditEventType {
+  OrderAccepted = 'ORDER_ACCEPTED',
+  OrderPlaced = 'ORDER_PLACED',
+  PaymentApproved = 'PAYMENT_APPROVED',
+  PaymentMethodChanged = 'PAYMENT_METHOD_CHANGED',
+}
+
+export type OrderAuditLogDetailsType = {
+  __typename?: 'OrderAuditLogDetailsType';
+  approvalMethod?: Maybe<Scalars['String']['output']>;
+  newPaymentMethod?: Maybe<Scalars['String']['output']>;
+  note?: Maybe<Scalars['String']['output']>;
+  paymentMethod?: Maybe<Scalars['String']['output']>;
+  previousPaymentMethod?: Maybe<Scalars['String']['output']>;
+  storeId?: Maybe<Scalars['String']['output']>;
+};
+
+export type OrderAuditLogEntryType = {
+  __typename?: 'OrderAuditLogEntryType';
+  actorId?: Maybe<Scalars['String']['output']>;
+  actorLabel?: Maybe<Scalars['String']['output']>;
+  actorType: OrderAuditActorType;
+  details: OrderAuditLogDetailsType;
+  eventType: OrderAuditEventType;
+  id: Scalars['ID']['output'];
+  occurredAt: Scalars['DateTime']['output'];
+  orderId: Scalars['ID']['output'];
+  storeId?: Maybe<Scalars['String']['output']>;
+};
+
+export type OrderAuditLogType = {
+  __typename?: 'OrderAuditLogType';
+  entries: Array<OrderAuditLogEntryType>;
+  orderId: Scalars['ID']['output'];
+};
+
 export type OrderConnection = {
   __typename?: 'OrderConnection';
   items: Array<OrderType>;
@@ -1724,13 +1843,32 @@ export type PaymentType = {
   status: Scalars['String']['output'];
 };
 
+export type PayoutRailSummaryType = {
+  __typename?: 'PayoutRailSummaryType';
+  availableBalance: Scalars['Float']['output'];
+  canRequestPayout: Scalars['Boolean']['output'];
+  commissionAmount: Scalars['Float']['output'];
+  commissionRate: Scalars['Int']['output'];
+  grossRevenue: Scalars['Float']['output'];
+  pendingPayoutAmount: Scalars['Float']['output'];
+  productSold: Scalars['Float']['output'];
+  shippingFees: Scalars['Float']['output'];
+  totalPaidOut: Scalars['Float']['output'];
+};
+
 export type PayoutSummaryType = {
   __typename?: 'PayoutSummaryType';
   availableBalance: Scalars['Float']['output'];
   canRequestPayout: Scalars['Boolean']['output'];
+  commissionAmount: Scalars['Float']['output'];
+  commissionRate: Scalars['Int']['output'];
   grossRevenue: Scalars['Float']['output'];
+  manual: PayoutRailSummaryType;
   minimumPayoutAmount: Scalars['Float']['output'];
+  omise: PayoutRailSummaryType;
   pendingPayoutAmount: Scalars['Float']['output'];
+  productSold: Scalars['Float']['output'];
+  shippingFees: Scalars['Float']['output'];
   storeId: Scalars['String']['output'];
   totalPaidOut: Scalars['Float']['output'];
 };
@@ -1738,9 +1876,14 @@ export type PayoutSummaryType = {
 export type PayoutType = {
   __typename?: 'PayoutType';
   amount: Scalars['Float']['output'];
+  commissionAmount?: Maybe<Scalars['Float']['output']>;
+  commissionRate?: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
   netAmount: Scalars['Float']['output'];
+  productSold?: Maybe<Scalars['Float']['output']>;
+  settlementRail: Scalars['String']['output'];
+  shippingFees?: Maybe<Scalars['Float']['output']>;
   status: Scalars['String']['output'];
   storeId: Scalars['String']['output'];
 };
@@ -1985,6 +2128,8 @@ export type Query = {
   approvedCategories: Array<CategoryType>;
   approvedPetTypes: Array<PetTypeType>;
   approvedTags: Array<TagType>;
+  bankTransferDetails?: Maybe<BankTransferDetailsType>;
+  bankTransferSettings: BankTransferSettingsType;
   brandDeleteImpact: TaxonomyDeleteImpactType;
   cart: CartType;
   categoryDeleteImpact: TaxonomyDeleteImpactType;
@@ -2018,15 +2163,18 @@ export type Query = {
   myTagProposals: Array<TagType>;
   notifications: Array<NotificationType>;
   order: OrderType;
+  orderAuditLog: OrderAuditLogType;
   orderTracking: OrderTrackingType;
   orders: OrderConnection;
   payment: PaymentType;
   paymentByOrderId: PaymentType;
   paymentMethods: Array<SavedPaymentMethodType>;
   pendingAdminInvitations: Array<AdminInvitationType>;
+  pendingBankTransferOrders: OrderConnection;
   pendingBrands: Array<BrandType>;
   pendingCategories: Array<CategoryType>;
   pendingImportedReviews: AdminImportedReviewConnection;
+  pendingManualPayouts: AdminManualPayoutConnection;
   pendingPetTypes: Array<PetTypeType>;
   pendingStoreRequests: Array<StoreRequestType>;
   pendingStores: Array<StoreType>;
@@ -2220,6 +2368,11 @@ export type QueryOrderArgs = {
   id: Scalars['String']['input'];
 };
 
+export type QueryOrderAuditLogArgs = {
+  orderId: Scalars['String']['input'];
+  storeId: Scalars['String']['input'];
+};
+
 export type QueryOrderTrackingArgs = {
   orderNumber: Scalars['String']['input'];
 };
@@ -2238,7 +2391,17 @@ export type QueryPaymentByOrderIdArgs = {
   orderId: Scalars['String']['input'];
 };
 
+export type QueryPendingBankTransferOrdersArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type QueryPendingImportedReviewsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type QueryPendingManualPayoutsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -2493,6 +2656,12 @@ export type RegisterVendorInput = {
   password: Scalars['String']['input'];
 };
 
+export type RejectManualPayoutInput = {
+  notes?: InputMaybe<Scalars['String']['input']>;
+  payoutId?: InputMaybe<Scalars['String']['input']>;
+  storeId: Scalars['String']['input'];
+};
+
 export type RejectStoreInput = {
   rejectionReason?: InputMaybe<Scalars['String']['input']>;
   storeId: Scalars['String']['input'];
@@ -2716,6 +2885,12 @@ export type SetCategoryImageInput = {
 export type SetPetTypeImageInput = {
   imageUrl: Scalars['String']['input'];
   petTypeId: Scalars['String']['input'];
+};
+
+export type SettleManualPayoutInput = {
+  notes?: InputMaybe<Scalars['String']['input']>;
+  payoutId?: InputMaybe<Scalars['String']['input']>;
+  storeId: Scalars['String']['input'];
 };
 
 export type ShipVendorOrderInput = {
@@ -2996,6 +3171,14 @@ export type UpdateAddressInput = {
   tumbon?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateBankTransferDetailsInput = {
+  accountName: Scalars['String']['input'];
+  accountNumber: Scalars['String']['input'];
+  bankName: Scalars['String']['input'];
+  branchName?: InputMaybe<Scalars['String']['input']>;
+  enabled: Scalars['Boolean']['input'];
+};
+
 export type UpdateBrandInput = {
   brandId: Scalars['String']['input'];
   name: Scalars['String']['input'];
@@ -3194,6 +3377,7 @@ export type UpdateShippingProviderInput = {
 export type UpdateStoreAsAdminInput = {
   address?: InputMaybe<Scalars['String']['input']>;
   bannerUrl?: InputMaybe<Scalars['String']['input']>;
+  commissionRate?: InputMaybe<Scalars['Int']['input']>;
   contactEmail?: InputMaybe<Scalars['String']['input']>;
   contactPhone?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;

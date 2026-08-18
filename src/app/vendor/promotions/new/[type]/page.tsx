@@ -1,7 +1,6 @@
 'use client';
 
-import { notFound } from 'next/navigation';
-import { use } from 'react';
+import { notFound, useParams } from 'next/navigation';
 import { PromotionCreateForm } from '@/components/promotions/promotion-create-form';
 import { useCreatePromotion } from '@/hooks/usePromotions';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
@@ -33,12 +32,9 @@ function PromotionCreateSkeleton() {
   );
 }
 
-export default function VendorPromotionCreatePage({
-  params,
-}: {
-  params: Promise<{ type: string }>;
-}) {
-  const { type: rawType } = use(params);
+export default function VendorPromotionCreatePage() {
+  const params = useParams<{ type: string }>();
+  const rawType = typeof params.type === 'string' ? params.type : '';
   const authHydrated = useAuthStore((s) => s.hasHydrated);
   const vendorHydrated = useVendorStore((s) => s.hasHydrated);
   const storeId = useVendorStoreId();
