@@ -361,7 +361,10 @@ export function SaleCampaignForm({
                             {...register(`items.${index}.compareAtPrice`, numberRegisterOptions)}
                             className="mt-1.5"
                           />
-                          <p id="campaign-item-compare-hint" className="mt-1 text-xs text-muted-foreground">
+                          <p
+                            id="campaign-item-compare-hint"
+                            className="mt-1 text-xs text-muted-foreground"
+                          >
                             ต้องสูงกว่าราคาขายปัจจุบัน ถ้าเว้นว่าง ระบบจะขีดฆ่าราคาขายเดิม
                           </p>
                           <FieldError

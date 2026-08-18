@@ -375,7 +375,12 @@ export function VendorPayoutAccountPanel({
             ) : null}
 
             <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={saving} aria-busy={saving} className="w-full sm:w-auto">
+              <Button
+                type="submit"
+                disabled={saving}
+                aria-busy={saving}
+                className="w-full sm:w-auto"
+              >
                 {saving ? 'กำลังบันทึก...' : 'บันทึกบัญชีธนาคาร'}
               </Button>
               {hasSavedAccount ? (

@@ -87,9 +87,7 @@ export function AdminStoreOmisePanel({ store }: AdminStoreOmisePanelProps) {
           </div>
           <div>
             <dt className="text-muted-foreground">สถานะ Omise</dt>
-            <dd className="mt-0.5 font-medium text-ink">
-              {OMISE_STATUS_LABELS[status] ?? status}
-            </dd>
+            <dd className="mt-0.5 font-medium text-ink">{OMISE_STATUS_LABELS[status] ?? status}</dd>
           </div>
         </dl>
 
