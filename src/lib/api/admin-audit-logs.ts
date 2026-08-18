@@ -32,20 +32,24 @@ function mapAdminAuditLog(log: GqlAdminAuditLog): AdminAuditLog {
   };
 }
 
+function buildAdminAuditLogFilter(params: AdminAuditLogsQueryParams) {
+  const filter: Record<string, string> = {};
+
+  if (params.action) filter.action = params.action;
+  if (params.resourceType) filter.resourceType = params.resourceType;
+  if (params.actorType) filter.actorType = params.actorType;
+  if (params.actorId) filter.actorId = params.actorId;
+  if (params.search) filter.search = params.search;
+  if (params.fromDate) filter.fromDate = params.fromDate;
+  if (params.toDate) filter.toDate = params.toDate;
+  if (params.requestId) filter.requestId = params.requestId;
+
+  return Object.keys(filter).length > 0 ? filter : undefined;
+}
+
 export function getAdminAuditLogs(
   params: AdminAuditLogsQueryParams,
 ): Promise<Paginated<AdminAuditLog>> {
-  const filter = {
-    action: params.action || undefined,
-    resourceType: params.resourceType || undefined,
-    actorType: params.actorType || undefined,
-    actorId: params.actorId || undefined,
-    search: params.search || undefined,
-    fromDate: params.fromDate || undefined,
-    toDate: params.toDate || undefined,
-    requestId: params.requestId || undefined,
-  };
-
   return executeQuery<{
     adminAuditLogs: {
       items: GqlAdminAuditLog[];
@@ -54,7 +58,7 @@ export function getAdminAuditLogs(
   }>(ADMIN_AUDIT_LOGS_QUERY, {
     page: params.page ?? 1,
     limit: params.limit ?? 20,
-    filter: Object.values(filter).some(Boolean) ? filter : undefined,
+    filter: buildAdminAuditLogFilter(params),
   }).then((data) => ({
     items: data.adminAuditLogs.items.map(mapAdminAuditLog),
     pagination: data.adminAuditLogs.pagination,
