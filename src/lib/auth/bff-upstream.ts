@@ -1,7 +1,32 @@
 const DEFAULT_UPSTREAM = 'http://localhost:3002/graphql';
 
+const REQUEST_ID_HEADER = 'x-request-id';
+const FORWARDED_FOR_HEADER = 'x-forwarded-for';
+const REAL_IP_HEADER = 'x-real-ip';
+
 export function getUpstreamGraphqlUrl(): string {
   return process.env.GRAPHQL_SSR_URL ?? DEFAULT_UPSTREAM;
+}
+
+/** Forward client correlation headers so backend audit logs capture IP + request id. */
+export function buildUpstreamRequestHeaders(incomingRequest?: Request): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (!incomingRequest) {
+    return headers;
+  }
+
+  const requestId = incomingRequest.headers.get(REQUEST_ID_HEADER)?.trim();
+  headers[REQUEST_ID_HEADER] = requestId || crypto.randomUUID();
+
+  const forwardedFor = incomingRequest.headers.get(FORWARDED_FOR_HEADER)?.trim();
+  const realIp = incomingRequest.headers.get(REAL_IP_HEADER)?.trim();
+  if (forwardedFor) {
+    headers[FORWARDED_FOR_HEADER] = forwardedFor;
+  } else if (realIp) {
+    headers[FORWARDED_FOR_HEADER] = realIp;
+  }
+
+  return headers;
 }
 
 export type AuthTokenPair = {
@@ -26,9 +51,11 @@ const REFRESH_MUTATION = `
 export async function forwardGraphql(
   body: string,
   accessToken?: string,
+  incomingRequest?: Request,
 ): Promise<{ response: Response; json: GraphQLJson }> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    ...buildUpstreamRequestHeaders(incomingRequest),
   };
   if (accessToken) {
     headers.authorization = `Bearer ${accessToken}`;
