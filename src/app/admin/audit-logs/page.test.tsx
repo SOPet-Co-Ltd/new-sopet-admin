@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AdminAuditLogsPage from './page';
@@ -352,23 +352,27 @@ describe('AdminAuditLogsPage', () => {
   });
 
   /**
-   * AC: Date boundary roundtrip — YYYY-MM-DD inputs serialize to ISO day start/end.
-   * Behavior: Set from/to dates → hook params use toISOString of local day bounds.
+   * AC: Date boundary roundtrip — YYYY-MM-DD DatePicker values serialize to ISO day start/end.
+   * Behavior: Pick from/to dates in the calendar → hook params use toISOString of local day bounds.
    * @category: core-functionality
    * @lane: integration
-   * @dependency: AdminAuditLogsPage date inputs, useAdminAuditLogs mock
+   * @dependency: AdminAuditLogsPage DatePicker, useAdminAuditLogs mock
    * @complexity: low
    * ROI: 70
    */
-  it('serializes date bounds to ISO day start/end when dates are set', () => {
+  it('serializes date bounds to ISO day start/end when dates are set', async () => {
+    const user = userEvent.setup();
     render(<AdminAuditLogsPage />);
 
-    fireEvent.change(screen.getByLabelText('ตั้งแต่วันที่'), {
-      target: { value: '2026-07-01' },
-    });
-    fireEvent.change(screen.getByLabelText('ถึงวันที่'), {
-      target: { value: '2026-07-31' },
-    });
+    await user.click(screen.getByLabelText('ตั้งแต่วันที่'));
+    await user.selectOptions(screen.getByLabelText('เดือน'), '7');
+    await user.selectOptions(screen.getByLabelText('ปี'), '2026');
+    await user.click(screen.getByRole('gridcell', { name: '1' }));
+
+    await user.click(screen.getByLabelText('ถึงวันที่'));
+    await user.selectOptions(screen.getByLabelText('เดือน'), '7');
+    await user.selectOptions(screen.getByLabelText('ปี'), '2026');
+    await user.click(screen.getByRole('gridcell', { name: '31' }));
 
     const params = mockUseAdminAuditLogs.mock.calls.at(-1)?.[0] as {
       fromDate?: string;
@@ -419,5 +423,41 @@ describe('AdminAuditLogsPage', () => {
     render(<AdminAuditLogsPage />);
     expect(screen.queryByRole('status', { name: /สำเร็จ/ })).not.toBeInTheDocument();
     expect(within(document.body).queryByText(/โหลดสำเร็จ/)).not.toBeInTheDocument();
+  });
+
+  /**
+   * AC: Mobile filter collapse — filter fields sit behind a toggle on small screens.
+   * Behavior: Toggle starts collapsed (aria-expanded false, panel max-md:hidden);
+   * click expands; click again collapses; typing search shows count on the toggle.
+   * @category: core-functionality
+   * @lane: integration
+   * @dependency: AdminAuditLogsPage mobile filter toggle
+   * @complexity: low
+   * ROI: 80
+   */
+  it('collapses audit filters behind a mobile toggle and reports active count', async () => {
+    const user = userEvent.setup();
+    render(<AdminAuditLogsPage />);
+
+    const toggle = screen.getByRole('button', { name: 'ตัวกรอง' });
+    const panel = document.getElementById(toggle.getAttribute('aria-controls') ?? '');
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle.className).toMatch(/md:hidden/);
+    expect(panel).toHaveClass('max-md:hidden');
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(panel).not.toHaveClass('max-md:hidden');
+
+    await user.type(screen.getByLabelText('ค้นหาบันทึก'), 'pet');
+    expect(screen.getByRole('button', { name: 'ตัวกรอง 1 รายการ' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'ตัวกรอง 1 รายการ' }));
+    expect(screen.getByRole('button', { name: 'ตัวกรอง 1 รายการ' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(panel).toHaveClass('max-md:hidden');
   });
 });

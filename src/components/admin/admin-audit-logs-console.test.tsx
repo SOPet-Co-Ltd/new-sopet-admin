@@ -96,6 +96,36 @@ describe('AdminAuditLogsConsole', () => {
     expect(within(successRow).getByText('เข้าสู่ระบบ')).toBeInTheDocument();
   });
 
+  it('stacks timestamp then action and actor so collapsed rows wrap instead of clipping on mobile', () => {
+    render(
+      <AdminAuditLogsConsole
+        items={[makeLog({ resourceId: '848d542c-a179-4384-8ab8-1ae3bc2f9e9c' })]}
+        isLoading={false}
+        isFetching={false}
+      />,
+    );
+
+    const expand = screen.getByRole('button', {
+      name: `ขยายรายละเอียดบันทึก: ${getAuditActionLabel('store.updated')}`,
+    });
+    expect(expand.className).toContain('min-h-11');
+    expect(expand.className).toContain('py-3');
+    expect(expand.className).toContain('md:py-1.5');
+
+    const stack = expand.querySelector(':scope > div');
+    expect(stack?.className).toContain('flex-col');
+    expect(stack?.className).toContain('md:flex-row');
+
+    const action = within(expand).getByText(getAuditActionLabel('store.updated'));
+    expect(action.className.split(/\s+/)).not.toContain('truncate');
+    expect(action.className).toContain('break-words');
+    expect(action.className).toContain('md:truncate');
+
+    const resource = within(expand).getByText(/848d542c-a179-4384-8ab8-1ae3bc2f9e9c/);
+    expect(resource.className).toContain('break-all');
+    expect(resource.className).toContain('md:truncate');
+  });
+
   it('toggles expand as an accordion and lists identity fields with em dashes for nulls', async () => {
     const user = userEvent.setup();
     const first = makeLog({

@@ -10,6 +10,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AdminAuditLog } from '@/types';
 import AdminAuditLogsPage from './page';
 
+// jsdom doesn't implement scrollIntoView, which Radix Select calls when opening.
+Element.prototype.scrollIntoView = vi.fn();
+
 const mockUseAdminAuditLogs = vi.fn();
 
 vi.mock('@/hooks/useAdminAuditLogs', () => ({
@@ -143,7 +146,8 @@ describe('Admin Audit Logs Console [fixture-e2e]', () => {
       screen.getByRole('button', { name: 'ย่อรายละเอียดบันทึก: แก้ไขร้านค้า' }),
     ).toHaveAttribute('aria-expanded', 'true');
 
-    await user.selectOptions(screen.getByLabelText('กรองตามการกระทำ'), 'store.updated');
+    await user.click(screen.getByRole('combobox', { name: 'กรองตามการกระทำ' }));
+    await user.click(await screen.findByRole('option', { name: 'แก้ไขร้านค้า' }));
 
     expect(screen.queryByRole('button', { expanded: true })).not.toBeInTheDocument();
     const afterFilterParams = mockUseAdminAuditLogs.mock.calls.at(-1)?.[0] as {

@@ -162,7 +162,7 @@ function IdentityFields({ log, metadataSlot }: { log: AdminAuditLog; metadataSlo
       {IDENTITY_FIELDS.map((field) => (
         <div key={field.key} className="grid gap-0.5 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-3">
           <dt className="text-xs text-muted">{field.label}</dt>
-          <dd className="min-w-0 break-words text-ink">{values[field.key]}</dd>
+          <dd className="min-w-0 break-all text-ink">{values[field.key]}</dd>
         </div>
       ))}
     </dl>
@@ -186,11 +186,11 @@ function ComparableDiff({
       </div>
       {keys.map((key) => (
         <div key={key} className="grid grid-cols-2 border-t border-border text-xs">
-          <div className="border-r border-border px-3 py-1.5 font-mono break-words">
+          <div className="border-r border-border px-3 py-1.5 font-mono break-all">
             <span className="block text-[10px] text-muted">{key}</span>
             {formatDiffValue(before[key])}
           </div>
-          <div className="px-3 py-1.5 font-mono break-words">
+          <div className="px-3 py-1.5 font-mono break-all">
             <span className="block text-[10px] text-muted">{key}</span>
             {formatDiffValue(after[key])}
           </div>
@@ -227,7 +227,9 @@ function AuditLogOverflowDialog({
             log={log}
             metadataSlot={
               pretty ? (
-                <pre className="overflow-auto font-mono text-xs">{pretty}</pre>
+                <pre className="max-w-full overflow-auto whitespace-pre-wrap break-all font-mono text-xs">
+                  {pretty}
+                </pre>
               ) : (
                 NULL_DISPLAY
               )
@@ -260,7 +262,9 @@ function AuditLogExpandedDetail({ log }: { log: AdminAuditLog }) {
         <ComparableDiff before={parsed.pair.before} after={parsed.pair.after} />
       ) : null}
       {jsonForOverflow ? (
-        <pre className="overflow-auto font-mono text-xs">{jsonPreview}</pre>
+        <pre className="max-w-full overflow-auto whitespace-pre-wrap break-all font-mono text-xs">
+          {jsonPreview}
+        </pre>
       ) : null}
       {overflow ? (
         <Button type="button" size="sm" variant="outline" onClick={() => setOverflowOpen(true)}>
@@ -308,36 +312,43 @@ function AuditLogConsoleRow({
     <div>
       <button
         type="button"
-        className="flex w-full min-w-0 items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+        className="flex min-h-11 w-full min-w-0 items-start gap-2 px-3 py-3 text-left text-sm hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 md:min-h-0 md:items-center md:py-1.5"
         aria-expanded={expanded}
         aria-controls={`audit-log-detail-${log.id}`}
         aria-label={accessibleName}
         onClick={onToggle}
       >
-        <time
-          className="shrink-0 whitespace-nowrap font-mono text-xs tabular-nums text-muted"
-          dateTime={log.createdAt}
-          title={timestamp}
-        >
-          {timestamp}
-        </time>
-        <AuditLogSeverityCue action={log.action} />
-        <span className="min-w-0 truncate font-medium text-ink" title={actionLabel}>
-          {actionLabel}
-        </span>
-        <span className="min-w-0 truncate text-xs text-muted" title={actor}>
-          {actor}
-        </span>
-        <span
-          className="ml-auto min-w-0 max-w-[28%] truncate text-xs text-muted"
-          title={resourceTitle}
-        >
-          {resourceLabel}
-          {log.resourceId ? ` · ${log.resourceId}` : ''}
-        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-center md:gap-2">
+          <time
+            className="shrink-0 whitespace-nowrap font-mono text-xs tabular-nums text-muted"
+            dateTime={log.createdAt}
+            title={timestamp}
+          >
+            {timestamp}
+          </time>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 md:contents">
+            <AuditLogSeverityCue action={log.action} />
+            <span
+              className="min-w-0 break-words font-medium text-ink md:truncate"
+              title={actionLabel}
+            >
+              {actionLabel}
+            </span>
+            <span className="min-w-0 break-words text-xs text-muted md:truncate" title={actor}>
+              {actor}
+            </span>
+            <span
+              className="min-w-0 max-w-full break-all text-xs text-muted md:ml-auto md:max-w-[28%] md:truncate md:break-normal"
+              title={resourceTitle}
+            >
+              {resourceLabel}
+              {log.resourceId ? ` · ${log.resourceId}` : ''}
+            </span>
+          </div>
+        </div>
         <HiChevronDown
           className={cn(
-            'size-4 shrink-0 text-muted transition-transform',
+            'mt-0.5 size-4 shrink-0 text-muted transition-transform md:mt-0',
             expanded && 'rotate-180',
           )}
           aria-hidden="true"
@@ -357,10 +368,17 @@ function ConsoleSkeletons() {
       aria-live="polite"
     >
       {Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => (
-        <div key={index} className="flex items-center gap-2 px-3 py-1.5">
-          <div className="h-3 w-28 animate-pulse rounded bg-surface motion-reduce:animate-none" />
-          <div className="h-4 w-12 animate-pulse rounded-full bg-surface motion-reduce:animate-none" />
-          <div className="h-3 w-40 max-w-full animate-pulse rounded bg-surface motion-reduce:animate-none" />
+        <div
+          key={index}
+          className="flex min-h-11 items-start gap-2 px-3 py-3 md:min-h-0 md:items-center md:py-1.5"
+        >
+          <div className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-center md:gap-2">
+            <div className="h-3 w-28 animate-pulse rounded bg-surface motion-reduce:animate-none" />
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-12 animate-pulse rounded-full bg-surface motion-reduce:animate-none" />
+              <div className="h-3 w-40 max-w-full animate-pulse rounded bg-surface motion-reduce:animate-none" />
+            </div>
+          </div>
         </div>
       ))}
     </div>
