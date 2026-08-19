@@ -3,7 +3,7 @@ import { buildUpstreamRequestHeaders, harvestAuthTokens, redactAuthTokens } from
 import { assertSameOrigin } from './bff-csrf';
 
 describe('buildUpstreamRequestHeaders', () => {
-  it('forwards x-request-id and x-forwarded-for from the browser request', () => {
+  it('forwards x-request-id and stamps the visitor IP for audit logs', () => {
     const request = new Request('http://localhost:3001/graphql', {
       method: 'POST',
       headers: {
@@ -14,6 +14,23 @@ describe('buildUpstreamRequestHeaders', () => {
 
     expect(buildUpstreamRequestHeaders(request)).toEqual({
       'x-request-id': 'req-browser-1',
+      'x-sopet-client-ip': '203.0.113.10',
+      'x-forwarded-for': '203.0.113.10',
+    });
+  });
+
+  it('prefers x-vercel-forwarded-for over a Vercel egress hop in x-forwarded-for', () => {
+    const request = new Request('http://localhost:3001/graphql', {
+      method: 'POST',
+      headers: {
+        'x-forwarded-for': '3.82.112.93',
+        'x-vercel-forwarded-for': '203.0.113.10',
+      },
+    });
+
+    expect(buildUpstreamRequestHeaders(request)).toEqual({
+      'x-request-id': expect.any(String),
+      'x-sopet-client-ip': '203.0.113.10',
       'x-forwarded-for': '203.0.113.10',
     });
   });
@@ -28,6 +45,7 @@ describe('buildUpstreamRequestHeaders', () => {
 
     expect(buildUpstreamRequestHeaders(request)).toEqual({
       'x-request-id': expect.any(String),
+      'x-sopet-client-ip': '198.51.100.7',
       'x-forwarded-for': '198.51.100.7',
     });
   });
@@ -39,6 +57,7 @@ describe('buildUpstreamRequestHeaders', () => {
     expect(headers['x-request-id']).toEqual(expect.any(String));
     expect(headers['x-request-id']?.length).toBeGreaterThan(0);
     expect(headers).not.toHaveProperty('x-forwarded-for');
+    expect(headers).not.toHaveProperty('x-sopet-client-ip');
   });
 });
 
