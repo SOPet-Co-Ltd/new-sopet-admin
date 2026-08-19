@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
 import { EmailContentTemplatesTable } from '@/components/admin/email/email-content-templates-table';
 import { useEmailContentTemplates } from '@/hooks/useEmailCms';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function TemplatesListSkeleton() {
   return (
@@ -35,7 +36,7 @@ export default function AdminEmailTemplatesPage() {
 
       {error ? (
         <div className="mb-4 flex items-center justify-between gap-4 rounded-lg border border-danger/20 bg-danger-bg px-4 py-3 text-sm text-danger">
-          <span role="alert">{error instanceof Error ? error.message : 'โหลดรายการไม่สำเร็จ'}</span>
+          <span role="alert">{getErrorMessage(error, 'โหลดรายการไม่สำเร็จ')}</span>
           <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>
             ลองอีกครั้ง
           </Button>

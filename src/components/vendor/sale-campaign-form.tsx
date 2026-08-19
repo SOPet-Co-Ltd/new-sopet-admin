@@ -28,6 +28,7 @@ import {
 } from '@/lib/validations/sale-campaigns';
 import { cn } from '@/lib/utils';
 import type { SaleCampaign } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export type SaleCampaignSubmitValues = {
   name: string;
@@ -128,7 +129,7 @@ export function SaleCampaignForm({
       });
       router.push(listHref);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'บันทึกแคมเปญไม่สำเร็จ กรุณาลองอีกครั้ง');
+      setSubmitError(getErrorMessage(err, 'บันทึกแคมเปญไม่สำเร็จ กรุณาลองอีกครั้ง'));
     }
   }
 

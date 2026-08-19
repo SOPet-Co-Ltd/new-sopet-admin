@@ -206,6 +206,9 @@ describe('AdminPlatformSettingsPage', () => {
     expect(
       screen.getByText('จัดการแบนเนอร์ สปอนเซอร์ โฆษณา และบัญชีรับโอนเงินบนแพลตฟอร์ม'),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'รหัสข้อผิดพลาด' }),
+    ).toHaveAttribute('href', '/admin/errors-message');
     expect(screen.getByRole('tablist', { name: 'หมวดตั้งค่าแพลตฟอร์ม' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'แบนเนอร์', selected: true })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'สปอนเซอร์' })).toBeInTheDocument();
@@ -270,7 +273,7 @@ describe('AdminPlatformSettingsPage', () => {
     render(<AdminPlatformSettingsPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('โหลดแบนเนอร์ไม่สำเร็จ');
-    expect(screen.getByText('เครือข่ายขัดข้อง')).toBeInTheDocument();
+    expect(screen.getAllByText('โหลดแบนเนอร์ไม่สำเร็จ').length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: 'ลองอีกครั้ง' }));
     expect(refetchBanners).toHaveBeenCalledTimes(1);

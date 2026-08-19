@@ -5,6 +5,7 @@ import { Suspense, useMemo } from 'react';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { StoreReactivationSection } from '@/components/vendor/store-reactivation-section';
 import { useMyStores } from '@/hooks/useMyStores';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function VendorReactivationPageContent() {
   const searchParams = useSearchParams();
@@ -38,7 +39,7 @@ function VendorReactivationPageContent() {
       {isLoading ? <p className="text-muted">กำลังโหลด...</p> : null}
       {error ? (
         <p className="text-danger">
-          {error instanceof Error ? error.message : 'โหลดข้อมูลไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดข้อมูลไม่สำเร็จ')}
         </p>
       ) : null}
 

@@ -15,6 +15,7 @@ import { commissionCopy } from '@/lib/i18n/th';
 import { PAYOUT_STATUS_LABELS } from '@/lib/payouts/status-labels';
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Payout, PayoutRailSummary } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 type AdminStorePayoutPanelProps = {
   storeId: string;
@@ -155,9 +156,7 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                 </div>
                 {triggerMutation.isError ? (
                   <p className="text-sm text-danger" role="alert">
-                    {triggerMutation.error instanceof Error
-                      ? triggerMutation.error.message
-                      : 'Trigger Omise payout ไม่สำเร็จ'}
+                    {getErrorMessage(triggerMutation.error, 'Trigger Omise payout ไม่สำเร็จ')}
                   </p>
                 ) : null}
                 {triggerMutation.isSuccess ? (
@@ -232,9 +231,7 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                 </div>
                 {settleManualMutation.isError ? (
                   <p className="text-sm text-danger" role="alert">
-                    {settleManualMutation.error instanceof Error
-                      ? settleManualMutation.error.message
-                      : 'อนุมัติ Manual payout ไม่สำเร็จ'}
+                    {getErrorMessage(settleManualMutation.error, 'อนุมัติ Manual payout ไม่สำเร็จ')}
                   </p>
                 ) : null}
                 {settleManualMutation.isSuccess ? (
@@ -244,9 +241,7 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                 ) : null}
                 {rejectManualMutation.isError ? (
                   <p className="text-sm text-danger" role="alert">
-                    {rejectManualMutation.error instanceof Error
-                      ? rejectManualMutation.error.message
-                      : 'ปฏิเสธ Manual payout ไม่สำเร็จ'}
+                    {getErrorMessage(rejectManualMutation.error, 'ปฏิเสธ Manual payout ไม่สำเร็จ')}
                   </p>
                 ) : null}
                 {rejectManualMutation.isSuccess ? (

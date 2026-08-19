@@ -182,6 +182,9 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
           <Button type="button" variant="outline" asChild>
             <Link href="/vendor/api/llms.txt">llms.txt</Link>
           </Button>
+          <Button type="button" variant="outline" asChild>
+            <Link href="/vendor/errors-message">รหัสข้อผิดพลาด</Link>
+          </Button>
         </div>
       </div>
 
@@ -1163,6 +1166,12 @@ DELETE /api/v1/stores/{storeId}/webhook`}
             <code className="rounded bg-surface px-1.5 py-0.5 font-mono text-ink">
               {'{ "success": false, "error": { "code": "...", "message": "..." } }'}
             </code>
+          </p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            ดูรหัสข้อผิดพลาดทั้งหมดพร้อมคำอธิบายภาษาไทยได้ที่{' '}
+            <Link href="/vendor/errors-message" className="text-brand hover:underline">
+              รหัสข้อผิดพลาด
+            </Link>
           </p>
         </CardBody>
       </Card>

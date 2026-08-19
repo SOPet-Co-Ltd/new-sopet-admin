@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { TaxonomyDeleteButton } from '@/components/admin/taxonomy/taxonomy-delete-button';
 import { useSetPetTypeImage } from '@/hooks/useTaxonomy';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import { useState } from 'react';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 
@@ -43,7 +43,7 @@ export function PendingPetTypeRow({
         imageUrl: url,
       });
     } catch (error) {
-      setUploadError(isApiError(error) ? error.message : 'อัปโหลดรูปภาพไม่สำเร็จ');
+      setUploadError(getErrorMessage(error, 'อัปโหลดรูปภาพไม่สำเร็จ'));
     }
   }
 

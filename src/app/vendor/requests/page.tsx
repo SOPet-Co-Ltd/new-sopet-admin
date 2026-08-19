@@ -190,7 +190,7 @@ export default function VendorRequestsPage() {
           {loadingInvitations ? <ListSkeleton /> : null}
           {invitationsError ? (
             <p className="text-sm text-danger">
-              {invitationsError instanceof Error ? invitationsError.message : 'โหลดคำเชิญไม่สำเร็จ'}
+              {getErrorMessage(invitationsError, 'โหลดคำเชิญไม่สำเร็จ')}
             </p>
           ) : null}
           {!loadingInvitations && !invitationsError && invitations.length === 0 ? (
@@ -223,9 +223,7 @@ export default function VendorRequestsPage() {
             {loadingStoreRequests ? <ListSkeleton rows={1} /> : null}
             {storeRequestsError ? (
               <p className="text-sm text-danger">
-                {storeRequestsError instanceof Error
-                  ? storeRequestsError.message
-                  : 'โหลดคำขอเปิดร้านไม่สำเร็จ'}
+                {getErrorMessage(storeRequestsError, 'โหลดคำขอเปิดร้านไม่สำเร็จ')}
               </p>
             ) : null}
             {!loadingStoreRequests && storeRequests.length === 0 ? (

@@ -13,6 +13,7 @@ import { Stepper } from '@/components/ui/stepper';
 import { useProduct } from '@/hooks/useProduct';
 import { PRODUCT_WIZARD_STEPS } from '@/lib/product-wizard';
 import { cn, formatCurrency } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 import {
   buildCombinationsFromGroups,
   extractOptionGroups,
@@ -127,7 +128,7 @@ export default function ProductVariantsPage() {
     return (
       <div className="rounded-xl border border-border bg-danger-bg/40 p-6" role="alert">
         <p className="text-sm font-medium text-danger">
-          {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
+          {getErrorMessage(error, 'ไม่พบสินค้า')}
         </p>
         <Link
           href="/vendor/products"

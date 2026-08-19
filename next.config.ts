@@ -28,10 +28,16 @@ function imageRemotePatterns(): RemotePattern[] {
       port: '9000',
       pathname: '/sopet-ecommerce-files/**',
     },
-    // Cloudflare R2 public buckets (pub-<hash>.r2.dev)
+    // Cloudflare R2 — UAT public bucket + any pub-*.r2.dev
     {
       protocol: 'https',
       hostname: '**.r2.dev',
+      pathname: '/**',
+    },
+    // Production custom domain for R2
+    {
+      protocol: 'https',
+      hostname: 'cdn.sopet.org',
       pathname: '/**',
     },
   ];
@@ -47,27 +53,31 @@ function imageRemotePatterns(): RemotePattern[] {
   return patterns;
 }
 
+const isLocalDev = process.env.NODE_ENV === 'development';
+
+const productionCsp = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "style-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "connect-src 'self'",
+  "form-action 'self'",
+].join('; ');
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
       {
         source: '/:path*',
         headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "base-uri 'self'",
-              "frame-ancestors 'none'",
-              "object-src 'none'",
-              "img-src 'self' data: blob: https:",
-              "font-src 'self' data:",
-              "style-src 'self' 'unsafe-inline'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-              "connect-src 'self'",
-              "form-action 'self'",
-            ].join('; '),
-          },
+          // Skip CSP locally so MinIO/http assets and HMR are unrestricted.
+          ...(isLocalDev
+            ? []
+            : [{ key: 'Content-Security-Policy', value: productionCsp }]),
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',

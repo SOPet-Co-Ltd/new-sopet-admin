@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 type AnalyticsPanelProps = {
   title: string;
@@ -35,7 +36,7 @@ export function AnalyticsPanel({
         {loading ? loadingFallback : null}
         {error ? (
           <p role="alert" className="text-sm text-danger">
-            {error.message || 'โหลดข้อมูลไม่สำเร็จ'}
+            {getErrorMessage(error, 'โหลดข้อมูลไม่สำเร็จ')}
           </p>
         ) : null}
         {!loading && !error ? children : null}

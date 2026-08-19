@@ -9,6 +9,7 @@ import {
   type EmailContainerFormValues,
 } from '@/components/admin/email/email-container-form';
 import { useEmailContainer, useUpdateEmailContainer } from '@/hooks/useEmailCms';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function AdminEmailContainerEditPage() {
   const params = useParams<{ id: string }>();
@@ -32,7 +33,7 @@ export default function AdminEmailContainerEditPage() {
       <div className="mx-auto max-w-3xl">
         <PageHeader title="ไม่พบคอนเทนเนอร์" />
         <p role="alert" className="text-sm text-danger">
-          {error instanceof Error ? error.message : 'ไม่พบคอนเทนเนอร์นี้'}
+          {getErrorMessage(error, 'ไม่พบคอนเทนเนอร์นี้')}
         </p>
         <Link
           href="/admin/email/containers"

@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useBankTransferSettings, useUpdateBankTransferDetails } from '@/hooks/usePlatformSettings';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import { formatThaiBankAccountNumber } from '@/lib/banks/formatThaiBankAccountNumber';
 import { THAI_BANKS } from '@/lib/constants/thai-banks';
 import { bankTransferFormSchema, type BankTransferFormValues } from '@/lib/validations';
@@ -95,7 +95,7 @@ export function BankTransferSettingsPanel() {
           : 'บันทึกแล้ว — ซ่อนโอนเงินเข้าบัญชีจาก Checkout',
       );
     } catch (error) {
-      setActionError(isApiError(error) ? error.message : 'บันทึกไม่สำเร็จ');
+      setActionError(getErrorMessage(error, 'บันทึกไม่สำเร็จ'));
     }
   });
 

@@ -15,6 +15,7 @@ import { useMyStore } from '@/hooks/useStoreSettings';
 import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency } from '@/lib/utils';
 import type { PayoutRailSummary } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function AvailableVendorSnapshotBreakdown({ rail }: { rail: PayoutRailSummary }) {
   return (
@@ -146,16 +147,12 @@ export function VendorPayoutSnapshot() {
 
               {requestManual.isError ? (
                 <p className="text-sm text-danger" role="alert">
-                  {requestManual.error instanceof Error
-                    ? requestManual.error.message
-                    : 'ส่งคำขอ Manual ไม่สำเร็จ'}
+                  {getErrorMessage(requestManual.error, 'ส่งคำขอ Manual ไม่สำเร็จ')}
                 </p>
               ) : null}
               {requestOmise.isError ? (
                 <p className="text-sm text-danger" role="alert">
-                  {requestOmise.error instanceof Error
-                    ? requestOmise.error.message
-                    : 'ส่งคำขอ Omise ไม่สำเร็จ'}
+                  {getErrorMessage(requestOmise.error, 'ส่งคำขอ Omise ไม่สำเร็จ')}
                 </p>
               ) : null}
               {requestManual.isSuccess ? (

@@ -316,7 +316,7 @@ export default function VendorStoresPage() {
           <Card className="border-danger/20 bg-danger-bg/40" role="alert">
             <CardBody className="space-y-3">
               <p className="text-sm text-danger">
-                {error instanceof Error ? error.message : 'โหลดร้านค้าไม่สำเร็จ'}
+                {getErrorMessage(error, 'โหลดร้านค้าไม่สำเร็จ')}
               </p>
               <p className="text-sm text-muted-foreground">
                 ลองรีเฟรชหน้า หรือตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง

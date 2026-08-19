@@ -6,6 +6,7 @@ import { PromotionEditForm } from '@/components/promotions/promotion-edit-form';
 import { Card, CardBody } from '@/components/ui/card';
 import { useStorePromotion, useUpdatePromotion } from '@/hooks/usePromotions';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function VendorPromotionEditPage() {
   const params = useParams<{ id: string }>();
@@ -37,7 +38,7 @@ export default function VendorPromotionEditPage() {
   if (error || isNotFound || !promotion) {
     return (
       <p className="text-sm text-danger">
-        {error instanceof Error ? error.message : 'ไม่พบโปรโมชัน'}
+        {getErrorMessage(error, 'ไม่พบโปรโมชัน')}
       </p>
     );
   }

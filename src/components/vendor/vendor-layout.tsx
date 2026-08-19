@@ -16,6 +16,7 @@ import {
   HiUserGroup,
   HiUsers,
 } from 'react-icons/hi2';
+import { usePathname } from 'next/navigation';
 import { AuthGuard } from '@/components/auth-guard';
 import { DashboardShell, type DashboardNavSection } from '@/components/dashboard-shell';
 import { ActiveStoreDisplay } from '@/components/vendor/active-store-display';
@@ -28,6 +29,7 @@ import { useMyStoreRequests } from '@/hooks/useStoreRequests';
 import { useStoreAnalytics } from '@/hooks/useStoreAnalytics';
 import { useMyPendingStoreInvitations } from '@/hooks/useTeam';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
+import { isPublicErrorsMessagePath } from '@/lib/auth/proxy-auth';
 import { vendorHasStores } from '@/lib/vendor/vendor-store-access';
 
 const storeSection = (pendingRequestCount?: number): DashboardNavSection => ({
@@ -148,6 +150,14 @@ export function buildVendorNavSections({
 }
 
 export function VendorLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  if (isPublicErrorsMessagePath(pathname)) {
+    return <>{children}</>;
+  }
+  return <VendorDashboardLayout>{children}</VendorDashboardLayout>;
+}
+
+function VendorDashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: stores = [], isLoading: isStoresLoading } = useMyStores();
   const storeId = useVendorStoreId();
   const { data: analytics } = useStoreAnalytics(storeId);

@@ -21,6 +21,7 @@ import { useAdminVendors } from '@/hooks/useAdminVendors';
 import { labelUserRole } from '@/lib/i18n/th';
 import { cn, formatDate } from '@/lib/utils';
 import type { AdminVendor } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function vendorStatusBadge(vendor: AdminVendor): { label: string; className: string } {
   if (vendor.isActive !== false) {
@@ -193,7 +194,7 @@ export default function AdminVendorsPage() {
 
       {error ? (
         <p className="mb-4 text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'โหลดรายการผู้ขายไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดรายการผู้ขายไม่สำเร็จ')}
         </p>
       ) : null}
 

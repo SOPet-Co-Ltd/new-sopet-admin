@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAdminVendors } from '@/hooks/useAdminVendors';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 type VendorComboboxProps = {
   value: string;
@@ -153,7 +154,7 @@ export function VendorCombobox({
             <p className="px-3 py-2 text-sm text-muted">กำลังค้นหา...</p>
           ) : error ? (
             <p className="px-3 py-2 text-sm text-danger">
-              {error instanceof Error ? error.message : 'โหลดรายชื่อผู้ขายไม่สำเร็จ'}
+              {getErrorMessage(error, 'โหลดรายชื่อผู้ขายไม่สำเร็จ')}
             </p>
           ) : vendors.length === 0 ? (
             <p className="px-3 py-2 text-sm text-muted">

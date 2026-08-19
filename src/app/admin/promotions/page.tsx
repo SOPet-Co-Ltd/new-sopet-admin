@@ -12,10 +12,7 @@ import {
   useTogglePromotion,
 } from '@/hooks/usePromotions';
 import type { Promotion } from '@/types';
-
-function mutationErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function AdminPromotionsPage() {
   const { data: promotions = [], isLoading, error } = usePlatformPromotions();
@@ -46,19 +43,19 @@ export default function AdminPromotionsPage() {
 
       {error ? (
         <p className="text-sm text-danger" role="alert">
-          {mutationErrorMessage(error, 'โหลดโปรโมชันแพลตฟอร์มไม่สำเร็จ')}
+          {getErrorMessage(error, 'โหลดโปรโมชันแพลตฟอร์มไม่สำเร็จ')}
         </p>
       ) : null}
 
       {toggleMutation.error ? (
         <p className="text-sm text-danger" role="alert">
-          {mutationErrorMessage(toggleMutation.error, 'เปลี่ยนสถานะโปรโมชันไม่สำเร็จ')}
+          {getErrorMessage(toggleMutation.error, 'เปลี่ยนสถานะโปรโมชันไม่สำเร็จ')}
         </p>
       ) : null}
 
       {deleteMutation.error ? (
         <p className="text-sm text-danger" role="alert">
-          {mutationErrorMessage(deleteMutation.error, 'ลบโปรโมชันไม่สำเร็จ')}
+          {getErrorMessage(deleteMutation.error, 'ลบโปรโมชันไม่สำเร็จ')}
         </p>
       ) : null}
 

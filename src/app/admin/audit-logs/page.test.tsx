@@ -137,15 +137,15 @@ describe('AdminAuditLogsPage', () => {
   });
 
   /**
-   * AC: AC-F-error — list query fails → role=alert with error.message; filters remain.
-   * Behavior: Hook returns Error → alert text is message; ค้นหาบันทึก still mounted.
+   * AC: AC-F-error — list query fails → role=alert with mapped Thai copy; filters remain.
+   * Behavior: Hook returns Error → alert text via getErrorMessage; ค้นหาบันทึก still mounted.
    * @category: edge-case
    * @lane: integration
    * @dependency: AdminAuditLogsPage error alert
    * @complexity: low
    * ROI: 80
    */
-  it('shows role=alert on error while filters remain', () => {
+  it('shows role=alert on error while filters remain', async () => {
     mockUseAdminAuditLogs.mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -156,7 +156,7 @@ describe('AdminAuditLogsPage', () => {
     render(<AdminAuditLogsPage />);
 
     const alert = screen.getByRole('alert');
-    expect(alert).toHaveTextContent('network down');
+    expect(alert).toHaveTextContent('โหลดบันทึกการใช้งานไม่สำเร็จ');
     expect(screen.getByLabelText('ค้นหาบันทึก')).toBeInTheDocument();
   });
 
@@ -182,7 +182,7 @@ describe('AdminAuditLogsPage', () => {
 
     render(<AdminAuditLogsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('refetch failed');
+    expect(screen.getByRole('alert')).toHaveTextContent('โหลดบันทึกการใช้งานไม่สำเร็จ');
     expect(screen.getAllByText('แก้ไขร้านค้า').length).toBeGreaterThan(0);
     expect(screen.getByText(/admin@sopet.org/)).toBeInTheDocument();
     expect(screen.getByLabelText('ค้นหาบันทึก')).toBeInTheDocument();

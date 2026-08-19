@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { verifyEmail } from '@/lib/api/emailVerification';
 import { syncEmailVerificationStatus } from '@/lib/auth-session';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -32,7 +33,7 @@ function VerifyEmailContent() {
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'ยืนยันอีเมลไม่สำเร็จ');
+        setError(getErrorMessage(err, 'ยืนยันอีเมลไม่สำเร็จ'));
         setStatus('error');
       });
 

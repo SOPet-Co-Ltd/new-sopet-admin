@@ -110,7 +110,7 @@ describe('AdminNotificationsPage', () => {
     render(<AdminNotificationsPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('โหลดการแจ้งเตือนไม่สำเร็จ');
-    expect(screen.getByText('เครือข่ายขัดข้อง')).toBeInTheDocument();
+    expect(screen.getByText('เกิดข้อผิดพลาด กรุณาลองอีกครั้ง')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'ลองอีกครั้ง' }));
     expect(refetch).toHaveBeenCalledTimes(1);

@@ -54,9 +54,19 @@ describe('proxy-auth', () => {
     expect(getAuthRedirectPath('/vendor/api/llms.txt', null, undefined)).toBeNull();
   });
 
+  it('allows unauthenticated access to public error catalog pages', () => {
+    expect(getAuthRedirectPath('/admin/errors-message', null, undefined)).toBeNull();
+    expect(getAuthRedirectPath('/vendor/errors-message', null, undefined)).toBeNull();
+  });
+
   it('still protects other vendor API pages', () => {
     expect(getAuthRedirectPath('/vendor/api', null, undefined)).toBe('/login');
     expect(getAuthRedirectPath('/vendor/api/docs', null, undefined)).toBe('/login');
+  });
+
+  it('still protects other admin and vendor dashboard pages', () => {
+    expect(getAuthRedirectPath('/admin/stores', null, undefined)).toBe('/login');
+    expect(getAuthRedirectPath('/vendor/products', null, undefined)).toBe('/login');
   });
 
   it('redirects authenticated users away from register', () => {

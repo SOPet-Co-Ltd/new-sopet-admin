@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { usePlatformProducts, useVendorProducts } from '@/hooks/useVendorProducts';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export type BxGyProductPickerProps = {
   scope: 'platform' | 'store';
@@ -249,7 +250,7 @@ function BxGyProductPickerInner({
           ) : fetchError ? (
             <div className="space-y-2 px-3 py-2">
               <p className="text-sm text-danger">
-                {fetchError instanceof Error ? fetchError.message : 'โหลดรายการสินค้าไม่สำเร็จ'}
+                {getErrorMessage(fetchError, 'โหลดรายการสินค้าไม่สำเร็จ')}
               </p>
               <Button type="button" size="sm" variant="outline" onClick={handleRetry}>
                 ลองอีกครั้ง

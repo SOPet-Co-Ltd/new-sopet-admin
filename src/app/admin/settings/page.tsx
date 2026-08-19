@@ -1,10 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/ui/card';
+import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import {
   useAllPlatformAds,
   useAllPlatformBanners,
@@ -353,6 +354,15 @@ export default function AdminPlatformSettingsPage() {
         description="จัดการแบนเนอร์ สปอนเซอร์ โฆษณา และบัญชีรับโอนเงินบนแพลตฟอร์ม"
         action={headerAction}
       />
+
+      <Card className="mb-6">
+        <CardBody className="text-sm text-pretty text-muted-foreground">
+          ดูรายการรหัสข้อผิดพลาดและข้อความภาษาไทยที่ระบบใช้ได้ที่{' '}
+          <Link href="/admin/errors-message" className="text-brand hover:underline">
+            รหัสข้อผิดพลาด
+          </Link>
+        </CardBody>
+      </Card>
 
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="หมวดตั้งค่าแพลตฟอร์ม">
         {(Object.keys(platformSettingsTabLabels) as Tab[]).map((key) => (

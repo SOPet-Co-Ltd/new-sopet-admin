@@ -169,7 +169,7 @@ describe('VendorCombobox', () => {
 
     await userEvent.click(screen.getByRole('combobox'));
 
-    expect(screen.getByText('Unauthorized')).toBeInTheDocument();
+    expect(screen.getByText('โหลดรายชื่อผู้ขายไม่สำเร็จ')).toBeInTheDocument();
     expect(screen.queryByText('ไม่พบผู้ขาย')).not.toBeInTheDocument();
   });
 

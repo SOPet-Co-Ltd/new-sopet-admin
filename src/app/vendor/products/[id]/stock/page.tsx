@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { useProduct } from '@/hooks/useProduct';
 import { useUpdateProductVariantStocks } from '@/hooks/useProductMutations';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import { formatCombinationLabel, parseVariantOptions } from '@/lib/variants';
 import { StockPageSkeleton } from './stock-page-skeleton';
 import { StockRow } from './stock-row';
@@ -110,7 +110,7 @@ export default function ProductStockPage() {
       setSaved(true);
       router.push(`/vendor/products/${productId}`);
     } catch (err) {
-      setSaveError(isApiError(err) ? err.message : 'บันทึกสต็อกไม่สำเร็จ');
+      setSaveError(getErrorMessage(err, 'บันทึกสต็อกไม่สำเร็จ'));
     }
   }
 
@@ -121,7 +121,7 @@ export default function ProductStockPage() {
   if (error || !product) {
     return (
       <p className="text-sm text-danger" role="alert">
-        {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
+        {getErrorMessage(error, 'ไม่พบสินค้า')}
       </p>
     );
   }

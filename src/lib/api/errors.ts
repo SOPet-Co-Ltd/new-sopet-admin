@@ -1,7 +1,13 @@
 import type { ApiErrorEnvelope } from '@/types/api';
 import { CombinedGraphQLErrors, ServerError, ServerParseError } from '@apollo/client/errors';
 import { ApiError, isApiError } from './errors-core';
-import { envelopeFallbackMessage, ERROR_MESSAGES, messageForErrorCode } from './error-messages';
+import {
+  envelopeFallbackMessage,
+  ERROR_MESSAGES,
+  formatFallbackErrorMessage,
+  isScreamingSnakeCode,
+  messageForErrorCode,
+} from './error-messages';
 
 export { ApiError, isApiError };
 
@@ -133,6 +139,13 @@ export function normalizeError(err: unknown): ApiError {
   }
 
   if (err instanceof Error) {
+    const trimmed = err.message.trim();
+    if (isScreamingSnakeCode(trimmed)) {
+      return finalizeApiError({
+        code: trimmed,
+        status: 0,
+      });
+    }
     return finalizeApiError({
       code: 'UNKNOWN_ERROR',
       message: err.message,
@@ -151,5 +164,16 @@ export function getErrorMessage(
   err: unknown,
   fallback: string = ERROR_MESSAGES.UNKNOWN_ERROR,
 ): string {
-  return normalizeError(err).message || fallback;
+  const normalized = normalizeError(err);
+
+  if (normalized.code === 'UNKNOWN_ERROR') {
+    return formatFallbackErrorMessage(fallback, 'UNKNOWN_ERROR');
+  }
+
+  const mapped = ERROR_MESSAGES[normalized.code as keyof typeof ERROR_MESSAGES];
+  if (mapped) {
+    return mapped;
+  }
+
+  return formatFallbackErrorMessage(ERROR_MESSAGES.UNKNOWN_ERROR, normalized.code);
 }

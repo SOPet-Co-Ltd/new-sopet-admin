@@ -18,7 +18,7 @@ import {
   useSetPetTypeImage,
   useUpdatePetType,
 } from '@/hooks/useTaxonomy';
-import { isApiError } from '@/lib/api/errors';
+import { isApiError, getErrorMessage } from '@/lib/api/errors';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { editTaxonomySchema, type EditTaxonomyFormValues } from '@/lib/validations';
 
@@ -63,7 +63,7 @@ export default function EditPetTypePage() {
       });
       router.push('/admin/taxonomy');
     } catch (err) {
-      const message = isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ';
+      const message = getErrorMessage(err, 'บันทึกไม่สำเร็จ');
       const code = isApiError(err) ? err.code : undefined;
       if (code === 'SLUG_EXISTS' || code === 'INVALID_SLUG') {
         form.setError('slug', { message });
@@ -81,7 +81,7 @@ export default function EditPetTypePage() {
     return (
       <div className="space-y-4">
         <p className="text-sm text-danger">
-          {error instanceof Error ? error.message : 'ไม่พบประเภทสัตว์เลี้ยง'}
+          {getErrorMessage(error, 'ไม่พบประเภทสัตว์เลี้ยง')}
         </p>
         <Button variant="outline" asChild>
           <Link href="/admin/taxonomy">กลับ</Link>
@@ -166,7 +166,7 @@ export default function EditPetTypePage() {
               showUrl={false}
               disabled={isPending}
               error={
-                setPetTypeImage.error instanceof Error ? setPetTypeImage.error.message : undefined
+                getErrorMessage(setPetTypeImage.error, undefined)
               }
             />
 

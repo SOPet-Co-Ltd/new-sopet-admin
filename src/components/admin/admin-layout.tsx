@@ -21,6 +21,7 @@ import {
   HiUserGroup,
   HiUsers,
 } from 'react-icons/hi2';
+import { usePathname } from 'next/navigation';
 import { AuthGuard } from '@/components/auth-guard';
 import { DashboardShell, type DashboardNavSection } from '@/components/dashboard-shell';
 import { useUnreadCount } from '@/hooks/useNotifications';
@@ -35,6 +36,7 @@ import { usePendingVendorInvitations } from '@/hooks/useVendorInvitations';
 import { usePendingImportedReviews } from '@/hooks/useAdminReviews';
 import { usePendingBankTransferOrders } from '@/hooks/useAdminBankTransfers';
 import { usePendingManualPayouts } from '@/hooks/usePayouts';
+import { isPublicErrorsMessagePath } from '@/lib/auth/proxy-auth';
 
 export function buildAdminNavSections({
   pendingRequestCount,
@@ -141,6 +143,14 @@ export function buildAdminNavSections({
 }
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  if (isPublicErrorsMessagePath(pathname)) {
+    return <>{children}</>;
+  }
+  return <AdminDashboardLayout>{children}</AdminDashboardLayout>;
+}
+
+function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: storeRequests = [] } = usePendingStoreRequests();
   const { data: invitations = [] } = usePendingVendorInvitations();
   const { data: pendingCategories = [] } = usePendingCategories();

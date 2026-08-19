@@ -9,6 +9,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { TaxonomyDeleteButton } from '@/components/admin/taxonomy/taxonomy-delete-button';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import type { TaxonomyItem } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export type RejectedTaxonomyKind = 'category' | 'tag' | 'petType' | 'brand';
 
@@ -61,7 +62,7 @@ export function RejectedTaxonomySection({
         </CardHeader>
         <CardBody>
           <p role="alert" className="text-sm text-danger">
-            {copy.error}: {error.message}
+            {copy.error}: {getErrorMessage(error)}
           </p>
         </CardBody>
       </Card>

@@ -7,6 +7,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { useLinkStoreOmiseRecipient } from '@/hooks/useStoreSettings';
 import type { OmiseRecipientStatus, StoreDetail } from '@/types';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const OMISE_STATUS_INFO: Record<
   OmiseRecipientStatus,
@@ -67,7 +68,7 @@ export function VendorOmiseLinkPanel({ store, loading }: VendorOmiseLinkPanelPro
     } catch (err) {
       setFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'ส่งยืนยัน Omise ไม่สำเร็จ',
+        message: getErrorMessage(err, 'ส่งยืนยัน Omise ไม่สำเร็จ'),
       });
     }
   }

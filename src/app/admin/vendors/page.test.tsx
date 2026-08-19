@@ -88,7 +88,7 @@ describe('AdminVendorsPage', () => {
 
     render(<AdminVendorsPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('เครือข่ายล้มเหลว');
+    expect(screen.getByRole('alert')).toHaveTextContent('โหลดรายการผู้ขายไม่สำเร็จ');
   });
 
   it('filters inactive vendors client-side', async () => {

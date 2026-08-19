@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -39,6 +40,7 @@ import {
   type StoreInfoFormValues,
 } from '@/lib/validations';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 type SettingsTab = keyof typeof settingsTabLabels;
 
@@ -192,7 +194,7 @@ function VendorSettingsPageContent() {
     } catch (err) {
       setProfileFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ',
+        message: getErrorMessage(err, 'บันทึกไม่สำเร็จ'),
       });
     }
   }
@@ -240,7 +242,7 @@ function VendorSettingsPageContent() {
     } catch (err) {
       setPasswordFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'เปลี่ยนรหัสผ่านไม่สำเร็จ',
+        message: getErrorMessage(err, 'เปลี่ยนรหัสผ่านไม่สำเร็จ'),
       });
     }
   }
@@ -253,6 +255,15 @@ function VendorSettingsPageContent() {
   return (
     <div>
       <PageHeader title="ตั้งค่า" description="ข้อมูลบัญชีและร้านค้า" />
+
+      <Card className="mb-6">
+        <CardBody className="text-sm text-pretty text-muted-foreground">
+          ดูรายการรหัสข้อผิดพลาดและข้อความภาษาไทยที่ระบบใช้ได้ที่{' '}
+          <Link href="/vendor/errors-message" className="text-brand hover:underline">
+            รหัสข้อผิดพลาด
+          </Link>
+        </CardBody>
+      </Card>
 
       <div className="mb-6 flex flex-wrap gap-2" role="tablist" aria-label="หมวดตั้งค่า">
         {visibleTabs.map((key) => (

@@ -46,6 +46,7 @@ import {
 import { formatDateTime } from '@/lib/utils';
 import { adminStoreEditFormSchema, type AdminStoreEditFormValues } from '@/lib/validations';
 import type { StoreStatus } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function AdminStoreEditPage() {
   const params = useParams<{ id: string }>();
@@ -116,7 +117,7 @@ export default function AdminStoreEditPage() {
       form.setValue('status', newStatus);
       setStatusMessage(`เปลี่ยนสถานะเป็น "${labelStoreStatus(newStatus)}" แล้ว`);
     } catch (err) {
-      setStatusMessage(err instanceof Error ? err.message : 'เปลี่ยนสถานะไม่สำเร็จ');
+      setStatusMessage(getErrorMessage(err, 'เปลี่ยนสถานะไม่สำเร็จ'));
     }
   }
 
@@ -127,7 +128,7 @@ export default function AdminStoreEditPage() {
       <div className="space-y-4">
         <BackToStoresLink />
         <p className="text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'ไม่พบร้านค้า'}
+          {getErrorMessage(error, 'ไม่พบร้านค้า')}
         </p>
       </div>
     );
@@ -301,9 +302,7 @@ export default function AdminStoreEditPage() {
 
               {updateMutation.isError ? (
                 <p className="text-sm text-danger" role="alert">
-                  {updateMutation.error instanceof Error
-                    ? updateMutation.error.message
-                    : 'บันทึกไม่สำเร็จ'}
+                  {getErrorMessage(updateMutation.error, 'บันทึกไม่สำเร็จ')}
                 </p>
               ) : null}
 

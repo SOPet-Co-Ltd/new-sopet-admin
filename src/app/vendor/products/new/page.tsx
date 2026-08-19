@@ -24,6 +24,7 @@ import {
 } from '@/lib/variants';
 import { productCreateSchema, type ProductCreateFormValues } from '@/lib/validations';
 import { PRODUCT_WIZARD_STEPS } from '@/lib/product-wizard';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const LAST_FORM_STEP = 3;
 
@@ -257,7 +258,7 @@ export default function NewProductPage() {
             className="rounded-lg border border-danger/20 bg-danger-bg px-3 py-2 text-sm text-danger"
             role="alert"
           >
-            {error instanceof Error ? error.message : 'สร้างสินค้าไม่สำเร็จ'}
+            {getErrorMessage(error, 'สร้างสินค้าไม่สำเร็จ')}
           </p>
         ) : null}
 

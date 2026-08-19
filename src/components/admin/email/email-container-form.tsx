@@ -13,6 +13,7 @@ import { EmailSafeHtmlGuidance } from '@/components/admin/email/email-safe-html-
 import { EmailValidationAlert } from '@/components/admin/email/email-validation-alert';
 import type { EmailContainer } from '@/lib/api/email-cms';
 import { validateContainerShell } from '@/lib/email-cms/validation';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export type EmailContainerFormValues = {
   name: string;
@@ -59,7 +60,7 @@ export function EmailContainerForm({
       setIsDirty(false);
       setWarnings(container?.warnings ?? []);
     } catch (error) {
-      setErrors([error instanceof Error ? error.message : 'บันทึกคอนเทนเนอร์ไม่สำเร็จ']);
+      setErrors([getErrorMessage(error, 'บันทึกคอนเทนเนอร์ไม่สำเร็จ')]);
     }
   }
 

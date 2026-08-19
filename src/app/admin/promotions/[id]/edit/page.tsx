@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { PromotionEditForm } from '@/components/promotions/promotion-edit-form';
 import { usePlatformPromotion, useUpdatePromotion } from '@/hooks/usePromotions';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function AdminPromotionEditPage() {
   const params = useParams<{ id: string }>();
@@ -17,7 +18,7 @@ export default function AdminPromotionEditPage() {
   if (error || isNotFound || !promotion) {
     return (
       <p className="text-sm text-danger">
-        {error instanceof Error ? error.message : 'ไม่พบโปรโมชัน'}
+        {getErrorMessage(error, 'ไม่พบโปรโมชัน')}
       </p>
     );
   }

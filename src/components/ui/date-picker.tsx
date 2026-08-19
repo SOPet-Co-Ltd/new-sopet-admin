@@ -168,7 +168,7 @@ export function DatePicker({
         aria-describedby={ariaDescribedBy}
         onClick={handleToggle}
         className={cn(
-          'h-10 w-full justify-between px-3 font-normal',
+          'h-10 w-full justify-between bg-white px-3 text-sm font-normal shadow-sm hover:bg-white focus-visible:border-brand focus-visible:ring-brand/20',
           !hasValue && 'text-muted',
           ariaInvalid && 'border-danger ring-1 ring-danger/30',
         )}

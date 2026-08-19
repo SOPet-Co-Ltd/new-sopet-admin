@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { HiChevronDown, HiChevronUp, HiPhoto } from 'react-icons/hi2';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export const PLATFORM_SETTINGS_TAB_PANEL_IDS = {
   banners: 'platform-settings-panel-banners',
@@ -10,10 +11,6 @@ export const PLATFORM_SETTINGS_TAB_PANEL_IDS = {
   loginImages: 'platform-settings-panel-loginImages',
   bankTransfer: 'platform-settings-panel-bankTransfer',
 } as const;
-
-function queryErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
 
 type PlatformSettingsLoadErrorProps = {
   message: string;
@@ -32,7 +29,7 @@ export function PlatformSettingsLoadError({
         {message}
       </p>
       {detail ? (
-        <p className="mt-1 text-sm text-muted-foreground">{queryErrorMessage(detail, message)}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{getErrorMessage(detail, message)}</p>
       ) : null}
       <Button type="button" variant="outline" size="sm" className="mt-4" onClick={onRetry}>
         ลองอีกครั้ง
@@ -50,7 +47,7 @@ export function PlatformSettingsMutationError({
 }) {
   return (
     <p role="alert" className="text-sm text-danger">
-      {detail ? queryErrorMessage(detail, message) : message}
+      {detail ? getErrorMessage(detail, message) : message}
     </p>
   );
 }

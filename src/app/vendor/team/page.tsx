@@ -24,7 +24,7 @@ import {
   useStoreMembers,
   useUpdateStoreMemberRole,
 } from '@/hooks/useTeam';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import {
   labelInvitationStatus,
   labelMembershipRole,
@@ -84,12 +84,6 @@ function formatInviteExpiry(value: string): string {
     month: 'short',
     day: 'numeric',
   });
-}
-
-function mutationErrorMessage(error: unknown, fallback: string): string {
-  if (isApiError(error)) return error.message;
-  if (error instanceof Error && error.message) return error.message;
-  return fallback;
 }
 
 export default function VendorTeamPage() {
@@ -233,7 +227,7 @@ export default function VendorTeamPage() {
 
           {inviteMutation.isError ? (
             <p role="alert" className="text-sm text-danger">
-              {mutationErrorMessage(inviteMutation.error, 'ส่งคำเชิญไม่สำเร็จ')}
+              {getErrorMessage(inviteMutation.error, 'ส่งคำเชิญไม่สำเร็จ')}
             </p>
           ) : null}
 
@@ -346,12 +340,12 @@ export default function VendorTeamPage() {
           )}
           {updateRoleMutation.isError ? (
             <p role="alert" className="text-sm text-danger">
-              {mutationErrorMessage(updateRoleMutation.error, 'เปลี่ยนบทบาทไม่สำเร็จ')}
+              {getErrorMessage(updateRoleMutation.error, 'เปลี่ยนบทบาทไม่สำเร็จ')}
             </p>
           ) : null}
           {removeMutation.isError ? (
             <p role="alert" className="text-sm text-danger">
-              {mutationErrorMessage(removeMutation.error, 'ลบสมาชิกไม่สำเร็จ')}
+              {getErrorMessage(removeMutation.error, 'ลบสมาชิกไม่สำเร็จ')}
             </p>
           ) : null}
         </CardBody>
@@ -422,7 +416,7 @@ export default function VendorTeamPage() {
           )}
           {revokeMutation.isError ? (
             <p role="alert" className="text-sm text-danger">
-              {mutationErrorMessage(revokeMutation.error, 'ยกเลิกคำเชิญไม่สำเร็จ')}
+              {getErrorMessage(revokeMutation.error, 'ยกเลิกคำเชิญไม่สำเร็จ')}
             </p>
           ) : null}
         </CardBody>

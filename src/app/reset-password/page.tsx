@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePasswordResetTokenStatus, useResetPassword } from '@/hooks/usePasswordReset';
 import { resetPasswordSchema, type ResetPasswordFormValues } from '@/lib/validations';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const TOKEN_STATUS_MESSAGES: Record<string, string> = {
   expired: 'ลิงก์นี้หมดอายุแล้ว กรุณาขอลิงก์ตั้งรหัสผ่านใหม่อีกครั้ง',
@@ -44,7 +45,7 @@ function ResetPasswordForm() {
       router.replace('/login');
     } catch (err) {
       form.setError('root', {
-        message: err instanceof Error ? err.message : 'รีเซ็ตรหัสผ่านไม่สำเร็จ',
+        message: getErrorMessage(err, 'รีเซ็ตรหัสผ่านไม่สำเร็จ'),
       });
     }
   }

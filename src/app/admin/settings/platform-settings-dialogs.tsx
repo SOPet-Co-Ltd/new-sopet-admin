@@ -13,16 +13,10 @@ import {
 import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import type { AdFormValues, BannerFormValues, SponsorFormValues } from '@/lib/validations';
 import type { PlatformAd, PlatformBanner, PlatformSponsor } from '@/types';
 import { ActiveToggleField } from './platform-settings-primitives';
-
-function mutationErrorMessage(error: unknown, fallback: string): string {
-  if (isApiError(error)) return error.message;
-  if (error instanceof Error && error.message) return error.message;
-  return fallback;
-}
 
 type BannerDialogProps = {
   open: boolean;
@@ -126,7 +120,7 @@ export function BannerDialog({
           />
           {submitError ? (
             <p role="alert" className="text-sm text-danger">
-              {mutationErrorMessage(submitError, 'บันทึกแบนเนอร์ไม่สำเร็จ')}
+              {getErrorMessage(submitError, 'บันทึกแบนเนอร์ไม่สำเร็จ')}
             </p>
           ) : null}
           <DialogFooter>
@@ -236,7 +230,7 @@ export function SponsorDialog({
           />
           {submitError ? (
             <p role="alert" className="text-sm text-danger">
-              {mutationErrorMessage(submitError, 'บันทึกสปอนเซอร์ไม่สำเร็จ')}
+              {getErrorMessage(submitError, 'บันทึกสปอนเซอร์ไม่สำเร็จ')}
             </p>
           ) : null}
           <DialogFooter>
@@ -347,7 +341,7 @@ export function AdDialog({
           />
           {submitError ? (
             <p role="alert" className="text-sm text-danger">
-              {mutationErrorMessage(submitError, 'บันทึกโฆษณาไม่สำเร็จ')}
+              {getErrorMessage(submitError, 'บันทึกโฆษณาไม่สำเร็จ')}
             </p>
           ) : null}
           <DialogFooter>

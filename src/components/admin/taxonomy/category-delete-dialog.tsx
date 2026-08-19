@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useCategoryDeleteImpact, useDeleteCategory } from '@/hooks/useTaxonomy';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import type { TaxonomyItem } from '@/types';
 
 type WizardStep = 1 | 2 | 3;
@@ -100,7 +100,7 @@ export function CategoryDeleteDialog({
       });
       handleOpenChange(false);
     } catch (error) {
-      setDeleteError(isApiError(error) ? error.message : 'ลบหมวดหมู่ไม่สำเร็จ');
+      setDeleteError(getErrorMessage(error, 'ลบหมวดหมู่ไม่สำเร็จ'));
     }
   }
 

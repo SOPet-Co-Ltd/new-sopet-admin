@@ -18,6 +18,7 @@ import { useAdminAuditLogs } from '@/hooks/useAdminAuditLogs';
 import { AUDIT_ACTION_OPTIONS, AUDIT_RESOURCE_OPTIONS } from '@/lib/audit-logs/labels';
 import type { AdminAuditLogFilterInput } from '@/lib/graphql/generated/graphql';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const ALL_FILTER = 'all';
 
@@ -265,7 +266,7 @@ export default function AdminAuditLogsPage() {
 
       {error ? (
         <p className="mb-4 text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'โหลดบันทึกการใช้งานไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดบันทึกการใช้งานไม่สำเร็จ')}
         </p>
       ) : null}
 

@@ -31,6 +31,7 @@ import {
 import { getVendorOrderWorkflowAction } from '@/lib/orders/workflow';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Order } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const ALL = 'all';
 const SEARCH_DEBOUNCE_MS = 300;
@@ -370,7 +371,7 @@ export default function VendorOrdersPage() {
 
       {error ? (
         <p className="text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'โหลดคำสั่งซื้อไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดคำสั่งซื้อไม่สำเร็จ')}
         </p>
       ) : null}
 

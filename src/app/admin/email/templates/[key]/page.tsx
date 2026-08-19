@@ -13,6 +13,7 @@ import {
   useUpdateEmailContentTemplate,
 } from '@/hooks/useEmailCms';
 import { EmailTemplateKey } from '@/lib/graphql/generated/graphql';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const VALID_KEYS = new Set<string>(Object.values(EmailTemplateKey));
 
@@ -59,7 +60,7 @@ export default function AdminEmailTemplateEditPage() {
 
   if (error || !template) {
     return (
-      <NotFound message={error instanceof Error ? error.message : 'ไม่พบเทมเพลตสำหรับคีย์นี้'} />
+      <NotFound message={getErrorMessage(error, 'ไม่พบเทมเพลตสำหรับคีย์นี้')} />
     );
   }
 

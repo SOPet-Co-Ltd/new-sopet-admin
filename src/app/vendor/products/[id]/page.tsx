@@ -23,6 +23,7 @@ import { ProductDescriptionMarkdown } from '@/lib/markdown/product-description-m
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
 import { variantItemsFromProduct } from '@/lib/variants';
 import type { ProductStatus } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const LOW_STOCK_THRESHOLD = 5;
 const RECENT_REVIEWS_LIMIT = 5;
@@ -110,7 +111,7 @@ export default function VendorProductDetailPage() {
           กลับไปรายการสินค้า
         </Link>
         <p className="text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
+          {getErrorMessage(error, 'ไม่พบสินค้า')}
         </p>
       </div>
     );

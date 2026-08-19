@@ -14,6 +14,7 @@ import { getDashboardPath, useCurrentUser } from '@/hooks/useAuth';
 import { useAcceptVendorInvitation } from '@/hooks/useVendorInvitations';
 import { hasClientSession } from '@/lib/api/client';
 import { useAuthStore } from '@/stores/auth.store';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const schema = z.object({
   fullName: z.string().trim().min(1, 'กรุณากรอกชื่อ'),
@@ -68,7 +69,7 @@ function AcceptVendorInviteForm() {
       router.push('/vendor');
     } catch (err) {
       form.setError('root', {
-        message: err instanceof Error ? err.message : 'ตอบรับคำเชิญไม่สำเร็จ',
+        message: getErrorMessage(err, 'ตอบรับคำเชิญไม่สำเร็จ'),
       });
     }
   }

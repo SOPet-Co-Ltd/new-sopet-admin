@@ -27,6 +27,7 @@ import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/val
 import type { CreateCategoryInput, TaxonomyItem } from '@/types';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function taxonomyStatusClass(status: string): string {
   if (status === 'approved') return 'bg-success-bg text-success';
@@ -118,7 +119,7 @@ function ProposeDialog<TInput>({
             </div>
             {mutation.error ? (
               <p className="text-sm text-danger" role="alert">
-                {mutation.error instanceof Error ? mutation.error.message : 'ส่งคำขอไม่สำเร็จ'}
+                {getErrorMessage(mutation.error, 'ส่งคำขอไม่สำเร็จ')}
               </p>
             ) : null}
             <DialogFooter>

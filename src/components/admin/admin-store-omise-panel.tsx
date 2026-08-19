@@ -16,6 +16,7 @@ import { useLinkStoreOmiseRecipientAsAdmin } from '@/hooks/useAdminStores';
 import { formatThaiBankAccountNumber } from '@/lib/banks/formatThaiBankAccountNumber';
 import type { AdminStore, OmiseRecipientStatus } from '@/types';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const OMISE_STATUS_LABELS: Record<OmiseRecipientStatus, string> = {
   not_connected: 'ยังไม่ได้ยืนยันกับ Omise',
@@ -56,7 +57,7 @@ export function AdminStoreOmisePanel({ store }: AdminStoreOmisePanelProps) {
     } catch (err) {
       setFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'ส่งยืนยัน Omise ไม่สำเร็จ',
+        message: getErrorMessage(err, 'ส่งยืนยัน Omise ไม่สำเร็จ'),
       });
     }
   }

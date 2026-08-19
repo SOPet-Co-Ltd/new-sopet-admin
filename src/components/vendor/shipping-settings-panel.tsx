@@ -41,6 +41,7 @@ import {
 import { shippingOptionSchema, type ShippingOptionFormValues } from '@/lib/validations';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { StoreShippingOption } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function providerName(providers: { id: string; name: string }[], providerId?: string): string {
   if (!providerId) return 'ไม่ระบุผู้ให้บริการ';
@@ -219,7 +220,7 @@ export function VendorShippingPanel() {
           {error ? (
             <div className="px-5 py-8 text-center md:px-6">
               <p className="text-sm text-danger">
-                {error instanceof Error ? error.message : 'โหลดไม่สำเร็จ'}
+                {getErrorMessage(error, 'โหลดไม่สำเร็จ')}
               </p>
             </div>
           ) : null}
@@ -458,7 +459,7 @@ export function VendorShippingPanel() {
 
             {mutationError ? (
               <p className="text-sm text-danger" role="alert">
-                {mutationError instanceof Error ? mutationError.message : 'บันทึกไม่สำเร็จ'}
+                {getErrorMessage(mutationError, 'บันทึกไม่สำเร็จ')}
               </p>
             ) : null}
 

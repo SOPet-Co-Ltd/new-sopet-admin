@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useCreateReviewReply, useUpdateReviewReply } from '@/hooks/useReviews';
 import { isApiError } from '@/lib/api/errors-core';
 import type { ReviewReply } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export const REVIEW_REPLY_MAX_LENGTH = 1000;
 const MAX_LENGTH_ERROR = 'ข้อความยาวเกิน 1,000 ตัวอักษร';
@@ -24,7 +25,7 @@ export function mapVendorReplyError(error: unknown): string {
     }
   }
 
-  return error instanceof Error ? error.message : 'บันทึกไม่สำเร็จ';
+  return getErrorMessage(error, 'บันทึกไม่สำเร็จ');
 }
 
 type VendorReplyFormProps = {

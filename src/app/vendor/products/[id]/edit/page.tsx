@@ -25,6 +25,7 @@ import { buildLivePublishChecklist } from '@/lib/products/publish-checklist';
 import { productFormSchema, type ProductFormValues } from '@/lib/validations';
 import type { ProductStatus } from '@/types';
 import { EditProductSkeleton } from './edit-product-skeleton';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const TAXONOMY_DEBOUNCE_MS = 500;
 const SECTION_SAVED_MS = 2500;
@@ -292,7 +293,7 @@ export default function EditProductPage() {
     return (
       <div className="space-y-4" role="alert">
         <p className="text-sm text-danger">
-          {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
+          {getErrorMessage(error, 'ไม่พบสินค้า')}
         </p>
         <Link
           href="/vendor/products"
@@ -392,9 +393,7 @@ export default function EditProductPage() {
               <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
                 {updateBasicMutation.error ? (
                   <p className="mr-auto text-xs text-danger" role="alert">
-                    {updateBasicMutation.error instanceof Error
-                      ? updateBasicMutation.error.message
-                      : 'บันทึกไม่สำเร็จ'}
+                    {getErrorMessage(updateBasicMutation.error, 'บันทึกไม่สำเร็จ')}
                   </p>
                 ) : basicSaveState === 'saved' ? (
                   <p className="mr-auto text-xs text-success" role="status" aria-live="polite">
@@ -477,9 +476,7 @@ export default function EditProductPage() {
               <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
                 {updatePricingMutation.error ? (
                   <p className="mr-auto text-xs text-danger" role="alert">
-                    {updatePricingMutation.error instanceof Error
-                      ? updatePricingMutation.error.message
-                      : 'บันทึกไม่สำเร็จ'}
+                    {getErrorMessage(updatePricingMutation.error, 'บันทึกไม่สำเร็จ')}
                   </p>
                 ) : pricingSaveState === 'saved' ? (
                   <p className="mr-auto text-xs text-success" role="status" aria-live="polite">
@@ -606,9 +603,7 @@ export default function EditProductPage() {
               <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
                 {updateExtrasMutation.error ? (
                   <p className="mr-auto text-xs text-danger" role="alert">
-                    {updateExtrasMutation.error instanceof Error
-                      ? updateExtrasMutation.error.message
-                      : 'บันทึกไม่สำเร็จ'}
+                    {getErrorMessage(updateExtrasMutation.error, 'บันทึกไม่สำเร็จ')}
                   </p>
                 ) : extrasSaveState === 'saved' ? (
                   <p className="mr-auto text-xs text-success" role="status" aria-live="polite">
@@ -671,7 +666,7 @@ export default function EditProductPage() {
 
       {pageError ? (
         <p className="mt-6 text-sm text-danger" role="alert">
-          {pageError instanceof Error ? pageError.message : 'ดำเนินการไม่สำเร็จ'}
+          {getErrorMessage(pageError, 'ดำเนินการไม่สำเร็จ')}
         </p>
       ) : null}
     </div>

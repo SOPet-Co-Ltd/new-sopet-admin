@@ -120,7 +120,7 @@ describe('AdminCustomerEditPage', () => {
 
     render(<AdminCustomerEditPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('โหลดไม่สำเร็จ');
+    expect(screen.getByRole('alert')).toHaveTextContent('ไม่พบลูกค้า');
     expect(screen.getByRole('link', { name: 'กลับรายการลูกค้า' })).toHaveAttribute(
       'href',
       '/admin/customers',

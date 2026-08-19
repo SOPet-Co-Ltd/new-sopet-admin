@@ -8,15 +8,9 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import { useCreateCategory } from '@/hooks/useTaxonomy';
 import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
-
-function mutationErrorMessage(error: unknown, fallback: string): string {
-  if (isApiError(error)) return error.message;
-  if (error instanceof Error && error.message) return error.message;
-  return fallback;
-}
 
 export function CategoryCreateCard() {
   const [success, setSuccess] = useState(false);
@@ -95,7 +89,7 @@ export function CategoryCreateCard() {
         </form>
         {createCategory.error ? (
           <p role="alert" className="text-sm text-danger">
-            {mutationErrorMessage(createCategory.error, 'สร้างไม่สำเร็จ')}
+            {getErrorMessage(createCategory.error, 'สร้างไม่สำเร็จ')}
           </p>
         ) : null}
         {success ? (

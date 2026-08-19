@@ -16,6 +16,7 @@ import {
   useSubmitStoreReactivationRequest,
 } from '@/hooks/useStoreReactivationRequests';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { getErrorMessage } from '@/lib/api/errors';
 import { labelStoreReactivationRequestStatus } from '@/lib/i18n/th';
 import {
   storeReactivationRequestSchema,
@@ -50,7 +51,7 @@ export function StoreReactivationSection({
       const uploaded = await upload(file);
       setMediaUrls((prev) => [...prev, uploaded.url]);
     } catch (err) {
-      setMediaError(err instanceof Error ? err.message : 'อัปโหลดไม่สำเร็จ');
+      setMediaError(getErrorMessage(err, 'อัปโหลดไม่สำเร็จ'));
     }
   }
 
@@ -168,9 +169,7 @@ export function StoreReactivationSection({
               </div>
               {submitMutation.error ? (
                 <p className="text-sm text-danger">
-                  {submitMutation.error instanceof Error
-                    ? submitMutation.error.message
-                    : 'ส่งคำขอไม่สำเร็จ'}
+                  {getErrorMessage(submitMutation.error, 'ส่งคำขอไม่สำเร็จ')}
                 </p>
               ) : null}
               <div className="flex flex-wrap gap-3">
@@ -209,7 +208,7 @@ export function StoreReactivationSection({
             <p className="text-sm text-muted">กำลังโหลด...</p>
           ) : error ? (
             <p className="text-sm text-danger">
-              {error instanceof Error ? error.message : 'โหลดไม่สำเร็จ'}
+              {getErrorMessage(error, 'โหลดไม่สำเร็จ')}
             </p>
           ) : requests.length === 0 ? (
             <p className="text-sm text-muted">ยังไม่มีคำขอ</p>

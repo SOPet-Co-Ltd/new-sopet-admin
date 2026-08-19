@@ -39,6 +39,7 @@ import { executeMutation } from '@/lib/graphql/client';
 import { ADMIN_TRIGGER_VENDOR_PASSWORD_RESET } from '@/lib/graphql/documents';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { adminVendorFormSchema, type AdminVendorFormValues } from '@/lib/validations';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function AdminVendorEditPage() {
   const params = useParams<{ id: string }>();
@@ -84,7 +85,7 @@ export default function AdminVendorEditPage() {
       const message = await passwordResetMutation.mutateAsync({ vendorId: params.id });
       setResetMessage(message);
     } catch (err) {
-      setResetMessage(err instanceof Error ? err.message : 'ส่งอีเมลรีเซ็ตรหัสผ่านไม่สำเร็จ');
+      setResetMessage(getErrorMessage(err, 'ส่งอีเมลรีเซ็ตรหัสผ่านไม่สำเร็จ'));
     }
   }
 
@@ -95,7 +96,7 @@ export default function AdminVendorEditPage() {
       setVerificationMessage(message);
     } catch (err) {
       setVerificationMessage(
-        err instanceof Error ? err.message : 'ส่งอีเมลยืนยันอีกครั้งไม่สำเร็จ',
+        getErrorMessage(err, 'ส่งอีเมลยืนยันอีกครั้งไม่สำเร็จ'),
       );
     }
   }
@@ -107,7 +108,7 @@ export default function AdminVendorEditPage() {
       setVerificationMessage(message);
       setConfirmVerifyOpen(false);
     } catch (err) {
-      setVerificationMessage(err instanceof Error ? err.message : 'ยืนยันอีเมลด้วยตนเองไม่สำเร็จ');
+      setVerificationMessage(getErrorMessage(err, 'ยืนยันอีเมลด้วยตนเองไม่สำเร็จ'));
       setConfirmVerifyOpen(false);
     }
   }
@@ -119,7 +120,7 @@ export default function AdminVendorEditPage() {
       <div className="space-y-4">
         <BackToVendorsLink />
         <p className="text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'ไม่พบผู้ขาย'}
+          {getErrorMessage(error, 'ไม่พบผู้ขาย')}
         </p>
       </div>
     );
@@ -290,9 +291,7 @@ export default function AdminVendorEditPage() {
               </div>
               {updateMutation.isError ? (
                 <p className="text-sm text-danger" role="alert">
-                  {updateMutation.error instanceof Error
-                    ? updateMutation.error.message
-                    : 'บันทึกไม่สำเร็จ'}
+                  {getErrorMessage(updateMutation.error, 'บันทึกไม่สำเร็จ')}
                 </p>
               ) : null}
               <div className="flex flex-wrap gap-3 pt-1">

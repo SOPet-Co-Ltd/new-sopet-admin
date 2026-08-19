@@ -23,6 +23,7 @@ import { THAI_BANKS } from '@/lib/constants/thai-banks';
 import type { PayoutFormValues } from '@/lib/validations';
 import type { StoreDetail } from '@/types';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 import {
   Dialog,
   DialogContent,
@@ -173,7 +174,7 @@ export function VendorPayoutAccountPanel({
     } catch (err) {
       setSaveFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ',
+        message: getErrorMessage(err, 'บันทึกไม่สำเร็จ'),
       });
       setConfirmOpen(false);
     }

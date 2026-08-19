@@ -12,6 +12,7 @@ import {
   useMarkAllNotificationsRead,
 } from '@/lib/hooks/useNotifications';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function VendorNotificationsPage() {
   const [tab, setTab] = useState<'all' | 'unread'>('all');
@@ -102,7 +103,7 @@ export default function VendorNotificationsPage() {
           <div className="rounded-xl bg-danger-bg px-4 py-3" role="alert">
             <p className="text-sm font-medium text-danger">โหลดการแจ้งเตือนไม่สำเร็จ</p>
             <p className="mt-1 text-sm text-muted-foreground text-pretty">
-              {error instanceof Error ? error.message : 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'}
+              {getErrorMessage(error, 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง')}
             </p>
             <Button
               type="button"

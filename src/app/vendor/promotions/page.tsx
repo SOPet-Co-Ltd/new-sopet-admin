@@ -9,10 +9,7 @@ import { VendorPromotionsListSkeleton } from '@/components/vendor/vendor-promoti
 import { useDeletePromotion, useStorePromotions, useTogglePromotion } from '@/hooks/usePromotions';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import type { Promotion } from '@/types';
-
-function mutationErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function VendorPromotionsPage() {
   const storeId = useVendorStoreId();
@@ -62,19 +59,19 @@ export default function VendorPromotionsPage() {
 
       {storeId && error ? (
         <p className="text-sm text-danger" role="alert">
-          {mutationErrorMessage(error, 'โหลดโปรโมชันไม่สำเร็จ')}
+          {getErrorMessage(error, 'โหลดโปรโมชันไม่สำเร็จ')}
         </p>
       ) : null}
 
       {storeId && toggleMutation.error ? (
         <p className="text-sm text-danger" role="alert">
-          {mutationErrorMessage(toggleMutation.error, 'เปลี่ยนสถานะโปรโมชันไม่สำเร็จ')}
+          {getErrorMessage(toggleMutation.error, 'เปลี่ยนสถานะโปรโมชันไม่สำเร็จ')}
         </p>
       ) : null}
 
       {storeId && deleteMutation.error ? (
         <p className="text-sm text-danger" role="alert">
-          {mutationErrorMessage(deleteMutation.error, 'ลบโปรโมชันไม่สำเร็จ')}
+          {getErrorMessage(deleteMutation.error, 'ลบโปรโมชันไม่สำเร็จ')}
         </p>
       ) : null}
 

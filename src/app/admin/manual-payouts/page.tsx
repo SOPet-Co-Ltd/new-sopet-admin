@@ -14,6 +14,7 @@ import { formatThaiBankAccountNumber } from '@/lib/banks/formatThaiBankAccountNu
 import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { AdminManualPayout } from '@/lib/api/payouts';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function SnapshotQueueBreakdown({ payout }: { payout: AdminManualPayout }) {
   return (
@@ -176,16 +177,12 @@ export default function AdminManualPayoutsPage() {
 
           {settleMutation.isError ? (
             <p className="text-sm text-danger" role="alert">
-              {settleMutation.error instanceof Error
-                ? settleMutation.error.message
-                : 'อนุมัติไม่สำเร็จ'}
+              {getErrorMessage(settleMutation.error, 'อนุมัติไม่สำเร็จ')}
             </p>
           ) : null}
           {rejectMutation.isError ? (
             <p className="text-sm text-danger" role="alert">
-              {rejectMutation.error instanceof Error
-                ? rejectMutation.error.message
-                : 'ปฏิเสธไม่สำเร็จ'}
+              {getErrorMessage(rejectMutation.error, 'ปฏิเสธไม่สำเร็จ')}
             </p>
           ) : null}
 

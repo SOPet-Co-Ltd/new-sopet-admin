@@ -22,6 +22,7 @@ import type {
 } from '@/lib/api/email-cms';
 import { validateContentTemplateField } from '@/lib/email-cms/validation';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function AsideSection({
   title,
@@ -137,7 +138,7 @@ export function EmailContentTemplateForm({
       setPreviewStale(false);
       return result;
     } catch (error) {
-      setPreviewError(error instanceof Error ? error.message : 'สร้างตัวอย่างไม่สำเร็จ');
+      setPreviewError(getErrorMessage(error, 'สร้างตัวอย่างไม่สำเร็จ'));
       return null;
     }
   }
@@ -171,7 +172,7 @@ export function EmailContentTemplateForm({
       });
       show(`ส่งอีเมลทดสอบไปที่ ${to} แล้ว (หัวข้อขึ้นต้นด้วย [ทดสอบ])`, 'success');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'ส่งอีเมลทดสอบไม่สำเร็จ';
+      const message = getErrorMessage(error, 'ส่งอีเมลทดสอบไม่สำเร็จ');
       setTestSendError(message);
       show(message, 'error');
     }
@@ -212,7 +213,7 @@ export function EmailContentTemplateForm({
       });
       setIsDirty(false);
     } catch (error) {
-      setErrors([error instanceof Error ? error.message : 'บันทึกเทมเพลตไม่สำเร็จ']);
+      setErrors([getErrorMessage(error, 'บันทึกเทมเพลตไม่สำเร็จ')]);
     }
   }
 

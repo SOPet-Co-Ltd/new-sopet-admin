@@ -30,12 +30,17 @@ export function isPublicVendorApiDocPath(pathname: string): boolean {
   return pathname === '/vendor/api/llms.txt';
 }
 
+/** Public error-code catalog pages (noindex) under admin/vendor prefixes. */
+export function isPublicErrorsMessagePath(pathname: string): boolean {
+  return pathname === '/admin/errors-message' || pathname === '/vendor/errors-message';
+}
+
 export function getAuthRedirectPath(
   pathname: string,
   role: AuthRole | null,
   accessToken?: string,
 ): string | null {
-  if (isPublicVendorApiDocPath(pathname)) {
+  if (isPublicVendorApiDocPath(pathname) || isPublicErrorsMessagePath(pathname)) {
     return null;
   }
 

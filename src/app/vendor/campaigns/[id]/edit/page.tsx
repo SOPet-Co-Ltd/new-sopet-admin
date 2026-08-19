@@ -6,6 +6,7 @@ import { SaleCampaignForm } from '@/components/vendor/sale-campaign-form';
 import { Card, CardBody } from '@/components/ui/card';
 import { useStoreSaleCampaign, useUpdateSaleCampaign } from '@/hooks/useSaleCampaigns';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function VendorSaleCampaignEditPage() {
   const params = useParams<{ id: string }>();
@@ -37,7 +38,7 @@ export default function VendorSaleCampaignEditPage() {
   if (error || isNotFound || !campaign) {
     return (
       <p className="text-sm text-danger">
-        {error instanceof Error ? error.message : 'ไม่พบแคมเปญ'}
+        {getErrorMessage(error, 'ไม่พบแคมเปญ')}
       </p>
     );
   }

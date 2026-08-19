@@ -39,6 +39,7 @@ import {
   getProductListThumbnailUrl,
 } from '@/lib/products/list-display';
 import type { Product } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const ALL = 'all';
 const SEARCH_DEBOUNCE_MS = 300;
@@ -356,7 +357,7 @@ export default function VendorProductsPage() {
           role="alert"
         >
           <p className="text-sm text-danger">
-            {error instanceof Error ? error.message : 'โหลดสินค้าไม่สำเร็จ'}
+            {getErrorMessage(error, 'โหลดสินค้าไม่สำเร็จ')}
           </p>
           <Button type="button" variant="outline" size="sm" onClick={() => void refetch()}>
             ลองอีกครั้ง
@@ -365,9 +366,7 @@ export default function VendorProductsPage() {
       ) : null}
       {deleteMutation.error ? (
         <p className="mb-4 text-sm text-danger" role="alert">
-          {deleteMutation.error instanceof Error
-            ? deleteMutation.error.message
-            : 'ลบสินค้าไม่สำเร็จ'}
+          {getErrorMessage(deleteMutation.error, 'ลบสินค้าไม่สำเร็จ')}
         </p>
       ) : null}
 

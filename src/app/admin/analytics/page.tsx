@@ -22,6 +22,7 @@ import {
   usePlatformTopStores,
 } from '@/hooks/usePlatformAnalytics';
 import { formatCurrency } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const SalesOverTimeChart = dynamic(
   () =>
@@ -83,7 +84,7 @@ export default function AdminAnalyticsPage() {
           role="alert"
           className="rounded-lg border border-danger/20 bg-danger-bg px-4 py-3 text-sm text-danger"
         >
-          {summaryError instanceof Error ? summaryError.message : 'โหลดข้อมูลสรุปไม่สำเร็จ'}
+          {getErrorMessage(summaryError, 'โหลดข้อมูลสรุปไม่สำเร็จ')}
         </p>
       ) : null}
 

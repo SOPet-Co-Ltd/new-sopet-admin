@@ -12,6 +12,7 @@ import { useMyStore } from '@/hooks/useStoreSettings';
 import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency } from '@/lib/utils';
 import type { PayoutRailSummary } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function AvailableVendorBreakdown({ rail }: { rail: PayoutRailSummary }) {
   return (
@@ -73,9 +74,7 @@ export function VendorPayoutBalancePanel() {
         <CardBody className="space-y-3 p-6">
           <p className="text-sm font-medium text-ink">โหลดยอด payout ไม่สำเร็จ</p>
           <p className="text-sm text-muted-foreground">
-            {error instanceof Error
-              ? error.message
-              : 'ลองโหลดใหม่ หรือตรวจว่า backend migration settlement_rail รันแล้ว'}
+            {getErrorMessage(error, 'ลองโหลดใหม่ หรือตรวจว่า backend migration settlement_rail รันแล้ว')}
           </p>
           <Button type="button" variant="outline" onClick={() => void refetch()}>
             ลองใหม่
@@ -166,9 +165,7 @@ export function VendorPayoutBalancePanel() {
 
             {requestManual.isError ? (
               <p className="text-sm text-danger" role="alert">
-                {requestManual.error instanceof Error
-                  ? requestManual.error.message
-                  : 'ส่งคำขอ Manual ไม่สำเร็จ'}
+                {getErrorMessage(requestManual.error, 'ส่งคำขอ Manual ไม่สำเร็จ')}
               </p>
             ) : null}
             {requestManual.isSuccess ? (
@@ -231,9 +228,7 @@ export function VendorPayoutBalancePanel() {
 
             {requestOmise.isError ? (
               <p className="text-sm text-danger" role="alert">
-                {requestOmise.error instanceof Error
-                  ? requestOmise.error.message
-                  : 'ส่งคำขอ Omise ไม่สำเร็จ'}
+                {getErrorMessage(requestOmise.error, 'ส่งคำขอ Omise ไม่สำเร็จ')}
               </p>
             ) : null}
             {requestOmise.isSuccess ? (

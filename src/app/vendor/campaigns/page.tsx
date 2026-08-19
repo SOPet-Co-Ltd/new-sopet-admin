@@ -12,10 +12,7 @@ import {
 } from '@/hooks/useSaleCampaigns';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import type { SaleCampaign } from '@/types';
-
-function mutationErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { getErrorMessage } from '@/lib/api/errors';
 
 function CampaignsListSkeleton() {
   return (
@@ -118,19 +115,19 @@ export default function VendorSaleCampaignsPage() {
 
       {storeId && error ? (
         <p className="text-sm text-danger" role="alert">
-          {mutationErrorMessage(error, 'โหลดแคมเปญไม่สำเร็จ')}
+          {getErrorMessage(error, 'โหลดแคมเปญไม่สำเร็จ')}
         </p>
       ) : null}
 
       {storeId && toggleMutation.error ? (
         <p className="text-sm text-danger" role="alert">
-          {mutationErrorMessage(toggleMutation.error, 'เปลี่ยนสถานะแคมเปญไม่สำเร็จ')}
+          {getErrorMessage(toggleMutation.error, 'เปลี่ยนสถานะแคมเปญไม่สำเร็จ')}
         </p>
       ) : null}
 
       {storeId && deleteMutation.error ? (
         <p className="text-sm text-danger" role="alert">
-          {mutationErrorMessage(deleteMutation.error, 'ลบแคมเปญไม่สำเร็จ')}
+          {getErrorMessage(deleteMutation.error, 'ลบแคมเปญไม่สำเร็จ')}
         </p>
       ) : null}
 

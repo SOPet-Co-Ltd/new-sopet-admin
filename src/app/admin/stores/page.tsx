@@ -26,6 +26,7 @@ import {
 } from '@/lib/react-query/prefetch-dashboard-nav';
 import { cn, formatDate } from '@/lib/utils';
 import type { AdminStore } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function storeStatusBadge(store: AdminStore): { label: string; className: string } {
   const status = store.status;
@@ -223,7 +224,7 @@ export default function AdminStoresPage() {
 
       {error ? (
         <p className="mb-4 text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'โหลดร้านค้าไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดร้านค้าไม่สำเร็จ')}
         </p>
       ) : null}
 

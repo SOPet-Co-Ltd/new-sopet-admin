@@ -178,7 +178,10 @@ export function DateTimePicker({
         aria-controls={listboxId}
         aria-invalid={ariaInvalid}
         aria-describedby={ariaDescribedBy}
-        className={cn('h-10 w-full justify-start px-3 font-normal', !display && 'text-muted')}
+        className={cn(
+          'h-10 w-full justify-start bg-white px-3 text-sm font-normal shadow-sm hover:bg-white focus-visible:border-brand focus-visible:ring-brand/20',
+          !display && 'text-muted',
+        )}
         onClick={() => setOpen((prev) => !prev)}
       >
         {display || placeholder || (mode === 'date' ? 'เลือกวันที่' : 'เลือกวันและเวลา')}
