@@ -95,9 +95,7 @@ export default function AdminVendorEditPage() {
       const message = await resendVerificationMutation.mutateAsync(params.id);
       setVerificationMessage(message);
     } catch (err) {
-      setVerificationMessage(
-        getErrorMessage(err, 'ส่งอีเมลยืนยันอีกครั้งไม่สำเร็จ'),
-      );
+      setVerificationMessage(getErrorMessage(err, 'ส่งอีเมลยืนยันอีกครั้งไม่สำเร็จ'));
     }
   }
 

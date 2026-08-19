@@ -207,9 +207,7 @@ export function StoreReactivationSection({
           {isLoading ? (
             <p className="text-sm text-muted">กำลังโหลด...</p>
           ) : error ? (
-            <p className="text-sm text-danger">
-              {getErrorMessage(error, 'โหลดไม่สำเร็จ')}
-            </p>
+            <p className="text-sm text-danger">{getErrorMessage(error, 'โหลดไม่สำเร็จ')}</p>
           ) : requests.length === 0 ? (
             <p className="text-sm text-muted">ยังไม่มีคำขอ</p>
           ) : (

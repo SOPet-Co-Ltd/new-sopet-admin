@@ -69,9 +69,7 @@ export default function EditTagPage() {
   if (error || !tag) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-danger">
-          {getErrorMessage(error, 'ไม่พบแท็ก')}
-        </p>
+        <p className="text-sm text-danger">{getErrorMessage(error, 'ไม่พบแท็ก')}</p>
         <Button variant="outline" asChild>
           <Link href="/admin/taxonomy">กลับ</Link>
         </Button>

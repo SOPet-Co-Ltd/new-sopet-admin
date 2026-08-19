@@ -36,11 +36,7 @@ export default function VendorPromotionEditPage() {
   }
 
   if (error || isNotFound || !promotion) {
-    return (
-      <p className="text-sm text-danger">
-        {getErrorMessage(error, 'ไม่พบโปรโมชัน')}
-      </p>
-    );
+    return <p className="text-sm text-danger">{getErrorMessage(error, 'ไม่พบโปรโมชัน')}</p>;
   }
 
   return (

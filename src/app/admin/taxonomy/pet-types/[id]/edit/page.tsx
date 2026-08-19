@@ -80,9 +80,7 @@ export default function EditPetTypePage() {
   if (error || !petType) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-danger">
-          {getErrorMessage(error, 'ไม่พบประเภทสัตว์เลี้ยง')}
-        </p>
+        <p className="text-sm text-danger">{getErrorMessage(error, 'ไม่พบประเภทสัตว์เลี้ยง')}</p>
         <Button variant="outline" asChild>
           <Link href="/admin/taxonomy">กลับ</Link>
         </Button>
@@ -165,9 +163,7 @@ export default function EditPetTypePage() {
               folder="pet-types"
               showUrl={false}
               disabled={isPending}
-              error={
-                getErrorMessage(setPetTypeImage.error, undefined)
-              }
+              error={getErrorMessage(setPetTypeImage.error, undefined)}
             />
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">

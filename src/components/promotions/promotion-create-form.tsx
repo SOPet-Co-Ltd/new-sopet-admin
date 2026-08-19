@@ -72,9 +72,7 @@ export function PromotionCreateForm({
       });
       router.push(listHref);
     } catch (err) {
-      setSubmitError(
-        getErrorMessage(err, 'สร้างโปรโมชันไม่สำเร็จ กรุณาลองอีกครั้ง'),
-      );
+      setSubmitError(getErrorMessage(err, 'สร้างโปรโมชันไม่สำเร็จ กรุณาลองอีกครั้ง'));
     }
   }
 

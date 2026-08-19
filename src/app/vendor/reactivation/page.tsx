@@ -38,9 +38,7 @@ function VendorReactivationPageContent() {
 
       {isLoading ? <p className="text-muted">กำลังโหลด...</p> : null}
       {error ? (
-        <p className="text-danger">
-          {getErrorMessage(error, 'โหลดข้อมูลไม่สำเร็จ')}
-        </p>
+        <p className="text-danger">{getErrorMessage(error, 'โหลดข้อมูลไม่สำเร็จ')}</p>
       ) : null}
 
       {!isLoading && manageableSuspendedStores.length === 0 ? (

@@ -74,7 +74,10 @@ export function VendorPayoutBalancePanel() {
         <CardBody className="space-y-3 p-6">
           <p className="text-sm font-medium text-ink">โหลดยอด payout ไม่สำเร็จ</p>
           <p className="text-sm text-muted-foreground">
-            {getErrorMessage(error, 'ลองโหลดใหม่ หรือตรวจว่า backend migration settlement_rail รันแล้ว')}
+            {getErrorMessage(
+              error,
+              'ลองโหลดใหม่ หรือตรวจว่า backend migration settlement_rail รันแล้ว',
+            )}
           </p>
           <Button type="button" variant="outline" onClick={() => void refetch()}>
             ลองใหม่

@@ -219,9 +219,7 @@ export function VendorShippingPanel() {
 
           {error ? (
             <div className="px-5 py-8 text-center md:px-6">
-              <p className="text-sm text-danger">
-                {getErrorMessage(error, 'โหลดไม่สำเร็จ')}
-              </p>
+              <p className="text-sm text-danger">{getErrorMessage(error, 'โหลดไม่สำเร็จ')}</p>
             </div>
           ) : null}
 

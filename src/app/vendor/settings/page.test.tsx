@@ -17,10 +17,11 @@ vi.mock('@hookform/resolvers/zod', () => ({
 vi.mock('react-hook-form', () => ({
   useForm: () => ({
     register: vi.fn(),
-    handleSubmit: (handler: (values: unknown) => void) => (event?: { preventDefault?: () => void }) => {
-      event?.preventDefault?.();
-      return handler({});
-    },
+    handleSubmit:
+      (handler: (values: unknown) => void) => (event?: { preventDefault?: () => void }) => {
+        event?.preventDefault?.();
+        return handler({});
+      },
     formState: { errors: {} },
     reset: vi.fn(),
   }),

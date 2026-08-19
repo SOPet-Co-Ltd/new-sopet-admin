@@ -356,9 +356,7 @@ export default function VendorProductsPage() {
           className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-danger/20 bg-danger-bg px-4 py-3"
           role="alert"
         >
-          <p className="text-sm text-danger">
-            {getErrorMessage(error, 'โหลดสินค้าไม่สำเร็จ')}
-          </p>
+          <p className="text-sm text-danger">{getErrorMessage(error, 'โหลดสินค้าไม่สำเร็จ')}</p>
           <Button type="button" variant="outline" size="sm" onClick={() => void refetch()}>
             ลองอีกครั้ง
           </Button>

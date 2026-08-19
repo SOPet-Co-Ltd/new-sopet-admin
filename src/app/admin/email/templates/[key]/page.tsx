@@ -59,9 +59,7 @@ export default function AdminEmailTemplateEditPage() {
   }
 
   if (error || !template) {
-    return (
-      <NotFound message={getErrorMessage(error, 'ไม่พบเทมเพลตสำหรับคีย์นี้')} />
-    );
+    return <NotFound message={getErrorMessage(error, 'ไม่พบเทมเพลตสำหรับคีย์นี้')} />;
   }
 
   return (

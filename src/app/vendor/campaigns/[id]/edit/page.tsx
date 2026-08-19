@@ -36,11 +36,7 @@ export default function VendorSaleCampaignEditPage() {
   }
 
   if (error || isNotFound || !campaign) {
-    return (
-      <p className="text-sm text-danger">
-        {getErrorMessage(error, 'ไม่พบแคมเปญ')}
-      </p>
-    );
+    return <p className="text-sm text-danger">{getErrorMessage(error, 'ไม่พบแคมเปญ')}</p>;
   }
 
   return (

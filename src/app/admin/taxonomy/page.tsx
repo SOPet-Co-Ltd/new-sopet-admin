@@ -233,8 +233,7 @@ export default function AdminTaxonomyPage() {
             />
             {categoriesError ? (
               <p role="alert" className="text-sm text-danger">
-                โหลดหมวดหมู่รออนุมัติไม่สำเร็จ:{' '}
-                {getErrorMessage(categoriesError, 'เกิดข้อผิดพลาด')}
+                โหลดหมวดหมู่รออนุมัติไม่สำเร็จ: {getErrorMessage(categoriesError, 'เกิดข้อผิดพลาด')}
               </p>
             ) : null}
             <PendingMediaTaxonomyCard

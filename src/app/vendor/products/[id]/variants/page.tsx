@@ -127,9 +127,7 @@ export default function ProductVariantsPage() {
   if (error || !product) {
     return (
       <div className="rounded-xl border border-border bg-danger-bg/40 p-6" role="alert">
-        <p className="text-sm font-medium text-danger">
-          {getErrorMessage(error, 'ไม่พบสินค้า')}
-        </p>
+        <p className="text-sm font-medium text-danger">{getErrorMessage(error, 'ไม่พบสินค้า')}</p>
         <Link
           href="/vendor/products"
           className="mt-3 inline-flex text-sm font-medium text-brand underline-offset-2 hover:underline"

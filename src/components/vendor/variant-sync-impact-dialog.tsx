@@ -134,9 +134,7 @@ export function VariantSyncImpactDialog({
       if (isApiError(error) && error.code === 'VARIANT_REMOVAL_BLOCKED') {
         setMutationError(ERROR_MESSAGES.VARIANT_REMOVAL_BLOCKED);
       } else {
-        setMutationError(
-          getErrorMessage(error, 'บันทึก SKU/สต็อก/ราคาไม่สำเร็จ'),
-        );
+        setMutationError(getErrorMessage(error, 'บันทึก SKU/สต็อก/ราคาไม่สำเร็จ'));
       }
     }
   }

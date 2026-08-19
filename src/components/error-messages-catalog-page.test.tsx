@@ -29,16 +29,16 @@ describe('ErrorMessagesCatalogPage', () => {
     render(<ErrorMessagesCatalogPage />);
 
     expect(screen.getByRole('heading', { level: 1, name: 'รหัสข้อผิดพลาด' })).toBeInTheDocument();
-    expect(screen.getByRole('searchbox', { name: 'ค้นหารหัสหรือข้อความข้อผิดพลาด' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('searchbox', { name: 'ค้นหารหัสหรือข้อความข้อผิดพลาด' }),
+    ).toBeInTheDocument();
     expect(screen.getByText(`${ERROR_CATALOG.length} รหัสทั้งหมด`)).toBeInTheDocument();
   });
 
   it('renders theme toggle in the page header using shared dashboard control', () => {
     render(<ErrorMessagesCatalogPage />);
 
-    expect(
-      screen.getByRole('button', { name: 'เปลี่ยนเป็นโหมดมืด' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'เปลี่ยนเป็นโหมดมืด' })).toBeInTheDocument();
   });
 
   it('renders a full-bleed sticky toolbar with controls aligned to the content column', () => {
@@ -91,9 +91,7 @@ describe('ErrorMessagesCatalogPage', () => {
     expect(filters.className).toMatch(/::-webkit-scrollbar\]:hidden/);
     expect(filters.className).not.toMatch(/\bflex\b/);
 
-    const longCode = ERROR_CATALOG.reduce((a, b) =>
-      a.code.length >= b.code.length ? a : b,
-    ).code;
+    const longCode = ERROR_CATALOG.reduce((a, b) => (a.code.length >= b.code.length ? a : b)).code;
     const codeEl = screen.getByText(longCode);
     expect(codeEl.tagName).toBe('CODE');
     expect(codeEl.className).toMatch(/break-all/);

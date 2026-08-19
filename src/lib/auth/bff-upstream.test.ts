@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  buildUpstreamRequestHeaders,
-  harvestAuthTokens,
-  redactAuthTokens,
-} from './bff-upstream';
+import { buildUpstreamRequestHeaders, harvestAuthTokens, redactAuthTokens } from './bff-upstream';
 import { assertSameOrigin } from './bff-csrf';
 
 describe('buildUpstreamRequestHeaders', () => {

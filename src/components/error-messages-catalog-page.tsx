@@ -72,7 +72,10 @@ function CatalogEntryRow({
             {entry.code}
           </code>
           {hasDocs ? (
-            <span className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground" aria-hidden="true">
+            <span
+              className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground"
+              aria-hidden="true"
+            >
               <HiOutlineDocumentText className="size-3.5 shrink-0" aria-hidden="true" />
               มีคำอธิบาย
             </span>
@@ -260,8 +263,8 @@ export function ErrorMessagesCatalogPage() {
               รหัสข้อผิดพลาด
             </h1>
             <p className="max-w-2xl break-words text-sm leading-relaxed text-muted-foreground">
-              ค้นหารหัส API แล้วดูข้อความภาษาไทยที่แสดงในแอดมิน / ผู้ขาย กดแถวที่มีคำอธิบายเพื่อดูสาเหตุ
-              และวิธีแก้ไข
+              ค้นหารหัส API แล้วดูข้อความภาษาไทยที่แสดงในแอดมิน / ผู้ขาย
+              กดแถวที่มีคำอธิบายเพื่อดูสาเหตุ และวิธีแก้ไข
             </p>
           </div>
           <ThemeToggle className="shrink-0" />

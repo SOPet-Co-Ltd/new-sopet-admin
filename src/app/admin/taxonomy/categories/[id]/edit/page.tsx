@@ -92,9 +92,7 @@ export default function EditCategoryPage() {
   if (error || !category) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-danger">
-          {getErrorMessage(error, 'ไม่พบหมวดหมู่')}
-        </p>
+        <p className="text-sm text-danger">{getErrorMessage(error, 'ไม่พบหมวดหมู่')}</p>
         <Button variant="outline" asChild>
           <Link href="/admin/taxonomy">กลับ</Link>
         </Button>

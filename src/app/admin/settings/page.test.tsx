@@ -206,9 +206,10 @@ describe('AdminPlatformSettingsPage', () => {
     expect(
       screen.getByText('จัดการแบนเนอร์ สปอนเซอร์ โฆษณา และบัญชีรับโอนเงินบนแพลตฟอร์ม'),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'รหัสข้อผิดพลาด' }),
-    ).toHaveAttribute('href', '/admin/errors-message');
+    expect(screen.getByRole('link', { name: 'รหัสข้อผิดพลาด' })).toHaveAttribute(
+      'href',
+      '/admin/errors-message',
+    );
     expect(screen.getByRole('tablist', { name: 'หมวดตั้งค่าแพลตฟอร์ม' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'แบนเนอร์', selected: true })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'สปอนเซอร์' })).toBeInTheDocument();

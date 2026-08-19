@@ -292,9 +292,7 @@ export default function EditProductPage() {
   if (error || !product) {
     return (
       <div className="space-y-4" role="alert">
-        <p className="text-sm text-danger">
-          {getErrorMessage(error, 'ไม่พบสินค้า')}
-        </p>
+        <p className="text-sm text-danger">{getErrorMessage(error, 'ไม่พบสินค้า')}</p>
         <Link
           href="/vendor/products"
           className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-brand focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"

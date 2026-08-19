@@ -74,9 +74,7 @@ export function PromotionEditForm({
       });
       router.push(listHref);
     } catch (err) {
-      setSubmitError(
-        getErrorMessage(err, 'บันทึกโปรโมชันไม่สำเร็จ กรุณาลองอีกครั้ง'),
-      );
+      setSubmitError(getErrorMessage(err, 'บันทึกโปรโมชันไม่สำเร็จ กรุณาลองอีกครั้ง'));
     }
   }
 
