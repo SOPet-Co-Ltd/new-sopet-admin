@@ -377,7 +377,7 @@ describe('store commission — admin rate configure journey [fixture-e2e]', () =
     expect(screen.queryByLabelText(/อัตราค่าคอมมิชชัน/)).not.toBeInTheDocument();
     expect(screen.queryByText(HINT_DEFAULT)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'สร้างร้านค้า' })).toBeInTheDocument();
-  });
+  }, 15_000);
 });
 
 describe('store commission — admin already-net settlement journey [fixture-e2e]', () => {

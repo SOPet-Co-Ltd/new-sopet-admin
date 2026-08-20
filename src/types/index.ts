@@ -17,6 +17,8 @@ export interface User {
   storeId?: string;
   profilePhotoUrl?: string | null;
   emailVerified?: boolean;
+  /** When true, portal access is limited to password-change routes (INF-006). */
+  mustChangePassword?: boolean;
 }
 
 export type StoreStatus = 'pending' | 'approved' | 'rejected' | 'suspended';

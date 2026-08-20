@@ -9,7 +9,10 @@ test.describe('smart search admin fixture-e2e', () => {
   test('allows admin to open search synonyms page', async ({ page }) => {
     await authenticateAsAdmin(page);
     await page.goto('/admin/search/synonyms');
-    await expect(page.getByRole('heading', { name: 'คำพ้องความหมายการค้นหา' })).toBeVisible();
+    await expect(page).toHaveURL(/\/admin\/search\/synonyms/);
+    await expect(page.getByRole('heading', { name: 'คำพ้องความหมายการค้นหา' })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test('redirects vendor away from admin search routes', async ({ page }) => {

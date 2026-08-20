@@ -7,7 +7,9 @@ import type { User } from '@/types';
 export async function applyAuthenticatedSession(user: User): Promise<User> {
   const session = await fetchAuthSession();
   const storeId = session.storeId ?? user.storeId ?? undefined;
-  const nextUser = { ...user, storeId };
+  const mustChangePassword =
+    session.mustChangePassword === true || user.mustChangePassword === true;
+  const nextUser: User = { ...user, storeId, mustChangePassword };
   useAuthStore.getState().setUser(nextUser);
   if (storeId) {
     useVendorStore.getState().setActiveStoreId(storeId);

@@ -20,6 +20,7 @@ vi.mock('@/hooks/useSwitchStore', () => ({
 
 vi.mock('@/lib/auth/client-session', () => ({
   fetchAuthSession: () => fetchAuthSession(),
+  hasAuthCompanionCookie: () => false,
 }));
 
 function createWrapper(queryClient: QueryClient) {

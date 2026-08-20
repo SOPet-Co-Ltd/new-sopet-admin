@@ -24,6 +24,27 @@ function defaultAllowedOrigins(): string[] {
   return [...origins];
 }
 
+function requiresOriginHeaders(): boolean {
+  if (process.env.BFF_CSRF_ALLOW_MISSING_ORIGIN === 'true') {
+    return false;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    return true;
+  }
+
+  const appEnv = (process.env.NEXT_PUBLIC_APP_ENV ?? process.env.APP_ENV ?? '').toLowerCase();
+  if (appEnv === 'staging' || appEnv === 'uat' || appEnv === 'preview') {
+    return true;
+  }
+
+  if (process.env.VERCEL_ENV === 'preview') {
+    return true;
+  }
+
+  return false;
+}
+
 export function getAllowedOrigins(): string[] {
   return defaultAllowedOrigins();
 }
@@ -51,7 +72,9 @@ export function assertSameOrigin(request: Request): Response | null {
     }
   }
 
-  if (process.env.NODE_ENV === 'production') {
+  // Same-origin fetch from the app often includes Origin; if both are absent
+  // (e.g. server-to-server tests), allow only outside strict CSRF environments.
+  if (requiresOriginHeaders()) {
     return Response.json({ error: 'CSRF_ORIGIN_REJECTED' }, { status: 403 });
   }
 

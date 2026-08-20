@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { login } from '@/lib/api/auth';
 import { clearTokens } from '@/lib/api/client';
 import { applyAuthenticatedSession } from '@/lib/auth/apply-session';
+import { getPostLoginPath } from '@/lib/auth/must-change-password';
 import { clearAuthSession, resetSessionCaches } from '@/lib/auth-session';
 import { useAuthStore } from '@/stores/auth.store';
 import { useVendorStore } from '@/stores/vendor.store';
@@ -53,3 +54,5 @@ export function getDashboardPath(role?: string): string {
   if (role === 'vendor') return '/vendor';
   return '/login';
 }
+
+export { getPostLoginPath, getPasswordChangePath } from '@/lib/auth/must-change-password';

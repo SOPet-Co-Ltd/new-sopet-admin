@@ -10,24 +10,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getDashboardPath, useCurrentUser, useLogin } from '@/hooks/useAuth';
+import { getPostLoginPath, useCurrentUser, useLogin } from '@/hooks/useAuth';
 import { useRequestPasswordReset } from '@/hooks/usePasswordReset';
 import { hasClientSession } from '@/lib/api/client';
 import { getErrorMessage } from '@/lib/api/errors';
 import { AUTH_SESSION_MESSAGE_KEY, clearAuthSession } from '@/lib/auth-session';
+import { getSafeRedirect } from '@/lib/auth/safe-redirect';
 import {
   forgotPasswordSchema,
   loginSchema,
   type ForgotPasswordFormValues,
   type LoginFormValues,
 } from '@/lib/validations';
-
-function getSafeRedirect(value: string | null): string | null {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) {
-    return null;
-  }
-  return value;
-}
 
 function LoginPageContent() {
   const router = useRouter();
@@ -67,14 +61,14 @@ function LoginPageContent() {
 
   useEffect(() => {
     if (isAuthenticated && hasClientSession() && user) {
-      router.replace(redirectTo ?? getDashboardPath(user.role));
+      router.replace(redirectTo ?? getPostLoginPath(user));
     }
   }, [isAuthenticated, redirectTo, router, user]);
 
   async function onSubmit(values: LoginFormValues) {
     try {
       const result = await login.mutateAsync(values);
-      router.replace(redirectTo ?? getDashboardPath(result.user.role));
+      router.replace(redirectTo ?? getPostLoginPath(result.user));
     } catch (err) {
       form.setError('root', {
         message: getErrorMessage(err, 'เข้าสู่ระบบไม่สำเร็จ'),

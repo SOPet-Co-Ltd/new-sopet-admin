@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState, type ComponentType } from 'react';
 import { HiArrowRightOnRectangle, HiBars3, HiUserCircle } from 'react-icons/hi2';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { MustChangePasswordBanner } from '@/components/must-change-password-banner';
 import { useCurrentUser, useLogout } from '@/hooks/useAuth';
 import { createDashboardNavPrefetchHandlers } from '@/lib/react-query/prefetch-dashboard-nav';
 import { cn } from '@/lib/utils';
@@ -193,6 +194,7 @@ export function DashboardShell({
 
         <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           <div className="mx-auto min-w-0 max-w-6xl px-4 py-6 sm:px-6 md:px-8 md:py-10">
+            {user?.mustChangePassword ? <MustChangePasswordBanner /> : null}
             {children}
           </div>
         </main>

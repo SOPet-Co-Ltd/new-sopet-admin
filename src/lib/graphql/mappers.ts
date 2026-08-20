@@ -27,6 +27,7 @@ type GqlUser = {
   role: string;
   profilePhotoUrl?: string | null;
   emailVerified?: boolean;
+  mustChangePassword?: boolean | null;
 };
 
 type GqlStore = {
@@ -97,6 +98,7 @@ export function mapUser(user: GqlUser, storeId?: string): User {
     storeId,
     profilePhotoUrl: user.profilePhotoUrl ?? null,
     emailVerified: user.emailVerified ?? false,
+    mustChangePassword: user.mustChangePassword === true,
   };
 }
 

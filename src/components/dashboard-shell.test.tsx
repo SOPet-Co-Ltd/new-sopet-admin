@@ -120,4 +120,25 @@ describe('DashboardShell sidebar footer', () => {
     expect(screen.queryByText('admin@sopet.org')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ออกจากระบบ' })).toBeInTheDocument();
   });
+
+  it('shows must-change-password banner when flag is set', () => {
+    mockedUseCurrentUser.mockReturnValue({
+      user: {
+        id: '1',
+        email: 'admin@sopet.org',
+        fullName: 'Admin User',
+        role: 'admin',
+        mustChangePassword: true,
+      },
+      isAuthenticated: true,
+    });
+
+    render(
+      <DashboardShell brandHref="/admin" brandLabel="Admin" navSections={navSections}>
+        <div>content</div>
+      </DashboardShell>,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('ต้องเปลี่ยนรหัสผ่านก่อนใช้งานต่อ');
+  });
 });

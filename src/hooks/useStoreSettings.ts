@@ -8,6 +8,7 @@ import {
   updateStorePayout,
 } from '@/lib/api/stores';
 import { changePassword, updateUserProfile } from '@/lib/api/users';
+import { fetchAuthSession, refreshViaBff } from '@/lib/auth/client-session';
 import { queryKeys } from '@/lib/react-query/keys';
 import { useAuthStore } from '@/stores/auth.store';
 import type { UpdateStoreInput } from '@/types';
@@ -76,5 +77,21 @@ export function useUpdateUserProfile() {
 export function useChangePassword() {
   return useMutation({
     mutationFn: (input: { currentPassword: string; newPassword: string }) => changePassword(input),
+    onSuccess: async () => {
+      // Re-issue JWT so mustChangePassword claim clears (admin refresh re-reads DB).
+      await refreshViaBff();
+      const session = await fetchAuthSession();
+      const current = useAuthStore.getState().user;
+      if (!current) {
+        return;
+      }
+      useAuthStore.getState().setUser({
+        ...current,
+        role: session.role ?? current.role,
+        storeId: session.storeId ?? current.storeId,
+        // Always clear after a successful changePassword — vendor refresh may keep a stale claim.
+        mustChangePassword: false,
+      });
+    },
   });
 }

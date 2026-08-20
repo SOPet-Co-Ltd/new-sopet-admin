@@ -8,6 +8,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
+# INF2-002 — least-privilege workflow token
+permissions:
+  contents: read
+
 jobs:
   lite:
     if: github.base_ref != 'deploy/production' && github.base_ref != 'deploy/uat'
@@ -26,6 +30,16 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Audit critical dependencies
+        # Yarn classic exits with a severity bitmask; only fail on Critical (16).
+        run: |
+          set +e
+          yarn audit --level critical
+          code=$?
+          set -e
+          if (( code & 16 )); then exit 1; fi
+          exit 0
+
       - name: Format check
         run: yarn format:check
 
@@ -41,6 +55,10 @@ jobs:
       # and skips HttpOnly auth cookies, which breaks Playwright GraphQL mocks.
       NEXT_PUBLIC_GRAPHQL_URL: /graphql
       GRAPHQL_SCHEMA_PATH: sopet-backend/src/schema.gql
+      # Edge proxy verifies Playwright cookies (HS256 + iss/aud); must match e2e signer.
+      JWT_SECRET: sopet-admin-e2e-jwt-secret-min-32-chars!!
+      JWT_ISSUER: sopet
+      JWT_AUDIENCE: sopet-api
 
     steps:
       - name: Checkout admin
@@ -63,6 +81,16 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Audit critical dependencies
+        # Yarn classic exits with a severity bitmask; only fail on Critical (16).
+        run: |
+          set +e
+          yarn audit --level critical
+          code=$?
+          set -e
+          if (( code & 16 )); then exit 1; fi
+          exit 0
 
       - name: Format check
         run: yarn format:check

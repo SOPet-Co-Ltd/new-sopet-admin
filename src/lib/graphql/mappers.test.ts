@@ -29,6 +29,7 @@ describe('mapUser', () => {
       storeId: 'store-123',
       profilePhotoUrl: null,
       emailVerified: false,
+      mustChangePassword: false,
     });
   });
 
@@ -49,6 +50,7 @@ describe('mapUser', () => {
       storeId: undefined,
       profilePhotoUrl: null,
       emailVerified: true,
+      mustChangePassword: false,
     });
   });
 
@@ -69,6 +71,28 @@ describe('mapUser', () => {
       storeId: undefined,
       profilePhotoUrl: 'https://cdn.example.com/avatar.jpg',
       emailVerified: false,
+      mustChangePassword: false,
+    });
+  });
+
+  it('maps mustChangePassword when true', () => {
+    expect(
+      mapUser({
+        id: 'u4',
+        email: 'admin@example.com',
+        fullName: 'Seed Admin',
+        role: 'admin',
+        mustChangePassword: true,
+      }),
+    ).toEqual({
+      id: 'u4',
+      email: 'admin@example.com',
+      fullName: 'Seed Admin',
+      role: 'admin',
+      storeId: undefined,
+      profilePhotoUrl: null,
+      emailVerified: false,
+      mustChangePassword: true,
     });
   });
 });

@@ -1,7 +1,6 @@
 import type { Components } from 'react-markdown';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 
 // Parity partner: sopet-storefront/src/components/molecules/ProductMarkdownContent/ProductMarkdownContent.tsx
@@ -28,12 +27,8 @@ const productDescriptionMarkdownComponents: Components = {
   ),
 };
 
-export function hasHtmlMarkup(source: string): boolean {
-  return /<[^>]+>/.test(source);
-}
-
-export function getProductDescriptionRehypePlugins(description: string) {
-  return hasHtmlMarkup(description) ? [rehypeRaw, rehypeSanitize] : [rehypeSanitize];
+export function getProductDescriptionRehypePlugins() {
+  return [rehypeSanitize];
 }
 
 type ProductDescriptionMarkdownProps = {
@@ -56,7 +51,7 @@ export function ProductDescriptionMarkdown({
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={getProductDescriptionRehypePlugins(description)}
+        rehypePlugins={getProductDescriptionRehypePlugins()}
         components={productDescriptionMarkdownComponents}
       >
         {description}

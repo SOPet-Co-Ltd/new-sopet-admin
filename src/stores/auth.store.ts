@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { fetchAuthSession, hasAuthCompanionCookie } from '@/lib/auth/client-session';
 import type { User } from '@/types';
 
 const AUTH_STORAGE_KEY = 'sopet-admin-auth';
@@ -31,10 +32,56 @@ export const useAuthStore = create<AuthState>()(
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
+        queueMicrotask(() => {
+          void syncAuthFromSessionApi();
+        });
       },
     },
   ),
 );
+
+async function syncAuthFromSessionApi(): Promise<void> {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (!hasAuthCompanionCookie() && !useAuthStore.getState().isAuthenticated) {
+    return;
+  }
+
+  try {
+    const session = await fetchAuthSession();
+
+    if (!session.authenticated || !session.role) {
+      if (useAuthStore.getState().isAuthenticated) {
+        useAuthStore.getState().clearAuth();
+      }
+      return;
+    }
+
+    const current = useAuthStore.getState().user;
+    if (current) {
+      useAuthStore.getState().setUser({
+        ...current,
+        role: session.role,
+        storeId: session.storeId ?? current.storeId,
+        mustChangePassword: session.mustChangePassword === true,
+      });
+      return;
+    }
+
+    useAuthStore.getState().setUser({
+      id: 'session',
+      email: '',
+      fullName: '',
+      role: session.role,
+      storeId: session.storeId ?? undefined,
+      mustChangePassword: session.mustChangePassword === true,
+    });
+  } catch {
+    // Best-effort sync during hydration; tests/offline callers may not have fetch.
+  }
+}
 
 // Each tab hydrates this store from localStorage exactly once, at module load. With no
 // cross-tab sync, a tab left open on /login before a sibling tab logs in keeps a stale

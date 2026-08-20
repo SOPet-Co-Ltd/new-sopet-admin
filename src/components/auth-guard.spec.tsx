@@ -7,6 +7,7 @@ const replace = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
+  usePathname: () => mockPathname(),
 }));
 
 vi.mock('@/lib/api/client', () => ({
@@ -14,6 +15,7 @@ vi.mock('@/lib/api/client', () => ({
 }));
 
 const mockUseAuthStore = vi.fn();
+const mockPathname = vi.fn(() => '/admin/stores');
 
 vi.mock('@/stores/auth.store', () => ({
   useAuthStore: (selector: (state: Record<string, unknown>) => unknown) =>
@@ -23,7 +25,7 @@ vi.mock('@/stores/auth.store', () => ({
 function mockAuthState(state: {
   hasHydrated: boolean;
   isAuthenticated: boolean;
-  user: { role: 'admin' | 'vendor' } | null;
+  user: { role: 'admin' | 'vendor'; mustChangePassword?: boolean } | null;
 }) {
   mockUseAuthStore.mockImplementation((selector) =>
     selector({
@@ -37,10 +39,11 @@ function mockAuthState(state: {
 describe('AuthGuard', () => {
   beforeEach(() => {
     replace.mockClear();
+    mockPathname.mockReturnValue('/admin/stores');
     vi.mocked(hasClientSession).mockReturnValue(true);
   });
 
-  it('renders children directly while auth store is hydrating', () => {
+  it('shows loading shell while auth store is hydrating', () => {
     mockAuthState({
       hasHydrated: false,
       isAuthenticated: false,
@@ -53,8 +56,8 @@ describe('AuthGuard', () => {
       </AuthGuard>,
     );
 
-    expect(screen.getByText('Protected content')).toBeInTheDocument();
-    expect(screen.queryByText('กำลังโหลด...')).not.toBeInTheDocument();
+    expect(screen.getByText('กำลังโหลด...')).toBeInTheDocument();
+    expect(screen.queryByText('Protected content')).not.toBeInTheDocument();
   });
 
   it('redirects when hydrated user role mismatches required role', async () => {
@@ -71,5 +74,58 @@ describe('AuthGuard', () => {
     );
 
     expect(replace).toHaveBeenCalledWith('/vendor');
+  });
+
+  it('redirects admin with mustChangePassword away from non-profile routes', () => {
+    mockPathname.mockReturnValue('/admin/stores');
+    mockAuthState({
+      hasHydrated: true,
+      isAuthenticated: true,
+      user: { role: 'admin', mustChangePassword: true },
+    });
+
+    render(
+      <AuthGuard requiredRole="admin">
+        <p>Protected content</p>
+      </AuthGuard>,
+    );
+
+    expect(replace).toHaveBeenCalledWith('/admin/profile');
+    expect(screen.queryByText('Protected content')).not.toBeInTheDocument();
+  });
+
+  it('allows admin with mustChangePassword on profile route', () => {
+    mockPathname.mockReturnValue('/admin/profile');
+    mockAuthState({
+      hasHydrated: true,
+      isAuthenticated: true,
+      user: { role: 'admin', mustChangePassword: true },
+    });
+
+    render(
+      <AuthGuard requiredRole="admin">
+        <p>Protected content</p>
+      </AuthGuard>,
+    );
+
+    expect(replace).not.toHaveBeenCalled();
+    expect(screen.getByText('Protected content')).toBeInTheDocument();
+  });
+
+  it('redirects vendor with mustChangePassword to settings', () => {
+    mockPathname.mockReturnValue('/vendor/products');
+    mockAuthState({
+      hasHydrated: true,
+      isAuthenticated: true,
+      user: { role: 'vendor', mustChangePassword: true },
+    });
+
+    render(
+      <AuthGuard requiredRole="vendor">
+        <p>Protected content</p>
+      </AuthGuard>,
+    );
+
+    expect(replace).toHaveBeenCalledWith('/vendor/settings');
   });
 });

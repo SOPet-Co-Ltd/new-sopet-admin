@@ -1,23 +1,34 @@
 import type { Page } from '@playwright/test';
+import { SignJWT } from 'jose';
 import { adminUser } from './data';
 
 const ACCESS_TOKEN_COOKIE = 'accessToken';
 const REFRESH_TOKEN_COOKIE = 'refreshToken';
 const REFRESH_TOKEN = 'e2e-refresh-token';
 
+/** Must match `playwright.config.ts` webServer env / CI JWT_SECRET. */
+export const E2E_JWT_SECRET =
+  process.env.JWT_SECRET?.trim() || 'sopet-admin-e2e-jwt-secret-min-32-chars!!';
+
 type AuthRole = 'admin' | 'vendor';
 
-function createFakeJwt(role: AuthRole): string {
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const body = Buffer.from(JSON.stringify({ role })).toString('base64url');
-  return `${header}.${body}.e2e-signature`;
+async function createSignedJwt(role: AuthRole): Promise<string> {
+  const secret = new TextEncoder().encode(E2E_JWT_SECRET);
+  return new SignJWT({ role, sub: `${role}-e2e-1` })
+    .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+    .setIssuer(process.env.JWT_ISSUER?.trim() || 'sopet')
+    .setAudience(process.env.JWT_AUDIENCE?.trim() || 'sopet-api')
+    .setIssuedAt()
+    .setExpirationTime('2h')
+    .sign(secret);
 }
 
 async function seedAuthCookies(page: Page, role: AuthRole) {
+  const accessToken = await createSignedJwt(role);
   await page.context().addCookies([
     {
       name: ACCESS_TOKEN_COOKIE,
-      value: createFakeJwt(role),
+      value: accessToken,
       domain: 'localhost',
       path: '/',
       sameSite: 'Lax',
