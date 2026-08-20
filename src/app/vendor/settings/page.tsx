@@ -148,7 +148,8 @@ function VendorSettingsPageContent() {
     type: 'success' | 'error';
     message: string;
   } | null>(null);
-  const [showPasswordSection, setShowPasswordSection] = useState(mustChangePassword);
+  const [passwordExpanded, setPasswordExpanded] = useState(false);
+  const showPasswordSection = mustChangePassword || passwordExpanded;
   const [profileFeedback, setProfileFeedback] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -159,12 +160,6 @@ function VendorSettingsPageContent() {
       profileForm.reset({ fullName: user.fullName, email: user.email });
     }
   }, [user, profileForm]);
-
-  useEffect(() => {
-    if (mustChangePassword) {
-      setShowPasswordSection(true);
-    }
-  }, [mustChangePassword]);
 
   useEffect(() => {
     if (store) {
@@ -393,9 +388,10 @@ function VendorSettingsPageContent() {
                   variant="outline"
                   aria-expanded={showPasswordSection}
                   aria-controls="password-change-section"
+                  disabled={mustChangePassword}
                   onClick={() => {
-                    setShowPasswordSection((prev) => !prev);
-                    if (showPasswordSection) {
+                    setPasswordExpanded((prev) => !prev);
+                    if (showPasswordSection && !mustChangePassword) {
                       setPasswordFeedback(null);
                     }
                   }}

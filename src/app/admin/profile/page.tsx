@@ -17,7 +17,8 @@ export default function AdminProfilePage() {
   const updateProfile = useUpdateUserProfile();
   const changePassword = useChangePassword();
   const mustChangePassword = user?.mustChangePassword === true;
-  const [showPasswordSection, setShowPasswordSection] = useState(mustChangePassword);
+  const [passwordExpanded, setPasswordExpanded] = useState(false);
+  const showPasswordSection = mustChangePassword || passwordExpanded;
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -37,12 +38,6 @@ export default function AdminProfilePage() {
       profileForm.reset({ fullName: user.fullName, email: user.email });
     }
   }, [user, profileForm]);
-
-  useEffect(() => {
-    if (mustChangePassword) {
-      setShowPasswordSection(true);
-    }
-  }, [mustChangePassword]);
 
   async function onProfileSubmit(values: ProfileFormValues) {
     await updateProfile.mutateAsync({ fullName: values.fullName });
@@ -152,8 +147,9 @@ export default function AdminProfilePage() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowPasswordSection((v) => !v)}
+              onClick={() => setPasswordExpanded((v) => !v)}
               aria-expanded={showPasswordSection}
+              disabled={mustChangePassword}
             >
               {showPasswordSection ? 'ซ่อน' : 'เปลี่ยนรหัสผ่าน'}
             </Button>
