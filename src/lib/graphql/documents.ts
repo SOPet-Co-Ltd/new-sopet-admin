@@ -11,6 +11,7 @@ export const ME_QUERY = gql`
         storeId
         profilePhotoUrl
         emailVerified
+        mustChangePassword
       }
     }
   }
@@ -29,6 +30,7 @@ export const VENDOR_LOGIN = gql`
         fullName
         role
         emailVerified
+        mustChangePassword
       }
     }
   }
@@ -47,6 +49,7 @@ export const ADMIN_LOGIN = gql`
         fullName
         role
         emailVerified
+        mustChangePassword
       }
     }
   }
@@ -967,6 +970,7 @@ export const REGISTER_VENDOR = gql`
         fullName
         role
         emailVerified
+        mustChangePassword
       }
     }
   }

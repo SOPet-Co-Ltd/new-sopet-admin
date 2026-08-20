@@ -50,6 +50,18 @@ describe('proxy-auth', () => {
     expect(getAuthRedirectPath('/vendor/products', 'vendor', token)).toBeNull();
   });
 
+  it('redirects mustChangePassword admin away from non-profile routes', () => {
+    const token = createFakeJwt({ role: 'admin', mustChangePassword: true });
+    expect(getAuthRedirectPath('/admin/stores', 'admin', token, true)).toBe('/admin/profile');
+    expect(getAuthRedirectPath('/admin/profile', 'admin', token, true)).toBeNull();
+  });
+
+  it('redirects mustChangePassword vendor away from non-settings routes', () => {
+    const token = createFakeJwt({ role: 'vendor', mustChangePassword: true });
+    expect(getAuthRedirectPath('/vendor/products', 'vendor', token, true)).toBe('/vendor/settings');
+    expect(getAuthRedirectPath('/vendor/settings', 'vendor', token, true)).toBeNull();
+  });
+
   it('allows unauthenticated access to vendor API llms.txt', () => {
     expect(getAuthRedirectPath('/vendor/api/llms.txt', null, undefined)).toBeNull();
   });

@@ -16,7 +16,8 @@ export default function AdminProfilePage() {
   const { user } = useCurrentUser();
   const updateProfile = useUpdateUserProfile();
   const changePassword = useChangePassword();
-  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const mustChangePassword = user?.mustChangePassword === true;
+  const [showPasswordSection, setShowPasswordSection] = useState(mustChangePassword);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -36,6 +37,12 @@ export default function AdminProfilePage() {
       profileForm.reset({ fullName: user.fullName, email: user.email });
     }
   }, [user, profileForm]);
+
+  useEffect(() => {
+    if (mustChangePassword) {
+      setShowPasswordSection(true);
+    }
+  }, [mustChangePassword]);
 
   async function onProfileSubmit(values: ProfileFormValues) {
     await updateProfile.mutateAsync({ fullName: values.fullName });

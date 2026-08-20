@@ -5,6 +5,7 @@ export type AuthSession = {
   authenticated: boolean;
   role?: PortalRole | null;
   storeId?: string | null;
+  mustChangePassword?: boolean;
 };
 
 export function hasAuthCompanionCookie(): boolean {

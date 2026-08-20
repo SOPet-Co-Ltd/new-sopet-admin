@@ -12,6 +12,7 @@ type AuthPayload = {
     role: string;
     emailVerified?: boolean;
     profilePhotoUrl?: string | null;
+    mustChangePassword?: boolean | null;
   };
 };
 
@@ -57,6 +58,7 @@ type MeQueryResult = {
       storeId?: string | null;
       profilePhotoUrl?: string | null;
       emailVerified?: boolean;
+      mustChangePassword?: boolean | null;
     } | null;
   };
 };

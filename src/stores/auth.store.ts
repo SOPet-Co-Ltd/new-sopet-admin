@@ -65,6 +65,7 @@ async function syncAuthFromSessionApi(): Promise<void> {
         ...current,
         role: session.role,
         storeId: session.storeId ?? current.storeId,
+        mustChangePassword: session.mustChangePassword === true,
       });
       return;
     }
@@ -75,6 +76,7 @@ async function syncAuthFromSessionApi(): Promise<void> {
       fullName: '',
       role: session.role,
       storeId: session.storeId ?? undefined,
+      mustChangePassword: session.mustChangePassword === true,
     });
   } catch {
     // Best-effort sync during hydration; tests/offline callers may not have fetch.

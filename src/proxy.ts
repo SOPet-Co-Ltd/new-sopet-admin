@@ -6,12 +6,14 @@ import {
   getGuestOnlyRedirectPath,
   getVerifiedRequestRole,
 } from '@/lib/auth/proxy-auth';
+import { getMustChangePasswordFromVerifiedToken } from '@/lib/jwt';
 
 export async function proxy(request: NextRequest) {
   const accessToken = request.cookies.get(ACCESS_TOKEN)?.value;
   const role = await getVerifiedRequestRole(accessToken);
+  const mustChangePassword = await getMustChangePasswordFromVerifiedToken(accessToken);
   const redirectPath =
-    getAuthRedirectPath(request.nextUrl.pathname, role, accessToken) ??
+    getAuthRedirectPath(request.nextUrl.pathname, role, accessToken, mustChangePassword) ??
     getGuestOnlyRedirectPath(request.nextUrl.pathname, role, accessToken);
 
   if (redirectPath) {

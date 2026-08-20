@@ -97,3 +97,16 @@ export async function getStoreIdFromVerifiedToken(token?: string): Promise<strin
   const payload = await verifyJwtPayload(token);
   return typeof payload?.storeId === 'string' ? payload.storeId : undefined;
 }
+
+export function getMustChangePasswordFromPayload(
+  payload: Record<string, unknown> | JWTPayload | null | undefined,
+): boolean {
+  if (!payload) return false;
+  return payload.mustChangePassword === true;
+}
+
+export async function getMustChangePasswordFromVerifiedToken(token?: string): Promise<boolean> {
+  if (!token) return false;
+  const payload = await verifyJwtPayload(token);
+  return getMustChangePasswordFromPayload(payload);
+}

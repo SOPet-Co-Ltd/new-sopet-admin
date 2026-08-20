@@ -1,4 +1,8 @@
 import { ACCESS_TOKEN } from '@/lib/config';
+import {
+  getPasswordChangePath,
+  isPasswordChangeAllowedPath,
+} from '@/lib/auth/must-change-password';
 import { getPortalRoleFromToken, getPortalRoleFromVerifiedToken, type PortalRole } from '@/lib/jwt';
 
 export type AuthRole = PortalRole;
@@ -45,6 +49,7 @@ export function getAuthRedirectPath(
   pathname: string,
   role: AuthRole | null,
   accessToken?: string,
+  mustChangePassword = false,
 ): string | null {
   if (isPublicVendorApiDocPath(pathname) || isPublicErrorsMessagePath(pathname)) {
     return null;
@@ -63,14 +68,14 @@ export function getAuthRedirectPath(
     if (role !== 'admin') {
       return role === 'vendor' ? '/vendor' : '/login';
     }
-    return null;
-  }
-
-  if (pathname.startsWith('/vendor')) {
+  } else if (pathname.startsWith('/vendor')) {
     if (role !== 'vendor') {
       return role === 'admin' ? '/admin/stores' : '/login';
     }
-    return null;
+  }
+
+  if (mustChangePassword && !isPasswordChangeAllowedPath(pathname, role)) {
+    return getPasswordChangePath(role);
   }
 
   return null;

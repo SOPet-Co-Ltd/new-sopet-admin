@@ -90,8 +90,12 @@ function VendorSettingsPageContent() {
   const searchParams = useSearchParams();
   const { user } = useCurrentUser();
   const { isOwner } = useIsStoreOwner();
+  const mustChangePassword = user?.mustChangePassword === true;
   const requestedTab = parseSettingsTab(searchParams.get('tab'));
-  const tab = !isOwner && OWNER_ONLY_TABS.includes(requestedTab) ? 'profile' : requestedTab;
+  const tab =
+    mustChangePassword || (!isOwner && OWNER_ONLY_TABS.includes(requestedTab))
+      ? 'profile'
+      : requestedTab;
   const { data: store, isLoading: storeLoading } = useMyStore();
   const updateProfile = useUpdateUserProfile();
   const changePassword = useChangePassword();
@@ -99,6 +103,9 @@ function VendorSettingsPageContent() {
   const updatePayout = useUpdateStorePayout();
 
   function selectTab(next: SettingsTab) {
+    if (mustChangePassword && next !== 'profile') {
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     if (next === 'profile') {
       params.delete('tab');
@@ -141,7 +148,7 @@ function VendorSettingsPageContent() {
     type: 'success' | 'error';
     message: string;
   } | null>(null);
-  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [showPasswordSection, setShowPasswordSection] = useState(mustChangePassword);
   const [profileFeedback, setProfileFeedback] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -152,6 +159,12 @@ function VendorSettingsPageContent() {
       profileForm.reset({ fullName: user.fullName, email: user.email });
     }
   }, [user, profileForm]);
+
+  useEffect(() => {
+    if (mustChangePassword) {
+      setShowPasswordSection(true);
+    }
+  }, [mustChangePassword]);
 
   useEffect(() => {
     if (store) {
@@ -248,6 +261,7 @@ function VendorSettingsPageContent() {
   }
 
   const visibleTabs = (Object.keys(settingsTabLabels) as SettingsTab[]).filter((key) => {
+    if (mustChangePassword && key !== 'profile') return false;
     if ((key === 'store' || key === 'payout' || key === 'shipping') && !isOwner) return false;
     return true;
   });
