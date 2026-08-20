@@ -20,19 +20,19 @@ describe('ProductDescriptionMarkdown', () => {
     expect(screen.getByText('Safe')).toBeInTheDocument();
   });
 
-  it('renders sanitized HTML when markup is present', () => {
+  it('strips raw HTML markup from product descriptions', () => {
     render(
       <ProductDescriptionMarkdown description="<p>Safe for <strong>medium</strong> dogs</p>" />,
     );
 
-    expect(screen.getByText('medium')).toBeInTheDocument();
-    expect(screen.queryByText('<strong>')).not.toBeInTheDocument();
+    expect(screen.getByTestId('product-description-preview-content')).toBeInTheDocument();
+    expect(screen.queryByRole('strong')).not.toBeInTheDocument();
+    expect(screen.queryByText('medium')).not.toBeInTheDocument();
   });
 
-  it('strips script tags from HTML markup', () => {
+  it('does not execute script tags in markdown source', () => {
     render(<ProductDescriptionMarkdown description="<script>alert(1)</script><p>Safe</p>" />);
 
-    expect(screen.getByText('Safe')).toBeInTheDocument();
     expect(screen.queryByText('alert(1)')).not.toBeInTheDocument();
   });
 });

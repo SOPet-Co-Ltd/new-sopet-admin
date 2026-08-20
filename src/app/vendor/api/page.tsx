@@ -20,6 +20,7 @@ import { useCreateStoreApiKey, useRevokeStoreApiKey, useStoreApiKeys } from '@/h
 import { useIsStoreManager } from '@/hooks/useMembershipRole';
 import { StoreIdField } from '@/components/vendor/store-id-field';
 import { getErrorMessage } from '@/lib/api/errors';
+import { apiKeyNameSchema } from '@/lib/validations';
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString('th-TH', {
@@ -43,6 +44,7 @@ export default function VendorApiPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState('');
+  const [nameError, setNameError] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [secretOpen, setSecretOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -52,11 +54,16 @@ export default function VendorApiPage() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) return;
+    setNameError(null);
+
+    const parsed = apiKeyNameSchema.safeParse(name);
+    if (!parsed.success) {
+      setNameError(parsed.error.issues[0]?.message ?? 'ชื่อ API Key ไม่ถูกต้อง');
+      return;
+    }
 
     try {
-      const result = await createMutation.mutateAsync(trimmed);
+      const result = await createMutation.mutateAsync(parsed.data);
       setCreateOpen(false);
       setName('');
       setSecret(result.secret);
@@ -221,12 +228,22 @@ export default function VendorApiPage() {
               <Input
                 id="api-key-name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (nameError) setNameError(null);
+                }}
                 placeholder="ระบบสต็อก"
                 className="mt-1.5"
                 autoFocus
                 required
+                aria-invalid={!!nameError}
+                aria-describedby={nameError ? 'api-key-name-error' : undefined}
               />
+              {nameError ? (
+                <p id="api-key-name-error" role="alert" className="mt-1 text-xs text-danger">
+                  {nameError}
+                </p>
+              ) : null}
             </div>
             {createMutation.isError ? (
               <p className="text-sm text-danger" role="alert">

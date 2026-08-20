@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAccessTokenFromRequest, isAuthenticatedFromCookies } from '@/lib/auth/bff-cookies';
-import { decodeJwtPayload, getPortalRoleFromToken } from '@/lib/jwt';
+import { getPortalRoleFromVerifiedToken, getStoreIdFromVerifiedToken } from '@/lib/jwt';
 
 export async function GET() {
   const authenticated = await isAuthenticatedFromCookies();
@@ -9,13 +9,12 @@ export async function GET() {
   }
 
   const accessToken = await getAccessTokenFromRequest();
-  const role = getPortalRoleFromToken(accessToken);
-  const payload = accessToken ? decodeJwtPayload(accessToken) : null;
-  const storeId = typeof payload?.storeId === 'string' ? payload.storeId : null;
+  const role = await getPortalRoleFromVerifiedToken(accessToken);
+  const storeId = await getStoreIdFromVerifiedToken(accessToken);
 
   return NextResponse.json({
     authenticated: true,
     role,
-    storeId,
+    storeId: storeId ?? null,
   });
 }

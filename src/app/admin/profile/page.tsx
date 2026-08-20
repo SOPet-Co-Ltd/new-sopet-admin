@@ -23,6 +23,8 @@ export default function AdminProfilePage() {
     confirmPassword: '',
   });
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [passwordMessageIsError, setPasswordMessageIsError] = useState(false);
+  const MIN_PASSWORD_LENGTH = 8;
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -42,8 +44,17 @@ export default function AdminProfilePage() {
   async function onPasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPasswordMessage(null);
+    setPasswordMessageIsError(false);
+
+    if (passwordForm.newPassword.length < MIN_PASSWORD_LENGTH) {
+      setPasswordMessage('รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร');
+      setPasswordMessageIsError(true);
+      return;
+    }
+
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       setPasswordMessage('รหัสผ่านใหม่ไม่ตรงกัน');
+      setPasswordMessageIsError(true);
       return;
     }
     try {
@@ -52,9 +63,11 @@ export default function AdminProfilePage() {
         newPassword: passwordForm.newPassword,
       });
       setPasswordMessage(message);
+      setPasswordMessageIsError(false);
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
       setPasswordMessage(getErrorMessage(err, 'เปลี่ยนรหัสผ่านไม่สำเร็จ'));
+      setPasswordMessageIsError(true);
     }
   }
 
@@ -167,13 +180,20 @@ export default function AdminProfilePage() {
                     type="password"
                     autoComplete="new-password"
                     placeholder="อย่างน้อย 8 ตัวอักษร"
-                    aria-describedby={passwordMessage ? 'password-form-message' : undefined}
+                    aria-describedby={
+                      passwordMessage ? 'password-form-message' : 'newPassword-hint'
+                    }
                     value={passwordForm.newPassword}
                     onChange={(e) =>
                       setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))
                     }
                     className="mt-1.5"
+                    required
+                    minLength={MIN_PASSWORD_LENGTH}
                   />
+                  <p id="newPassword-hint" className="mt-1 text-xs text-muted">
+                    อย่างน้อย 8 ตัวอักษร
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="confirmPassword" required>
@@ -193,7 +213,11 @@ export default function AdminProfilePage() {
                   />
                 </div>
                 {passwordMessage ? (
-                  <p id="password-form-message" role="alert" className="text-sm text-muted">
+                  <p
+                    id="password-form-message"
+                    role="alert"
+                    className={`text-sm ${passwordMessageIsError ? 'text-danger' : 'text-muted'}`}
+                  >
                     {passwordMessage}
                   </p>
                 ) : null}

@@ -267,6 +267,14 @@ export const sponsorFormSchema = z.object({
 
 export type SponsorFormValues = z.infer<typeof sponsorFormSchema>;
 
+export const apiKeyNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'กรุณากรอกชื่อ API Key')
+  .max(100, 'ชื่อ API Key ต้องไม่เกิน 100 ตัวอักษร');
+
+export type ApiKeyNameValues = z.infer<typeof apiKeyNameSchema>;
+
 export const adFormSchema = z.object({
   title: z.string().min(1, 'กรุณากรอกชื่อโฆษณา'),
   imageUrl: z.string().min(1, 'กรุณาอัปโหลดรูปภาพ').url('กรุณาอัปโหลดรูปภาพ'),

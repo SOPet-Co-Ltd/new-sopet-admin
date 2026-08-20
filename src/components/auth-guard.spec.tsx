@@ -40,7 +40,7 @@ describe('AuthGuard', () => {
     vi.mocked(hasClientSession).mockReturnValue(true);
   });
 
-  it('renders children directly while auth store is hydrating', () => {
+  it('shows loading shell while auth store is hydrating', () => {
     mockAuthState({
       hasHydrated: false,
       isAuthenticated: false,
@@ -53,8 +53,8 @@ describe('AuthGuard', () => {
       </AuthGuard>,
     );
 
-    expect(screen.getByText('Protected content')).toBeInTheDocument();
-    expect(screen.queryByText('กำลังโหลด...')).not.toBeInTheDocument();
+    expect(screen.getByText('กำลังโหลด...')).toBeInTheDocument();
+    expect(screen.queryByText('Protected content')).not.toBeInTheDocument();
   });
 
   it('redirects when hydrated user role mismatches required role', async () => {

@@ -1,10 +1,16 @@
 import { ACCESS_TOKEN } from '@/lib/config';
-import { getPortalRoleFromToken } from '@/lib/jwt';
+import { getPortalRoleFromToken, getPortalRoleFromVerifiedToken, type PortalRole } from '@/lib/jwt';
 
-export type AuthRole = 'admin' | 'vendor';
+export type AuthRole = PortalRole;
 
 export function getRoleFromAccessToken(token: string | undefined): AuthRole | null {
   return getPortalRoleFromToken(token);
+}
+
+export async function getVerifiedRoleFromAccessToken(
+  token: string | undefined,
+): Promise<AuthRole | null> {
+  return getPortalRoleFromVerifiedToken(token);
 }
 
 export function getDashboardPathForRole(role: AuthRole): string {
@@ -72,6 +78,12 @@ export function getAuthRedirectPath(
 
 export function getRequestRole(accessToken: string | undefined): AuthRole | null {
   return getRoleFromAccessToken(accessToken);
+}
+
+export async function getVerifiedRequestRole(
+  accessToken: string | undefined,
+): Promise<AuthRole | null> {
+  return getVerifiedRoleFromAccessToken(accessToken);
 }
 
 export function getAccessTokenFromCookieHeader(cookieHeader: string | null): string | undefined {

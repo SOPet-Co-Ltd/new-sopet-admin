@@ -55,6 +55,28 @@ function imageRemotePatterns(): RemotePattern[] {
 
 const isLocalDev = process.env.NODE_ENV === 'development';
 
+function graphqlWsConnectSrc(): string {
+  const candidates = [
+    process.env.NEXT_PUBLIC_GRAPHQL_WS_URL,
+    process.env.GRAPHQL_WS_SSR_URL,
+    process.env.NEXT_PUBLIC_GRAPHQL_BACKEND_ORIGIN,
+    process.env.GRAPHQL_SSR_URL,
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      const url = new URL(candidate.replace(/\/graphql\/?$/, '') || candidate);
+      const wsProtocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+      return `${wsProtocol}//${url.host}`;
+    } catch {
+      continue;
+    }
+  }
+
+  return 'ws://localhost:3002 wss://localhost:3002';
+}
+
 const productionCsp = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -64,7 +86,7 @@ const productionCsp = [
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-  "connect-src 'self'",
+  `connect-src 'self' ${graphqlWsConnectSrc()}`,
   "form-action 'self'",
 ].join('; ');
 

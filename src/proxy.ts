@@ -4,12 +4,12 @@ import { ACCESS_TOKEN } from '@/lib/config';
 import {
   getAuthRedirectPath,
   getGuestOnlyRedirectPath,
-  getRequestRole,
+  getVerifiedRequestRole,
 } from '@/lib/auth/proxy-auth';
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const accessToken = request.cookies.get(ACCESS_TOKEN)?.value;
-  const role = getRequestRole(accessToken);
+  const role = await getVerifiedRequestRole(accessToken);
   const redirectPath =
     getAuthRedirectPath(request.nextUrl.pathname, role, accessToken) ??
     getGuestOnlyRedirectPath(request.nextUrl.pathname, role, accessToken);

@@ -10,6 +10,14 @@ interface AuthGuardProps {
   requiredRole?: 'admin' | 'vendor';
 }
 
+function AuthGuardLoadingShell() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center px-4">
+      <p className="text-sm text-muted">กำลังโหลด...</p>
+    </div>
+  );
+}
+
 export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   const router = useRouter();
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
@@ -39,7 +47,7 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   }, [hasHydrated, hasToken, isAuthenticated, requiredRole, router, user?.role]);
 
   if (!hasHydrated) {
-    return <>{children}</>;
+    return <AuthGuardLoadingShell />;
   }
 
   if (!isAuthenticated || !hasToken) {
