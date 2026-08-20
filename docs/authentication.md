@@ -44,6 +44,12 @@ Network path: `hooks/useAuth.ts` → `lib/api/auth.ts` → `login()` → GraphQL
 
 After success, tokens are written to cookies and the auth store is updated; the user is routed with `getDashboardPath(role)`.
 
+Post-login `?redirect=` is sanitized by `getSafeRedirect` in `src/lib/auth/safe-redirect.ts` (same-origin pathname only; protocol-relative / encoded bypasses rejected).
+
+## `JWT_SECRET`
+
+Required in deployed environments. Must match the backend signing secret. `src/lib/jwt.ts` verifies tokens for `proxy.ts`; if the secret is missing, verification fails closed (no role → protected routes redirect to `/login`). See `.env.example`.
+
 ## Token storage
 
 `src/lib/graphql/tokens.ts` (js-cookie), names from `src/lib/config.ts`:

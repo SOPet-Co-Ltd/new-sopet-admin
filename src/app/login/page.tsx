@@ -15,19 +15,13 @@ import { useRequestPasswordReset } from '@/hooks/usePasswordReset';
 import { hasClientSession } from '@/lib/api/client';
 import { getErrorMessage } from '@/lib/api/errors';
 import { AUTH_SESSION_MESSAGE_KEY, clearAuthSession } from '@/lib/auth-session';
+import { getSafeRedirect } from '@/lib/auth/safe-redirect';
 import {
   forgotPasswordSchema,
   loginSchema,
   type ForgotPasswordFormValues,
   type LoginFormValues,
 } from '@/lib/validations';
-
-function getSafeRedirect(value: string | null): string | null {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) {
-    return null;
-  }
-  return value;
-}
 
 function LoginPageContent() {
   const router = useRouter();

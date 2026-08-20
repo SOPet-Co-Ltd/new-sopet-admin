@@ -31,7 +31,11 @@ export async function verifyJwtPayload(token: string): Promise<JWTPayload | null
   }
 
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, secret, {
+      algorithms: ['HS256'],
+      issuer: process.env.JWT_ISSUER?.trim() || 'sopet',
+      audience: process.env.JWT_AUDIENCE?.trim() || 'sopet-api',
+    });
     return payload;
   } catch {
     return null;
