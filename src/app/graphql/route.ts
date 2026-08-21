@@ -68,15 +68,10 @@ export async function POST(request: Request) {
   return response;
 }
 
-export async function OPTIONS(request: Request) {
-  const origin = request.headers.get('origin') ?? '*';
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Allow-Credentials': 'true',
-    },
-  });
+/**
+ * Same-origin BFF: browsers do not need CORS for same-origin GraphQL POSTs.
+ * Do not reflect Origin or advertise credentials (SOPET-H-06).
+ */
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204 });
 }

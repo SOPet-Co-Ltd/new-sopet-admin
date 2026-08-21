@@ -22,6 +22,15 @@ function isSecureRequest(request?: Request): boolean {
   return process.env.NODE_ENV === 'production';
 }
 
+/** Production HTTPS: `__Host-` prefix (Secure + Path=/ + no Domain) — SOPET-L-05. */
+export function shouldUseHostCookiePrefix(request?: Request): boolean {
+  return isSecureRequest(request) && process.env.NODE_ENV === 'production';
+}
+
+export function authCookieName(base: string, request?: Request): string {
+  return shouldUseHostCookiePrefix(request) ? `__Host-${base}` : base;
+}
+
 function jwtCookieOptions(maxAge: number, request?: Request) {
   return {
     httpOnly: true as const,
@@ -48,17 +57,30 @@ export function setAuthCookies(
   refreshToken: string,
   request?: Request,
 ): void {
+  const accessName = authCookieName(ACCESS_TOKEN, request);
+  const refreshName = authCookieName(REFRESH_TOKEN, request);
+  const companionName = authCookieName(AUTH_COMPANION_COOKIE, request);
+
+  response.cookies.set(accessName, accessToken, jwtCookieOptions(ACCESS_MAX_AGE_SECONDS, request));
   response.cookies.set(
-    ACCESS_TOKEN,
-    accessToken,
-    jwtCookieOptions(ACCESS_MAX_AGE_SECONDS, request),
-  );
-  response.cookies.set(
-    REFRESH_TOKEN,
+    refreshName,
     refreshToken,
     jwtCookieOptions(REFRESH_MAX_AGE_SECONDS, request),
   );
-  response.cookies.set(AUTH_COMPANION_COOKIE, '1', companionCookieOptions(request));
+  response.cookies.set(companionName, '1', companionCookieOptions(request));
+
+  if (shouldUseHostCookiePrefix(request)) {
+    const clearLegacy = {
+      httpOnly: true as const,
+      secure: true,
+      sameSite: 'lax' as const,
+      path: '/',
+      maxAge: 0,
+    };
+    response.cookies.set(ACCESS_TOKEN, '', clearLegacy);
+    response.cookies.set(REFRESH_TOKEN, '', clearLegacy);
+    response.cookies.set(AUTH_COMPANION_COOKIE, '', { ...clearLegacy, httpOnly: false });
+  }
 }
 
 export function clearAuthCookies(response: NextResponse, request?: Request): void {
@@ -70,28 +92,43 @@ export function clearAuthCookies(response: NextResponse, request?: Request): voi
     path: '/',
     maxAge: 0,
   };
-  response.cookies.set(ACCESS_TOKEN, '', clearOpts);
-  response.cookies.set(REFRESH_TOKEN, '', clearOpts);
-  response.cookies.set(AUTH_COMPANION_COOKIE, '', {
-    httpOnly: false,
-    secure,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 0,
-  });
+  for (const name of new Set([
+    ACCESS_TOKEN,
+    REFRESH_TOKEN,
+    authCookieName(ACCESS_TOKEN, request),
+    authCookieName(REFRESH_TOKEN, request),
+  ])) {
+    response.cookies.set(name, '', clearOpts);
+  }
+  for (const name of new Set([
+    AUTH_COMPANION_COOKIE,
+    authCookieName(AUTH_COMPANION_COOKIE, request),
+  ])) {
+    response.cookies.set(name, '', {
+      httpOnly: false,
+      secure,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 0,
+    });
+  }
 }
 
-export async function getAccessTokenFromRequest(): Promise<string | undefined> {
+async function readCookie(baseName: string, request?: Request): Promise<string | undefined> {
   const jar = await cookies();
-  return jar.get(ACCESS_TOKEN)?.value;
+  const hostName = authCookieName(baseName, request);
+  return jar.get(hostName)?.value ?? jar.get(baseName)?.value;
 }
 
-export async function getRefreshTokenFromRequest(): Promise<string | undefined> {
-  const jar = await cookies();
-  return jar.get(REFRESH_TOKEN)?.value;
+export async function getAccessTokenFromRequest(request?: Request): Promise<string | undefined> {
+  return readCookie(ACCESS_TOKEN, request);
 }
 
-export async function isAuthenticatedFromCookies(): Promise<boolean> {
-  const access = await getAccessTokenFromRequest();
+export async function getRefreshTokenFromRequest(request?: Request): Promise<string | undefined> {
+  return readCookie(REFRESH_TOKEN, request);
+}
+
+export async function isAuthenticatedFromCookies(request?: Request): Promise<boolean> {
+  const access = await getAccessTokenFromRequest(request);
   return Boolean(access);
 }

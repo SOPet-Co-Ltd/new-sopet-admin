@@ -7,8 +7,14 @@ import {
   getRequestRole,
 } from '@/lib/auth/proxy-auth';
 
+/**
+ * Edge gate: cookie presence (SOPET-M-13). Role from unsigned JWT is UX-only
+ * for guest-only redirects; protected routes do not authorize by decoded role.
+ */
 export function proxy(request: NextRequest) {
-  const accessToken = request.cookies.get(ACCESS_TOKEN)?.value;
+  const accessToken =
+    request.cookies.get(ACCESS_TOKEN)?.value ??
+    request.cookies.get(`__Host-${ACCESS_TOKEN}`)?.value;
   const role = getRequestRole(accessToken);
   const redirectPath =
     getAuthRedirectPath(request.nextUrl.pathname, role, accessToken) ??

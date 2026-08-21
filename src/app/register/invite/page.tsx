@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { getDashboardPath, useCurrentUser } from '@/hooks/useAuth';
 import { useAcceptVendorInvitation } from '@/hooks/useVendorInvitations';
 import { hasClientSession } from '@/lib/api/client';
+import { useSecretTokenParam } from '@/lib/auth/useSecretTokenParam';
 import { useAuthStore } from '@/stores/auth.store';
 import { getErrorMessage } from '@/lib/api/errors';
 
@@ -24,9 +25,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 function AcceptVendorInviteForm() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get('token') ?? '';
+  const token = useSecretTokenParam();
   const acceptMutation = useAcceptVendorInvitation();
   const { user, isAuthenticated } = useCurrentUser();
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
