@@ -11,8 +11,11 @@ export function hasAuthCompanionCookie(): boolean {
   if (typeof document === 'undefined') {
     return false;
   }
-  const prefix = `${AUTH_COMPANION_COOKIE}=`;
-  return document.cookie.split('; ').some((entry) => entry.startsWith(prefix));
+  const entries = document.cookie.split('; ');
+  return (
+    entries.some((entry) => entry.startsWith(`${AUTH_COMPANION_COOKIE}=`)) ||
+    entries.some((entry) => entry.startsWith(`__Host-${AUTH_COMPANION_COOKIE}=`))
+  );
 }
 
 export async function fetchAuthSession(): Promise<AuthSession> {

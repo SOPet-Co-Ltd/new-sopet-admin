@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Suspense, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import {
   useAcceptStoreMemberInvitation,
   useStoreInvitationPreview,
 } from '@/hooks/useTeam';
+import { useSecretTokenParam } from '@/lib/auth/useSecretTokenParam';
 import { getErrorMessage } from '@/lib/api/errors';
 import { membershipRoleLabels } from '@/lib/i18n/th';
 import {
@@ -30,16 +31,16 @@ function formatExpiry(iso: string): string {
 }
 
 function StoreInvitePageContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get('token') ?? '';
+  const token = useSecretTokenParam();
   const { user, isAuthenticated } = useCurrentUser();
   const previewQuery = useStoreInvitationPreview(token);
   const acceptNewUserMutation = useAcceptStoreMemberInvitation();
   const acceptExistingMutation = useAcceptStoreInvitation();
 
   const loginHref = useMemo(() => {
-    const redirect = `/invite/store?token=${encodeURIComponent(token)}`;
+    // Prefer hash so the token is not logged on the login redirect hop.
+    const redirect = token ? `/invite/store#token=${encodeURIComponent(token)}` : '/invite/store';
     return `/login?redirect=${encodeURIComponent(redirect)}`;
   }, [token]);
 

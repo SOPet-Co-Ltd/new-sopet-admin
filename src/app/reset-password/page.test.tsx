@@ -20,6 +20,7 @@ vi.mock('@/hooks/usePasswordReset', () => ({
 describe('ResetPasswordPage (row 33 regression)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.history.replaceState(null, '', '/reset-password');
     mockSearchParams = new URLSearchParams('token=tok-1');
     useResetPassword.mockReturnValue({ mutateAsync: vi.fn(), isPending: false });
   });
