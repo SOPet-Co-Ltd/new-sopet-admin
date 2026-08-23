@@ -846,8 +846,8 @@ DELETE /api/v1/stores/{storeId}/webhook`}
           </div>
           <p className="text-muted">
             ดึงออเดอร์ที่มีสินค้าของร้านนี้ — ใช้กวาดออเดอร์ที่ webhook ตกหล่น (เช่น poll ด้วย{' '}
-            <code className="font-mono text-ink">updatedSince</code>) รูปแบบรายการใกล้เคียง payload ใน{' '}
-            <code className="font-mono text-ink">data</code> ของ webhook รวม{' '}
+            <code className="font-mono text-ink">updatedSince</code>) รูปแบบรายการใกล้เคียง payload
+            ใน <code className="font-mono text-ink">data</code> ของ webhook รวม{' '}
             <code className="font-mono text-ink">sku</code>, ที่อยู่, และ{' '}
             <code className="font-mono text-ink">orderId</code> สำหรับ PATCH tracking
           </p>
