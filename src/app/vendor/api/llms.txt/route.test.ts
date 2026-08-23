@@ -36,6 +36,8 @@ describe('vendor api llms.txt route', () => {
     expect(body).toContain('/variants/by-sku/');
     expect(body).toContain('/webhook');
     expect(body).toContain('/orders/{orderId}/tracking');
+    expect(body).toContain('### List orders');
+    expect(body).toContain('updatedSince');
     expect(body).toContain('order.create');
     expect(body).toContain('order.payment_failed');
     expect(body).toContain('order.paid');

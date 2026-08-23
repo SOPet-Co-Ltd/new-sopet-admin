@@ -141,6 +141,9 @@ export default function VendorApiDocsPage({ apiBaseUrl }: VendorApiDocsPageProps
   -H "Content-Type: application/json" \\
   -d '${trackingExample.replace(/\n/g, '\n  ')}'`;
 
+  const listOrdersCurl = `curl -X GET "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/orders?status=paid&fulfillmentStatus=pending&updatedSince=2026-08-01T00:00:00.000Z&page=1&limit=50" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx"`;
+
   const webhookPayloadExample = `{
   "id": "evt_…",
   "event": "order.paid",
@@ -832,6 +835,96 @@ DELETE /api/v1/stores/{storeId}/webhook`}
 
       <Card>
         <CardHeader>
+          <h2 className="font-display font-medium text-ink">ดูรายการออเดอร์ (ตาข่ายรอง webhook)</h2>
+        </CardHeader>
+        <CardBody className="space-y-4 text-sm">
+          <div>
+            <p className="font-medium text-ink">Endpoint</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink">
+              GET /api/v1/stores/&#123;storeId&#125;/orders
+            </pre>
+          </div>
+          <p className="text-muted">
+            ดึงออเดอร์ที่มีสินค้าของร้านนี้ — ใช้กวาดออเดอร์ที่ webhook ตกหล่น (เช่น poll ด้วย{' '}
+            <code className="font-mono text-ink">updatedSince</code>) รูปแบบรายการใกล้เคียง payload
+            ใน <code className="font-mono text-ink">data</code> ของ webhook รวม{' '}
+            <code className="font-mono text-ink">sku</code>, ที่อยู่, และ{' '}
+            <code className="font-mono text-ink">orderId</code> สำหรับ PATCH tracking
+          </p>
+          <div>
+            <p className="mb-2 font-medium text-ink">Query parameters (ไม่บังคับ)</p>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full min-w-[480px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-surface text-muted">
+                    <th className="px-4 py-2 font-medium">ฟิลด์</th>
+                    <th className="px-4 py-2 font-medium">ประเภท</th>
+                    <th className="px-4 py-2 font-medium">คำอธิบาย</th>
+                  </tr>
+                </thead>
+                <tbody className="text-muted">
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">page</td>
+                    <td className="px-4 py-2">integer</td>
+                    <td className="px-4 py-2">หน้า (เริ่มที่ 1, ค่าเริ่มต้น 1)</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">limit</td>
+                    <td className="px-4 py-2">integer</td>
+                    <td className="px-4 py-2">จำนวนต่อหน้า (ค่าเริ่มต้น 20, สูงสุด 100)</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">status</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">
+                      สถานะออเดอร์ เช่น pending_payment / paid / processing / shipped
+                    </td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">fulfillmentStatus</td>
+                    <td className="px-4 py-2">string</td>
+                    <td className="px-4 py-2">
+                      มีอย่างน้อย 1 รายการของร้านนี้ในสถานะนี้ เช่น pending / shipped
+                    </td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">updatedSince</td>
+                    <td className="px-4 py-2">ISO-8601</td>
+                    <td className="px-4 py-2">ออเดอร์ที่อัปเดตตั้งแต่เวลานี้ (แนะนำสำหรับ poll)</td>
+                  </tr>
+                  <tr className="border-b border-border/60">
+                    <td className="px-4 py-2 font-mono text-ink">createdSince</td>
+                    <td className="px-4 py-2">ISO-8601</td>
+                    <td className="px-4 py-2">สร้างตั้งแต่เวลานี้</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 font-mono text-ink">createdUntil</td>
+                    <td className="px-4 py-2">ISO-8601</td>
+                    <td className="px-4 py-2">สร้างไม่เกินเวลานี้</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <p className="font-medium text-ink">Success</p>
+            <p className="mt-1 text-muted">
+              200 พร้อม <span className="font-mono text-ink">items</span> (เรียง{' '}
+              <span className="font-mono text-ink">updatedAt</span> ล่าสุดก่อน) และ{' '}
+              <span className="font-mono text-ink">pagination</span>
+            </p>
+          </div>
+          <div>
+            <p className="font-medium text-ink">ตัวอย่าง curl</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink whitespace-pre-wrap">
+              {listOrdersCurl}
+            </pre>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <h2 className="font-display font-medium text-ink">อัปเดต Tracking / สถานะจัดส่ง</h2>
         </CardHeader>
         <CardBody className="space-y-4 text-sm">
@@ -843,7 +936,8 @@ DELETE /api/v1/stores/{storeId}/webhook`}
           </div>
           <p className="text-muted">
             ใส่เลขพัสดุและผู้ให้บริการขนส่ง — หากรายการยังเป็น pending ระบบจะ acknowledge
-            ให้อัตโนมัติแล้วเปลี่ยนเป็น shipped หากจัดส่งแล้ว สามารถอัปเดตเลขพัสดุได้
+            ให้อัตโนมัติแล้วเปลี่ยนเป็น shipped หากจัดส่งแล้ว สามารถอัปเดตเลขพัสดุได้ ใช้{' '}
+            <code className="font-mono text-ink">orderId</code> จาก webhook หรือจาก GET /orders
           </p>
           <div>
             <p className="mb-2 font-medium text-ink">Request Body</p>
