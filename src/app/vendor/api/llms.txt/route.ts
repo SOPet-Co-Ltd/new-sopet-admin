@@ -9,36 +9,33 @@ function buildLlmsTxtContent(adminOrigin: string): string {
 
   return `# SOPET Vendor API
 
-> REST API for approved SOPET stores: list/get/create/update/delete product drafts, configure order webhooks, and push tracking numbers from external systems (ERP, POS, n8n, Zapier).
+> REST API for approved SOPET stores: products (CRUD drafts), list orders (webhook catch-up), webhooks, and tracking updates for ERP/POS/n8n/Zapier.
 
-> Managed in the vendor dashboard. API keys are store-scoped. Products created via this API are always saved as draft and must be reviewed/published in the vendor UI. Product images may be supplied as remote URLs; the server downloads them into object storage (source URLs are never stored).
+> API keys are store-scoped. Products via this API are always \`draft\` until published in the vendor UI. Image URLs are downloaded into object storage (source URLs are never stored).
 
 ## Documentation
 
-- Human API docs (Thai UI): ${adminOrigin}/vendor/api/docs
-- Create and revoke API keys: ${adminOrigin}/vendor/api
+- Human docs (Thai): ${adminOrigin}/vendor/api/docs
+- API keys: ${adminOrigin}/vendor/api
 - This file: ${adminOrigin}/vendor/api/llms.txt
 
 ## Base URL
 
 ${apiBaseUrl}
 
-Replace \`{API_BASE_URL}\` with the SOPET backend origin (the GraphQL host without \`/graphql\`). Do not call GraphQL for this integration.
+Replace \`{API_BASE_URL}\` with the SOPET backend origin (no \`/graphql\`). Do not call GraphQL for this integration.
 
 ## Authentication
 
-API keys use the prefix \`sopet_sk_\`. Create them at ${adminOrigin}/vendor/api (store manager/owner only).
+Prefix \`sopet_sk_\`. Create at ${adminOrigin}/vendor/api (manager/owner).
 
-Send the key with either header:
+Headers: \`Authorization: Bearer sopet_sk_...\` or \`X-Api-Key: sopet_sk_...\`
 
-- \`Authorization: Bearer sopet_sk_...\`
-- \`X-Api-Key: sopet_sk_...\`
-
-The key must belong to the same store as \`{storeId}\` in the URL. The store must be approved (\`APPROVED\`).
+Key must match \`{storeId}\`; store must be \`APPROVED\`.
 
 ## Store ID
 
-Use the UUID Store ID shown at ${adminOrigin}/vendor/api in every request path under \`/api/v1/stores/{storeId}/...\`.
+UUID from ${adminOrigin}/vendor/api — use in every \`/api/v1/stores/{storeId}/...\` path.
 
 ## Endpoints
 
@@ -156,6 +153,12 @@ Outbound delivery (SOPET → your URL):
 | \`order.cancelled\` | Order cancelled |
 | \`order.refunded\` | Order refunded |
 
+### List orders (webhook catch-up)
+
+- \`GET /api/v1/stores/{storeId}/orders\` → \`{ items, pagination }\` (store-scoped; fields align with webhook \`data\`: \`orderId\`, \`sku\`, customer, shippingAddress)
+- Query: \`page\`, \`limit\` (max 100), \`status\`, \`fulfillmentStatus\`, \`updatedSince\` (ISO-8601; poll with this), \`createdSince\`, \`createdUntil\`
+- Sort: \`updatedAt\` DESC. Use \`orderId\`/\`id\` for PATCH tracking.
+
 ### Update order tracking
 
 - Method: \`PATCH\`
@@ -179,15 +182,6 @@ curl -X PATCH "${apiBaseUrl}/api/v1/stores/{storeId}/variants/by-sku/CAT-ORG-2KG
   -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
   -H "Content-Type: application/json" \\
   -d '{"stock":100,"price":529}'
-\`\`\`
-
-#### Example curl (set webhook)
-
-\`\`\`bash
-curl -X PUT "${apiBaseUrl}/api/v1/stores/{storeId}/webhook" \\
-  -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
-  -H "Content-Type: application/json" \\
-  -d '{"url":"https://example.com/hooks/sopet"}'
 \`\`\`
 
 #### Example curl (tracking)
