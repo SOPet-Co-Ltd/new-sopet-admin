@@ -631,7 +631,7 @@ export function PromotionFormFields({
               aria-describedby={
                 errors.usagePerCustomer ? `${idPrefix}-per-customer-error` : undefined
               }
-              {...register('usageLimit', {
+              {...register('usagePerCustomer', {
                 ...numberRegisterOptions,
                 onChange: (e) => {
                   const value = e.target.value;
