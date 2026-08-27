@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildUpstreamRequestHeaders, harvestAuthTokens, redactAuthTokens } from './bff-upstream';
 import { assertSameOrigin } from './bff-csrf';
+
+const ORIGINAL_ENV = { ...process.env };
+
+afterEach(() => {
+  process.env = { ...ORIGINAL_ENV };
+  vi.unstubAllEnvs();
+});
 
 describe('buildUpstreamRequestHeaders', () => {
   it('forwards x-request-id and stamps the visitor IP for audit logs', () => {
@@ -103,6 +110,30 @@ describe('assertSameOrigin', () => {
     const request = new Request('http://localhost:3001/api/auth/logout', {
       method: 'POST',
       headers: { Origin: 'https://evil.example' },
+    });
+    expect(assertSameOrigin(request)?.status).toBe(403);
+  });
+
+  it('allows localhost Origin on next start (NODE_ENV=production, same request URL)', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    delete process.env.NEXT_PUBLIC_ADMIN_URL;
+    delete process.env.BFF_CSRF_ORIGINS;
+
+    const request = new Request('http://localhost:3001/graphql', {
+      method: 'POST',
+      headers: { Origin: 'http://localhost:3001' },
+    });
+    expect(assertSameOrigin(request)).toBeNull();
+  });
+
+  it('rejects localhost Origin against a production host (SOPET-M-11)', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_ADMIN_URL', 'https://admin.sopet.org');
+    delete process.env.BFF_CSRF_ORIGINS;
+
+    const request = new Request('https://admin.sopet.org/graphql', {
+      method: 'POST',
+      headers: { Origin: 'http://localhost:3001' },
     });
     expect(assertSameOrigin(request)?.status).toBe(403);
   });
