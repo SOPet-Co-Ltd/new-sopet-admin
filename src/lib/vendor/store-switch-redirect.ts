@@ -12,5 +12,10 @@ export function getStoreSwitchRedirectPath(pathname: string): string | null {
     return '/vendor/products';
   }
 
+  // Promotion edit page — the promotion belongs to the previous store.
+  if (/^\/vendor\/promotions\/[^/]+\/edit(?:\/|$)/.test(pathname)) {
+    return '/vendor/promotions/new';
+  }
+
   return null;
 }
