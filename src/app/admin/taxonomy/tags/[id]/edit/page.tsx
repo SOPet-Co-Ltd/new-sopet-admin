@@ -12,7 +12,7 @@ import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useApprovedTags, useDeleteTag, useUpdateTag } from '@/hooks/useTaxonomy';
-import { isApiError } from '@/lib/api/errors';
+import { isApiError, getErrorMessage } from '@/lib/api/errors';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { editTaxonomySchema, type EditTaxonomyFormValues } from '@/lib/validations';
 
@@ -52,7 +52,7 @@ export default function EditTagPage() {
       await updateTag.mutateAsync({ tagId: tag.id, name, slug });
       router.push('/admin/taxonomy');
     } catch (err) {
-      const message = isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ';
+      const message = getErrorMessage(err, 'บันทึกไม่สำเร็จ');
       const code = isApiError(err) ? err.code : undefined;
       if (code === 'SLUG_EXISTS' || code === 'INVALID_SLUG') {
         form.setError('slug', { message });
@@ -69,9 +69,7 @@ export default function EditTagPage() {
   if (error || !tag) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-danger">
-          {error instanceof Error ? error.message : 'ไม่พบแท็ก'}
-        </p>
+        <p className="text-sm text-danger">{getErrorMessage(error, 'ไม่พบแท็ก')}</p>
         <Button variant="outline" asChild>
           <Link href="/admin/taxonomy">กลับ</Link>
         </Button>

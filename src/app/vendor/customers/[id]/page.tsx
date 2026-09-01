@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { useVendorCustomerDetail } from '@/hooks/useVendorCustomers';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function VendorCustomerDetailPage() {
   const params = useParams<{ id: string }>();
@@ -26,7 +27,7 @@ export default function VendorCustomerDetailPage() {
       <div className="space-y-4">
         <BackToCustomersLink href="/vendor/customers" />
         <p className="text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'ไม่พบลูกค้า'}
+          {getErrorMessage(error, 'ไม่พบลูกค้า')}
         </p>
       </div>
     );

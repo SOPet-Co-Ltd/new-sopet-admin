@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { usePlatformProducts, useVendorProducts } from '@/hooks/useVendorProducts';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export type BxGyProductPickerProps = {
   scope: 'platform' | 'store';
@@ -18,6 +19,13 @@ export type BxGyProductPickerProps = {
   idPrefix?: string;
   'aria-invalid'?: boolean;
   'aria-describedby'?: string;
+  /**
+   * `published` — checkout promotions (BxGy): live catalog only.
+   * `campaign` — sale campaigns: draft + published (exclude archived).
+   */
+  productFilter?: 'published' | 'campaign';
+  label?: string;
+  hint?: string;
 };
 
 type ProductSelection = {
@@ -30,6 +38,14 @@ export function filterPublishedProducts(products: Product[]): Product[] {
   return products.filter((product) => {
     if (product.status == null || product.status === '') return true;
     return product.status === 'published';
+  });
+}
+
+/** Draft + published for timed catalog campaigns; hide archived. */
+export function filterCampaignProducts(products: Product[]): Product[] {
+  return products.filter((product) => {
+    if (product.status == null || product.status === '') return true;
+    return product.status === 'published' || product.status === 'draft';
   });
 }
 
@@ -59,6 +75,9 @@ function BxGyProductPickerInner({
   idPrefix = 'promo',
   'aria-invalid': ariaInvalid,
   'aria-describedby': ariaDescribedBy,
+  productFilter = 'published',
+  label = 'สินค้าที่ใช้โปรโมชัน (บังคับ)',
+  hint = 'ทุกตัวเลือก (variant) ของสินค้านี้นับรวมจำนวนในตะกร้า',
 }: BxGyProductPickerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -74,7 +93,12 @@ function BxGyProductPickerInner({
   }, [inputValue]);
 
   const searchParam = isActiveSearch ? debouncedSearch.trim() || undefined : undefined;
-  const listParams = { search: searchParam, page: 1, limit: 20 };
+  const listParams = {
+    search: searchParam,
+    page: 1,
+    limit: 20,
+    ...(productFilter === 'published' ? { status: 'published' as const } : {}),
+  };
   const fetchEnabled = open;
 
   const vendorQuery = useVendorProducts(listParams, {
@@ -90,7 +114,12 @@ function BxGyProductPickerInner({
   // retryKey bumps on Retry so tests can assert remount intent; refetch drives recovery
   void retryKey;
 
-  const products = useMemo(() => filterPublishedProducts(data?.items ?? []), [data?.items]);
+  const products = useMemo(() => {
+    const items = data?.items ?? [];
+    return productFilter === 'campaign'
+      ? filterCampaignProducts(items)
+      : filterPublishedProducts(items);
+  }, [data?.items, productFilter]);
 
   const closeDropdown = useCallback(() => {
     setOpen(false);
@@ -144,6 +173,7 @@ function BxGyProductPickerInner({
 
   const displayValue = open ? inputValue : closedLabel;
   const isLoadingResults = isLoading || (isFetching && products.length === 0);
+  const hasSearch = Boolean(searchParam);
 
   const inputId = `${idPrefix}-bxgy-product`;
   const listboxId = `${idPrefix}-bxgy-product-list`;
@@ -157,10 +187,16 @@ function BxGyProductPickerInner({
   const placeholder =
     scope === 'platform' ? 'ค้นหาสินค้าจากแคตตาล็อกแพลตฟอร์ม' : 'ค้นหาชื่อสินค้าในร้าน';
 
+  const emptyMessage = hasSearch
+    ? 'ไม่พบสินค้าที่ตรงกับคำค้น'
+    : productFilter === 'campaign'
+      ? 'ยังไม่มีสินค้าในร้านนี้ — สร้างสินค้าก่อนแล้วค่อยเพิ่มในแคมเปญ'
+      : 'ไม่พบสินค้าที่เผยแพร่แล้วในหน้าร้านนี้ — ลองเอาตัวกรองออก หรือเผยแพร่สินค้าก่อน';
+
   return (
     <div ref={containerRef} className="relative">
       <Label htmlFor={inputId} required>
-        สินค้าที่ใช้โปรโมชัน (บังคับ)
+        {label}
       </Label>
       <div className="mt-1.5 flex gap-2">
         <Input
@@ -202,7 +238,7 @@ function BxGyProductPickerInner({
       </div>
       {!error ? (
         <p id={hintId} className="mt-1 text-xs text-muted-foreground">
-          ทุกตัวเลือก (variant) ของสินค้านี้นับรวมจำนวนในตะกร้า
+          {hint}
         </p>
       ) : null}
       {open ? (
@@ -214,14 +250,14 @@ function BxGyProductPickerInner({
           ) : fetchError ? (
             <div className="space-y-2 px-3 py-2">
               <p className="text-sm text-danger">
-                {fetchError instanceof Error ? fetchError.message : 'โหลดรายการสินค้าไม่สำเร็จ'}
+                {getErrorMessage(fetchError, 'โหลดรายการสินค้าไม่สำเร็จ')}
               </p>
               <Button type="button" size="sm" variant="outline" onClick={handleRetry}>
                 ลองอีกครั้ง
               </Button>
             </div>
           ) : products.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-muted">ไม่พบสินค้าที่ตรงกับคำค้น</p>
+            <p className="px-3 py-2 text-sm text-muted">{emptyMessage}</p>
           ) : (
             <ul id={listboxId} role="listbox">
               {products.map((product) => (
@@ -238,6 +274,9 @@ function BxGyProductPickerInner({
                     onClick={() => handleSelect(product.id, product.name)}
                   >
                     {product.name}
+                    {productFilter === 'campaign' && product.status === 'draft' ? (
+                      <span className="ml-2 text-xs text-muted-foreground">ร่าง</span>
+                    ) : null}
                   </button>
                 </li>
               ))}

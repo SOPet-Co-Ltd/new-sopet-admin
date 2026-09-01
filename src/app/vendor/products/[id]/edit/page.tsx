@@ -25,6 +25,7 @@ import { buildLivePublishChecklist } from '@/lib/products/publish-checklist';
 import { productFormSchema, type ProductFormValues } from '@/lib/validations';
 import type { ProductStatus } from '@/types';
 import { EditProductSkeleton } from './edit-product-skeleton';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const TAXONOMY_DEBOUNCE_MS = 500;
 const SECTION_SAVED_MS = 2500;
@@ -68,6 +69,7 @@ export default function EditProductPage() {
   const { data: product, isLoading, error } = useProduct(productId);
   const { data: shippingOptions = [], isLoading: shippingLoading } = useMyStoreShippingOptions();
   const updateBasicMutation = useUpdateProduct();
+  const updatePricingMutation = useUpdateProduct();
   const updateExtrasMutation = useUpdateProduct();
   const updateTaxonomyMutation = useUpdateProduct();
   const updateStatusMutation = useUpdateProduct();
@@ -77,11 +79,13 @@ export default function EditProductPage() {
 
   const [taxonomySaveState, setTaxonomySaveState] = useState<TaxonomySaveState>('idle');
   const [basicSaveState, setBasicSaveState] = useState<SectionSaveState>('idle');
+  const [pricingSaveState, setPricingSaveState] = useState<SectionSaveState>('idle');
   const [extrasSaveState, setExtrasSaveState] = useState<SectionSaveState>('idle');
   const initializedProductIdRef = useRef<string | null>(null);
   const taxonomyBaselineRef = useRef<string | null>(null);
   const taxonomyAutosaveReadyRef = useRef(false);
   const basicSavedTimerRef = useRef<number | null>(null);
+  const pricingSavedTimerRef = useRef<number | null>(null);
   const extrasSavedTimerRef = useRef<number | null>(null);
 
   const form = useForm<ProductFormValues>({
@@ -90,6 +94,7 @@ export default function EditProductPage() {
       name: '',
       description: '',
       basePrice: 0,
+      compareAtPrice: null,
       warning: '',
       expiryDate: '',
       categoryId: '',
@@ -109,6 +114,7 @@ export default function EditProductPage() {
       name: product.name,
       description: product.description ?? '',
       basePrice: product.basePrice,
+      compareAtPrice: product.compareAtPrice ?? null,
       warning: product.warning ?? '',
       expiryDate: toDateInputValue(product.expiryDate),
       categoryId: product.categoryId ?? '',
@@ -206,6 +212,26 @@ export default function EditProductPage() {
     }
   }
 
+  async function savePricing() {
+    if (!product) return;
+    const valid = await form.trigger(['compareAtPrice']);
+    if (!valid) return;
+    const values = form.getValues();
+    setPricingSaveState('idle');
+    try {
+      await updatePricingMutation.mutateAsync({
+        id: product.id,
+        input: {
+          // Always send so clearing the field removes the storefront discount badge.
+          compareAtPrice: values.compareAtPrice ?? null,
+        },
+      });
+      flashSectionSaved(setPricingSaveState, pricingSavedTimerRef);
+    } catch {
+      // surfaced via mutation state
+    }
+  }
+
   async function saveExtras() {
     if (!product) return;
     const valid = await form.trigger(['warning', 'expiryDate']);
@@ -266,9 +292,7 @@ export default function EditProductPage() {
   if (error || !product) {
     return (
       <div className="space-y-4" role="alert">
-        <p className="text-sm text-danger">
-          {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
-        </p>
+        <p className="text-sm text-danger">{getErrorMessage(error, 'ไม่พบสินค้า')}</p>
         <Link
           href="/vendor/products"
           className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-brand focus-visible:rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
@@ -282,6 +306,7 @@ export default function EditProductPage() {
 
   const anyPending =
     updateBasicMutation.isPending ||
+    updatePricingMutation.isPending ||
     updateExtrasMutation.isPending ||
     updateTaxonomyMutation.isPending ||
     updateStatusMutation.isPending ||
@@ -366,9 +391,7 @@ export default function EditProductPage() {
               <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
                 {updateBasicMutation.error ? (
                   <p className="mr-auto text-xs text-danger" role="alert">
-                    {updateBasicMutation.error instanceof Error
-                      ? updateBasicMutation.error.message
-                      : 'บันทึกไม่สำเร็จ'}
+                    {getErrorMessage(updateBasicMutation.error, 'บันทึกไม่สำเร็จ')}
                   </p>
                 ) : basicSaveState === 'saved' ? (
                   <p className="mr-auto text-xs text-success" role="status" aria-live="polite">
@@ -396,6 +419,77 @@ export default function EditProductPage() {
             </CardHeader>
             <CardBody>
               <ProductImagesManager product={product} />
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <h2 className="text-balance font-display font-medium text-ink">ราคาขีดฆ่า</h2>
+              <p className="mt-1 text-sm text-muted">
+                ราคาเดิมถาวรระดับสินค้า (ไม่แยก SKU) — ส่วนลดตามช่วงเวลาให้ตั้งที่แคมเปญ
+              </p>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <div className="max-w-xs">
+                <Label htmlFor="compareAtPrice">ราคาขีดฆ่า (บาท)</Label>
+                <Controller
+                  name="compareAtPrice"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Input
+                      id="compareAtPrice"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      inputMode="decimal"
+                      placeholder="เช่น 1000"
+                      disabled={updatePricingMutation.isPending || deleteMutation.isPending}
+                      aria-invalid={!!form.formState.errors.compareAtPrice}
+                      aria-describedby={
+                        form.formState.errors.compareAtPrice
+                          ? 'compareAtPrice-error'
+                          : 'compareAtPrice-hint'
+                      }
+                      value={field.value ?? ''}
+                      onChange={(event) => {
+                        const raw = event.target.value;
+                        field.onChange(raw === '' ? null : Number(raw));
+                      }}
+                      onBlur={field.onBlur}
+                      className="mt-1.5"
+                    />
+                  )}
+                />
+                {form.formState.errors.compareAtPrice ? (
+                  <p id="compareAtPrice-error" className="mt-1 text-xs text-danger" role="alert">
+                    {form.formState.errors.compareAtPrice.message}
+                  </p>
+                ) : (
+                  <p id="compareAtPrice-hint" className="mt-1 text-xs text-muted">
+                    เว้นว่างเพื่อไม่แสดงส่วนลด — ราคาขายตั้งที่หน้ารายการตัวเลือก
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
+                {updatePricingMutation.error ? (
+                  <p className="mr-auto text-xs text-danger" role="alert">
+                    {getErrorMessage(updatePricingMutation.error, 'บันทึกไม่สำเร็จ')}
+                  </p>
+                ) : pricingSaveState === 'saved' ? (
+                  <p className="mr-auto text-xs text-success" role="status" aria-live="polite">
+                    บันทึกแล้ว
+                  </p>
+                ) : null}
+                <Button
+                  type="button"
+                  onClick={() => void savePricing()}
+                  disabled={updatePricingMutation.isPending || deleteMutation.isPending}
+                  aria-busy={updatePricingMutation.isPending}
+                >
+                  {updatePricingMutation.isPending ? 'กำลังบันทึก...' : 'บันทึกส่วนนี้'}
+                </Button>
+              </div>
             </CardBody>
           </Card>
 
@@ -507,9 +601,7 @@ export default function EditProductPage() {
               <div className="flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
                 {updateExtrasMutation.error ? (
                   <p className="mr-auto text-xs text-danger" role="alert">
-                    {updateExtrasMutation.error instanceof Error
-                      ? updateExtrasMutation.error.message
-                      : 'บันทึกไม่สำเร็จ'}
+                    {getErrorMessage(updateExtrasMutation.error, 'บันทึกไม่สำเร็จ')}
                   </p>
                 ) : extrasSaveState === 'saved' ? (
                   <p className="mr-auto text-xs text-success" role="status" aria-live="polite">
@@ -572,7 +664,7 @@ export default function EditProductPage() {
 
       {pageError ? (
         <p className="mt-6 text-sm text-danger" role="alert">
-          {pageError instanceof Error ? pageError.message : 'ดำเนินการไม่สำเร็จ'}
+          {getErrorMessage(pageError, 'ดำเนินการไม่สำเร็จ')}
         </p>
       ) : null}
     </div>

@@ -9,6 +9,7 @@ export interface ConfirmDeleteButtonProps {
   title: string;
   description?: ReactNode;
   confirmButtonLabel?: string;
+  confirmPendingLabel?: string;
   onConfirm: () => Promise<void>;
   isDeleting?: boolean;
   disabled?: boolean;
@@ -22,6 +23,7 @@ export function ConfirmDeleteButton({
   title,
   description,
   confirmButtonLabel,
+  confirmPendingLabel,
   onConfirm,
   isDeleting = false,
   disabled = false,
@@ -50,6 +52,7 @@ export function ConfirmDeleteButton({
         confirmLabel={confirmLabel}
         description={description}
         confirmButtonLabel={confirmButtonLabel}
+        confirmPendingLabel={confirmPendingLabel}
         isDeleting={isDeleting}
         onConfirm={onConfirm}
       />

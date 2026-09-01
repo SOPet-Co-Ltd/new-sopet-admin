@@ -12,7 +12,10 @@ import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
 import { ProductThumbnail } from '@/components/vendor/product-thumbnail';
-import { VendorProductFilters } from '@/components/vendor/vendor-product-filters';
+import {
+  VendorProductFilters,
+  type ProductStatusFilter,
+} from '@/components/vendor/vendor-product-filters';
 import { VendorProductsActionMenu } from '@/components/vendor/vendor-products-action-menu';
 import { VendorProductsEmptyState } from '@/components/vendor/vendor-products-empty-state';
 import { VendorProductsListSkeleton } from '@/components/vendor/vendor-products-list-skeleton';
@@ -36,6 +39,7 @@ import {
   getProductListThumbnailUrl,
 } from '@/lib/products/list-display';
 import type { Product } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const ALL = 'all';
 const SEARCH_DEBOUNCE_MS = 300;
@@ -45,10 +49,13 @@ export default function VendorProductsPage() {
   const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const [status, setStatus] = useState<ProductStatusFilter>(ALL);
   const [categoryId, setCategoryId] = useState(ALL);
   const [petTypeId, setPetTypeId] = useState(ALL);
   const [brandId, setBrandId] = useState(ALL);
   const [tagId, setTagId] = useState(ALL);
+  const [minPrice, setMinPrice] = useState<number | undefined>();
+  const [maxPrice, setMaxPrice] = useState<number | undefined>();
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -74,14 +81,28 @@ export default function VendorProductsPage() {
   const queryParams = useMemo(
     () => ({
       search: search || undefined,
+      status: status !== ALL ? status : undefined,
       category: categoryId !== ALL ? categorySlugById.get(categoryId) : undefined,
       petTypeIds: petTypeId !== ALL ? [petTypeId] : undefined,
       brandIds: brandId !== ALL ? [brandId] : undefined,
       tag: tagId !== ALL ? tagId : undefined,
+      minPrice,
+      maxPrice,
       page,
       limit: 10,
     }),
-    [search, categoryId, categorySlugById, petTypeId, brandId, tagId, page],
+    [
+      search,
+      status,
+      categoryId,
+      categorySlugById,
+      petTypeId,
+      brandId,
+      tagId,
+      minPrice,
+      maxPrice,
+      page,
+    ],
   );
 
   const { data, isLoading, error, refetch, isFetching } = useVendorProducts(queryParams);
@@ -97,15 +118,25 @@ export default function VendorProductsPage() {
   );
 
   const hasActiveFilters =
-    Boolean(search) || categoryId !== ALL || petTypeId !== ALL || brandId !== ALL || tagId !== ALL;
+    Boolean(search) ||
+    status !== ALL ||
+    categoryId !== ALL ||
+    petTypeId !== ALL ||
+    brandId !== ALL ||
+    tagId !== ALL ||
+    minPrice != null ||
+    maxPrice != null;
 
   const clearAllFilters = () => {
     setSearchInput('');
     setSearch('');
+    setStatus(ALL);
     setCategoryId(ALL);
     setPetTypeId(ALL);
     setBrandId(ALL);
     setTagId(ALL);
+    setMinPrice(undefined);
+    setMaxPrice(undefined);
     setPage(1);
   };
 
@@ -281,14 +312,21 @@ export default function VendorProductsPage() {
               onChange={(e) => setSearchInput(e.target.value)}
             />
           }
+          status={status}
           categoryId={categoryId}
           petTypeId={petTypeId}
           brandId={brandId}
           tagId={tagId}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
           categories={categories}
           petTypes={petTypes}
           brands={brands}
           tags={tags}
+          onStatusChange={(value) => {
+            setStatus(value);
+            resetPage();
+          }}
           onCategoryChange={(value) => {
             setCategoryId(value);
             resetPage();
@@ -305,6 +343,11 @@ export default function VendorProductsPage() {
             setTagId(value);
             resetPage();
           }}
+          onPriceRangeChange={(range) => {
+            setMinPrice(range.minPrice);
+            setMaxPrice(range.maxPrice);
+            resetPage();
+          }}
         />
       </div>
 
@@ -313,9 +356,7 @@ export default function VendorProductsPage() {
           className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-danger/20 bg-danger-bg px-4 py-3"
           role="alert"
         >
-          <p className="text-sm text-danger">
-            {error instanceof Error ? error.message : 'โหลดสินค้าไม่สำเร็จ'}
-          </p>
+          <p className="text-sm text-danger">{getErrorMessage(error, 'โหลดสินค้าไม่สำเร็จ')}</p>
           <Button type="button" variant="outline" size="sm" onClick={() => void refetch()}>
             ลองอีกครั้ง
           </Button>
@@ -323,9 +364,7 @@ export default function VendorProductsPage() {
       ) : null}
       {deleteMutation.error ? (
         <p className="mb-4 text-sm text-danger" role="alert">
-          {deleteMutation.error instanceof Error
-            ? deleteMutation.error.message
-            : 'ลบสินค้าไม่สำเร็จ'}
+          {getErrorMessage(deleteMutation.error, 'ลบสินค้าไม่สำเร็จ')}
         </p>
       ) : null}
 

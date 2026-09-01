@@ -15,6 +15,7 @@ import { useRegisterVendor } from '@/hooks/useRegisterVendor';
 import { hasClientSession } from '@/lib/api/client';
 import { registerVendorSchema, type RegisterVendorFormValues } from '@/lib/validations';
 import { useAuthStore } from '@/stores/auth.store';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function RegisterPage() {
       router.replace('/vendor/requests');
     } catch (err) {
       form.setError('root', {
-        message: err instanceof Error ? err.message : 'ลงทะเบียนไม่สำเร็จ',
+        message: getErrorMessage(err, 'ลงทะเบียนไม่สำเร็จ'),
       });
     }
   }

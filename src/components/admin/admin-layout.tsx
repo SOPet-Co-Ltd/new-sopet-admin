@@ -2,13 +2,17 @@
 
 import {
   HiArrowPath,
+  HiBanknotes,
   HiBell,
   HiBuildingStorefront,
   HiChartBarSquare,
   HiClipboardDocumentList,
   HiCog6Tooth,
+  HiChatBubbleLeftRight,
+  HiEnvelope,
   HiInboxArrowDown,
   HiMagnifyingGlass,
+  HiRectangleGroup,
   HiShieldCheck,
   HiTag,
   HiTicket,
@@ -17,6 +21,7 @@ import {
   HiUserGroup,
   HiUsers,
 } from 'react-icons/hi2';
+import { usePathname } from 'next/navigation';
 import { AuthGuard } from '@/components/auth-guard';
 import { DashboardShell, type DashboardNavSection } from '@/components/dashboard-shell';
 import { useUnreadCount } from '@/hooks/useNotifications';
@@ -28,14 +33,24 @@ import {
   usePendingTags,
 } from '@/hooks/useTaxonomy';
 import { usePendingVendorInvitations } from '@/hooks/useVendorInvitations';
+import { usePendingImportedReviews } from '@/hooks/useAdminReviews';
+import { usePendingBankTransferOrders } from '@/hooks/useAdminBankTransfers';
+import { usePendingManualPayouts } from '@/hooks/usePayouts';
+import { isPublicErrorsMessagePath } from '@/lib/auth/proxy-auth';
 
 export function buildAdminNavSections({
   pendingRequestCount,
   pendingTaxonomyCount,
+  pendingImportedReviewCount,
+  pendingBankTransferCount,
+  pendingManualPayoutCount,
   unreadNotificationCount,
 }: {
   pendingRequestCount?: number;
   pendingTaxonomyCount?: number;
+  pendingImportedReviewCount?: number;
+  pendingBankTransferCount?: number;
+  pendingManualPayoutCount?: number;
   unreadNotificationCount?: number;
 } = {}): DashboardNavSection[] {
   return [
@@ -61,6 +76,24 @@ export function buildAdminNavSections({
           badge: pendingRequestCount,
         },
         { href: '/admin/reactivation-requests', label: 'เปิดใช้งานร้าน', icon: HiArrowPath },
+        {
+          href: '/admin/reviews',
+          label: 'รีวิวนำเข้า',
+          icon: HiChatBubbleLeftRight,
+          badge: pendingImportedReviewCount,
+        },
+        {
+          href: '/admin/bank-transfers',
+          label: 'โอนเงินเข้าบัญชี',
+          icon: HiBanknotes,
+          badge: pendingBankTransferCount,
+        },
+        {
+          href: '/admin/manual-payouts',
+          label: 'Payout Manual',
+          icon: HiTicket,
+          badge: pendingManualPayoutCount,
+        },
       ],
     },
     {
@@ -85,6 +118,13 @@ export function buildAdminNavSections({
       ],
     },
     {
+      title: 'ระบบ',
+      items: [
+        { href: '/admin/email/templates', label: 'เทมเพลตอีเมล', icon: HiEnvelope },
+        { href: '/admin/email/containers', label: 'คอนเทนเนอร์อีเมล', icon: HiRectangleGroup },
+      ],
+    },
+    {
       title: 'บัญชี',
       items: [
         { href: '/admin/audit-logs', label: 'บันทึกการใช้งาน', icon: HiClipboardDocumentList },
@@ -103,6 +143,14 @@ export function buildAdminNavSections({
 }
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  if (isPublicErrorsMessagePath(pathname)) {
+    return <>{children}</>;
+  }
+  return <AdminDashboardLayout>{children}</AdminDashboardLayout>;
+}
+
+function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: storeRequests = [] } = usePendingStoreRequests();
   const { data: invitations = [] } = usePendingVendorInvitations();
   const { data: pendingCategories = [] } = usePendingCategories();
@@ -110,13 +158,22 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const { data: pendingPetTypes = [] } = usePendingPetTypes();
   const { data: pendingBrands = [] } = usePendingBrands();
   const { data: unreadNotificationCount } = useUnreadCount();
+  const { data: pendingImportedReviews } = usePendingImportedReviews(1);
+  const { data: pendingBankTransfers } = usePendingBankTransferOrders(1);
+  const { data: pendingManualPayouts } = usePendingManualPayouts(1);
 
   const pendingRequestCount = storeRequests.length + invitations.length;
   const pendingTaxonomyCount =
     pendingCategories.length + pendingTags.length + pendingPetTypes.length + pendingBrands.length;
+  const pendingImportedReviewCount = pendingImportedReviews?.pagination.total ?? 0;
+  const pendingBankTransferCount = pendingBankTransfers?.pagination.total ?? 0;
+  const pendingManualPayoutCount = pendingManualPayouts?.pagination.total ?? 0;
   const navSections = buildAdminNavSections({
     pendingRequestCount,
     pendingTaxonomyCount,
+    pendingImportedReviewCount,
+    pendingBankTransferCount,
+    pendingManualPayoutCount,
     unreadNotificationCount,
   });
 

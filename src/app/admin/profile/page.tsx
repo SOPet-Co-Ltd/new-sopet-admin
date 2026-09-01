@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useCurrentUser } from '@/hooks/useAuth';
 import { useChangePassword, useUpdateUserProfile } from '@/hooks/useStoreSettings';
 import { profileFormSchema, type ProfileFormValues } from '@/lib/validations';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function AdminProfilePage() {
   const { user } = useCurrentUser();
@@ -53,7 +54,7 @@ export default function AdminProfilePage() {
       setPasswordMessage(message);
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
-      setPasswordMessage(err instanceof Error ? err.message : 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
+      setPasswordMessage(getErrorMessage(err, 'เปลี่ยนรหัสผ่านไม่สำเร็จ'));
     }
   }
 

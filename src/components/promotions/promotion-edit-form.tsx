@@ -19,6 +19,7 @@ import {
   type PromotionFormValues,
 } from '@/lib/validations/promotions';
 import type { CreatePromotionInput, Promotion } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export function PromotionEditForm({
   promotion,
@@ -73,9 +74,7 @@ export function PromotionEditForm({
       });
       router.push(listHref);
     } catch (err) {
-      setSubmitError(
-        err instanceof Error ? err.message : 'บันทึกโปรโมชันไม่สำเร็จ กรุณาลองอีกครั้ง',
-      );
+      setSubmitError(getErrorMessage(err, 'บันทึกโปรโมชันไม่สำเร็จ กรุณาลองอีกครั้ง'));
     }
   }
 

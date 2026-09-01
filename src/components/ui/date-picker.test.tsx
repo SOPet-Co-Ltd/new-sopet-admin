@@ -47,6 +47,19 @@ describe('DatePicker', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('exposes the trigger accessible name from aria-label', () => {
+    render(
+      <DatePicker
+        value=""
+        onChange={vi.fn()}
+        aria-label="ตั้งแต่วันที่"
+        placeholder="ตั้งแต่วันที่"
+      />,
+    );
+
+    expect(screen.getByLabelText('ตั้งแต่วันที่')).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('disables dates outside min and max range', async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();

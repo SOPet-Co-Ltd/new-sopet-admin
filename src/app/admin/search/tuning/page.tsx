@@ -6,6 +6,7 @@ import {
   SearchRankingWeightFormSkeleton,
 } from '@/components/admin/search/SearchRankingWeightForm';
 import { useSearchRankingWeights, useUpdateSearchRankingWeights } from '@/hooks/useSearchAdmin';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function AdminSearchTuningPage() {
   const { data: weights, isLoading, error } = useSearchRankingWeights();
@@ -23,7 +24,7 @@ export default function AdminSearchTuningPage() {
           role="alert"
           className="rounded-lg border border-danger/20 bg-danger-bg px-4 py-3 text-sm text-danger"
         >
-          {error instanceof Error ? error.message : 'โหลดน้ำหนักการจัดอันดับไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดน้ำหนักการจัดอันดับไม่สำเร็จ')}
         </p>
       ) : null}
 

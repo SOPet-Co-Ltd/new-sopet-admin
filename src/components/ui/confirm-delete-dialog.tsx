@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export interface ConfirmDeleteDialogProps {
   open: boolean;
@@ -66,7 +66,7 @@ export function ConfirmDeleteDialog({
       await onConfirm();
       onOpenChange(false);
     } catch (err) {
-      setError(isApiError(err) ? err.message : errorFallbackMessage);
+      setError(getErrorMessage(err, errorFallbackMessage));
     }
   }
 

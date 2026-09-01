@@ -11,6 +11,7 @@ import { VendorDashboardSkeleton } from '@/components/vendor/vendor-dashboard-sk
 import { VendorPayoutSnapshot } from '@/components/vendor/vendor-payout-snapshot';
 import { VendorStoreReadinessChecklist } from '@/components/vendor/vendor-store-readiness-checklist';
 import { Card, CardBody } from '@/components/ui/card';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function VendorDashboardPage() {
   const storeId = useVendorStoreId();
@@ -37,7 +38,7 @@ export default function VendorDashboardPage() {
 
       {error ? (
         <p className="text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'โหลดข้อมูลไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดข้อมูลไม่สำเร็จ')}
         </p>
       ) : null}
 

@@ -48,7 +48,7 @@ describe('vendor-action-queue', () => {
     expect(isVendorActionableOrder(order, 'store-1')).toBe(false);
   });
 
-  it('sorts actionable orders oldest first', () => {
+  it('sorts actionable orders newest first', () => {
     const older = createOrder({
       id: 'older',
       createdAt: '2026-01-01T08:00:00.000Z',
@@ -76,7 +76,7 @@ describe('vendor-action-queue', () => {
 
     expect(
       filterVendorActionableOrders([newer, older], 'store-1').map((order) => order.id),
-    ).toEqual(['older', 'newer']);
+    ).toEqual(['newer', 'older']);
   });
 
   it('excludes orders whose store items are all on_hold from actionable queue', () => {

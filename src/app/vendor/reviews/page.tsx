@@ -14,9 +14,10 @@ import { useStoreProductReviews, useStoreReviewSummary } from '@/hooks/useReview
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { VENDOR_REVIEWS_PAGE_SIZE } from '@/lib/api/reviews';
 import type { RatingFilter, ReplyFilter } from '@/lib/vendor/review-filters';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function formatFetchError(error: unknown): string {
-  return error instanceof Error ? error.message : 'โหลดไม่สำเร็จ';
+  return getErrorMessage(error, 'โหลดไม่สำเร็จ');
 }
 
 export default function VendorReviewsPage() {

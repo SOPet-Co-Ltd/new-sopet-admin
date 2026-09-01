@@ -5,6 +5,7 @@ import {
   ALL_PLATFORM_SPONSORS_QUERY,
   CLEAR_LOGIN_PAGE_DESKTOP_IMAGE,
   CLEAR_LOGIN_PAGE_MOBILE_IMAGE,
+  BANK_TRANSFER_SETTINGS_QUERY,
   CREATE_PLATFORM_AD,
   CREATE_PLATFORM_BANNER,
   CREATE_PLATFORM_SPONSOR,
@@ -14,12 +15,14 @@ import {
   LOGIN_PAGE_IMAGES_QUERY,
   REORDER_PLATFORM_BANNERS,
   REORDER_PLATFORM_SPONSORS,
+  UPDATE_BANK_TRANSFER_DETAILS,
   UPDATE_LOGIN_PAGE_IMAGES,
   UPDATE_PLATFORM_AD,
   UPDATE_PLATFORM_BANNER,
   UPDATE_PLATFORM_SPONSOR,
 } from '@/lib/graphql/documents';
 import type {
+  BankTransferSettings,
   CreatePlatformAdInput,
   CreatePlatformBannerInput,
   CreatePlatformSponsorInput,
@@ -27,6 +30,7 @@ import type {
   PlatformAd,
   PlatformBanner,
   PlatformSponsor,
+  UpdateBankTransferDetailsInput,
   UpdateLoginPageImagesInput,
   UpdatePlatformAdInput,
   UpdatePlatformBannerInput,
@@ -213,4 +217,27 @@ export function clearLoginPageMobileImage(): Promise<LoginPageImages> {
   return executeMutation<{ clearLoginPageMobileImage: LoginPageImages }>(
     CLEAR_LOGIN_PAGE_MOBILE_IMAGE,
   ).then((data) => mapLoginPageImages(data.clearLoginPageMobileImage));
+}
+
+export function getBankTransferSettings(): Promise<BankTransferSettings> {
+  return executeQuery<{ bankTransferSettings: BankTransferSettings }>(
+    BANK_TRANSFER_SETTINGS_QUERY,
+  ).then((data) => data.bankTransferSettings);
+}
+
+export function updateBankTransferDetails(
+  input: UpdateBankTransferDetailsInput,
+): Promise<BankTransferSettings> {
+  return executeMutation<{ updateBankTransferDetails: BankTransferSettings }>(
+    UPDATE_BANK_TRANSFER_DETAILS,
+    {
+      input: {
+        enabled: input.enabled,
+        bankName: input.bankName,
+        accountName: input.accountName,
+        accountNumber: input.accountNumber,
+        branchName: input.branchName === '' ? null : (input.branchName ?? null),
+      },
+    },
+  ).then((data) => data.updateBankTransferDetails);
 }

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { useSyncProductVariants } from '@/hooks/useSyncProductVariants';
 import { useVariantSyncImpact } from '@/hooks/useVariantSyncImpact';
-import { isApiError } from '@/lib/api/errors';
+import { isApiError, getErrorMessage } from '@/lib/api/errors';
 import { ERROR_MESSAGES } from '@/lib/api/error-messages';
 import { cn } from '@/lib/utils';
 import type { VariantItem } from '@/lib/variants';
@@ -134,13 +134,7 @@ export function VariantSyncImpactDialog({
       if (isApiError(error) && error.code === 'VARIANT_REMOVAL_BLOCKED') {
         setMutationError(ERROR_MESSAGES.VARIANT_REMOVAL_BLOCKED);
       } else {
-        setMutationError(
-          isApiError(error)
-            ? error.message
-            : error instanceof Error
-              ? error.message
-              : 'บันทึก SKU/สต็อก/ราคาไม่สำเร็จ',
-        );
+        setMutationError(getErrorMessage(error, 'บันทึก SKU/สต็อก/ราคาไม่สำเร็จ'));
       }
     }
   }

@@ -1,38 +1,41 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { verifyEmail } from '@/lib/api/emailVerification';
+import { useSecretTokenParam } from '@/lib/auth/useSecretTokenParam';
 import { syncEmailVerificationStatus } from '@/lib/auth-session';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function VerifyEmailContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token') ?? '';
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
-    token ? 'loading' : 'idle',
-  );
+  const token = useSecretTokenParam();
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      return;
+    }
 
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- kick off verify once token is known
+    setStatus('loading');
 
     verifyEmail(token)
-      .then(async (result) => {
+      .then(async (result: string) => {
         if (cancelled) return;
         await syncEmailVerificationStatus();
         setMessage(result);
         setStatus('success');
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'ยืนยันอีเมลไม่สำเร็จ');
+        setError(getErrorMessage(err, 'ยืนยันอีเมลไม่สำเร็จ'));
         setStatus('error');
       });
 

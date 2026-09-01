@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import type { SearchRankingWeights } from '@/lib/api/search';
 import type { UpdateSearchRankingWeightsInput } from '@/lib/graphql/generated/graphql';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 type SearchRankingWeightFormProps = {
   initialWeights?: SearchRankingWeights;
@@ -244,7 +245,7 @@ export function SearchRankingWeightForm({
       await onSubmit(values);
       setSavedMessage('บันทึกการตั้งค่าแล้ว');
     } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'บันทึกไม่สำเร็จ');
+      setSubmitError(getErrorMessage(error, 'บันทึกไม่สำเร็จ'));
     }
   };
 

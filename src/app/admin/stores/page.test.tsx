@@ -100,7 +100,7 @@ describe('AdminStoresPage', () => {
 
     render(<AdminStoresPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('เครือข่ายล้มเหลว');
+    expect(screen.getByRole('alert')).toHaveTextContent('โหลดร้านค้าไม่สำเร็จ');
   });
 
   it('filters stores by status client-side', async () => {

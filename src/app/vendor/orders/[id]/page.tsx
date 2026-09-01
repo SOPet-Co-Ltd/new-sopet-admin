@@ -11,6 +11,7 @@ import { useVendorOrders } from '@/hooks/useVendorOrders';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { labelOrderStatus, labelPaymentMethod } from '@/lib/i18n/th';
 import { formatDateTime } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function OrderDetailSkeleton() {
   return (
@@ -60,7 +61,7 @@ export default function VendorOrderDetailPage() {
           กลับรายการคำสั่งซื้อ
         </Link>
         <p className="text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'โหลดคำสั่งซื้อไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดคำสั่งซื้อไม่สำเร็จ')}
         </p>
       </div>
     );

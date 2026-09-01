@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,9 @@ import { Card, CardBody } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePasswordResetTokenStatus, useResetPassword } from '@/hooks/usePasswordReset';
+import { useSecretTokenParam } from '@/lib/auth/useSecretTokenParam';
 import { resetPasswordSchema, type ResetPasswordFormValues } from '@/lib/validations';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const TOKEN_STATUS_MESSAGES: Record<string, string> = {
   expired: 'ลิงก์นี้หมดอายุแล้ว กรุณาขอลิงก์ตั้งรหัสผ่านใหม่อีกครั้ง',
@@ -20,8 +22,7 @@ const TOKEN_STATUS_MESSAGES: Record<string, string> = {
 
 function ResetPasswordForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token') ?? '';
+  const token = useSecretTokenParam();
   const resetMutation = useResetPassword();
   const {
     data: tokenStatus,
@@ -44,7 +45,7 @@ function ResetPasswordForm() {
       router.replace('/login');
     } catch (err) {
       form.setError('root', {
-        message: err instanceof Error ? err.message : 'รีเซ็ตรหัสผ่านไม่สำเร็จ',
+        message: getErrorMessage(err, 'รีเซ็ตรหัสผ่านไม่สำเร็จ'),
       });
     }
   }

@@ -27,6 +27,7 @@ import {
 import { getMaxBirthday, MIN_BIRTHDAY } from '@/lib/datetime/calendarUtils';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { adminCustomerFormSchema, type AdminCustomerFormValues } from '@/lib/validations';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function CustomerStatusBadges({
   isActive,
@@ -91,7 +92,7 @@ export default function AdminCustomerEditPage() {
       <div className="space-y-4">
         <BackToCustomersLink href="/admin/customers" />
         <p className="text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'ไม่พบลูกค้า'}
+          {getErrorMessage(error, 'ไม่พบลูกค้า')}
         </p>
       </div>
     );
@@ -225,16 +226,12 @@ export default function AdminCustomerEditPage() {
               </div>
               {updateMutation.isError ? (
                 <p className="text-sm text-danger" role="alert">
-                  {updateMutation.error instanceof Error
-                    ? updateMutation.error.message
-                    : 'บันทึกไม่สำเร็จ'}
+                  {getErrorMessage(updateMutation.error, 'บันทึกไม่สำเร็จ')}
                 </p>
               ) : null}
               {setActiveMutation.isError ? (
                 <p className="text-sm text-danger" role="alert">
-                  {setActiveMutation.error instanceof Error
-                    ? setActiveMutation.error.message
-                    : 'เปลี่ยนสถานะบัญชีไม่สำเร็จ'}
+                  {getErrorMessage(setActiveMutation.error, 'เปลี่ยนสถานะบัญชีไม่สำเร็จ')}
                 </p>
               ) : null}
               <div className="flex flex-wrap gap-3">

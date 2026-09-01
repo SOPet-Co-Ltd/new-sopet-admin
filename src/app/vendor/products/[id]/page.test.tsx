@@ -1,4 +1,6 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import type { Product } from '@/types';
 import VendorProductDetailPage from './page';
@@ -36,6 +38,7 @@ const mockProduct: Product = {
       id: 'var-1',
       sku: 'DOG-ORG-5KG',
       price: 590,
+      compareAtPrice: 790,
       stockQuantity: 12,
       optionsJson: JSON.stringify({ ขนาด: '5 กก.' }),
     },
@@ -82,11 +85,11 @@ vi.mock('@/hooks/useReviews', () => ({
           status: 'approved',
           createdAt: '2026-06-01T10:00:00.000Z',
           customerName: 'คุณเอ',
-          reply: { id: 'reply-1', body: 'ขอบคุณครับ', createdAt: '', updatedAt: '' },
+          reply: { id: 'reply-1', body: 'ขอบคุณครับ' },
         },
         {
           id: 'rev-2',
-          productId: 'other-prod',
+          productId: 'prod-other',
           rating: 2,
           comment: 'ไม่เกี่ยว',
           status: 'approved',
@@ -100,9 +103,16 @@ vi.mock('@/hooks/useReviews', () => ({
   }),
 }));
 
+function renderWithQueryClient(ui: ReactNode) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
+
 describe('VendorProductDetailPage', () => {
   it('renders read-only product details with stats, reviews, edit and variants links', () => {
-    render(<VendorProductDetailPage />);
+    renderWithQueryClient(<VendorProductDetailPage />);
 
     expect(screen.getByRole('heading', { name: 'อาหารสุนัขออร์แกนิก' })).toBeInTheDocument();
     expect(screen.getByText('รายละเอียดสินค้า (อ่านอย่างเดียว)')).toBeInTheDocument();
@@ -115,7 +125,7 @@ describe('VendorProductDetailPage', () => {
     expect(screen.getByText('อาหารคุณภาพสูงสำหรับสุนัข')).toBeInTheDocument();
     expect(screen.getByText('เก็บในที่แห้ง')).toBeInTheDocument();
     expect(screen.getByText('DOG-ORG-5KG')).toBeInTheDocument();
-    expect(screen.getByText('ขนาด: 5 กก.')).toBeInTheDocument();
+    expect(screen.getAllByText('ขนาด: 5 กก.').length).toBeGreaterThan(0);
 
     expect(screen.getByText('คะแนน')).toBeInTheDocument();
     expect(screen.getByText('4.5')).toBeInTheDocument();
@@ -127,12 +137,20 @@ describe('VendorProductDetailPage', () => {
 
     expect(screen.getByText('สุนัขชอบมาก')).toBeInTheDocument();
     expect(screen.getByText('คุณเอ')).toBeInTheDocument();
-    expect(screen.getByText('ขอบคุณครับ')).toBeInTheDocument();
+    expect(screen.getAllByText('ขอบคุณครับ').length).toBeGreaterThan(0);
     expect(screen.queryByText('ไม่เกี่ยว')).not.toBeInTheDocument();
 
     expect(screen.getByText('ช่วงราคาตามตัวเลือก')).toBeInTheDocument();
     expect(screen.queryByText('ราคาฐาน')).not.toBeInTheDocument();
-    expect(screen.queryByText('ราคาขีดฆ่า')).not.toBeInTheDocument();
+    expect(screen.getAllByText('ราคาขีดฆ่า').length).toBeGreaterThan(0);
+    expect(screen.getByText(/690/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'ส่วนลดแคตตาล็อก' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'ไปที่แคมเปญ' })).toHaveAttribute(
+      'href',
+      '/vendor/campaigns',
+    );
+    expect(screen.getByText(/ไม่เปลี่ยนราคาที่ชำระในตะกร้า/)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'ส่วนลดต่อตัวเลือก' })).not.toBeInTheDocument();
 
     expect(screen.getByRole('link', { name: 'แก้ไขสินค้า' })).toHaveAttribute(
       'href',

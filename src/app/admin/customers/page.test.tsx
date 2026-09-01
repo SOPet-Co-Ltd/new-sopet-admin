@@ -108,6 +108,6 @@ describe('AdminCustomersPage', () => {
 
     render(<AdminCustomersPage />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent('เครือข่ายล้มเหลว');
+    expect(screen.getByRole('alert')).toHaveTextContent('โหลดรายการลูกค้าไม่สำเร็จ');
   });
 });

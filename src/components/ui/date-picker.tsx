@@ -23,6 +23,8 @@ export type DatePickerProps = {
   max?: string;
   disabled?: boolean;
   className?: string;
+  align?: 'start' | 'end';
+  'aria-label'?: string;
   'aria-invalid'?: boolean;
   'aria-describedby'?: string;
   'data-testid'?: string;
@@ -68,6 +70,8 @@ export function DatePicker({
   max,
   disabled = false,
   className,
+  align = 'start',
+  'aria-label': ariaLabel,
   'aria-invalid': ariaInvalid,
   'aria-describedby': ariaDescribedBy,
   'data-testid': dataTestId,
@@ -156,6 +160,7 @@ export function DatePicker({
         variant="outline"
         disabled={disabled}
         data-testid={dataTestId ? `${dataTestId}-trigger` : undefined}
+        aria-label={ariaLabel}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={calendarId}
@@ -163,7 +168,7 @@ export function DatePicker({
         aria-describedby={ariaDescribedBy}
         onClick={handleToggle}
         className={cn(
-          'h-10 w-full justify-between px-3 font-normal',
+          'h-10 w-full justify-between bg-white px-3 text-sm font-normal shadow-sm hover:bg-white focus-visible:border-brand focus-visible:ring-brand/20',
           !hasValue && 'text-muted',
           ariaInvalid && 'border-danger ring-1 ring-danger/30',
         )}
@@ -177,7 +182,10 @@ export function DatePicker({
           id={calendarId}
           role="dialog"
           aria-label="เลือกวันที่"
-          className="absolute left-0 top-[calc(100%+0.25rem)] z-[60] w-[min(100vw-2rem,17.5rem)] rounded-xl border border-border bg-white p-3 shadow-[var(--shadow-elevated)] sm:p-4"
+          className={cn(
+            'absolute top-[calc(100%+0.25rem)] z-[60] w-[min(100vw-2rem,17.5rem)] rounded-xl border border-border bg-white p-3 shadow-[var(--shadow-elevated)] sm:p-4',
+            align === 'end' ? 'right-0' : 'left-0',
+          )}
         >
           <div className="mb-3 flex items-center gap-1 sm:mb-4 sm:gap-2">
             <Button

@@ -44,6 +44,7 @@ import { shippingOptionSchema, type ShippingOptionFormValues } from '@/lib/valid
 import { cn, formatCurrency } from '@/lib/utils';
 import type { StoreShippingOption } from '@/types';
 import { activeStatusBadgeClass, providerLabel } from './shipping-helpers';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function StoreOptionsSkeleton() {
   return (
@@ -286,9 +287,7 @@ export function StoreShippingOptionsPanel() {
               {optionsError ? (
                 <div className="px-5 py-8 text-center md:px-6">
                   <p className="text-sm text-danger">
-                    {optionsError instanceof Error
-                      ? optionsError.message
-                      : 'โหลดตัวเลือกจัดส่งไม่สำเร็จ'}
+                    {getErrorMessage(optionsError, 'โหลดตัวเลือกจัดส่งไม่สำเร็จ')}
                   </p>
                 </div>
               ) : null}
@@ -528,7 +527,7 @@ export function StoreShippingOptionsPanel() {
 
             {mutationError ? (
               <p className="text-sm text-danger" role="alert">
-                {mutationError instanceof Error ? mutationError.message : 'บันทึกไม่สำเร็จ'}
+                {getErrorMessage(mutationError, 'บันทึกไม่สำเร็จ')}
               </p>
             ) : null}
 

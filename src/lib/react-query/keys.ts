@@ -23,6 +23,8 @@ export const queryKeys = {
     all: ['orders'] as const,
     vendorRoot: () => ['orders', 'vendor'] as const,
     vendor: (storeId: string) => ['orders', 'vendor', storeId] as const,
+    auditLog: (orderId: string, storeId: string) =>
+      ['orders', 'auditLog', orderId, storeId] as const,
   },
   products: {
     all: ['products'] as const,
@@ -81,6 +83,10 @@ export const queryKeys = {
     store: (storeId: string) => ['promotions', 'store', storeId] as const,
     platform: () => ['promotions', 'platform'] as const,
   },
+  saleCampaigns: {
+    all: ['saleCampaigns'] as const,
+    store: (storeId: string) => ['saleCampaigns', 'store', storeId] as const,
+  },
   storeRequests: {
     all: ['storeRequests'] as const,
     mine: () => ['storeRequests', 'mine'] as const,
@@ -126,6 +132,11 @@ export const queryKeys = {
     store: (storeId: string, params?: StoreProductReviewsParams) =>
       ['reviews', 'store', storeId, params] as const,
     summary: (storeId: string) => ['reviews', 'summary', storeId] as const,
+    pendingImported: (page: number) => ['reviews', 'pendingImported', page] as const,
+  },
+  bankTransfers: {
+    all: ['bankTransfers'] as const,
+    pending: (page: number) => ['bankTransfers', 'pending', page] as const,
   },
   platform: {
     all: ['platform'] as const,
@@ -133,6 +144,7 @@ export const queryKeys = {
     sponsors: () => ['platform', 'sponsors'] as const,
     ads: () => ['platform', 'ads'] as const,
     loginPageImages: () => ['platform', 'loginPageImages'] as const,
+    bankTransfer: () => ['platform', 'bankTransfer'] as const,
   },
   adminTeam: {
     all: ['adminTeam'] as const,
@@ -189,5 +201,16 @@ export const queryKeys = {
     vendorHistory: () => ['payouts', 'vendorHistory'] as const,
     adminSummary: (storeId: string) => ['payouts', 'adminSummary', storeId] as const,
     adminHistory: (storeId: string) => ['payouts', 'adminHistory', storeId] as const,
+    pendingManual: (page?: number) =>
+      page == null
+        ? (['payouts', 'pendingManual'] as const)
+        : (['payouts', 'pendingManual', page] as const),
+  },
+  emailCms: {
+    all: ['emailCms'] as const,
+    containers: () => ['emailCms', 'containers'] as const,
+    container: (id: string) => ['emailCms', 'container', id] as const,
+    contentTemplates: () => ['emailCms', 'contentTemplates'] as const,
+    contentTemplateByKey: (key: string) => ['emailCms', 'contentTemplateByKey', key] as const,
   },
 } as const;

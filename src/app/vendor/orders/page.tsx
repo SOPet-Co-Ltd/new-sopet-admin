@@ -1,48 +1,72 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useRef, useState, useEffect, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { HiCheckCircle, HiShoppingBag } from 'react-icons/hi2';
 import { VendorOrderTrackingLinkDialog } from '@/components/vendor/vendor-order-tracking-link-dialog';
+import { VendorOrderWorkflowActionDialog } from '@/components/vendor/vendor-order-workflow-action-dialog';
+import {
+  VendorOrderFilters,
+  type OrderPaymentFilter,
+  type OrderQueueView,
+  type OrderStatusFilter,
+} from '@/components/vendor/vendor-order-filters';
 import { VendorOrdersActionMenu } from '@/components/vendor/vendor-orders-action-menu';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { useVendorOrders } from '@/hooks/useVendorOrders';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { ORDER_STATUSES } from '@/lib/config';
-import { labelOrderStatus } from '@/lib/i18n/th';
+import { labelOrderStatus, labelPaymentMethod } from '@/lib/i18n/th';
 import {
   filterVendorActionableOrders,
   isVendorActionableOrder,
   labelVendorWorkflowAction,
 } from '@/lib/orders/vendor-action-queue';
 import { getVendorOrderWorkflowAction } from '@/lib/orders/workflow';
-import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
+import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Order } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
-function buildOrdersQuery(params: { queue?: 'action' | 'all'; status?: string }) {
+const ALL = 'all';
+const SEARCH_DEBOUNCE_MS = 300;
+const ORDER_STATUS_SET = new Set<string>(ORDER_STATUSES);
+const PAYMENT_METHOD_SET = new Set(['promptpay', 'credit_card', 'cod', 'bank_transfer']);
+
+function buildOrdersQuery(params: { queue?: OrderQueueView; status?: string; payment?: string }) {
   const search = new URLSearchParams();
   if (params.queue === 'action') {
     search.set('queue', 'action');
   } else if (params.queue === 'all') {
     search.set('queue', 'all');
   }
-  if (params.status && params.status !== 'all') {
+  if (params.status && params.status !== ALL) {
     search.set('status', params.status);
+  }
+  if (params.payment && params.payment !== ALL) {
+    search.set('payment', params.payment);
   }
   const query = search.toString();
   return query ? `/vendor/orders?${query}` : '/vendor/orders';
+}
+
+function parseStatusFilter(value: string | null): OrderStatusFilter {
+  if (value && ORDER_STATUS_SET.has(value)) {
+    return value as OrderStatusFilter;
+  }
+  return ALL;
+}
+
+function parsePaymentFilter(value: string | null): OrderPaymentFilter {
+  if (value && PAYMENT_METHOD_SET.has(value)) {
+    return value as OrderPaymentFilter;
+  }
+  return ALL;
 }
 
 function OrdersTableSkeleton() {
@@ -80,14 +104,14 @@ function OrdersTableSkeleton() {
 
 function OrdersEmptyState({
   queueFilter,
-  statusFilter,
+  hasExtraFilters,
+  onClearFilters,
 }: {
   queueFilter: boolean;
-  statusFilter: string;
+  hasExtraFilters: boolean;
+  onClearFilters: () => void;
 }) {
-  const hasStatusFilter = statusFilter !== 'all';
-
-  if (queueFilter && !hasStatusFilter) {
+  if (queueFilter && !hasExtraFilters) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-success/20 bg-success-bg/30 px-6 py-14 text-center">
         <div
@@ -116,18 +140,16 @@ function OrdersEmptyState({
         <HiShoppingBag className="size-6" />
       </div>
       <p className="mt-4 font-medium text-ink">
-        {hasStatusFilter ? 'ไม่พบคำสั่งซื้อตามตัวกรอง' : 'ยังไม่มีคำสั่งซื้อ'}
+        {hasExtraFilters ? 'ไม่พบคำสั่งซื้อตามตัวกรอง' : 'ยังไม่มีคำสั่งซื้อ'}
       </p>
       <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
-        {hasStatusFilter
-          ? 'ลองเปลี่ยนสถานะหรือสลับไปคิวที่ต้องทำ'
+        {hasExtraFilters
+          ? 'ลองเปลี่ยนสถานะ วิธีชำระเงิน หรือคำค้นหา'
           : 'เมื่อมีออเดอร์ใหม่ รายการจะแสดงที่นี่'}
       </p>
-      {hasStatusFilter ? (
-        <Button variant="outline" size="sm" asChild className="mt-5">
-          <Link href={queueFilter ? '/vendor/orders?queue=action' : '/vendor/orders?queue=all'}>
-            ล้างตัวกรองสถานะ
-          </Link>
+      {hasExtraFilters ? (
+        <Button type="button" variant="outline" size="sm" className="mt-5" onClick={onClearFilters}>
+          ล้างตัวกรอง
         </Button>
       ) : null}
     </div>
@@ -144,16 +166,28 @@ export default function VendorOrdersPage() {
   // briefly render the "no orders" empty state before the real fetch even starts.
   const isLoading = ordersLoading || !storeId;
   const queueParam = searchParams.get('queue');
-  const queueFilter = queueParam !== 'all';
-  const statusFilter = searchParams.get('status') ?? 'all';
+  const queue: OrderQueueView = queueParam === 'all' ? 'all' : 'action';
+  const queueFilter = queue === 'action';
+  const statusFilter = parseStatusFilter(searchParams.get('status'));
+  const paymentFilter = parsePaymentFilter(searchParams.get('payment'));
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
   const [trackingDialogOrderNumber, setTrackingDialogOrderNumber] = useState<string | null>(null);
+  const [workflowOrder, setWorkflowOrder] = useState<Order | null>(null);
   const menuTriggerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (queueParam === null && !searchParams.has('status')) {
+    if (queueParam === null && !searchParams.has('status') && !searchParams.has('payment')) {
       router.replace('/vendor/orders?queue=action', { scroll: false });
     }
   }, [queueParam, router, searchParams]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const actionableCount = useMemo(
     () => filterVendorActionableOrders(orders, storeId).length,
@@ -165,49 +199,41 @@ export default function VendorOrdersPage() {
     if (queueFilter) {
       result = filterVendorActionableOrders(result, storeId);
     }
-    if (statusFilter !== 'all') {
+    if (statusFilter !== ALL) {
       result = result.filter((order) => order.status === statusFilter);
     }
-    return result;
-  }, [orders, queueFilter, statusFilter, storeId]);
-
-  function setQueueView(nextQueue: 'action' | 'all') {
-    router.replace(
-      buildOrdersQuery({
-        queue: nextQueue,
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-      }),
-      { scroll: false },
-    );
-  }
-
-  function setStatusFilter(value: string) {
-    router.replace(
-      buildOrdersQuery({
-        queue: queueFilter ? 'action' : 'all',
-        status: value !== 'all' ? value : undefined,
-      }),
-      { scroll: false },
-    );
-  }
-
-  function onQueueTabKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
-    if (
-      event.key !== 'ArrowLeft' &&
-      event.key !== 'ArrowRight' &&
-      event.key !== 'Home' &&
-      event.key !== 'End'
-    ) {
-      return;
+    if (paymentFilter !== ALL) {
+      result = result.filter((order) => order.paymentMethod === paymentFilter);
     }
-    event.preventDefault();
-    const next: 'action' | 'all' =
-      event.key === 'Home' || event.key === 'ArrowLeft' ? 'action' : 'all';
-    setQueueView(next);
-    requestAnimationFrame(() => {
-      document.getElementById(next === 'action' ? 'orders-tab-action' : 'orders-tab-all')?.focus();
-    });
+    if (search) {
+      const needle = search.toLowerCase();
+      result = result.filter((order) => order.orderNumber.toLowerCase().includes(needle));
+    }
+    return result;
+  }, [orders, queueFilter, statusFilter, paymentFilter, search, storeId]);
+
+  function replaceFilters(next: {
+    queue: OrderQueueView;
+    status: OrderStatusFilter;
+    payment: OrderPaymentFilter;
+  }) {
+    router.replace(
+      buildOrdersQuery({
+        queue: next.queue,
+        status: next.status !== ALL ? next.status : undefined,
+        payment: next.payment !== ALL ? next.payment : undefined,
+      }),
+      { scroll: false },
+    );
   }
+
+  function clearExtraFilters() {
+    setSearchInput('');
+    setSearch('');
+    replaceFilters({ queue, status: ALL, payment: ALL });
+  }
+
+  const hasExtraFilters = Boolean(search) || statusFilter !== ALL || paymentFilter !== ALL;
 
   const columns = useMemo<ColumnDef<Order>[]>(
     () => [
@@ -238,12 +264,18 @@ export default function VendorOrdersPage() {
 
           return (
             <Button
+              type="button"
               size="sm"
               variant="default"
-              asChild
               className="h-8 w-max max-w-none shrink-0 rounded-full px-3.5 text-xs whitespace-nowrap shadow-none"
+              aria-haspopup="dialog"
+              onClick={(event) => {
+                event.stopPropagation();
+                setWorkflowOrder(row.original);
+              }}
+              onKeyDown={(event) => event.stopPropagation()}
             >
-              <Link href={`/vendor/orders/${row.original.id}`}>{label}</Link>
+              {label}
             </Button>
           );
         },
@@ -256,6 +288,14 @@ export default function VendorOrdersPage() {
           <Badge status={row.original.status}>{labelOrderStatus(row.original.status)}</Badge>
         ),
         meta: { className: 'whitespace-nowrap' },
+      },
+      {
+        accessorKey: 'paymentMethod',
+        header: 'ชำระเงิน',
+        cell: ({ row }) => (
+          <span className="text-sm text-ink">{labelPaymentMethod(row.original.paymentMethod)}</span>
+        ),
+        meta: { className: 'hidden md:table-cell whitespace-nowrap' },
       },
       {
         accessorKey: 'total',
@@ -297,85 +337,41 @@ export default function VendorOrdersPage() {
         title="คำสั่งซื้อ"
         description={
           queueFilter
-            ? 'คิวออเดอร์ที่ต้องดำเนินการ — เรียงจากเก่าที่สุด'
+            ? 'คิวออเดอร์ที่ต้องดำเนินการ — เรียงจากใหม่ที่สุด'
             : 'ดูและดำเนินการคำสั่งซื้อจากลูกค้า'
         }
       />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label="มุมมองคำสั่งซื้อ">
-          <Button
-            type="button"
-            id="orders-tab-action"
-            role="tab"
-            aria-selected={queueFilter}
-            aria-controls="orders-panel"
-            tabIndex={queueFilter ? 0 : -1}
-            variant={queueFilter ? 'default' : 'outline'}
-            className={cn(
-              'rounded-full',
-              queueFilter ? 'shadow-none' : 'bg-card text-ink hover:bg-surface',
-            )}
-            onClick={() => setQueueView('action')}
-            onKeyDown={onQueueTabKeyDown}
-          >
-            ต้องทำ
-            {!isLoading && actionableCount > 0 ? (
-              <span
-                className={cn(
-                  'ml-0.5 inline-flex min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium tabular-nums',
-                  queueFilter ? 'bg-white/20 text-white' : 'bg-secondary-tint text-secondary',
-                )}
-              >
-                {actionableCount.toLocaleString('th-TH')}
-              </span>
-            ) : null}
-          </Button>
-          <Button
-            type="button"
-            id="orders-tab-all"
-            role="tab"
-            aria-selected={!queueFilter}
-            aria-controls="orders-panel"
-            tabIndex={!queueFilter ? 0 : -1}
-            variant={!queueFilter ? 'default' : 'outline'}
-            className={cn(
-              'rounded-full',
-              !queueFilter ? 'shadow-none' : 'bg-card text-ink hover:bg-surface',
-            )}
-            onClick={() => setQueueView('all')}
-            onKeyDown={onQueueTabKeyDown}
-          >
-            ทั้งหมด
-          </Button>
-        </div>
-
-        <div className="w-full sm:w-52">
-          <label
-            htmlFor="orders-status-filter"
-            className="mb-1.5 block text-xs font-medium text-muted-foreground"
-          >
-            กรองตามสถานะ
-          </label>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger id="orders-status-filter" className="bg-card">
-              <SelectValue placeholder="ทุกสถานะ" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">ทุกสถานะ</SelectItem>
-              {ORDER_STATUSES.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {labelOrderStatus(status)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <VendorOrderFilters
+        leading={
+          <Input
+            type="search"
+            aria-label="ค้นหาคำสั่งซื้อ"
+            placeholder="ค้นหาเลขคำสั่งซื้อ..."
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+          />
+        }
+        queue={queue}
+        actionableCount={actionableCount}
+        status={statusFilter}
+        paymentMethod={paymentFilter}
+        isLoading={isLoading}
+        onQueueChange={(nextQueue) =>
+          replaceFilters({ queue: nextQueue, status: statusFilter, payment: paymentFilter })
+        }
+        onStatusChange={(nextStatus) =>
+          replaceFilters({ queue, status: nextStatus, payment: paymentFilter })
+        }
+        onPaymentMethodChange={(nextPayment) =>
+          replaceFilters({ queue, status: statusFilter, payment: nextPayment })
+        }
+        onClearAll={clearExtraFilters}
+      />
 
       {error ? (
         <p className="text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'โหลดคำสั่งซื้อไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดคำสั่งซื้อไม่สำเร็จ')}
         </p>
       ) : null}
 
@@ -388,7 +384,11 @@ export default function VendorOrdersPage() {
         {isLoading ? <OrdersTableSkeleton /> : null}
 
         {!isLoading && filteredOrders.length === 0 ? (
-          <OrdersEmptyState queueFilter={queueFilter} statusFilter={statusFilter} />
+          <OrdersEmptyState
+            queueFilter={queueFilter}
+            hasExtraFilters={hasExtraFilters}
+            onClearFilters={clearExtraFilters}
+          />
         ) : null}
 
         {!isLoading && filteredOrders.length > 0 ? (
@@ -405,6 +405,15 @@ export default function VendorOrdersPage() {
           </>
         ) : null}
       </div>
+
+      <VendorOrderWorkflowActionDialog
+        order={workflowOrder}
+        storeId={storeId}
+        open={workflowOrder !== null}
+        onOpenChange={(open) => {
+          if (!open) setWorkflowOrder(null);
+        }}
+      />
 
       <VendorOrderTrackingLinkDialog
         orderNumber={trackingDialogOrderNumber ?? ''}

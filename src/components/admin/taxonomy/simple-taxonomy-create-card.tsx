@@ -8,7 +8,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCreateBrand, useCreateTag } from '@/hooks/useTaxonomy';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
 
 type SimpleTaxonomyKind = 'tag' | 'brand';
@@ -32,12 +32,6 @@ const COPY: Record<
     fieldId: 'brand-name',
   },
 };
-
-function mutationErrorMessage(error: unknown, fallback: string): string {
-  if (isApiError(error)) return error.message;
-  if (error instanceof Error && error.message) return error.message;
-  return fallback;
-}
 
 export function SimpleTaxonomyCreateCard({ kind }: { kind: SimpleTaxonomyKind }) {
   const [success, setSuccess] = useState(false);
@@ -109,7 +103,7 @@ export function SimpleTaxonomyCreateCard({ kind }: { kind: SimpleTaxonomyKind })
 
         {mutation.isError ? (
           <p role="alert" className="text-sm text-danger">
-            {mutationErrorMessage(mutation.error, 'สร้างไม่สำเร็จ')}
+            {getErrorMessage(mutation.error, 'สร้างไม่สำเร็จ')}
           </p>
         ) : null}
 

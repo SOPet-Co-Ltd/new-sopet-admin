@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Controller, type UseFormReturn } from 'react-hook-form';
-import { HiOutlineCheckCircle } from 'react-icons/hi2';
+import { HiOutlineCheckCircle, HiOutlinePencilSquare } from 'react-icons/hi2';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,40 +14,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getBankAccountTheme } from '@/lib/banks/bank-account-theme';
+import {
+  formatThaiBankAccountNumber,
+  sanitizeBankAccountDigits,
+} from '@/lib/banks/formatThaiBankAccountNumber';
 import { THAI_BANKS } from '@/lib/constants/thai-banks';
 import type { PayoutFormValues } from '@/lib/validations';
-import type { OmiseRecipientStatus, StoreDetail } from '@/types';
+import type { StoreDetail } from '@/types';
 import { cn } from '@/lib/utils';
-
-const OMISE_STATUS_INFO: Record<
-  OmiseRecipientStatus,
-  { label: string; description: string; className: string; dotClassName: string }
-> = {
-  not_connected: {
-    label: 'ยังไม่ได้เชื่อมต่อ',
-    description: 'บันทึกบัญชีธนาคารเพื่อเริ่มรับเงินจากยอดขาย',
-    className: 'border-border bg-surface text-ink',
-    dotClassName: 'bg-muted',
-  },
-  pending: {
-    label: 'รอการยืนยันบัญชี',
-    description: 'ระบบกำลังตรวจสอบบัญชี คุณสามารถขอรับเงินได้เมื่อสถานะเป็น “พร้อมรับเงิน”',
-    className: 'border-warning-text/20 bg-warning-bg text-warning-text',
-    dotClassName: 'bg-warning-text',
-  },
-  active: {
-    label: 'พร้อมรับเงิน',
-    description: 'บัญชีพร้อมรับเงินแล้ว ระบบสามารถโอนเงินเข้าบัญชีนี้ได้',
-    className: 'border-success/25 bg-success-bg text-success',
-    dotClassName: 'bg-success',
-  },
-  failed: {
-    label: 'เชื่อมต่อไม่สำเร็จ',
-    description: 'ตรวจสอบข้อมูลบัญชีแล้วบันทึกใหม่ หรือติดต่อทีมสนับสนุน',
-    className: 'border-danger/30 bg-danger-bg text-danger',
-    dotClassName: 'bg-danger',
-  },
-};
+import { getErrorMessage } from '@/lib/api/errors';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 type VendorPayoutAccountPanelProps = {
   form: UseFormReturn<PayoutFormValues>;
@@ -60,11 +44,75 @@ type VendorPayoutAccountPanelProps = {
 function AccountSkeleton() {
   return (
     <div className="space-y-4" aria-busy="true" aria-live="polite">
-      <div className="h-20 animate-pulse rounded-xl bg-surface motion-reduce:animate-none" />
-      <div className="h-10 animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
-      <div className="h-10 animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
-      <div className="h-10 animate-pulse rounded-md bg-surface motion-reduce:animate-none" />
+      <div className="h-28 animate-pulse rounded-lg border border-border bg-surface motion-reduce:animate-none" />
       <span className="sr-only">กำลังโหลด...</span>
+    </div>
+  );
+}
+
+type SavedBankAccountProps = {
+  bankName: string;
+  bankCode?: string | null;
+  accountName?: string;
+  accountNumber: string;
+  onEdit: () => void;
+};
+
+function SavedBankAccount({
+  bankName,
+  bankCode,
+  accountName,
+  accountNumber,
+  onEdit,
+}: SavedBankAccountProps) {
+  const theme = getBankAccountTheme(bankCode);
+  const titleId = useId();
+  const formattedNumber = formatThaiBankAccountNumber(accountNumber);
+  const holder = accountName?.trim() || '—';
+
+  return (
+    <div className="rounded-lg border border-border bg-card">
+      <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
+        <div className="min-w-0 flex-1 space-y-3">
+          <div className="flex items-center gap-2.5">
+            <span
+              aria-hidden
+              className="inline-flex h-8 w-14 shrink-0 items-center justify-center rounded-md text-[11px] font-bold tracking-wider"
+              style={{ backgroundColor: theme.brand, color: theme.onBrand }}
+            >
+              {theme.shortCode}
+            </span>
+            <p id={titleId} className="truncate font-display text-base font-medium text-ink">
+              {bankName}
+            </p>
+          </div>
+
+          <dl className="grid gap-3 border-t border-border/80 pt-3 sm:grid-cols-2 sm:gap-8">
+            <div className="min-w-0">
+              <dt className="text-xs text-muted-foreground">เลขที่บัญชี</dt>
+              <dd className="mt-0.5 font-display text-lg font-semibold tabular-nums tracking-wide text-ink">
+                {formattedNumber}
+              </dd>
+            </div>
+            <div className="min-w-0">
+              <dt className="text-xs text-muted-foreground">ชื่อบัญชี</dt>
+              <dd className="mt-0.5 truncate text-sm font-medium text-ink">{holder}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onEdit}
+          aria-labelledby={titleId}
+          className="w-full shrink-0 sm:w-auto"
+        >
+          <HiOutlinePencilSquare className="size-3.5 shrink-0" aria-hidden />
+          แก้ไข
+        </Button>
+      </div>
     </div>
   );
 }
@@ -76,16 +124,20 @@ export function VendorPayoutAccountPanel({
   saving,
   onSubmit,
 }: VendorPayoutAccountPanelProps) {
-  const status = (store?.omiseRecipientStatus ?? 'not_connected') as OmiseRecipientStatus;
-  const info = OMISE_STATUS_INFO[status] ?? OMISE_STATUS_INFO.not_connected;
-  const maskedAccount =
-    store?.bankAccountNumber && store.bankAccountNumber.length > 4
-      ? `•••• ${store.bankAccountNumber.slice(-4)}`
-      : store?.bankAccountNumber;
+  const hasSavedAccount = Boolean(store?.bankName && store.bankAccountNumber);
+  const [userEditing, setUserEditing] = useState(false);
+  const showForm = !hasSavedAccount || userEditing;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingValues, setPendingValues] = useState<PayoutFormValues | null>(null);
   const [saveFeedback, setSaveFeedback] = useState<{
     type: 'success' | 'error';
     message: string;
   } | null>(null);
+
+  const omiseWasLinked =
+    store?.omiseRecipientStatus === 'active' ||
+    store?.omiseRecipientStatus === 'pending' ||
+    Boolean(store?.omiseRecipientId);
 
   useEffect(() => {
     if (!saveFeedback || saveFeedback.type !== 'success') return;
@@ -93,63 +145,116 @@ export function VendorPayoutAccountPanel({
     return () => window.clearTimeout(timer);
   }, [saveFeedback]);
 
-  async function handleSubmit(values: PayoutFormValues) {
+  function bankDetailsChanged(values: PayoutFormValues): boolean {
+    if (!store?.bankAccountNumber) return false;
+    const nextDigits = sanitizeBankAccountDigits(values.bankAccountNumber);
+    const prevDigits = sanitizeBankAccountDigits(store.bankAccountNumber ?? '');
+    const prevCode =
+      store.bankCode ?? THAI_BANKS.find((bank) => bank.name === store.bankName)?.code ?? '';
+    return (
+      values.bankCode !== prevCode ||
+      nextDigits !== prevDigits ||
+      values.bankAccountName.trim() !== (store.bankAccountName ?? '').trim()
+    );
+  }
+
+  async function persistPayout(values: PayoutFormValues) {
     setSaveFeedback(null);
     try {
       await onSubmit(values);
-      setSaveFeedback({ type: 'success', message: 'บันทึกบัญชีรับเงินแล้ว' });
+      setUserEditing(false);
+      setConfirmOpen(false);
+      setPendingValues(null);
+      setSaveFeedback({
+        type: 'success',
+        message: omiseWasLinked
+          ? 'บันทึกบัญชีแล้ว — สถานะ Omise ถูกยกเลิกการยืนยันแล้ว กรุณายืนยันกับ Omise อีกครั้งในขั้นตอน 2'
+          : 'บันทึกบัญชีธนาคารในระบบแล้ว — ขั้นถัดไปกดยืนยันกับ Omise (ถ้าต้องการรับเงิน Omise)',
+      });
     } catch (err) {
       setSaveFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ',
+        message: getErrorMessage(err, 'บันทึกไม่สำเร็จ'),
       });
+      setConfirmOpen(false);
     }
   }
 
+  function handleValidatedSubmit(values: PayoutFormValues) {
+    if (hasSavedAccount && bankDetailsChanged(values)) {
+      setPendingValues(values);
+      setConfirmOpen(true);
+      return;
+    }
+    void persistPayout(values);
+  }
+
+  function handleCancelEdit() {
+    if (store) {
+      const resolvedCode =
+        store.bankCode ?? THAI_BANKS.find((bank) => bank.name === store.bankName)?.code ?? '';
+      form.reset({
+        bankCode: resolvedCode,
+        bankAccountName: store.bankAccountName ?? '',
+        bankAccountNumber: formatThaiBankAccountNumber(store.bankAccountNumber ?? ''),
+      });
+    }
+    setSaveFeedback(null);
+    setConfirmOpen(false);
+    setPendingValues(null);
+    setUserEditing(false);
+  }
+
+  const resolvedBankCode =
+    store?.bankCode ?? THAI_BANKS.find((bank) => bank.name === store?.bankName)?.code ?? null;
+
   return (
-    <Card className="h-full">
-      <CardHeader className="space-y-1 bg-surface/60">
-        <h2 className="font-display text-lg font-medium text-ink text-balance">บัญชีรับเงิน</h2>
+    <Card>
+      <CardHeader className="space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          ขั้นตอน 1
+        </p>
+        <h2 className="font-display text-lg font-medium text-ink text-balance">
+          บัญชีธนาคารรับเงิน
+        </h2>
         <p className="text-sm text-muted-foreground">
-          บัญชีธนาคารที่ระบบจะโอนเงินรายได้เข้าให้ร้าน
+          บันทึกลงฐานข้อมูล SOPET เท่านั้น — ยังไม่ส่งไป Omise จนกว่าจะกดยืนยันในขั้นตอนถัดไป
         </p>
       </CardHeader>
       <CardBody>
         {loading ? (
           <AccountSkeleton />
+        ) : !showForm && hasSavedAccount ? (
+          <div className="space-y-4">
+            <SavedBankAccount
+              bankName={store!.bankName!}
+              bankCode={resolvedBankCode}
+              accountName={store!.bankAccountName}
+              accountNumber={store!.bankAccountNumber!}
+              onEdit={() => setUserEditing(true)}
+            />
+            {saveFeedback?.type === 'success' ? (
+              <div
+                className="flex items-start gap-2 rounded-lg border border-success-text/30 bg-success-bg px-3 py-2.5 text-sm text-success-text"
+                role="status"
+                aria-live="polite"
+              >
+                <HiOutlineCheckCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <p className="font-medium">{saveFeedback.message}</p>
+              </div>
+            ) : null}
+          </div>
         ) : (
           <form
-            onSubmit={form.handleSubmit((values) => void handleSubmit(values))}
+            onSubmit={form.handleSubmit((values) => handleValidatedSubmit(values))}
             className="space-y-5"
           >
-            <div
-              className={cn('rounded-xl border px-4 py-3', info.className)}
-              role="status"
-              aria-live="polite"
-            >
-              <div className="flex items-start gap-3">
-                <span
-                  className={cn('mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full', info.dotClassName)}
-                  aria-hidden
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{info.label}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed opacity-90">{info.description}</p>
-                  {status === 'failed' && store?.omiseRecipientFailureMessage ? (
-                    <p className="mt-2 text-xs font-medium">{store.omiseRecipientFailureMessage}</p>
-                  ) : null}
-                  {status === 'active' && store?.bankName && maskedAccount ? (
-                    <p className="mt-2 text-xs opacity-80">
-                      {store.bankName} · {maskedAccount}
-                      {store.bankAccountName ? ` · ${store.bankAccountName}` : ''}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-            </div>
+            {hasSavedAccount ? (
+              <p className="text-sm text-muted-foreground">แก้ไขบัญชีธนาคารที่บันทึกไว้</p>
+            ) : null}
 
-            <div className="space-y-4">
-              <div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
                 <Label htmlFor="bankCode" required>
                   ธนาคาร
                 </Label>
@@ -157,7 +262,11 @@ export function VendorPayoutAccountPanel({
                   control={form.control}
                   name="bankCode"
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select
+                      key={field.value ?? 'empty'}
+                      value={field.value ?? ''}
+                      onValueChange={field.onChange}
+                    >
                       <SelectTrigger
                         id="bankCode"
                         aria-invalid={!!form.formState.errors.bankCode}
@@ -211,18 +320,35 @@ export function VendorPayoutAccountPanel({
                 <Label htmlFor="bankAccountNumber" required>
                   เลขที่บัญชี
                 </Label>
-                <Input
-                  id="bankAccountNumber"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  placeholder="เลขที่บัญชีธนาคาร"
-                  aria-invalid={!!form.formState.errors.bankAccountNumber}
-                  aria-describedby={
-                    form.formState.errors.bankAccountNumber ? 'bankAccountNumber-error' : undefined
-                  }
-                  {...form.register('bankAccountNumber')}
-                  className="mt-1.5"
+                <Controller
+                  control={form.control}
+                  name="bankAccountNumber"
+                  render={({ field }) => (
+                    <Input
+                      id="bankAccountNumber"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder="xxx-x-xxxxx-x"
+                      aria-invalid={!!form.formState.errors.bankAccountNumber}
+                      aria-describedby={
+                        form.formState.errors.bankAccountNumber
+                          ? 'bankAccountNumber-error'
+                          : 'bankAccountNumber-hint'
+                      }
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                      onChange={(event) => {
+                        field.onChange(formatThaiBankAccountNumber(event.target.value));
+                      }}
+                      className="mt-1.5 tabular-nums tracking-wide"
+                    />
+                  )}
                 />
+                <p id="bankAccountNumber-hint" className="mt-1 text-xs text-muted-foreground">
+                  รูปแบบทั่วไป xxx-x-xxxxx-x (10–15 หลัก)
+                </p>
                 {form.formState.errors.bankAccountNumber ? (
                   <p id="bankAccountNumber-error" className="mt-1 text-xs text-danger" role="alert">
                     {form.formState.errors.bankAccountNumber.message}
@@ -236,7 +362,7 @@ export function VendorPayoutAccountPanel({
                 className={cn(
                   'flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm',
                   saveFeedback.type === 'success'
-                    ? 'border-success/25 bg-success-bg text-success'
+                    ? 'border-success-text/30 bg-success-bg text-success-text'
                     : 'border-danger/25 bg-danger-bg text-danger',
                 )}
                 role={saveFeedback.type === 'error' ? 'alert' : 'status'}
@@ -249,11 +375,73 @@ export function VendorPayoutAccountPanel({
               </div>
             ) : null}
 
-            <Button type="submit" disabled={saving} aria-busy={saving} className="w-full sm:w-auto">
-              {saving ? 'กำลังบันทึก...' : 'บันทึกบัญชีรับเงิน'}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="submit"
+                disabled={saving}
+                aria-busy={saving}
+                className="w-full sm:w-auto"
+              >
+                {saving ? 'กำลังบันทึก...' : 'บันทึกบัญชีธนาคาร'}
+              </Button>
+              {hasSavedAccount ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={handleCancelEdit}
+                  className="w-full sm:w-auto"
+                >
+                  ยกเลิก
+                </Button>
+              ) : null}
+            </div>
           </form>
         )}
+
+        <Dialog
+          open={confirmOpen}
+          onOpenChange={(open) => {
+            if (saving) return;
+            setConfirmOpen(open);
+            if (!open) setPendingValues(null);
+          }}
+        >
+          <DialogContent className="bg-card">
+            <DialogHeader>
+              <DialogTitle>ยืนยันการเปลี่ยนบัญชีรับเงิน</DialogTitle>
+              <DialogDescription>
+                การเปลี่ยนบัญชีธนาคารจะบันทึกข้อมูลใหม่ใน SOPET
+                {omiseWasLinked
+                  ? ' และยกเลิกสถานะยืนยัน Omise ของบัญชีเดิม — ต้องส่งยืนยันกับ Omise อีกครั้งก่อนรับเงินผ่าน PromptPay / บัตร'
+                  : ' — ยอดโอน Manual ยังใช้บัญชีใหม่ได้ทันทีหลังบันทึก'}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={saving}
+                onClick={() => {
+                  setConfirmOpen(false);
+                  setPendingValues(null);
+                }}
+              >
+                ยกเลิก
+              </Button>
+              <Button
+                type="button"
+                disabled={saving || !pendingValues}
+                aria-busy={saving}
+                onClick={() => {
+                  if (pendingValues) void persistPayout(pendingValues);
+                }}
+              >
+                {saving ? 'กำลังบันทึก...' : 'ยืนยันและบันทึก'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardBody>
     </Card>
   );

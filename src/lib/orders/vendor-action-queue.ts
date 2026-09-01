@@ -18,7 +18,7 @@ export function isVendorActionableOrder(order: Order, storeId?: string): boolean
 export function filterVendorActionableOrders(orders: Order[], storeId?: string): Order[] {
   return orders
     .filter((order) => isVendorActionableOrder(order, storeId))
-    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export function labelVendorWorkflowAction(action: VendorOrderWorkflowAction): string {

@@ -1,14 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { use } from 'react';
+import { useParams } from 'next/navigation';
 import { PromotionEditForm } from '@/components/promotions/promotion-edit-form';
 import { Card, CardBody } from '@/components/ui/card';
 import { useStorePromotion, useUpdatePromotion } from '@/hooks/usePromotions';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
+import { getErrorMessage } from '@/lib/api/errors';
 
-export default function VendorPromotionEditPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function VendorPromotionEditPage() {
+  const params = useParams<{ id: string }>();
+  const id = typeof params.id === 'string' ? params.id : '';
   const storeId = useVendorStoreId();
   const { data: promotion, isLoading, error, isNotFound } = useStorePromotion(id, storeId);
   const updateMutation = useUpdatePromotion();
@@ -34,11 +36,7 @@ export default function VendorPromotionEditPage({ params }: { params: Promise<{ 
   }
 
   if (error || isNotFound || !promotion) {
-    return (
-      <p className="text-sm text-danger">
-        {error instanceof Error ? error.message : 'ไม่พบโปรโมชัน'}
-      </p>
-    );
+    return <p className="text-sm text-danger">{getErrorMessage(error, 'ไม่พบโปรโมชัน')}</p>;
   }
 
   return (

@@ -22,6 +22,8 @@ interface ColumnDef {
   type: 'text' | 'number';
   align: 'left' | 'right';
   step?: string;
+  /** Empty input clears to null instead of 0. */
+  nullable?: boolean;
 }
 
 const COLUMNS: ColumnDef[] = [
@@ -34,10 +36,14 @@ function cellKey(row: number, col: number): string {
   return `${row}:${col}`;
 }
 
-function coerce(column: ColumnDef, raw: string): string | number {
+function coerce(column: ColumnDef, raw: string): string | number | null {
   if (column.type === 'number') {
-    const parsed = Number(raw.replace(/,/g, '').trim());
-    return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+    const trimmed = raw.replace(/,/g, '').trim();
+    if (column.nullable && trimmed === '') {
+      return null;
+    }
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? Math.max(0, parsed) : column.nullable ? null : 0;
   }
   return raw;
 }

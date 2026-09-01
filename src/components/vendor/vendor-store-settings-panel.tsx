@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { StoreInfoFormValues } from '@/lib/validations';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 type VendorStoreSettingsPanelProps = {
   form: UseFormReturn<StoreInfoFormValues>;
@@ -124,7 +125,7 @@ export function VendorStoreSettingsPanel({
     } catch (err) {
       setSaveFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ',
+        message: getErrorMessage(err, 'บันทึกไม่สำเร็จ'),
       });
     }
   }

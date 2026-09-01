@@ -25,41 +25,39 @@ describe('proxy-auth', () => {
     expect(getAuthRedirectPath('/admin/stores', null, undefined)).toBe('/login');
   });
 
-  it('redirects vendor hitting admin routes to vendor home', () => {
-    const token = createFakeJwt({ role: 'vendor' });
-    expect(getAuthRedirectPath('/admin/stores', 'vendor', token)).toBe('/vendor');
+  it('does not authorize admin vs vendor from unsigned JWT at the edge (SOPET-M-13)', () => {
+    const vendorToken = createFakeJwt({ role: 'vendor' });
+    const adminToken = createFakeJwt({ role: 'admin' });
+    // Cookie presence alone allows the HTML shell through; AuthGuard enforces role.
+    expect(getAuthRedirectPath('/admin/stores', 'vendor', vendorToken)).toBeNull();
+    expect(getAuthRedirectPath('/vendor', 'admin', adminToken)).toBeNull();
   });
 
-  it('redirects admin hitting vendor routes to admin stores', () => {
-    const token = createFakeJwt({ role: 'admin' });
-    expect(getAuthRedirectPath('/vendor', 'admin', token)).toBe('/admin/stores');
-  });
-
-  it('redirects unrecognized roles to login', () => {
-    const token = createFakeJwt({ role: 'customer' });
-    expect(getAuthRedirectPath('/admin/stores', null, token)).toBe('/login');
-  });
-
-  it('allows matching admin role through admin routes', () => {
+  it('allows matching roles through protected routes when cookie is present', () => {
     const token = createFakeJwt({ role: 'admin' });
     expect(getAuthRedirectPath('/admin/stores', 'admin', token)).toBeNull();
-  });
-
-  it('allows matching vendor role through vendor routes', () => {
-    const token = createFakeJwt({ role: 'vendor' });
-    expect(getAuthRedirectPath('/vendor/products', 'vendor', token)).toBeNull();
   });
 
   it('allows unauthenticated access to vendor API llms.txt', () => {
     expect(getAuthRedirectPath('/vendor/api/llms.txt', null, undefined)).toBeNull();
   });
 
-  it('still protects other vendor API pages', () => {
+  it('allows unauthenticated access to public error catalog pages', () => {
+    expect(getAuthRedirectPath('/admin/errors-message', null, undefined)).toBeNull();
+    expect(getAuthRedirectPath('/vendor/errors-message', null, undefined)).toBeNull();
+  });
+
+  it('still protects other vendor API pages without a cookie', () => {
     expect(getAuthRedirectPath('/vendor/api', null, undefined)).toBe('/login');
     expect(getAuthRedirectPath('/vendor/api/docs', null, undefined)).toBe('/login');
   });
 
-  it('redirects authenticated users away from register', () => {
+  it('still protects other admin and vendor dashboard pages without a cookie', () => {
+    expect(getAuthRedirectPath('/admin/stores', null, undefined)).toBe('/login');
+    expect(getAuthRedirectPath('/vendor/products', null, undefined)).toBe('/login');
+  });
+
+  it('redirects authenticated users away from register (UX decode for destination)', () => {
     const vendorToken = createFakeJwt({ role: 'vendor' });
     expect(getGuestOnlyRedirectPath('/register', 'vendor', vendorToken)).toBe('/vendor');
 
@@ -72,7 +70,11 @@ describe('proxy-auth', () => {
     expect(getAuthRedirectPath('/register', null, undefined)).toBeNull();
     expect(getAuthRedirectPath('/register/invite', null, undefined)).toBeNull();
     expect(getGuestOnlyRedirectPath('/register', null, undefined)).toBeNull();
-    expect(getGuestOnlyRedirectPath('/register', null, 'token')).toBeNull();
+    expect(getGuestOnlyRedirectPath('/register', null, undefined)).toBeNull();
+  });
+
+  it('bounces register visitors with a cookie but unknown role to login', () => {
+    expect(getGuestOnlyRedirectPath('/register', null, 'opaque-cookie-value')).toBe('/login');
   });
 
   it('ignores non-register routes for guest-only redirect', () => {

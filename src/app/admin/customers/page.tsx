@@ -19,6 +19,7 @@ import { createDetailPrefetchHandlers } from '@/lib/react-query/prefetch-dashboa
 import { queryKeys } from '@/lib/react-query/keys';
 import { cn, formatDate } from '@/lib/utils';
 import type { AdminCustomer } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export default function AdminCustomersPage() {
   const router = useRouter();
@@ -163,7 +164,7 @@ export default function AdminCustomersPage() {
 
       {error ? (
         <p className="mb-4 text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'โหลดรายการลูกค้าไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดรายการลูกค้าไม่สำเร็จ')}
         </p>
       ) : null}
 

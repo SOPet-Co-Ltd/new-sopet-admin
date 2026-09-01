@@ -98,3 +98,7 @@ query SearchAnalyticsSuggestionCtr($fromDate: DateTime, $toDate: DateTime) {
 query ExportSearchAnalyticsCsv($fromDate: DateTime, $toDate: DateTime) {
   exportSearchAnalyticsCsv(fromDate: $fromDate, toDate: $toDate)
 }
+
+mutation ResetSearchAnalytics {
+  resetSearchAnalytics
+}

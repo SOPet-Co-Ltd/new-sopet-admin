@@ -339,6 +339,8 @@ export interface ProductVariant {
   id: string;
   sku: string;
   price: number;
+  /** Per-SKU strikethrough price; falls back to product.compareAtPrice on storefront when null. */
+  compareAtPrice?: number | null;
   stockQuantity: number;
   optionsJson?: string | null;
 }
@@ -375,6 +377,10 @@ export interface ProductsQueryParams {
   tag?: string;
   petTypeIds?: string[];
   brandIds?: string[];
+  /** Vendor list filter — e.g. `published` for campaign published-only pickers. */
+  status?: string;
+  minPrice?: number;
+  maxPrice?: number;
   page?: number;
   limit?: number;
 }
@@ -393,6 +399,7 @@ export interface CreateProductInput {
   name: string;
   description?: string;
   basePrice: number;
+  compareAtPrice?: number | null;
   category?: string;
   categoryId?: string;
   tags?: string[];
@@ -405,6 +412,8 @@ export interface UpdateProductInput {
   name?: string;
   description?: string;
   basePrice?: number;
+  /** Pass null to clear the strikethrough / discount display price. */
+  compareAtPrice?: number | null;
   warning?: string;
   expiryDate?: string;
   status?: ProductStatus | string;
@@ -432,6 +441,7 @@ export interface SyncVariantInput {
   sku: string;
   stockQuantity: number;
   priceModifier?: number;
+  compareAtPrice?: number | null;
   attributes: Record<string, string>;
 }
 
@@ -539,6 +549,59 @@ export interface UpdatePromotionInput {
   expiresAt?: string;
 }
 
+export interface SaleCampaignItem {
+  id: string;
+  campaignId: string;
+  productId: string;
+  variantId?: string | null;
+  compareAtPrice?: number | null;
+  discountPercent?: number | null;
+  productName?: string | null;
+  variantSku?: string | null;
+}
+
+export interface SaleCampaign {
+  id: string;
+  storeId: string;
+  name: string;
+  description?: string | null;
+  startsAt?: string | null;
+  expiresAt?: string | null;
+  isActive: boolean;
+  priority: number;
+  items: SaleCampaignItem[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SaleCampaignItemInput {
+  productId: string;
+  variantId?: string;
+  compareAtPrice?: number;
+  discountPercent: number;
+}
+
+export interface CreateSaleCampaignInput {
+  name: string;
+  description?: string;
+  startsAt?: string;
+  expiresAt?: string;
+  isActive?: boolean;
+  priority?: number;
+  storeId?: string;
+  items: SaleCampaignItemInput[];
+}
+
+export interface UpdateSaleCampaignInput {
+  name?: string;
+  description?: string;
+  startsAt?: string;
+  expiresAt?: string;
+  isActive?: boolean;
+  priority?: number;
+  items?: SaleCampaignItemInput[];
+}
+
 export type StoreRequestStatus = 'pending' | 'approved' | 'rejected';
 
 export interface StoreRequest {
@@ -606,6 +669,8 @@ export interface AdminStore extends StoreDetail {
   ownerEmail?: string;
   ownerFullName?: string;
   createdAt?: string;
+  /** Nullable Int from AdminStoreType. NULL/undefined = platform default (UI shows 7). */
+  commissionRate?: number | null;
 }
 
 export interface CreateStoreAsAdminInput {
@@ -628,6 +693,7 @@ export interface UpdateStoreAsAdminInput {
   contactEmail?: string;
   address?: string;
   ownerId?: string | null;
+  commissionRate?: number;
 }
 
 export interface AdminVendor {
@@ -1003,6 +1069,29 @@ export interface UpdateLoginPageImagesInput {
   altText?: string | null;
 }
 
+export interface BankTransferDetails {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branchName: string | null;
+}
+
+export interface BankTransferSettings {
+  enabled: boolean;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branchName: string | null;
+}
+
+export interface UpdateBankTransferDetailsInput {
+  enabled: boolean;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  branchName?: string | null;
+}
+
 export interface AdminTeamMember {
   id: string;
   email: string;
@@ -1022,6 +1111,18 @@ export interface InviteAdminInput {
   email: string;
 }
 
+export interface PayoutRailSummary {
+  grossRevenue: number;
+  totalPaidOut: number;
+  availableBalance: number;
+  pendingPayoutAmount: number;
+  canRequestPayout: boolean;
+  productSold: number;
+  shippingFees: number;
+  commissionAmount: number;
+  commissionRate: number | null;
+}
+
 export interface PayoutSummary {
   storeId: string;
   grossRevenue: number;
@@ -1030,6 +1131,12 @@ export interface PayoutSummary {
   pendingPayoutAmount: number;
   minimumPayoutAmount: number;
   canRequestPayout: boolean;
+  productSold: number;
+  shippingFees: number;
+  commissionAmount: number;
+  commissionRate: number | null;
+  omise: PayoutRailSummary;
+  manual: PayoutRailSummary;
 }
 
 export interface Payout {
@@ -1038,7 +1145,12 @@ export interface Payout {
   amount: number;
   netAmount: number;
   status: string;
+  settlementRail: 'omise' | 'manual' | string;
   createdAt: string;
+  productSold: number | null;
+  shippingFees: number | null;
+  commissionAmount: number | null;
+  commissionRate: number | null;
 }
 
 export type {
@@ -1047,3 +1159,34 @@ export type {
   AdminAuditLogsFilter,
   AdminAuditLogsQueryParams,
 } from './audit-logs';
+
+export type OrderAuditEventType =
+  'ORDER_PLACED' | 'PAYMENT_METHOD_CHANGED' | 'PAYMENT_APPROVED' | 'ORDER_ACCEPTED';
+
+export type OrderAuditActorType = 'customer' | 'admin' | 'vendor' | 'system';
+
+export interface OrderAuditLogDetails {
+  paymentMethod?: string | null;
+  previousPaymentMethod?: string | null;
+  newPaymentMethod?: string | null;
+  approvalMethod?: string | null;
+  note?: string | null;
+  storeId?: string | null;
+}
+
+export interface OrderAuditLogEntry {
+  id: string;
+  orderId: string;
+  eventType: OrderAuditEventType;
+  occurredAt: string;
+  actorType: OrderAuditActorType;
+  actorId?: string | null;
+  actorLabel?: string | null;
+  storeId?: string | null;
+  details: OrderAuditLogDetails;
+}
+
+export interface OrderAuditLog {
+  orderId: string;
+  entries: OrderAuditLogEntry[];
+}

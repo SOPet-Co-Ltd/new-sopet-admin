@@ -15,6 +15,7 @@ import {
   useUpdateSearchSynonym,
 } from '@/hooks/useSearchAdmin';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function SynonymListSkeleton() {
   return (
@@ -91,7 +92,7 @@ export default function AdminSearchSynonymsPage() {
       setExpansionInput('');
       setFormSuccess('เพิ่มคำพ้องความหมายแล้ว');
     } catch (mutationError) {
-      setFormError(mutationError instanceof Error ? mutationError.message : 'บันทึกไม่สำเร็จ');
+      setFormError(getErrorMessage(mutationError, 'บันทึกไม่สำเร็จ'));
     }
   };
 
@@ -191,7 +192,7 @@ export default function AdminSearchSynonymsPage() {
                 role="alert"
                 className="mx-5 my-4 rounded-lg border border-danger/20 bg-danger-bg px-4 py-3 text-sm text-danger"
               >
-                {error instanceof Error ? error.message : 'โหลดรายการไม่สำเร็จ'}
+                {getErrorMessage(error, 'โหลดรายการไม่สำเร็จ')}
               </p>
             ) : null}
 

@@ -8,6 +8,8 @@ export interface VariantCombination {
   sku: string;
   stockQuantity: number;
   price: number;
+  /** Original / strikethrough price for this SKU; null clears. */
+  compareAtPrice?: number | null;
   options: Record<string, string>;
 }
 
@@ -96,6 +98,7 @@ export function buildCombinationsFromGroups(
       sku: match?.sku ?? `${productSlug}-${slugPart}`,
       stockQuantity: match?.stockQuantity ?? 0,
       price: match?.price ?? 0,
+      compareAtPrice: match?.compareAtPrice ?? null,
       options,
     };
   });
@@ -106,6 +109,7 @@ export function variantItemsFromProduct(
     id: string;
     sku: string;
     price: number;
+    compareAtPrice?: number | null;
     stockQuantity: number;
     optionsJson?: string | null;
   }>,
@@ -115,6 +119,7 @@ export function variantItemsFromProduct(
     sku: variant.sku,
     stockQuantity: variant.stockQuantity,
     price: variant.price,
+    compareAtPrice: variant.compareAtPrice ?? null,
     options: parseVariantOptions(variant.optionsJson),
   }));
 }
@@ -127,6 +132,7 @@ export function variantItemsToSyncInput(
   sku: string;
   stockQuantity: number;
   priceModifier: number;
+  compareAtPrice: number | null;
   attributes: Record<string, string>;
 }> {
   return items.map((item) => ({
@@ -134,8 +140,28 @@ export function variantItemsToSyncInput(
     sku: item.sku.trim(),
     stockQuantity: item.stockQuantity,
     priceModifier: Math.max(0, item.price - productBasePrice),
+    compareAtPrice: item.compareAtPrice ?? null,
     attributes: item.options,
   }));
+}
+
+/** Compare-at from sell price + discount percent (e.g. 25% off 750 → 1000). */
+export function compareAtFromDiscountPercent(sellPrice: number, percent: number): number | null {
+  if (!(sellPrice > 0) || !(percent > 0) || !(percent < 100)) {
+    return null;
+  }
+  return Math.round((sellPrice / (1 - percent / 100)) * 100) / 100;
+}
+
+/** Discount % badge from sell vs compare-at (0 when not discounted). */
+export function discountPercentFromCompareAt(
+  sellPrice: number,
+  compareAtPrice: number | null | undefined,
+): number {
+  if (compareAtPrice == null || compareAtPrice <= sellPrice) {
+    return 0;
+  }
+  return Math.round(((compareAtPrice - sellPrice) / compareAtPrice) * 100);
 }
 
 export function countVariantItems(groups: VariantOptionGroup[]): number {

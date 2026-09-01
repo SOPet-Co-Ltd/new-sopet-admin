@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
   const body = await request.text();
   let accessToken = await getAccessTokenFromRequest();
-  let { response: upstream, json } = await forwardGraphql(body, accessToken);
+  let { response: upstream, json } = await forwardGraphql(body, accessToken, request);
 
   if (isUnauthenticatedPayload(json, upstream.status)) {
     const refreshToken = await getRefreshTokenFromRequest();
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       const tokens = await refreshTokensUpstream(refreshToken);
       if (tokens) {
         accessToken = tokens.accessToken;
-        ({ response: upstream, json } = await forwardGraphql(body, accessToken));
+        ({ response: upstream, json } = await forwardGraphql(body, accessToken, request));
         const retryResponse = NextResponse.json(
           {
             ...json,
@@ -68,15 +68,10 @@ export async function POST(request: Request) {
   return response;
 }
 
-export async function OPTIONS(request: Request) {
-  const origin = request.headers.get('origin') ?? '*';
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Allow-Credentials': 'true',
-    },
-  });
+/**
+ * Same-origin BFF: browsers do not need CORS for same-origin GraphQL POSTs.
+ * Do not reflect Origin or advertise credentials (SOPET-H-06).
+ */
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204 });
 }

@@ -18,7 +18,7 @@ import {
   useSetPetTypeImage,
   useUpdatePetType,
 } from '@/hooks/useTaxonomy';
-import { isApiError } from '@/lib/api/errors';
+import { isApiError, getErrorMessage } from '@/lib/api/errors';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { editTaxonomySchema, type EditTaxonomyFormValues } from '@/lib/validations';
 
@@ -63,7 +63,7 @@ export default function EditPetTypePage() {
       });
       router.push('/admin/taxonomy');
     } catch (err) {
-      const message = isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ';
+      const message = getErrorMessage(err, 'บันทึกไม่สำเร็จ');
       const code = isApiError(err) ? err.code : undefined;
       if (code === 'SLUG_EXISTS' || code === 'INVALID_SLUG') {
         form.setError('slug', { message });
@@ -80,9 +80,7 @@ export default function EditPetTypePage() {
   if (error || !petType) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-danger">
-          {error instanceof Error ? error.message : 'ไม่พบประเภทสัตว์เลี้ยง'}
-        </p>
+        <p className="text-sm text-danger">{getErrorMessage(error, 'ไม่พบประเภทสัตว์เลี้ยง')}</p>
         <Button variant="outline" asChild>
           <Link href="/admin/taxonomy">กลับ</Link>
         </Button>
@@ -165,9 +163,7 @@ export default function EditPetTypePage() {
               folder="pet-types"
               showUrl={false}
               disabled={isPending}
-              error={
-                setPetTypeImage.error instanceof Error ? setPetTypeImage.error.message : undefined
-              }
+              error={getErrorMessage(setPetTypeImage.error, undefined)}
             />
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">

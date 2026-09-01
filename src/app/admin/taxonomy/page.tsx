@@ -38,6 +38,7 @@ import {
   useRejectedBrands,
 } from '@/hooks/useTaxonomy';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 type TaxonomyTab = 'categories' | 'tags' | 'petTypes' | 'brands';
 
@@ -219,9 +220,7 @@ export default function AdminTaxonomyPage() {
             {approvedCategoriesError ? (
               <p role="alert" className="text-sm text-danger">
                 โหลดหมวดหมู่ที่อนุมัติแล้วไม่สำเร็จ:{' '}
-                {approvedCategoriesError instanceof Error
-                  ? approvedCategoriesError.message
-                  : 'เกิดข้อผิดพลาด'}
+                {getErrorMessage(approvedCategoriesError, 'เกิดข้อผิดพลาด')}
               </p>
             ) : null}
             <ApprovedTaxonomyTable
@@ -234,8 +233,7 @@ export default function AdminTaxonomyPage() {
             />
             {categoriesError ? (
               <p role="alert" className="text-sm text-danger">
-                โหลดหมวดหมู่รออนุมัติไม่สำเร็จ:{' '}
-                {categoriesError instanceof Error ? categoriesError.message : 'เกิดข้อผิดพลาด'}
+                โหลดหมวดหมู่รออนุมัติไม่สำเร็จ: {getErrorMessage(categoriesError, 'เกิดข้อผิดพลาด')}
               </p>
             ) : null}
             <PendingMediaTaxonomyCard

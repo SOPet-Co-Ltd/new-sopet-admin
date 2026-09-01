@@ -38,16 +38,41 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
     }
   }, [hasHydrated, hasToken, isAuthenticated, requiredRole, router, user?.role]);
 
+  // SOPET-M-14: never flash protected children before hydration.
   if (!hasHydrated) {
-    return <>{children}</>;
+    return (
+      <div
+        className="flex min-h-[40vh] items-center justify-center"
+        role="status"
+        aria-live="polite"
+      >
+        <p className="text-muted">กำลังโหลด...</p>
+      </div>
+    );
   }
 
   if (!isAuthenticated || !hasToken) {
-    return null;
+    return (
+      <div
+        className="flex min-h-[40vh] items-center justify-center"
+        role="status"
+        aria-live="polite"
+      >
+        <p className="text-muted">กำลังโหลด...</p>
+      </div>
+    );
   }
 
   if (requiredRole && user?.role !== requiredRole) {
-    return null;
+    return (
+      <div
+        className="flex min-h-[40vh] items-center justify-center"
+        role="status"
+        aria-live="polite"
+      >
+        <p className="text-muted">กำลังโหลด...</p>
+      </div>
+    );
   }
 
   return <>{children}</>;

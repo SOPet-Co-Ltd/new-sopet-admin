@@ -17,6 +17,7 @@ import {
 import { queryKeys } from '@/lib/react-query/keys';
 import { cn } from '@/lib/utils';
 import type { Product, ProductImage } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 type GqlProductImage = {
   id: string;
@@ -79,7 +80,7 @@ export function ProductImagesManager({ product }: { product: Product }) {
       setImages((prev) => sortImages([...prev, toImage(data.addProductImage)]));
       invalidateProducts();
     } catch (err) {
-      setMediaError(err instanceof Error ? err.message : 'เพิ่มรูปภาพไม่สำเร็จ');
+      setMediaError(getErrorMessage(err, 'เพิ่มรูปภาพไม่สำเร็จ'));
     } finally {
       setMediaPending(false);
     }
@@ -114,7 +115,7 @@ export function ProductImagesManager({ product }: { product: Product }) {
       invalidateProducts();
     } catch (err) {
       setImages(sortImages(product.images ?? []));
-      setMediaError(err instanceof Error ? err.message : 'อัปเดตลำดับรูปภาพไม่สำเร็จ');
+      setMediaError(getErrorMessage(err, 'อัปเดตลำดับรูปภาพไม่สำเร็จ'));
     } finally {
       setMediaPending(false);
     }
@@ -128,7 +129,7 @@ export function ProductImagesManager({ product }: { product: Product }) {
       setImages((prev) => prev.filter((img) => img.id !== imageId));
       invalidateProducts();
     } catch (err) {
-      setMediaError(err instanceof Error ? err.message : 'ลบรูปภาพไม่สำเร็จ');
+      setMediaError(getErrorMessage(err, 'ลบรูปภาพไม่สำเร็จ'));
       throw err;
     } finally {
       setMediaPending(false);
@@ -146,7 +147,7 @@ export function ProductImagesManager({ product }: { product: Product }) {
       setImages((prev) => prev.map((img) => ({ ...img, isThumbnail: img.id === imageId })));
       invalidateProducts();
     } catch (err) {
-      setMediaError(err instanceof Error ? err.message : 'ตั้งรูปหน้าปกไม่สำเร็จ');
+      setMediaError(getErrorMessage(err, 'ตั้งรูปหน้าปกไม่สำเร็จ'));
     } finally {
       setMediaPending(false);
     }

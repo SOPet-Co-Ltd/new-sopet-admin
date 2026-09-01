@@ -7,46 +7,59 @@ export const revalidate = 86400;
 function buildLlmsTxtContent(adminOrigin: string): string {
   const apiBaseUrl = resolvePublicApiBaseUrl();
 
-  return `# SOPET Vendor Product API
+  return `# SOPET Vendor API
 
-> REST API for approved SOPET stores to create product drafts and update product info / variant stock·price from external systems (ERP, POS, inventory tools).
+> REST API for approved SOPET stores: products (CRUD drafts), list orders (webhook catch-up), webhooks, and tracking updates for ERP/POS/n8n/Zapier.
 
-> Managed in the vendor dashboard. API keys are store-scoped. Products created via this API are always saved as draft and must be reviewed/published in the vendor UI. Image upload is not supported.
+> API keys are store-scoped. Products via this API are always \`draft\` until published in the vendor UI. Image URLs are downloaded into object storage (source URLs are never stored).
 
 ## Documentation
 
-- Human API docs (Thai UI): ${adminOrigin}/vendor/api/docs
-- Create and revoke API keys: ${adminOrigin}/vendor/api
+- Human docs (Thai): ${adminOrigin}/vendor/api/docs
+- API keys: ${adminOrigin}/vendor/api
 - This file: ${adminOrigin}/vendor/api/llms.txt
 
 ## Base URL
 
 ${apiBaseUrl}
 
-Replace \`{API_BASE_URL}\` with the SOPET backend origin (the GraphQL host without \`/graphql\`). Do not call GraphQL for this integration.
+Replace \`{API_BASE_URL}\` with the SOPET backend origin (no \`/graphql\`). Do not call GraphQL for this integration.
 
 ## Authentication
 
-API keys use the prefix \`sopet_sk_\`. Create them at ${adminOrigin}/vendor/api (store manager/owner only).
+Prefix \`sopet_sk_\`. Create at ${adminOrigin}/vendor/api (manager/owner).
 
-Send the key with either header:
+Headers: \`Authorization: Bearer sopet_sk_...\` or \`X-Api-Key: sopet_sk_...\`
 
-- \`Authorization: Bearer sopet_sk_...\`
-- \`X-Api-Key: sopet_sk_...\`
-
-The key must belong to the same store as \`{storeId}\` in the URL. The store must be approved (\`APPROVED\`).
+Key must match \`{storeId}\`; store must be \`APPROVED\`.
 
 ## Store ID
 
-Use the UUID Store ID shown at ${adminOrigin}/vendor/api in every request path under \`/api/v1/stores/{storeId}/...\`.
+UUID from ${adminOrigin}/vendor/api — use in every \`/api/v1/stores/{storeId}/...\` path.
 
 ## Endpoints
+
+### List products
+
+- Method: \`GET\`
+- Path: \`/api/v1/stores/{storeId}/products\`
+- Success: \`200\` with \`{ items: Product[], pagination: { page, limit, total, totalPages } }\`
+- Query (all optional): \`page\` (default 1), \`limit\` (default 20, max 100), \`status\` (\`draft\`|\`published\`|\`archived\`; omit = all), \`search\` (product name)
+- Includes draft/published/archived for this store (soft-deleted excluded). Same product shape as create response (with variants).
+
+### Get product by id
+
+- Method: \`GET\`
+- Path: \`/api/v1/stores/{storeId}/products/{productId}\`
+- Success: \`200\` with the product object (same shape as create)
+- Errors: \`404 PRODUCT_NOT_FOUND\` if missing or wrong store
 
 ### Create product (draft)
 
 - Method: \`POST\`
 - Path: \`/api/v1/stores/{storeId}/products\`
 - Success: \`201\` with the created product object (status \`draft\`)
+- **Important:** response includes product \`id\` (UUID) and each variant's \`id\` — persist these for later GET/PATCH/DELETE.
 
 #### Request body fields
 
@@ -60,6 +73,7 @@ Use the UUID Store ID shown at ${adminOrigin}/vendor/api in every request path u
 | tags | string[] | no | Approved tag **names**; case-insensitive |
 | petType | string | no | Approved pet type **name**; recommended — required later to publish |
 | brand | string | no | Approved brand **name**; case-insensitive |
+| images | string[] | no | Remote image URLs (http/https), max 10; each ≤ 5 MB; jpeg/png/webp/gif. Server downloads → WebP → object storage; only storage URLs are persisted. First image = thumbnail. Any failure fails the whole create. |
 | variants | array | yes | Option groups / dimensions (≥ 1). No sku/stock/price here |
 | variantItems | array | yes | Purchasable combinations (≥ 1). Holds sku/stock/price |
 
@@ -76,13 +90,20 @@ Use the UUID Store ID shown at ${adminOrigin}/vendor/api in every request path u
 
 Create rules: base price = min(variantItems[].price); always \`draft\`; taxonomy names must already be approved.
 
+### Delete product
+
+- Method: \`DELETE\`
+- Path: \`/api/v1/stores/{storeId}/products/{productId}\`
+- Success: \`204\` empty body (soft delete)
+- Errors: \`404 PRODUCT_NOT_FOUND\` if missing or wrong store
+
 ### Update product info
 
 - Method: \`PATCH\`
 - Path: \`/api/v1/stores/{storeId}/products/{productId}\`
 - Success: \`200\` with the updated product
-- Body: all fields optional; at least one required. Allowed: \`name\`, \`description\`, \`warning\`, \`expiryDate\`, \`category\`, \`tags\`, \`petType\`, \`brand\` (same name semantics as create).
-- Not allowed: stock, price, status, variants, images.
+- Body: all fields optional; at least one required. Allowed: \`name\`, \`description\`, \`warning\`, \`expiryDate\`, \`category\`, \`tags\`, \`petType\`, \`brand\`, \`images\` (same semantics as create; \`images\` replaces the full set when sent, including \`[]\` to clear).
+- Not allowed: stock, price, status, variants.
 
 ### Update variant stock / price (by id)
 
@@ -99,6 +120,61 @@ Create rules: base price = min(variantItems[].price); always \`draft\`; taxonomy
 
 Price rule: REST \`price\` is absolute; stored as \`priceAdjustment = price - product.basePrice\` (sibling variants / basePrice are not recomputed).
 
+### Configure order webhook
+
+- \`PUT /api/v1/stores/{storeId}/webhook\` — upsert URL + events
+- \`GET /api/v1/stores/{storeId}/webhook\` — current config (\`hasSecret: true\`; secret never re-shown)
+- \`DELETE /api/v1/stores/{storeId}/webhook\` — remove config
+
+PUT body:
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| url | string | yes | HTTPS callback URL |
+| events | string[] | no | subset of events below; omit = all events |
+| enabled | boolean | no | default true |
+| rotateSecret | boolean | no | true regenerates signing secret (returned once) |
+
+Outbound delivery (SOPET → your URL):
+
+- Method: \`POST\`, \`Content-Type: application/json\`
+- Headers: \`X-Sopet-Event\`, \`X-Sopet-Delivery-Id\`, \`X-Sopet-Signature: sha256=<hmac_hex>\`
+- Body: store-scoped order payload (only that store's line items + customer/shipping snapshot)
+
+| Event | When |
+| --- | --- |
+| \`order.create\` | Customer placed the order (pending payment) |
+| \`order.payment_failed\` | Charge failed or QR expired; order stays pending_payment for retry |
+| \`order.paid\` | Payment succeeded — ready to fulfill |
+| \`order.processing\` | Vendor acknowledged / preparing |
+| \`order.on_hold\` | Order held (e.g. store suspension) |
+| \`order.shipped\` | Shipped (tracking set) |
+| \`order.delivered\` | Customer confirmed delivery |
+| \`order.cancelled\` | Order cancelled |
+| \`order.refunded\` | Order refunded |
+
+### List orders (webhook catch-up)
+
+- \`GET /api/v1/stores/{storeId}/orders\` → \`{ items, pagination }\` (store-scoped; fields align with webhook \`data\`: \`orderId\`, \`sku\`, customer, shippingAddress)
+- Query: \`page\`, \`limit\` (max 100), \`status\`, \`fulfillmentStatus\`, \`updatedSince\` (ISO-8601; poll with this), \`createdSince\`, \`createdUntil\`
+- Sort: \`updatedAt\` DESC. Use \`orderId\`/\`id\` for PATCH tracking.
+
+### Update order tracking
+
+- Method: \`PATCH\`
+- Path: \`/api/v1/stores/{storeId}/orders/{orderId}/tracking\`
+- Success: \`200\` with store-scoped order + items (includes tracking fields)
+- Body: \`trackingNumber\` (required), \`fulfillmentProvider\` (required), \`trackingUrl\` (optional HTTPS)
+- Behavior: auto-acknowledges pending items then ships; if already shipped, updates tracking fields only
+
+### Import product review (unknown customer)
+
+- Method: \`POST\`
+- Path: \`/api/v1/stores/{storeId}/products/{productId}/reviews\`
+- Success: \`201\` with review object (\`status: pending\`, \`source: vendor_import\`, \`customerName: ลูกค้าไม่ระบุชื่อ\`)
+- Body: \`rating\` (1–5 required), \`comment\` (optional, ≤ 2000), \`images\` (optional HTTPS URL array, max 5)
+- Imported reviews are **not public** until a platform admin approves them in the admin dashboard (\`/admin/reviews\`). After approval they appear on the storefront as unknown customer.
+
 #### Example curl (update stock by SKU)
 
 \`\`\`bash
@@ -106,6 +182,15 @@ curl -X PATCH "${apiBaseUrl}/api/v1/stores/{storeId}/variants/by-sku/CAT-ORG-2KG
   -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
   -H "Content-Type: application/json" \\
   -d '{"stock":100,"price":529}'
+\`\`\`
+
+#### Example curl (tracking)
+
+\`\`\`bash
+curl -X PATCH "${apiBaseUrl}/api/v1/stores/{storeId}/orders/{orderId}/tracking" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
+  -H "Content-Type: application/json" \\
+  -d '{"trackingNumber":"TH123456789","fulfillmentProvider":"Kerry"}'
 \`\`\`
 
 ## Error responses
@@ -130,15 +215,21 @@ Shape:
 | 400 | INVALID_VARIANT_OPTIONS | options missing a group or using undeclared values |
 | 400 | CATEGORY_NOT_FOUND / TAG_NOT_FOUND / PET_TYPE_NOT_FOUND / BRAND_NOT_FOUND | Unknown or unapproved taxonomy name |
 | 400 | SKU_EXISTS | SKU already exists (create) |
+| 400 | INVALID_IMAGE_URL / INVALID_IMAGE_TYPE / IMAGE_TOO_LARGE | Image download or validation failed |
+| 400 | TOO_MANY_IMAGES | More than 10 images |
+| 400 | INVALID_WEBHOOK_URL / INVALID_WEBHOOK_EVENT | Bad webhook config |
+| 400 | INVALID_ORDER_STATUS | Order cannot accept tracking update |
 | 404 | PRODUCT_NOT_FOUND | Missing product or wrong store |
 | 404 | VARIANT_NOT_FOUND | Missing variant, wrong store, or not under productId |
+| 404 | WEBHOOK_NOT_FOUND | Webhook not configured |
+| 404 | ORDER_NOT_FOUND | Missing order |
 
 ## Out of scope
 
-- Listing, deleting, or publishing products via REST
-- Image upload
+- Publishing products via REST
+- Multipart / base64 image upload on REST (use image URLs instead)
 - Creating new variants after product create
-- Orders or GraphQL / admin JWT flows
+- GraphQL / admin JWT flows for these integrations
 
 Use the human docs at ${adminOrigin}/vendor/api/docs for the Thai UI field tables.
 `;

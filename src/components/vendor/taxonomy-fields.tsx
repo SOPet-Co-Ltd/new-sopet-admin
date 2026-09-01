@@ -37,6 +37,7 @@ import {
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 import { proposeTaxonomySchema, type ProposeTaxonomyFormValues } from '@/lib/validations';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 interface CategoryFieldProps {
   value?: string;
@@ -148,9 +149,7 @@ export function CategoryField({ value, onChange, error }: CategoryFieldProps) {
             </div>
             {createMutation.error ? (
               <p className="text-sm text-danger" role="alert">
-                {createMutation.error instanceof Error
-                  ? createMutation.error.message
-                  : 'ส่งคำขอไม่สำเร็จ'}
+                {getErrorMessage(createMutation.error, 'ส่งคำขอไม่สำเร็จ')}
               </p>
             ) : null}
             <DialogFooter>
@@ -310,9 +309,7 @@ export function TagsField({ value, onChange }: TagsFieldProps) {
             </div>
             {createMutation.error ? (
               <p className="text-sm text-danger" role="alert">
-                {createMutation.error instanceof Error
-                  ? createMutation.error.message
-                  : 'ส่งคำขอไม่สำเร็จ'}
+                {getErrorMessage(createMutation.error, 'ส่งคำขอไม่สำเร็จ')}
               </p>
             ) : null}
             <DialogFooter>

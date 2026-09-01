@@ -1,10 +1,13 @@
 'use client';
 
+import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { useStorePayouts } from '@/hooks/usePayouts';
+import { commissionCopy } from '@/lib/i18n/th';
 import { PAYOUT_STATUS_LABELS } from '@/lib/payouts/status-labels';
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
+import type { Payout } from '@/types';
 
 const PAYOUT_BADGE_STATUS: Record<string, string> = {
   pending: 'pending_payment',
@@ -12,6 +15,21 @@ const PAYOUT_BADGE_STATUS: Record<string, string> = {
   completed: 'delivered',
   failed: 'cancelled',
 };
+
+function SnapshotHistoryBreakdown({ payout }: { payout: Payout }) {
+  return (
+    <CommissionBreakdown
+      variant="snapshot"
+      audience="vendor"
+      productSold={payout.productSold}
+      shippingFees={payout.shippingFees}
+      commissionAmount={payout.commissionAmount}
+      commissionRate={payout.commissionRate}
+      netPayable={payout.amount}
+      captions={{ frozen: commissionCopy.breakdown.hint.frozen }}
+    />
+  );
+}
 
 function HistorySkeleton() {
   return (
@@ -50,7 +68,7 @@ export function VendorPayoutHistoryPanel() {
           <span className="text-xs text-muted-foreground">{payouts.length} รายการ</span>
         ) : null}
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardBody>
         {isLoading ? (
           <HistorySkeleton />
         ) : payouts.length === 0 ? (
@@ -63,24 +81,26 @@ export function VendorPayoutHistoryPanel() {
         ) : (
           <ul className="divide-y divide-border rounded-xl border border-border">
             {payouts.map((payout) => (
-              <li
-                key={payout.id}
-                className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium text-ink tabular-nums">
-                    {formatCurrency(payout.amount)}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {formatDateTime(payout.createdAt)}
-                  </p>
+              <li key={payout.id} className="space-y-3 px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-ink tabular-nums">
+                      {formatCurrency(payout.amount)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {formatDateTime(payout.createdAt)}
+                      {' · '}
+                      {payout.settlementRail === 'manual' ? 'โอนเงินเข้าบัญชี' : 'Omise'}
+                    </p>
+                  </div>
+                  <Badge
+                    status={PAYOUT_BADGE_STATUS[payout.status]}
+                    className={cn(payout.status === 'pending' && 'bg-warning-bg text-warning-text')}
+                  >
+                    {PAYOUT_STATUS_LABELS[payout.status] ?? payout.status}
+                  </Badge>
                 </div>
-                <Badge
-                  status={PAYOUT_BADGE_STATUS[payout.status]}
-                  className={cn(payout.status === 'pending' && 'bg-warning-bg text-warning-text')}
-                >
-                  {PAYOUT_STATUS_LABELS[payout.status] ?? payout.status}
-                </Badge>
+                <SnapshotHistoryBreakdown payout={payout} />
               </li>
             ))}
           </ul>

@@ -110,21 +110,24 @@ describe('VendorProductsPage', () => {
     const user = userEvent.setup();
     render(<VendorProductsPage />);
 
+    expect(screen.getByRole('group', { name: 'สถานะสินค้า' })).toBeInTheDocument();
     expect(screen.queryByLabelText('หมวดหมู่')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'ตัวกรอง' }));
+    await user.click(screen.getByRole('button', { name: 'ตัวกรองเพิ่มเติม' }));
 
     expect(screen.getByLabelText('หมวดหมู่')).toBeInTheDocument();
     expect(screen.getByLabelText('ประเภทสัตว์เลี้ยง')).toBeInTheDocument();
     expect(screen.getByLabelText('แบรนด์')).toBeInTheDocument();
     expect(screen.getByLabelText('แท็ก')).toBeInTheDocument();
+    expect(screen.getByLabelText('ต่ำสุด')).toBeInTheDocument();
+    expect(screen.getByLabelText('สูงสุด')).toBeInTheDocument();
   });
 
   it('filters vendor products by the selected category slug', async () => {
     const user = userEvent.setup();
     render(<VendorProductsPage />);
 
-    await user.click(screen.getByRole('button', { name: 'ตัวกรอง' }));
+    await user.click(screen.getByRole('button', { name: 'ตัวกรองเพิ่มเติม' }));
     await user.click(screen.getByRole('combobox', { name: 'หมวดหมู่' }));
     await user.click(await screen.findByRole('option', { name: 'อาหาร' }));
 
@@ -132,6 +135,29 @@ describe('VendorProductsPage', () => {
       expect.objectContaining({ category: 'food' }),
     );
     expect(screen.getByRole('button', { name: 'ลบตัวกรอง หมวดหมู่: อาหาร' })).toBeInTheDocument();
+  });
+
+  it('filters vendor products by status and price range', async () => {
+    const user = userEvent.setup();
+    render(<VendorProductsPage />);
+
+    await user.click(screen.getByRole('button', { name: 'เผยแพร่' }));
+    expect(mockUseVendorProducts).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: 'published' }),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'ตัวกรองเพิ่มเติม' }));
+    await user.type(screen.getByLabelText('ต่ำสุด'), '50');
+    await user.type(screen.getByLabelText('สูงสุด'), '200');
+    await user.tab();
+
+    expect(mockUseVendorProducts).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        status: 'published',
+        minPrice: 50,
+        maxPrice: 200,
+      }),
+    );
   });
 
   it('keeps edit available from the row action menu', async () => {

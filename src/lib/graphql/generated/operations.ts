@@ -6,6 +6,223 @@ export type Incremental<T> =
 import type * as Types from './schema';
 
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type EmailPlaceholderInfoFieldsFragment = {
+  name: string;
+  required: boolean;
+  sample: string;
+  trustedHtml: boolean;
+};
+
+export type EmailContainerFieldsFragment = {
+  id: string;
+  name: string;
+  htmlShell: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+  warnings: Array<string>;
+};
+
+export type EmailContentTemplateFieldsFragment = {
+  id: string;
+  key: Types.EmailTemplateKey;
+  name: string;
+  subjectTemplate: string;
+  bodyHtml: string;
+  textTemplate: string;
+  containerId: string;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+  warnings: Array<string>;
+  allowedPlaceholders: Array<{
+    name: string;
+    required: boolean;
+    sample: string;
+    trustedHtml: boolean;
+  }>;
+  container: { id: string; name: string; isDefault: boolean };
+};
+
+export type EmailContainersQueryVariables = Exact<{ [key: string]: never }>;
+
+export type EmailContainersQuery = {
+  emailContainers: Array<{
+    id: string;
+    name: string;
+    htmlShell: string;
+    isDefault: boolean;
+    createdAt: string;
+    updatedAt: string;
+    warnings: Array<string>;
+  }>;
+};
+
+export type EmailContainerQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+export type EmailContainerQuery = {
+  emailContainer: {
+    id: string;
+    name: string;
+    htmlShell: string;
+    isDefault: boolean;
+    createdAt: string;
+    updatedAt: string;
+    warnings: Array<string>;
+  } | null;
+};
+
+export type CreateEmailContainerMutationVariables = Exact<{
+  input: Types.CreateEmailContainerInput;
+}>;
+
+export type CreateEmailContainerMutation = {
+  createEmailContainer: {
+    id: string;
+    name: string;
+    htmlShell: string;
+    isDefault: boolean;
+    createdAt: string;
+    updatedAt: string;
+    warnings: Array<string>;
+  };
+};
+
+export type UpdateEmailContainerMutationVariables = Exact<{
+  id: string | number;
+  input: Types.UpdateEmailContainerInput;
+}>;
+
+export type UpdateEmailContainerMutation = {
+  updateEmailContainer: {
+    id: string;
+    name: string;
+    htmlShell: string;
+    isDefault: boolean;
+    createdAt: string;
+    updatedAt: string;
+    warnings: Array<string>;
+  };
+};
+
+export type SetDefaultEmailContainerMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+export type SetDefaultEmailContainerMutation = {
+  setDefaultEmailContainer: {
+    id: string;
+    name: string;
+    htmlShell: string;
+    isDefault: boolean;
+    createdAt: string;
+    updatedAt: string;
+    warnings: Array<string>;
+  };
+};
+
+export type EmailContentTemplatesQueryVariables = Exact<{ [key: string]: never }>;
+
+export type EmailContentTemplatesQuery = {
+  emailContentTemplates: Array<{
+    id: string;
+    key: Types.EmailTemplateKey;
+    name: string;
+    subjectTemplate: string;
+    bodyHtml: string;
+    textTemplate: string;
+    containerId: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    warnings: Array<string>;
+    allowedPlaceholders: Array<{
+      name: string;
+      required: boolean;
+      sample: string;
+      trustedHtml: boolean;
+    }>;
+    container: { id: string; name: string; isDefault: boolean };
+  }>;
+};
+
+export type EmailContentTemplateByKeyQueryVariables = Exact<{
+  key: Types.EmailTemplateKey;
+}>;
+
+export type EmailContentTemplateByKeyQuery = {
+  emailContentTemplateByKey: {
+    id: string;
+    key: Types.EmailTemplateKey;
+    name: string;
+    subjectTemplate: string;
+    bodyHtml: string;
+    textTemplate: string;
+    containerId: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    warnings: Array<string>;
+    allowedPlaceholders: Array<{
+      name: string;
+      required: boolean;
+      sample: string;
+      trustedHtml: boolean;
+    }>;
+    container: { id: string; name: string; isDefault: boolean };
+  } | null;
+};
+
+export type UpdateEmailContentTemplateMutationVariables = Exact<{
+  id: string | number;
+  input: Types.UpdateEmailContentTemplateInput;
+}>;
+
+export type UpdateEmailContentTemplateMutation = {
+  updateEmailContentTemplate: {
+    id: string;
+    key: Types.EmailTemplateKey;
+    name: string;
+    subjectTemplate: string;
+    bodyHtml: string;
+    textTemplate: string;
+    containerId: string;
+    enabled: boolean;
+    createdAt: string;
+    updatedAt: string;
+    warnings: Array<string>;
+    allowedPlaceholders: Array<{
+      name: string;
+      required: boolean;
+      sample: string;
+      trustedHtml: boolean;
+    }>;
+    container: { id: string; name: string; isDefault: boolean };
+  };
+};
+
+export type PreviewEmailContentTemplateMutationVariables = Exact<{
+  input: Types.PreviewEmailContentTemplateInput;
+}>;
+
+export type PreviewEmailContentTemplateMutation = {
+  previewEmailContentTemplate: {
+    subject: string;
+    html: string;
+    text: string;
+    missingPlaceholders: Array<string>;
+    warnings: Array<string>;
+  };
+};
+
+export type SendTestEmailContentTemplateMutationVariables = Exact<{
+  input: Types.SendTestEmailContentTemplateInput;
+}>;
+
+export type SendTestEmailContentTemplateMutation = { sendTestEmailContentTemplate: boolean };
+
 export type NotificationsQueryVariables = Exact<{
   unreadOnly?: boolean | null | undefined;
 }>;
@@ -35,6 +252,35 @@ export type MarkAllNotificationsReadMutation = { markAllNotificationsRead: boole
 export type UnreadNotificationsCountQueryVariables = Exact<{ [key: string]: never }>;
 
 export type UnreadNotificationsCountQuery = { unreadNotificationsCount: number };
+
+export type OrderAuditLogQueryVariables = Exact<{
+  orderId: string;
+  storeId: string;
+}>;
+
+export type OrderAuditLogQuery = {
+  orderAuditLog: {
+    orderId: string;
+    entries: Array<{
+      id: string;
+      orderId: string;
+      eventType: Types.OrderAuditEventType;
+      occurredAt: string;
+      actorType: Types.OrderAuditActorType;
+      actorId: string | null;
+      actorLabel: string | null;
+      storeId: string | null;
+      details: {
+        paymentMethod: string | null;
+        previousPaymentMethod: string | null;
+        newPaymentMethod: string | null;
+        approvalMethod: string | null;
+        note: string | null;
+        storeId: string | null;
+      };
+    }>;
+  };
+};
 
 export type PromotionFieldsFragment = {
   id: string;
@@ -86,6 +332,153 @@ export type StorePromotionsQuery = {
     expiresAt: string | null;
     createdAt: string;
   }>;
+};
+
+export type SaleCampaignFieldsFragment = {
+  id: string;
+  storeId: string;
+  name: string;
+  description: string | null;
+  startsAt: string | null;
+  expiresAt: string | null;
+  isActive: boolean;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+  items: Array<{
+    id: string;
+    campaignId: string;
+    productId: string;
+    variantId: string | null;
+    compareAtPrice: number | null;
+    discountPercent: number | null;
+    productName: string | null;
+    variantSku: string | null;
+  }>;
+};
+
+export type StoreSaleCampaignsQueryVariables = Exact<{
+  storeId: string;
+}>;
+
+export type StoreSaleCampaignsQuery = {
+  storeSaleCampaigns: Array<{
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | null;
+    startsAt: string | null;
+    expiresAt: string | null;
+    isActive: boolean;
+    priority: number;
+    createdAt: string;
+    updatedAt: string;
+    items: Array<{
+      id: string;
+      campaignId: string;
+      productId: string;
+      variantId: string | null;
+      compareAtPrice: number | null;
+      discountPercent: number | null;
+      productName: string | null;
+      variantSku: string | null;
+    }>;
+  }>;
+};
+
+export type CreateSaleCampaignMutationVariables = Exact<{
+  input: Types.CreateSaleCampaignInput;
+}>;
+
+export type CreateSaleCampaignMutation = {
+  createSaleCampaign: {
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | null;
+    startsAt: string | null;
+    expiresAt: string | null;
+    isActive: boolean;
+    priority: number;
+    createdAt: string;
+    updatedAt: string;
+    items: Array<{
+      id: string;
+      campaignId: string;
+      productId: string;
+      variantId: string | null;
+      compareAtPrice: number | null;
+      discountPercent: number | null;
+      productName: string | null;
+      variantSku: string | null;
+    }>;
+  };
+};
+
+export type UpdateSaleCampaignMutationVariables = Exact<{
+  id: string;
+  input: Types.UpdateSaleCampaignInput;
+}>;
+
+export type UpdateSaleCampaignMutation = {
+  updateSaleCampaign: {
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | null;
+    startsAt: string | null;
+    expiresAt: string | null;
+    isActive: boolean;
+    priority: number;
+    createdAt: string;
+    updatedAt: string;
+    items: Array<{
+      id: string;
+      campaignId: string;
+      productId: string;
+      variantId: string | null;
+      compareAtPrice: number | null;
+      discountPercent: number | null;
+      productName: string | null;
+      variantSku: string | null;
+    }>;
+  };
+};
+
+export type DeleteSaleCampaignMutationVariables = Exact<{
+  id: string;
+}>;
+
+export type DeleteSaleCampaignMutation = { deleteSaleCampaign: boolean };
+
+export type ToggleSaleCampaignMutationVariables = Exact<{
+  id: string;
+  isActive: boolean;
+}>;
+
+export type ToggleSaleCampaignMutation = {
+  toggleSaleCampaign: {
+    id: string;
+    storeId: string;
+    name: string;
+    description: string | null;
+    startsAt: string | null;
+    expiresAt: string | null;
+    isActive: boolean;
+    priority: number;
+    createdAt: string;
+    updatedAt: string;
+    items: Array<{
+      id: string;
+      campaignId: string;
+      productId: string;
+      variantId: string | null;
+      compareAtPrice: number | null;
+      discountPercent: number | null;
+      productName: string | null;
+      variantSku: string | null;
+    }>;
+  };
 };
 
 export type SearchRankingWeightsQueryVariables = Exact<{ [key: string]: never }>;
@@ -228,6 +621,10 @@ export type ExportSearchAnalyticsCsvQueryVariables = Exact<{
 }>;
 
 export type ExportSearchAnalyticsCsvQuery = { exportSearchAnalyticsCsv: string };
+
+export type ResetSearchAnalyticsMutationVariables = Exact<{ [key: string]: never }>;
+
+export type ResetSearchAnalyticsMutation = { resetSearchAnalytics: boolean };
 
 export type ApprovedCategoriesQueryVariables = Exact<{ [key: string]: never }>;
 
@@ -720,6 +1117,121 @@ export type DeleteBrandMutation = {
   };
 };
 
+export const EmailContainerFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailContainerFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'EmailContainerType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'htmlShell' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isDefault' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EmailContainerFieldsFragment, unknown>;
+export const EmailPlaceholderInfoFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailPlaceholderInfoFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'EmailPlaceholderInfoType' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'required' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'sample' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'trustedHtml' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EmailPlaceholderInfoFieldsFragment, unknown>;
+export const EmailContentTemplateFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailContentTemplateFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'EmailContentTemplateType' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'key' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'subjectTemplate' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'bodyHtml' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'textTemplate' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'containerId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'enabled' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'allowedPlaceholders' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'EmailPlaceholderInfoFields' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'container' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'isDefault' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailPlaceholderInfoFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'EmailPlaceholderInfoType' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'required' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'sample' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'trustedHtml' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EmailContentTemplateFieldsFragment, unknown>;
 export const PromotionFieldsFragmentDoc = {
   kind: 'Document',
   definitions: [
@@ -755,6 +1267,774 @@ export const PromotionFieldsFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<PromotionFieldsFragment, unknown>;
+export const SaleCampaignFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'SaleCampaignFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'SaleCampaignType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'items' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'campaignId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'compareAtPrice' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'discountPercent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantSku' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<SaleCampaignFieldsFragment, unknown>;
+export const EmailContainersDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'EmailContainers' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'emailContainers' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'EmailContainerFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailContainerFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'EmailContainerType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'htmlShell' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isDefault' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EmailContainersQuery, EmailContainersQueryVariables>;
+export const EmailContainerDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'EmailContainer' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'emailContainer' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'EmailContainerFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailContainerFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'EmailContainerType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'htmlShell' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isDefault' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EmailContainerQuery, EmailContainerQueryVariables>;
+export const CreateEmailContainerDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'CreateEmailContainer' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'CreateEmailContainerInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'createEmailContainer' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'EmailContainerFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailContainerFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'EmailContainerType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'htmlShell' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isDefault' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<CreateEmailContainerMutation, CreateEmailContainerMutationVariables>;
+export const UpdateEmailContainerDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateEmailContainer' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'UpdateEmailContainerInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'updateEmailContainer' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'EmailContainerFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailContainerFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'EmailContainerType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'htmlShell' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isDefault' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateEmailContainerMutation, UpdateEmailContainerMutationVariables>;
+export const SetDefaultEmailContainerDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'SetDefaultEmailContainer' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'setDefaultEmailContainer' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'EmailContainerFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailContainerFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'EmailContainerType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'htmlShell' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isDefault' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  SetDefaultEmailContainerMutation,
+  SetDefaultEmailContainerMutationVariables
+>;
+export const EmailContentTemplatesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'EmailContentTemplates' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'emailContentTemplates' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'EmailContentTemplateFields' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailPlaceholderInfoFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'EmailPlaceholderInfoType' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'required' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'sample' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'trustedHtml' } },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailContentTemplateFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'EmailContentTemplateType' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'key' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'subjectTemplate' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'bodyHtml' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'textTemplate' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'containerId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'enabled' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'allowedPlaceholders' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'EmailPlaceholderInfoFields' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'container' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'isDefault' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<EmailContentTemplatesQuery, EmailContentTemplatesQueryVariables>;
+export const EmailContentTemplateByKeyDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'EmailContentTemplateByKey' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'key' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'EmailTemplateKey' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'emailContentTemplateByKey' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'key' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'key' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'EmailContentTemplateFields' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailPlaceholderInfoFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'EmailPlaceholderInfoType' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'required' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'sample' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'trustedHtml' } },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailContentTemplateFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'EmailContentTemplateType' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'key' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'subjectTemplate' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'bodyHtml' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'textTemplate' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'containerId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'enabled' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'allowedPlaceholders' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'EmailPlaceholderInfoFields' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'container' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'isDefault' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  EmailContentTemplateByKeyQuery,
+  EmailContentTemplateByKeyQueryVariables
+>;
+export const UpdateEmailContentTemplateDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateEmailContentTemplate' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'UpdateEmailContentTemplateInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'updateEmailContentTemplate' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'EmailContentTemplateFields' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailPlaceholderInfoFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'EmailPlaceholderInfoType' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'required' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'sample' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'trustedHtml' } },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'EmailContentTemplateFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'EmailContentTemplateType' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'key' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'subjectTemplate' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'bodyHtml' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'textTemplate' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'containerId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'enabled' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'allowedPlaceholders' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'EmailPlaceholderInfoFields' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'container' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'isDefault' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateEmailContentTemplateMutation,
+  UpdateEmailContentTemplateMutationVariables
+>;
+export const PreviewEmailContentTemplateDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'PreviewEmailContentTemplate' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'PreviewEmailContentTemplateInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'previewEmailContentTemplate' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'subject' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'html' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'text' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'missingPlaceholders' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'warnings' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  PreviewEmailContentTemplateMutation,
+  PreviewEmailContentTemplateMutationVariables
+>;
+export const SendTestEmailContentTemplateDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'SendTestEmailContentTemplate' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SendTestEmailContentTemplateInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'sendTestEmailContentTemplate' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  SendTestEmailContentTemplateMutation,
+  SendTestEmailContentTemplateMutationVariables
+>;
 export const NotificationsDocument = {
   kind: 'Document',
   definitions: [
@@ -867,6 +2147,96 @@ export const UnreadNotificationsCountDocument = {
     },
   ],
 } as unknown as DocumentNode<UnreadNotificationsCountQuery, UnreadNotificationsCountQueryVariables>;
+export const OrderAuditLogDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'OrderAuditLog' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'orderId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'storeId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'orderAuditLog' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'orderId' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'storeId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'storeId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'orderId' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'entries' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'orderId' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'eventType' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'occurredAt' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'actorType' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'actorId' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'actorLabel' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'details' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            { kind: 'Field', name: { kind: 'Name', value: 'paymentMethod' } },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'previousPaymentMethod' },
+                            },
+                            { kind: 'Field', name: { kind: 'Name', value: 'newPaymentMethod' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'approvalMethod' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'note' } },
+                            { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<OrderAuditLogQuery, OrderAuditLogQueryVariables>;
 export const StorePromotionsDocument = {
   kind: 'Document',
   definitions: [
@@ -939,6 +2309,384 @@ export const StorePromotionsDocument = {
     },
   ],
 } as unknown as DocumentNode<StorePromotionsQuery, StorePromotionsQueryVariables>;
+export const StoreSaleCampaignsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'StoreSaleCampaigns' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'storeId' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'storeSaleCampaigns' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'storeId' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'storeId' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'SaleCampaignFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'SaleCampaignFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'SaleCampaignType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'items' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'campaignId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'compareAtPrice' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'discountPercent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantSku' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<StoreSaleCampaignsQuery, StoreSaleCampaignsQueryVariables>;
+export const CreateSaleCampaignDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'CreateSaleCampaign' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'CreateSaleCampaignInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'createSaleCampaign' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'SaleCampaignFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'SaleCampaignFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'SaleCampaignType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'items' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'campaignId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'compareAtPrice' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'discountPercent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantSku' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<CreateSaleCampaignMutation, CreateSaleCampaignMutationVariables>;
+export const UpdateSaleCampaignDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateSaleCampaign' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'UpdateSaleCampaignInput' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'updateSaleCampaign' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'input' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'SaleCampaignFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'SaleCampaignFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'SaleCampaignType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'items' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'campaignId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'compareAtPrice' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'discountPercent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantSku' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateSaleCampaignMutation, UpdateSaleCampaignMutationVariables>;
+export const DeleteSaleCampaignDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteSaleCampaign' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'deleteSaleCampaign' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteSaleCampaignMutation, DeleteSaleCampaignMutationVariables>;
+export const ToggleSaleCampaignDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'ToggleSaleCampaign' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'isActive' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Boolean' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'toggleSaleCampaign' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'isActive' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'isActive' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'SaleCampaignFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'SaleCampaignFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'SaleCampaignType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'items' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'campaignId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'compareAtPrice' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'discountPercent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'productName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'variantSku' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ToggleSaleCampaignMutation, ToggleSaleCampaignMutationVariables>;
 export const SearchRankingWeightsDocument = {
   kind: 'Document',
   definitions: [
@@ -1477,6 +3225,20 @@ export const ExportSearchAnalyticsCsvDocument = {
     },
   ],
 } as unknown as DocumentNode<ExportSearchAnalyticsCsvQuery, ExportSearchAnalyticsCsvQueryVariables>;
+export const ResetSearchAnalyticsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'ResetSearchAnalytics' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [{ kind: 'Field', name: { kind: 'Name', value: 'resetSearchAnalytics' } }],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ResetSearchAnalyticsMutation, ResetSearchAnalyticsMutationVariables>;
 export const ApprovedCategoriesDocument = {
   kind: 'Document',
   definitions: [

@@ -23,6 +23,7 @@ import { ProductDescriptionMarkdown } from '@/lib/markdown/product-description-m
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
 import { variantItemsFromProduct } from '@/lib/variants';
 import type { ProductStatus } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 const LOW_STOCK_THRESHOLD = 5;
 const RECENT_REVIEWS_LIMIT = 5;
@@ -110,7 +111,7 @@ export default function VendorProductDetailPage() {
           กลับไปรายการสินค้า
         </Link>
         <p className="text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'ไม่พบสินค้า'}
+          {getErrorMessage(error, 'ไม่พบสินค้า')}
         </p>
       </div>
     );
@@ -316,6 +317,9 @@ export default function VendorProductDetailPage() {
             <DetailRow label="ช่วงราคา">
               {variants.length > 0 ? formatPriceRange(variantPrices) : '—'}
             </DetailRow>
+            <DetailRow label="ราคาขีดฆ่า">
+              {product.compareAtPrice != null ? formatCurrency(product.compareAtPrice) : '—'}
+            </DetailRow>
           </CardBody>
         </Card>
       </div>
@@ -439,6 +443,26 @@ export default function VendorProductDetailPage() {
               </Table>
             </div>
           )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+          <div>
+            <SectionTitle>ส่วนลดแคตตาล็อก</SectionTitle>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              แคมเปญแสดงราคาขีดฆ่าบนหน้าร้าน — ไม่เปลี่ยนราคาที่ชำระในตะกร้า
+            </p>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/vendor/campaigns">ไปที่แคมเปญ</Link>
+          </Button>
+        </CardHeader>
+        <CardBody>
+          <p className="text-sm text-muted-foreground">
+            ตั้งราคาขายให้เป็นราคาที่ต้องการขายก่อน แล้วใช้แคมเปญเพื่อแสดงราคาเดิม/% ตามช่วงเวลา
+            หากต้องการลดตอนชำระเงินให้ใช้โปรโมชัน
+          </p>
         </CardBody>
       </Card>
 

@@ -1,27 +1,45 @@
-function defaultAllowedOrigins(): string[] {
-  const origins = new Set<string>(['http://localhost:3001', 'https://localhost:3001']);
+function addOrigin(origins: Set<string>, raw: string | undefined): void {
+  const trimmed = raw?.trim();
+  if (!trimmed) return;
+  try {
+    origins.add(new URL(trimmed).origin);
+  } catch {
+    // ignore invalid env
+  }
+}
 
-  const fromEnv = process.env.NEXT_PUBLIC_ADMIN_URL?.trim();
-  if (fromEnv) {
-    try {
-      origins.add(new URL(fromEnv).origin);
-    } catch {
-      // ignore invalid env
-    }
+function requestOrigin(request: Request): string | null {
+  try {
+    return new URL(request.url).origin;
+  } catch {
+    return null;
+  }
+}
+
+function defaultAllowedOrigins(): string[] {
+  const origins = new Set<string>();
+
+  // SOPET-M-11: seed localhost only outside production.
+  if (process.env.NODE_ENV !== 'production') {
+    origins.add('http://localhost:3001');
+    origins.add('https://localhost:3001');
   }
 
-  const csrfExtra = process.env.BFF_CSRF_ORIGINS?.split(',') ?? [];
-  for (const entry of csrfExtra) {
-    const trimmed = entry.trim();
-    if (!trimmed) continue;
-    try {
-      origins.add(new URL(trimmed).origin);
-    } catch {
-      // ignore
-    }
+  addOrigin(origins, process.env.NEXT_PUBLIC_ADMIN_URL);
+
+  for (const entry of process.env.BFF_CSRF_ORIGINS?.split(',') ?? []) {
+    addOrigin(origins, entry);
   }
 
   return [...origins];
+}
+
+function originAllowed(candidate: string, request: Request): boolean {
+  if (getAllowedOrigins().includes(candidate)) {
+    return true;
+  }
+  const self = requestOrigin(request);
+  return self !== null && candidate === self;
 }
 
 export function getAllowedOrigins(): string[] {
@@ -29,10 +47,9 @@ export function getAllowedOrigins(): string[] {
 }
 
 export function assertSameOrigin(request: Request): Response | null {
-  const allowed = getAllowedOrigins();
   const origin = request.headers.get('origin');
   if (origin) {
-    if (!allowed.includes(origin)) {
+    if (!originAllowed(origin, request)) {
       return Response.json({ error: 'CSRF_ORIGIN_REJECTED' }, { status: 403 });
     }
     return null;
@@ -42,7 +59,7 @@ export function assertSameOrigin(request: Request): Response | null {
   if (referer) {
     try {
       const refererOrigin = new URL(referer).origin;
-      if (!allowed.includes(refererOrigin)) {
+      if (!originAllowed(refererOrigin, request)) {
         return Response.json({ error: 'CSRF_ORIGIN_REJECTED' }, { status: 403 });
       }
       return null;

@@ -109,6 +109,7 @@ describe('EditProductPage', () => {
 
     expect(screen.getByRole('heading', { name: 'ข้อมูลพื้นฐาน' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'รูปภาพสินค้า' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'ราคาขีดฆ่า' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'การจัดหมวดหมู่' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'ราคา' })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'รายละเอียดเพิ่มเติม' })).toBeInTheDocument();
@@ -130,6 +131,7 @@ describe('EditProductPage', () => {
     expect(screen.queryByRole('heading', { name: 'ราคา' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'จัดการตัวเลือก' })).not.toBeInTheDocument();
     expect(screen.queryByLabelText('ราคาฐาน')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('ราคาขีดฆ่า (บาท)')).toBeInTheDocument();
   });
 
   it('removes the sticky global cancel/save footer and uses section save buttons', () => {
@@ -137,7 +139,7 @@ describe('EditProductPage', () => {
 
     expect(screen.queryByRole('link', { name: 'ยกเลิก' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'บันทึก' })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'บันทึกส่วนนี้' })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: 'บันทึกส่วนนี้' })).toHaveLength(3);
   });
 
   it('saves only basic info fields from that section button', async () => {
@@ -167,6 +169,55 @@ describe('EditProductPage', () => {
     expect(await screen.findByText('บันทึกแล้ว')).toBeInTheDocument();
   });
 
+  it('saves compareAtPrice from the strikethrough pricing section', async () => {
+    const user = userEvent.setup();
+    mockProduct = { ...baseProduct, compareAtPrice: 690 };
+    renderWithQueryClient(<EditProductPage />);
+
+    const compareAtInput = screen.getByLabelText('ราคาขีดฆ่า (บาท)');
+    await waitFor(() => {
+      expect(compareAtInput).toHaveValue(690);
+    });
+    await user.clear(compareAtInput);
+    await user.type(compareAtInput, '1000');
+
+    const [, pricingSave] = screen.getAllByRole('button', { name: 'บันทึกส่วนนี้' });
+    await user.click(pricingSave);
+
+    await waitFor(() => {
+      expect(updateMutateAsync).toHaveBeenCalledWith({
+        id: 'prod-1',
+        input: {
+          compareAtPrice: 1000,
+        },
+      });
+    });
+  });
+
+  it('clears compareAtPrice when the strikethrough field is emptied', async () => {
+    const user = userEvent.setup();
+    mockProduct = { ...baseProduct, compareAtPrice: 690 };
+    renderWithQueryClient(<EditProductPage />);
+
+    const compareAtInput = screen.getByLabelText('ราคาขีดฆ่า (บาท)');
+    await waitFor(() => {
+      expect(compareAtInput).toHaveValue(690);
+    });
+    await user.clear(compareAtInput);
+
+    const [, pricingSave] = screen.getAllByRole('button', { name: 'บันทึกส่วนนี้' });
+    await user.click(pricingSave);
+
+    await waitFor(() => {
+      expect(updateMutateAsync).toHaveBeenCalledWith({
+        id: 'prod-1',
+        input: {
+          compareAtPrice: null,
+        },
+      });
+    });
+  });
+
   it('shows section copy that explains autosave and customer-facing fields', () => {
     renderWithQueryClient(<EditProductPage />);
 
@@ -175,6 +226,7 @@ describe('EditProductPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('บันทึกอัตโนมัติเมื่อมีการเปลี่ยนแปลง')).toBeInTheDocument();
     expect(screen.getByText('คำเตือนและวันหมดอายุ (ถ้ามี)')).toBeInTheDocument();
+    expect(screen.getByText(/ราคาเดิมถาวรระดับสินค้า \(ไม่แยก SKU\)/)).toBeInTheDocument();
   });
 
   it('updates the publish checklist when the name field is cleared', async () => {

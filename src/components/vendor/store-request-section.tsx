@@ -266,7 +266,7 @@ export function StoreRequestSection({
             </div>
           ) : error ? (
             <p className="text-sm text-danger" role="alert">
-              {error instanceof Error ? error.message : 'โหลดไม่สำเร็จ'}
+              {getErrorMessage(error, 'โหลดไม่สำเร็จ')}
             </p>
           ) : requests.length === 0 ? (
             <div className="rounded-lg bg-surface px-4 py-6 text-center" role="status">

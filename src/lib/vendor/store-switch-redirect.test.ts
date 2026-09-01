@@ -10,8 +10,17 @@ describe('getStoreSwitchRedirectPath', () => {
     expect(getStoreSwitchRedirectPath('/vendor/products/new')).toBe('/vendor/products');
   });
 
+  it('redirects promotion edit to the create promotion page', () => {
+    expect(getStoreSwitchRedirectPath('/vendor/promotions/promo-1/edit')).toBe(
+      '/vendor/promotions/new',
+    );
+  });
+
   it('keeps list and non-product vendor pages', () => {
     expect(getStoreSwitchRedirectPath('/vendor/products')).toBeNull();
+    expect(getStoreSwitchRedirectPath('/vendor/promotions')).toBeNull();
+    expect(getStoreSwitchRedirectPath('/vendor/promotions/new')).toBeNull();
+    expect(getStoreSwitchRedirectPath('/vendor/promotions/new/coupon')).toBeNull();
     expect(getStoreSwitchRedirectPath('/vendor')).toBeNull();
     expect(getStoreSwitchRedirectPath('/vendor/orders')).toBeNull();
     expect(getStoreSwitchRedirectPath('/vendor/orders/ord-1')).toBeNull();

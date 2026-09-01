@@ -22,6 +22,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { ShippingProvider } from '@/types';
 import { activeStatusBadgeClass } from './shipping-helpers';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function ProvidersSkeleton() {
   return (
@@ -151,9 +152,7 @@ export function ShippingProvidersPanel() {
 
           {createProvider.error ? (
             <p className="mt-3 text-sm text-danger" role="alert">
-              {createProvider.error instanceof Error
-                ? createProvider.error.message
-                : 'สร้างผู้ให้บริการไม่สำเร็จ'}
+              {getErrorMessage(createProvider.error, 'สร้างผู้ให้บริการไม่สำเร็จ')}
             </p>
           ) : null}
 
@@ -180,7 +179,7 @@ export function ShippingProvidersPanel() {
           {error ? (
             <div className="px-5 py-8 text-center md:px-6">
               <p className="text-sm text-danger">
-                {error instanceof Error ? error.message : 'โหลดผู้ให้บริการไม่สำเร็จ'}
+                {getErrorMessage(error, 'โหลดผู้ให้บริการไม่สำเร็จ')}
               </p>
             </div>
           ) : null}

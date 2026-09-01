@@ -33,6 +33,7 @@ export function toSyncVariantGraphqlVariables(
   sku: string;
   stockQuantity: number;
   priceModifier?: number;
+  compareAtPrice?: number | null;
   attributes: string;
 }> {
   const payload =
@@ -45,6 +46,7 @@ export function toSyncVariantGraphqlVariables(
     sku: variant.sku,
     stockQuantity: variant.stockQuantity,
     priceModifier: variant.priceModifier,
+    compareAtPrice: variant.compareAtPrice ?? null,
     attributes: JSON.stringify(variant.attributes),
   }));
 }
@@ -124,6 +126,7 @@ export function syncProductVariants(
       id: string;
       sku: string;
       price: number;
+      compareAtPrice?: number | null;
       stockQuantity: number;
       optionsJson?: string | null;
     }>;
@@ -135,32 +138,42 @@ export function syncProductVariants(
       id: variant.id,
       sku: variant.sku,
       price: variant.price,
+      compareAtPrice: variant.compareAtPrice ?? null,
       stockQuantity: variant.stockQuantity,
       optionsJson: variant.optionsJson,
     })),
   );
 }
 
-export function updateProductVariantStock(
+export function updateProductVariant(
   variantId: string,
-  stockQuantity: number,
+  input: { stockQuantity?: number; compareAtPrice?: number | null; priceModifier?: number },
 ): Promise<NonNullable<Product['variants']>[number]> {
   return executeMutation<{
     updateProductVariant: {
       id: string;
       sku: string;
       price: number;
+      compareAtPrice?: number | null;
       stockQuantity: number;
       optionsJson?: string | null;
     };
   }>(UPDATE_PRODUCT_VARIANT, {
     variantId,
-    input: { stockQuantity },
+    input,
   }).then((data) => ({
     id: data.updateProductVariant.id,
     sku: data.updateProductVariant.sku,
     price: data.updateProductVariant.price,
+    compareAtPrice: data.updateProductVariant.compareAtPrice ?? null,
     stockQuantity: data.updateProductVariant.stockQuantity,
     optionsJson: data.updateProductVariant.optionsJson,
   }));
+}
+
+export function updateProductVariantStock(
+  variantId: string,
+  stockQuantity: number,
+): Promise<NonNullable<Product['variants']>[number]> {
+  return updateProductVariant(variantId, { stockQuantity });
 }

@@ -18,6 +18,7 @@ import {
 } from '@/lib/validations/promotions';
 import { getPromotionTypeMeta, type PromotionTypeSlug } from '@/lib/promotions/metadata';
 import type { CreatePromotionInput } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export function PromotionCreateForm({
   type,
@@ -71,9 +72,7 @@ export function PromotionCreateForm({
       });
       router.push(listHref);
     } catch (err) {
-      setSubmitError(
-        err instanceof Error ? err.message : 'สร้างโปรโมชันไม่สำเร็จ กรุณาลองอีกครั้ง',
-      );
+      setSubmitError(getErrorMessage(err, 'สร้างโปรโมชันไม่สำเร็จ กรุณาลองอีกครั้ง'));
     }
   }
 

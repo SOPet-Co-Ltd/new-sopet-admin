@@ -1,16 +1,16 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
+import { useSecretTokenParam } from '@/lib/auth/useSecretTokenParam';
 
 function AcceptInvitationRedirectContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get('token') ?? '';
+  const token = useSecretTokenParam();
 
   useEffect(() => {
     if (token) {
-      router.replace(`/invite/store?token=${encodeURIComponent(token)}`);
+      router.replace(`/invite/store#token=${encodeURIComponent(token)}`);
     }
   }, [router, token]);
 

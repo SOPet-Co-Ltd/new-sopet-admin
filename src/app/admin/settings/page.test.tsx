@@ -140,6 +140,24 @@ vi.mock('@/hooks/usePlatformSettings', () => ({
     isError: false,
     error: null,
   }),
+  useBankTransferSettings: () => ({
+    data: {
+      enabled: false,
+      bankName: '',
+      accountName: '',
+      accountNumber: '',
+      branchName: null,
+    },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useUpdateBankTransferDetails: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    reset: vi.fn(),
+  }),
 }));
 
 function mockPlatformSettingsQueries(
@@ -186,13 +204,18 @@ describe('AdminPlatformSettingsPage', () => {
 
     expect(screen.getByRole('heading', { name: 'ตั้งค่าแพลตฟอร์ม' })).toBeInTheDocument();
     expect(
-      screen.getByText('จัดการแบนเนอร์ สปอนเซอร์ และโฆษณาป๊อปอัพบนหน้าแรกร้านค้า'),
+      screen.getByText('จัดการแบนเนอร์ สปอนเซอร์ โฆษณา และบัญชีรับโอนเงินบนแพลตฟอร์ม'),
     ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'รหัสข้อผิดพลาด' })).toHaveAttribute(
+      'href',
+      '/admin/errors-message',
+    );
     expect(screen.getByRole('tablist', { name: 'หมวดตั้งค่าแพลตฟอร์ม' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'แบนเนอร์', selected: true })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'สปอนเซอร์' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'โฆษณาป๊อปอัพ' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'รูปหน้าเข้าสู่ระบบ' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'บัญชีรับโอน' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /แบนเนอร์ \(1\)/ })).toBeInTheDocument();
     expect(screen.getByText('Summer Sale')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'เพิ่มแบนเนอร์' })).toBeInTheDocument();
@@ -251,7 +274,7 @@ describe('AdminPlatformSettingsPage', () => {
     render(<AdminPlatformSettingsPage />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('โหลดแบนเนอร์ไม่สำเร็จ');
-    expect(screen.getByText('เครือข่ายขัดข้อง')).toBeInTheDocument();
+    expect(screen.getAllByText('โหลดแบนเนอร์ไม่สำเร็จ').length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: 'ลองอีกครั้ง' }));
     expect(refetchBanners).toHaveBeenCalledTimes(1);

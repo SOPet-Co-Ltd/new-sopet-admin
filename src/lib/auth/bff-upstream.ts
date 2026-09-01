@@ -1,7 +1,51 @@
 const DEFAULT_UPSTREAM = 'http://localhost:3002/graphql';
 
+const REQUEST_ID_HEADER = 'x-request-id';
+const CLIENT_IP_HEADER = 'x-sopet-client-ip';
+const VERCEL_FORWARDED_FOR_HEADER = 'x-vercel-forwarded-for';
+const FORWARDED_FOR_HEADER = 'x-forwarded-for';
+const REAL_IP_HEADER = 'x-real-ip';
+
 export function getUpstreamGraphqlUrl(): string {
   return process.env.GRAPHQL_SSR_URL ?? DEFAULT_UPSTREAM;
+}
+
+function firstHop(value: string | null): string | null {
+  const hop = value?.split(',')[0]?.trim() ?? '';
+  return hop || null;
+}
+
+/**
+ * Visitor IP as seen by Vercel — not the serverless egress IP (often iad1 / Virginia).
+ * Prefer x-vercel-forwarded-for; x-forwarded-for can be the proxy hop once this
+ * request is forwarded through Cloudflare to the API.
+ */
+export function getIncomingClientIp(incomingRequest: Request): string | null {
+  return (
+    firstHop(incomingRequest.headers.get(VERCEL_FORWARDED_FOR_HEADER)) ||
+    firstHop(incomingRequest.headers.get(REAL_IP_HEADER)) ||
+    firstHop(incomingRequest.headers.get(FORWARDED_FOR_HEADER))
+  );
+}
+
+/** Forward client correlation headers so backend audit logs capture IP + request id. */
+export function buildUpstreamRequestHeaders(incomingRequest?: Request): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (!incomingRequest) {
+    return headers;
+  }
+
+  const requestId = incomingRequest.headers.get(REQUEST_ID_HEADER)?.trim();
+  headers[REQUEST_ID_HEADER] = requestId || crypto.randomUUID();
+
+  const clientIp = getIncomingClientIp(incomingRequest);
+  if (clientIp) {
+    // Custom header survives Cloudflare rewriting X-Forwarded-For to the Vercel hop.
+    headers[CLIENT_IP_HEADER] = clientIp;
+    headers[FORWARDED_FOR_HEADER] = clientIp;
+  }
+
+  return headers;
 }
 
 export type AuthTokenPair = {
@@ -26,9 +70,11 @@ const REFRESH_MUTATION = `
 export async function forwardGraphql(
   body: string,
   accessToken?: string,
+  incomingRequest?: Request,
 ): Promise<{ response: Response; json: GraphQLJson }> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    ...buildUpstreamRequestHeaders(incomingRequest),
   };
   if (accessToken) {
     headers.authorization = `Bearer ${accessToken}`;
@@ -40,8 +86,24 @@ export async function forwardGraphql(
     body,
   });
 
-  const json = (await response.json()) as GraphQLJson;
-  return { response, json };
+  const raw = await response.text();
+  try {
+    const json = JSON.parse(raw) as GraphQLJson;
+    return { response, json };
+  } catch {
+    // Cloudflare bot challenges return HTML; never let JSON.parse throw a 500.
+    return {
+      response,
+      json: {
+        errors: [
+          {
+            message: `Upstream GraphQL returned non-JSON (HTTP ${response.status}). Please try again later.`,
+            extensions: { code: 'UPSTREAM_NON_JSON' },
+          },
+        ],
+      },
+    };
+  }
 }
 
 export async function refreshTokensUpstream(refreshToken: string): Promise<AuthTokenPair | null> {

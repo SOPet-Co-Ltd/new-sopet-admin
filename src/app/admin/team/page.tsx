@@ -16,7 +16,7 @@ import {
   useRevokeAdminInvitation,
   useSetAdminActive,
 } from '@/hooks/useAdminTeam';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import { adminAccessDescription, labelInvitationStatus } from '@/lib/i18n/th';
 import { inviteAdminSchema, type InviteAdminFormValues } from '@/lib/validations';
 
@@ -58,12 +58,6 @@ function formatInviteExpiry(value: string): string {
     month: 'short',
     day: 'numeric',
   });
-}
-
-function mutationErrorMessage(error: unknown, fallback: string): string {
-  if (isApiError(error)) return error.message;
-  if (error instanceof Error && error.message) return error.message;
-  return fallback;
 }
 
 export default function AdminTeamPage() {
@@ -149,7 +143,7 @@ export default function AdminTeamPage() {
 
           {inviteMutation.isError ? (
             <p role="alert" className="text-sm text-danger">
-              {mutationErrorMessage(inviteMutation.error, 'ส่งคำเชิญไม่สำเร็จ')}
+              {getErrorMessage(inviteMutation.error, 'ส่งคำเชิญไม่สำเร็จ')}
             </p>
           ) : null}
 
@@ -226,7 +220,7 @@ export default function AdminTeamPage() {
           )}
           {setActiveMutation.isError ? (
             <p role="alert" className="text-sm text-danger">
-              {mutationErrorMessage(setActiveMutation.error, 'เปลี่ยนสถานะผู้ดูแลไม่สำเร็จ')}
+              {getErrorMessage(setActiveMutation.error, 'เปลี่ยนสถานะผู้ดูแลไม่สำเร็จ')}
             </p>
           ) : null}
         </CardBody>
@@ -294,7 +288,7 @@ export default function AdminTeamPage() {
           )}
           {revokeMutation.isError ? (
             <p role="alert" className="text-sm text-danger">
-              {mutationErrorMessage(revokeMutation.error, 'ยกเลิกคำเชิญไม่สำเร็จ')}
+              {getErrorMessage(revokeMutation.error, 'ยกเลิกคำเชิญไม่สำเร็จ')}
             </p>
           ) : null}
         </CardBody>

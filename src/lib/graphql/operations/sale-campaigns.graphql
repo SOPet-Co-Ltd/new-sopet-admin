@@ -1,0 +1,50 @@
+fragment SaleCampaignFields on SaleCampaignType {
+  id
+  storeId
+  name
+  description
+  startsAt
+  expiresAt
+  isActive
+  priority
+  items {
+    id
+    campaignId
+    productId
+    variantId
+    compareAtPrice
+    discountPercent
+    productName
+    variantSku
+  }
+  createdAt
+  updatedAt
+}
+
+query StoreSaleCampaigns($storeId: String!) {
+  storeSaleCampaigns(storeId: $storeId) {
+    ...SaleCampaignFields
+  }
+}
+
+mutation CreateSaleCampaign($input: CreateSaleCampaignInput!) {
+  createSaleCampaign(input: $input) {
+    ...SaleCampaignFields
+  }
+}
+
+mutation UpdateSaleCampaign($id: String!, $input: UpdateSaleCampaignInput!) {
+  updateSaleCampaign(id: $id, input: $input) {
+    ...SaleCampaignFields
+  }
+}
+
+mutation DeleteSaleCampaign($id: String!) {
+  deleteSaleCampaign(id: $id)
+}
+
+mutation ToggleSaleCampaign($id: String!, $isActive: Boolean!) {
+  toggleSaleCampaign(id: $id, isActive: $isActive) {
+    ...SaleCampaignFields
+  }
+}

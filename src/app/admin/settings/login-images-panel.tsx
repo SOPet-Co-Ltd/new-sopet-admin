@@ -16,7 +16,7 @@ import {
   useUpdateLoginPageImages,
 } from '@/hooks/usePlatformSettings';
 import { loginPageImagesToFormValues } from '@/lib/api/platform';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import { loginImagesFormSchema, type LoginImagesFormValues } from '@/lib/validations';
 import {
   ListRowSkeleton,
@@ -85,7 +85,7 @@ export function LoginImagesPanel() {
       reset(loginPageImagesToFormValues(result));
       setSavedMessage('บันทึกการตั้งค่าแล้ว');
     } catch (err) {
-      setActionError(isApiError(err) ? err.message : 'บันทึกไม่สำเร็จ');
+      setActionError(getErrorMessage(err, 'บันทึกไม่สำเร็จ'));
     }
   }
 
@@ -97,7 +97,7 @@ export function LoginImagesPanel() {
       reset(loginPageImagesToFormValues(result));
       setSavedMessage('บันทึกการตั้งค่าแล้ว');
     } catch (err) {
-      setActionError(isApiError(err) ? err.message : 'ล้างรูปไม่สำเร็จ');
+      setActionError(getErrorMessage(err, 'ล้างรูปไม่สำเร็จ'));
     }
   }
 

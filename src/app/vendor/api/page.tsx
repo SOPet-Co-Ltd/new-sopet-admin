@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { useCreateStoreApiKey, useRevokeStoreApiKey, useStoreApiKeys } from '@/hooks/useApiKeys';
 import { useIsStoreManager } from '@/hooks/useMembershipRole';
 import { StoreIdField } from '@/components/vendor/store-id-field';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString('th-TH', {
@@ -229,9 +230,7 @@ export default function VendorApiPage() {
             </div>
             {createMutation.isError ? (
               <p className="text-sm text-danger" role="alert">
-                {createMutation.error instanceof Error
-                  ? createMutation.error.message
-                  : 'สร้าง API Key ไม่สำเร็จ'}
+                {getErrorMessage(createMutation.error, 'สร้าง API Key ไม่สำเร็จ')}
               </p>
             ) : null}
             <DialogFooter>

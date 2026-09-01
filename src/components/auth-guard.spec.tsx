@@ -40,7 +40,7 @@ describe('AuthGuard', () => {
     vi.mocked(hasClientSession).mockReturnValue(true);
   });
 
-  it('renders children directly while auth store is hydrating', () => {
+  it('shows a loading shell while auth store is hydrating (SOPET-M-14)', () => {
     mockAuthState({
       hasHydrated: false,
       isAuthenticated: false,
@@ -53,8 +53,8 @@ describe('AuthGuard', () => {
       </AuthGuard>,
     );
 
-    expect(screen.getByText('Protected content')).toBeInTheDocument();
-    expect(screen.queryByText('กำลังโหลด...')).not.toBeInTheDocument();
+    expect(screen.queryByText('Protected content')).not.toBeInTheDocument();
+    expect(screen.getByText('กำลังโหลด...')).toBeInTheDocument();
   });
 
   it('redirects when hydrated user role mismatches required role', async () => {
@@ -71,5 +71,22 @@ describe('AuthGuard', () => {
     );
 
     expect(replace).toHaveBeenCalledWith('/vendor');
+    expect(screen.queryByText('Protected content')).not.toBeInTheDocument();
+  });
+
+  it('renders children when hydrated and role matches', () => {
+    mockAuthState({
+      hasHydrated: true,
+      isAuthenticated: true,
+      user: { role: 'admin' },
+    });
+
+    render(
+      <AuthGuard requiredRole="admin">
+        <p>Protected content</p>
+      </AuthGuard>,
+    );
+
+    expect(screen.getByText('Protected content')).toBeInTheDocument();
   });
 });

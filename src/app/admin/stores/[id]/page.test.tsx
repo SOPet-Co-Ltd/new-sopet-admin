@@ -38,6 +38,14 @@ vi.mock('@/hooks/useAdminStores', () => ({
     isError: false,
     error: null,
   }),
+  useLinkStoreOmiseRecipientAsAdmin: () => ({
+    mutateAsync: vi.fn(),
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
 }));
 
 vi.mock('@/hooks/useAdminVendors', () => ({
@@ -48,6 +56,20 @@ vi.mock('@/hooks/usePayouts', () => ({
   useAdminStorePayoutSummary: () => ({ data: null, isLoading: false }),
   useAdminStorePayouts: () => ({ data: [], isLoading: false }),
   useTriggerPayout: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
+  useSettleManualPayout: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
+  useRejectManualPayout: () => ({
     mutate: vi.fn(),
     isPending: false,
     isError: false,

@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { useVendorCustomers } from '@/hooks/useVendorCustomers';
 import { cn, formatDate } from '@/lib/utils';
 import type { VendorCustomer } from '@/types';
+import { getErrorMessage } from '@/lib/api/errors';
 
 function CustomersTableSkeleton() {
   return (
@@ -282,7 +283,7 @@ export default function VendorCustomersPage() {
 
       {error ? (
         <p className="mb-4 text-sm text-danger" role="alert">
-          {error instanceof Error ? error.message : 'โหลดรายการลูกค้าไม่สำเร็จ'}
+          {getErrorMessage(error, 'โหลดรายการลูกค้าไม่สำเร็จ')}
         </p>
       ) : null}
 

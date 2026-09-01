@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { TaxonomyDeleteButton } from '@/components/admin/taxonomy/taxonomy-delete-button';
 import { useApproveCategory, useSetCategoryImage } from '@/hooks/useTaxonomy';
-import { isApiError } from '@/lib/api/errors';
+import { getErrorMessage } from '@/lib/api/errors';
 import { useState } from 'react';
 import { labelTaxonomyStatus } from '@/lib/i18n/th';
 
@@ -46,7 +46,7 @@ export function PendingCategoryRow({
         imageUrl: url,
       });
     } catch (error) {
-      setUploadError(isApiError(error) ? error.message : 'อัปโหลดรูปภาพไม่สำเร็จ');
+      setUploadError(getErrorMessage(error, 'อัปโหลดรูปภาพไม่สำเร็จ'));
     }
   }
 
@@ -57,7 +57,7 @@ export function PendingCategoryRow({
       try {
         await approveCategory.mutateAsync(item.id);
       } catch (error) {
-        setApproveError(isApiError(error) ? error.message : 'อนุมัติไม่สำเร็จ');
+        setApproveError(getErrorMessage(error, 'อนุมัติไม่สำเร็จ'));
       }
       return;
     }

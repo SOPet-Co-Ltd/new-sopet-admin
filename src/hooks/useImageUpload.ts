@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { imageUploadMessages, uploadImageFile, type UploadFolder } from '@/lib/api/upload';
+import { getErrorMessage } from '@/lib/api/errors';
 
 export function useImageUpload(folder: UploadFolder) {
   const [isUploading, setIsUploading] = useState(false);
@@ -14,7 +15,7 @@ export function useImageUpload(folder: UploadFolder) {
       try {
         return await uploadImageFile(file, folder);
       } catch (err) {
-        const message = err instanceof Error ? err.message : imageUploadMessages.failed;
+        const message = getErrorMessage(err, imageUploadMessages.failed);
         setError(message);
         throw err;
       } finally {

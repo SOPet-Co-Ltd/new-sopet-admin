@@ -3,11 +3,12 @@ import {
   ADMIN_STORE_QUERY,
   ADMIN_STORES_QUERY,
   CREATE_STORE_AS_ADMIN,
+  LINK_STORE_OMISE_RECIPIENT_AS_ADMIN,
   UPDATE_STORE_AS_ADMIN,
 } from '@/lib/graphql/documents';
 import { mapAdminStore } from '@/lib/graphql/mappers';
 import type { AdminStore, CreateStoreAsAdminInput, UpdateStoreAsAdminInput } from '@/types';
-import type { AdminStoreFormValues } from '@/lib/validations';
+import type { AdminStoreEditFormValues, AdminStoreFormValues } from '@/lib/validations';
 
 type GqlAdminStore = Parameters<typeof mapAdminStore>[0];
 
@@ -25,9 +26,10 @@ export function buildCreateStoreAsAdminInput(
 }
 
 export function buildUpdateStoreAsAdminInput(
-  values: AdminStoreFormValues,
+  values: AdminStoreFormValues | AdminStoreEditFormValues,
+  options?: { commissionRateDirty?: boolean },
 ): UpdateStoreAsAdminInput {
-  return {
+  const input: UpdateStoreAsAdminInput = {
     name: values.name,
     slug: values.slug || undefined,
     description: values.description || undefined,
@@ -37,6 +39,12 @@ export function buildUpdateStoreAsAdminInput(
     address: values.address || undefined,
     ownerId: values.ownerId ? values.ownerId : null,
   };
+
+  if (options?.commissionRateDirty === true && 'commissionRate' in values) {
+    input.commissionRate = values.commissionRate;
+  }
+
+  return input;
 }
 
 export function getAdminStores(): Promise<AdminStore[]> {
@@ -64,4 +72,11 @@ export function updateStoreAsAdmin(
   return executeMutation<{ updateStoreAsAdmin: GqlAdminStore }>(UPDATE_STORE_AS_ADMIN, {
     input: { id, ...input },
   }).then((data) => mapAdminStore(data.updateStoreAsAdmin));
+}
+
+export function linkStoreOmiseRecipientAsAdmin(storeId: string): Promise<AdminStore> {
+  return executeMutation<{ linkStoreOmiseRecipientAsAdmin: GqlAdminStore }>(
+    LINK_STORE_OMISE_RECIPIENT_AS_ADMIN,
+    { storeId },
+  ).then((data) => mapAdminStore(data.linkStoreOmiseRecipientAsAdmin));
 }

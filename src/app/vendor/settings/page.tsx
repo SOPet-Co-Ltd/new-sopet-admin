@@ -1,11 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { Suspense, useEffect, useState } from 'react';
 import { HiOutlineCheckCircle } from 'react-icons/hi2';
 import { VendorShippingPanel } from '@/components/vendor/shipping-settings-panel';
+import { VendorOmiseLinkPanel } from '@/components/vendor/vendor-omise-link-panel';
 import { VendorPayoutAccountPanel } from '@/components/vendor/vendor-payout-account-panel';
 import { VendorPayoutBalancePanel } from '@/components/vendor/vendor-payout-balance-panel';
 import { VendorPayoutHistoryPanel } from '@/components/vendor/vendor-payout-history-panel';
@@ -26,6 +28,10 @@ import {
 } from '@/hooks/useStoreSettings';
 import { settingsTabLabels } from '@/lib/i18n/th';
 import {
+  formatThaiBankAccountNumber,
+  sanitizeBankAccountDigits,
+} from '@/lib/banks/formatThaiBankAccountNumber';
+import {
   payoutFormSchema,
   profileFormSchema,
   storeInfoFormSchema,
@@ -34,6 +40,7 @@ import {
   type StoreInfoFormValues,
 } from '@/lib/validations';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/api/errors';
 
 type SettingsTab = keyof typeof settingsTabLabels;
 
@@ -162,7 +169,7 @@ function VendorSettingsPageContent() {
       payoutForm.reset({
         bankCode: resolvedBankCode,
         bankAccountName: store.bankAccountName ?? '',
-        bankAccountNumber: store.bankAccountNumber ?? '',
+        bankAccountNumber: formatThaiBankAccountNumber(store.bankAccountNumber ?? ''),
       });
     }
   }, [store, storeForm, payoutForm]);
@@ -187,7 +194,7 @@ function VendorSettingsPageContent() {
     } catch (err) {
       setProfileFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'บันทึกไม่สำเร็จ',
+        message: getErrorMessage(err, 'บันทึกไม่สำเร็จ'),
       });
     }
   }
@@ -210,7 +217,7 @@ function VendorSettingsPageContent() {
       bankCode: values.bankCode,
       bankName,
       bankAccountName: values.bankAccountName,
-      bankAccountNumber: values.bankAccountNumber,
+      bankAccountNumber: sanitizeBankAccountDigits(values.bankAccountNumber),
     });
   }
 
@@ -235,7 +242,7 @@ function VendorSettingsPageContent() {
     } catch (err) {
       setPasswordFeedback({
         type: 'error',
-        message: err instanceof Error ? err.message : 'เปลี่ยนรหัสผ่านไม่สำเร็จ',
+        message: getErrorMessage(err, 'เปลี่ยนรหัสผ่านไม่สำเร็จ'),
       });
     }
   }
@@ -248,6 +255,15 @@ function VendorSettingsPageContent() {
   return (
     <div>
       <PageHeader title="ตั้งค่า" description="ข้อมูลบัญชีและร้านค้า" />
+
+      <Card className="mb-6">
+        <CardBody className="text-sm text-pretty text-muted-foreground">
+          ดูรายการรหัสข้อผิดพลาดและข้อความภาษาไทยที่ระบบใช้ได้ที่{' '}
+          <Link href="/vendor/errors-message" className="text-brand hover:underline">
+            รหัสข้อผิดพลาด
+          </Link>
+        </CardBody>
+      </Card>
 
       <div className="mb-6 flex flex-wrap gap-2" role="tablist" aria-label="หมวดตั้งค่า">
         {visibleTabs.map((key) => (
@@ -484,17 +500,16 @@ function VendorSettingsPageContent() {
           aria-labelledby="settings-tab-payout"
           className="space-y-6"
         >
+          <VendorPayoutAccountPanel
+            form={payoutForm}
+            store={store}
+            loading={storeLoading}
+            saving={updatePayout.isPending}
+            onSubmit={onPayoutSubmit}
+          />
+          <VendorOmiseLinkPanel store={store} loading={storeLoading} />
           <VendorPayoutBalancePanel />
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-            <VendorPayoutAccountPanel
-              form={payoutForm}
-              store={store}
-              loading={storeLoading}
-              saving={updatePayout.isPending}
-              onSubmit={onPayoutSubmit}
-            />
-            <VendorPayoutHistoryPanel />
-          </div>
+          <VendorPayoutHistoryPanel />
         </div>
       ) : null}
 
