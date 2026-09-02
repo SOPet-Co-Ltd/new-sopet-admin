@@ -182,3 +182,5 @@ Push to a deploy branch POSTs to `VERCEL_DEPLOY_HOOK_URL`. `vercel.json` sets `g
 **Note:** `lib/api/` calls GraphQL, not REST. Vendor REST API is for external integrations (documented at `/vendor/api/docs`).
 
 Schema changes land in `../sopet-backend` first (`src/schema.gql`), then run `yarn graphql:codegen` here (and in `../sopet-storefront` if affected). Commit each repo separately.
+
+<!-- Deployment pipeline verification: 2026-09-02 -->
