@@ -14,6 +14,9 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // Monaco AMD assets copied from node_modules (scripts/copy-monaco.mjs)
+    'public/monaco/**',
+    'coverage/**',
   ]),
 ]);
 
