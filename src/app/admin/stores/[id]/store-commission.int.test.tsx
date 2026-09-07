@@ -65,7 +65,9 @@ const triggerMutate = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: 'store-1' }),
-  useRouter: () => ({ push: mockPush }),
+  usePathname: () => '/admin/manual-payouts',
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: mockPush, replace: vi.fn() }),
 }));
 
 vi.mock('@/hooks/useAdminStores', () => ({

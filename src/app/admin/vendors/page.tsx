@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { HiXMark } from 'react-icons/hi2';
@@ -18,10 +18,30 @@ import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
 import { useAdminVendors } from '@/hooks/useAdminVendors';
+import { getErrorMessage } from '@/lib/api/errors';
 import { labelUserRole } from '@/lib/i18n/th';
+import {
+  parseEnumParam,
+  parseSearchQuery,
+  serializeEnumParam,
+  serializeSearchQuery,
+} from '@/lib/navigation/list-query-params';
+import { useDebouncedSearchDraft } from '@/lib/navigation/use-debounced-search-draft';
+import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
 import { cn, formatDate } from '@/lib/utils';
 import type { AdminVendor } from '@/types';
-import { getErrorMessage } from '@/lib/api/errors';
+
+const SEARCH_DEBOUNCE_MS = 300;
+const VENDOR_STATUS_VALUES = ['all', 'active', 'inactive'] as const;
+
+const adminVendorsQuerySpec = {
+  q: { parse: parseSearchQuery, serialize: serializeSearchQuery },
+  status: {
+    parse: (raw: string | null) =>
+      parseEnumParam(raw, VENDOR_STATUS_VALUES, 'all') as VendorStatusFilter,
+    serialize: (value: VendorStatusFilter) => serializeEnumParam(value, 'all'),
+  },
+} satisfies ListQuerySpec;
 
 function vendorStatusBadge(vendor: AdminVendor): { label: string; className: string } {
   if (vendor.isActive !== false) {
@@ -32,10 +52,16 @@ function vendorStatusBadge(vendor: AdminVendor): { label: string; className: str
 
 export default function AdminVendorsPage() {
   const router = useRouter();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<VendorStatusFilter>('all');
+  const [params, setParams] = useListQueryState(adminVendorsQuerySpec);
+  const { q: search, status: statusFilter } = params;
+  const commitSearch = useCallback((next: string) => setParams({ q: next }), [setParams]);
+  const [searchInput, setSearchInput] = useDebouncedSearchDraft(
+    search,
+    commitSearch,
+    SEARCH_DEBOUNCE_MS,
+  );
 
-  const trimmedSearch = search.trim();
+  const trimmedSearch = search;
   const hasSearch = trimmedSearch.length > 0;
   const hasStatusFilter = statusFilter !== 'all';
   const hasFilters = hasSearch || hasStatusFilter;
@@ -138,8 +164,8 @@ export default function AdminVendorsPage() {
   const showList = !isLoading && !error && filteredVendors.length > 0;
 
   function clearFilters() {
-    setSearch('');
-    setStatusFilter('all');
+    setSearchInput('');
+    setParams({ q: '', status: 'all' });
   }
 
   function goToVendor(vendor: AdminVendor) {
@@ -173,23 +199,29 @@ export default function AdminVendorsPage() {
             type="search"
             aria-label="ค้นหาผู้ขาย"
             placeholder="ค้นหาชื่อหรืออีเมล..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
             className="pr-10 placeholder:text-muted-foreground"
           />
-          {hasSearch ? (
+          {hasSearch || searchInput.trim().length > 0 ? (
             <button
               type="button"
               aria-label="ล้างช่องค้นหา"
               className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 ease-out hover:bg-surface hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 motion-reduce:transition-none"
-              onClick={() => setSearch('')}
+              onClick={() => {
+                setSearchInput('');
+                setParams({ q: '' });
+              }}
             >
               <HiXMark className="size-4" aria-hidden="true" />
             </button>
           ) : null}
         </div>
 
-        <VendorsStatusFilter value={statusFilter} onChange={setStatusFilter} />
+        <VendorsStatusFilter
+          value={statusFilter}
+          onChange={(value) => setParams({ status: value })}
+        />
       </div>
 
       {error ? (

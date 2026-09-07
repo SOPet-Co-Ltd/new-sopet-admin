@@ -4,11 +4,56 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AdminStore } from '@/types';
 import AdminStoresPage from './page';
 
-const pushMock = vi.fn();
+const nav = vi.hoisted(() => {
+  // Inline store so vi.hoisted does not depend on module init order.
+  let currentParams = new URLSearchParams();
+  const listeners = new Set<() => void>();
+  const pushMock = vi.fn();
+  const replaceMock = vi.fn();
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: pushMock }),
-}));
+  function notify() {
+    listeners.forEach((listener) => listener());
+  }
+
+  function applyHref(href: string) {
+    const queryIndex = href.indexOf('?');
+    currentParams =
+      queryIndex >= 0 ? new URLSearchParams(href.slice(queryIndex + 1)) : new URLSearchParams();
+    notify();
+  }
+
+  return {
+    pushMock,
+    replaceMock,
+    resetSearchParams: () => {
+      currentParams = new URLSearchParams();
+      notify();
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    getParams: () => currentParams,
+    applyHref,
+  };
+});
+
+vi.mock('next/navigation', async () => {
+  const react = await import('react');
+  return {
+    useRouter: () => ({
+      push: nav.pushMock,
+      replace: (href: string, options?: { scroll?: boolean }) => {
+        nav.replaceMock(href, options);
+        nav.applyHref(href);
+      },
+      prefetch: vi.fn(),
+    }),
+    usePathname: () => '/admin/stores',
+    useSearchParams: () =>
+      react.useSyncExternalStore(nav.subscribe, nav.getParams, nav.getParams),
+  };
+});
 
 vi.mock('@tanstack/react-query', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-query')>();
@@ -51,6 +96,7 @@ function mockStores(overrides?: Partial<ReturnType<typeof useAdminStores>>) {
 describe('AdminStoresPage', () => {
   afterEach(() => {
     vi.clearAllMocks();
+    nav.resetSearchParams();
   });
 
   it('renders store list with result count and status badge', () => {
@@ -75,7 +121,7 @@ describe('AdminStoresPage', () => {
 
     await user.type(screen.getByRole('searchbox', { name: 'ค้นหาร้านค้า' }), 'nobody');
 
-    expect(screen.getByText('ไม่พบร้านค้าที่ตรงกับเงื่อนไข')).toBeInTheDocument();
+    expect(await screen.findByText('ไม่พบร้านค้าที่ตรงกับเงื่อนไข')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ล้างช่องค้นหา' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ล้างตัวกรอง' })).toBeInTheDocument();
   });
@@ -103,7 +149,7 @@ describe('AdminStoresPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('โหลดร้านค้าไม่สำเร็จ');
   });
 
-  it('filters stores by status client-side', async () => {
+  it('filters stores by status client-side and writes status to the URL', async () => {
     const user = userEvent.setup();
     mockStores({
       data: [
@@ -124,6 +170,9 @@ describe('AdminStoresPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'รออนุมัติ' }));
 
+    expect(nav.replaceMock).toHaveBeenCalledWith('/admin/stores?status=pending', {
+      scroll: false,
+    });
     expect(screen.getByText('แสดง 1 จาก 2 รายการ')).toBeInTheDocument();
     expect(screen.getAllByText('Pending Store').length).toBeGreaterThan(0);
     expect(screen.queryByText('SOPet Demo Store')).not.toBeInTheDocument();

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { HiCheckCircle, HiShoppingBag } from 'react-icons/hi2';
@@ -21,8 +21,10 @@ import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
 import { useVendorOrders } from '@/hooks/useVendorOrders';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
+import { getErrorMessage } from '@/lib/api/errors';
 import { ORDER_STATUSES } from '@/lib/config';
 import { labelOrderStatus, labelPaymentMethod } from '@/lib/i18n/th';
+import { useDebouncedSearchDraft } from '@/lib/navigation/use-debounced-search-draft';
 import {
   filterVendorActionableOrders,
   isVendorActionableOrder,
@@ -31,14 +33,18 @@ import {
 import { getVendorOrderWorkflowAction } from '@/lib/orders/workflow';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Order } from '@/types';
-import { getErrorMessage } from '@/lib/api/errors';
 
 const ALL = 'all';
 const SEARCH_DEBOUNCE_MS = 300;
 const ORDER_STATUS_SET = new Set<string>(ORDER_STATUSES);
 const PAYMENT_METHOD_SET = new Set(['promptpay', 'credit_card', 'cod', 'bank_transfer']);
 
-function buildOrdersQuery(params: { queue?: OrderQueueView; status?: string; payment?: string }) {
+function buildOrdersQuery(params: {
+  queue?: OrderQueueView;
+  status?: string;
+  payment?: string;
+  q?: string;
+}) {
   const search = new URLSearchParams();
   if (params.queue === 'action') {
     search.set('queue', 'action');
@@ -50,6 +56,10 @@ function buildOrdersQuery(params: { queue?: OrderQueueView; status?: string; pay
   }
   if (params.payment && params.payment !== ALL) {
     search.set('payment', params.payment);
+  }
+  const trimmedQ = params.q?.trim();
+  if (trimmedQ) {
+    search.set('q', trimmedQ);
   }
   const query = search.toString();
   return query ? `/vendor/orders?${query}` : '/vendor/orders';
@@ -170,24 +180,19 @@ export default function VendorOrdersPage() {
   const queueFilter = queue === 'action';
   const statusFilter = parseStatusFilter(searchParams.get('status'));
   const paymentFilter = parsePaymentFilter(searchParams.get('payment'));
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
+  const search = searchParams.get('q')?.trim() ?? '';
   const [trackingDialogOrderNumber, setTrackingDialogOrderNumber] = useState<string | null>(null);
   const [workflowOrder, setWorkflowOrder] = useState<Order | null>(null);
   const menuTriggerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (queueParam === null && !searchParams.has('status') && !searchParams.has('payment')) {
-      router.replace('/vendor/orders?queue=action', { scroll: false });
+      const next = new URLSearchParams();
+      next.set('queue', 'action');
+      if (search) next.set('q', search);
+      router.replace(`/vendor/orders?${next.toString()}`, { scroll: false });
     }
-  }, [queueParam, router, searchParams]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearch(searchInput.trim());
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  }, [queueParam, router, search, searchParams]);
 
   const actionableCount = useMemo(
     () => filterVendorActionableOrders(orders, storeId).length,
@@ -216,21 +221,40 @@ export default function VendorOrdersPage() {
     queue: OrderQueueView;
     status: OrderStatusFilter;
     payment: OrderPaymentFilter;
+    q?: string;
   }) {
     router.replace(
       buildOrdersQuery({
         queue: next.queue,
         status: next.status !== ALL ? next.status : undefined,
         payment: next.payment !== ALL ? next.payment : undefined,
+        q: next.q,
       }),
       { scroll: false },
     );
   }
 
+  const commitSearch = useCallback(
+    (next: string) => {
+      replaceFilters({
+        queue,
+        status: statusFilter,
+        payment: paymentFilter,
+        q: next,
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- replaceFilters closes over latest filters
+    [queue, statusFilter, paymentFilter, router],
+  );
+  const [searchInput, setSearchInput] = useDebouncedSearchDraft(
+    search,
+    commitSearch,
+    SEARCH_DEBOUNCE_MS,
+  );
+
   function clearExtraFilters() {
     setSearchInput('');
-    setSearch('');
-    replaceFilters({ queue, status: ALL, payment: ALL });
+    replaceFilters({ queue, status: ALL, payment: ALL, q: '' });
   }
 
   const hasExtraFilters = Boolean(search) || statusFilter !== ALL || paymentFilter !== ALL;
@@ -358,13 +382,18 @@ export default function VendorOrdersPage() {
         paymentMethod={paymentFilter}
         isLoading={isLoading}
         onQueueChange={(nextQueue) =>
-          replaceFilters({ queue: nextQueue, status: statusFilter, payment: paymentFilter })
+          replaceFilters({
+            queue: nextQueue,
+            status: statusFilter,
+            payment: paymentFilter,
+            q: search,
+          })
         }
         onStatusChange={(nextStatus) =>
-          replaceFilters({ queue, status: nextStatus, payment: paymentFilter })
+          replaceFilters({ queue, status: nextStatus, payment: paymentFilter, q: search })
         }
         onPaymentMethodChange={(nextPayment) =>
-          replaceFilters({ queue, status: statusFilter, payment: nextPayment })
+          replaceFilters({ queue, status: statusFilter, payment: nextPayment, q: search })
         }
         onClearAll={clearExtraFilters}
       />

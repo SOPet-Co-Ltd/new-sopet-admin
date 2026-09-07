@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useId, useMemo, useState, type ReactNode } from 'react';
 import { HiChevronDown, HiOutlineFunnel } from 'react-icons/hi2';
 import { AdminAuditLogsConsole } from '@/components/admin/admin-audit-logs-console';
 import { Button } from '@/components/ui/button';
@@ -16,11 +16,25 @@ import {
 } from '@/components/ui/select';
 import { useAdminAuditLogs } from '@/hooks/useAdminAuditLogs';
 import { AUDIT_ACTION_OPTIONS, AUDIT_RESOURCE_OPTIONS } from '@/lib/audit-logs/labels';
-import type { AdminAuditLogFilterInput } from '@/lib/graphql/generated/graphql';
-import { cn } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api/errors';
+import type { AdminAuditLogFilterInput } from '@/lib/graphql/generated/graphql';
+import {
+  parseDateParam,
+  parseEnumParam,
+  parsePageParam,
+  parseSearchQuery,
+  serializeDateParam,
+  serializePageParam,
+  serializeSearchQuery,
+} from '@/lib/navigation/list-query-params';
+import { useDebouncedSearchDraft } from '@/lib/navigation/use-debounced-search-draft';
+import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
+import { cn } from '@/lib/utils';
 
 const ALL_FILTER = 'all';
+const SEARCH_DEBOUNCE_MS = 300;
+const AUDIT_ACTION_VALUES = AUDIT_ACTION_OPTIONS.map((option) => option.value);
+const AUDIT_RESOURCE_VALUES = AUDIT_RESOURCE_OPTIONS.map((option) => option.value);
 
 function FilterField({
   htmlFor,
@@ -50,19 +64,59 @@ type HasAdminAuditRequestIdFilter = 'requestId' extends keyof AdminAuditLogFilte
 
 export const HAS_ADMIN_AUDIT_REQUEST_ID_FILTER: HasAdminAuditRequestIdFilter = true;
 
+const adminAuditLogsQuerySpec = {
+  page: { parse: parsePageParam, serialize: serializePageParam },
+  q: { parse: parseSearchQuery, serialize: serializeSearchQuery },
+  action: {
+    parse: (raw: string | null) => {
+      if (!raw) return '';
+      return parseEnumParam(raw, AUDIT_ACTION_VALUES, '');
+    },
+    serialize: (value: string) => (value ? value : null),
+  },
+  resource: {
+    parse: (raw: string | null) => {
+      if (!raw) return '';
+      return parseEnumParam(raw, AUDIT_RESOURCE_VALUES, '');
+    },
+    serialize: (value: string) => (value ? value : null),
+  },
+  from: { parse: parseDateParam, serialize: serializeDateParam },
+  to: { parse: parseDateParam, serialize: serializeDateParam },
+  requestId: { parse: parseSearchQuery, serialize: serializeSearchQuery },
+} satisfies ListQuerySpec;
+
 export default function AdminAuditLogsPage() {
   const filtersPanelId = useId();
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [action, setAction] = useState('');
-  const [resourceType, setResourceType] = useState('');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
-  const [requestId, setRequestId] = useState('');
-  const [page, setPage] = useState(1);
+  const [params, setParams] = useListQueryState(adminAuditLogsQuerySpec);
+  const {
+    page,
+    q: search,
+    action,
+    resource: resourceType,
+    from: fromDate,
+    to: toDate,
+    requestId,
+  } = params;
+  const commitSearch = useCallback((next: string) => setParams({ q: next }), [setParams]);
+  const commitRequestId = useCallback(
+    (next: string) => setParams({ requestId: next }),
+    [setParams],
+  );
+  const [searchInput, setSearchInput] = useDebouncedSearchDraft(
+    search,
+    commitSearch,
+    SEARCH_DEBOUNCE_MS,
+  );
+  const [requestIdInput, setRequestIdInput] = useDebouncedSearchDraft(
+    requestId,
+    commitRequestId,
+    SEARCH_DEBOUNCE_MS,
+  );
 
   const queryParams = useMemo(() => {
-    const params: {
+    const next: {
       page: number;
       limit: 20;
       search?: string;
@@ -76,16 +130,16 @@ export default function AdminAuditLogsPage() {
       limit: 20,
     };
 
-    if (search) params.search = search;
-    if (action) params.action = action;
-    if (resourceType) params.resourceType = resourceType;
-    if (fromDate) params.fromDate = new Date(`${fromDate}T00:00:00`).toISOString();
-    if (toDate) params.toDate = new Date(`${toDate}T23:59:59`).toISOString();
+    if (search) next.search = search;
+    if (action) next.action = action;
+    if (resourceType) next.resourceType = resourceType;
+    if (fromDate) next.fromDate = new Date(`${fromDate}T00:00:00`).toISOString();
+    if (toDate) next.toDate = new Date(`${toDate}T23:59:59`).toISOString();
     if (HAS_ADMIN_AUDIT_REQUEST_ID_FILTER && requestId.trim()) {
-      params.requestId = requestId.trim();
+      next.requestId = requestId.trim();
     }
 
-    return params;
+    return next;
   }, [search, action, resourceType, fromDate, toDate, requestId, page]);
 
   const consoleRemountKey = JSON.stringify({
@@ -158,10 +212,9 @@ export default function AdminAuditLogsPage() {
                 type="search"
                 aria-label="ค้นหาบันทึก"
                 placeholder="ค้นหา..."
-                value={search}
+                value={searchInput}
                 onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
+                  setSearchInput(e.target.value);
                 }}
               />
             </FilterField>
@@ -172,10 +225,9 @@ export default function AdminAuditLogsPage() {
                   type="search"
                   aria-label="ค้นหาด้วยรหัสคำขอ"
                   placeholder="รหัสคำขอ..."
-                  value={requestId}
+                  value={requestIdInput}
                   onChange={(e) => {
-                    setRequestId(e.target.value);
-                    setPage(1);
+                    setRequestIdInput(e.target.value);
                   }}
                 />
               </FilterField>
@@ -187,8 +239,7 @@ export default function AdminAuditLogsPage() {
               <Select
                 value={action || ALL_FILTER}
                 onValueChange={(value) => {
-                  setAction(value === ALL_FILTER ? '' : value);
-                  setPage(1);
+                  setParams({ action: value === ALL_FILTER ? '' : value });
                 }}
               >
                 <SelectTrigger
@@ -212,8 +263,7 @@ export default function AdminAuditLogsPage() {
               <Select
                 value={resourceType || ALL_FILTER}
                 onValueChange={(value) => {
-                  setResourceType(value === ALL_FILTER ? '' : value);
-                  setPage(1);
+                  setParams({ resource: value === ALL_FILTER ? '' : value });
                 }}
               >
                 <SelectTrigger
@@ -239,8 +289,7 @@ export default function AdminAuditLogsPage() {
                 aria-label="ตั้งแต่วันที่"
                 value={fromDate}
                 onChange={(value) => {
-                  setFromDate(value);
-                  setPage(1);
+                  setParams({ from: value });
                 }}
                 max={toDate || undefined}
                 placeholder="เลือกวันที่"
@@ -252,8 +301,7 @@ export default function AdminAuditLogsPage() {
                 aria-label="ถึงวันที่"
                 value={toDate}
                 onChange={(value) => {
-                  setToDate(value);
-                  setPage(1);
+                  setParams({ to: value });
                 }}
                 min={fromDate || undefined}
                 placeholder="เลือกวันที่"
@@ -288,7 +336,7 @@ export default function AdminAuditLogsPage() {
               variant="outline"
               size="sm"
               disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
+              onClick={() => setParams((p) => ({ page: p.page - 1 }))}
             >
               ก่อนหน้า
             </Button>
@@ -297,7 +345,7 @@ export default function AdminAuditLogsPage() {
               variant="outline"
               size="sm"
               disabled={page >= pagination.totalPages}
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() => setParams((p) => ({ page: p.page + 1 }))}
             >
               ถัดไป
             </Button>

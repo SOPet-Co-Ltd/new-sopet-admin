@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { HiOutlinePlus } from 'react-icons/hi2';
@@ -28,43 +28,89 @@ import {
   useApprovedTags,
 } from '@/hooks/useTaxonomy';
 import { useVendorProducts } from '@/hooks/useVendorProducts';
-import {
-  createDetailPrefetchHandlers,
-  prefetchVendorProductDetail,
-} from '@/lib/react-query/prefetch-dashboard-nav';
+import { getErrorMessage } from '@/lib/api/errors';
 import { labelProductStatus } from '@/lib/i18n/th';
+import {
+  parseEnumParam,
+  parseIdParam,
+  parseOptionalNumber,
+  parsePageParam,
+  parseSearchQuery,
+  serializeEnumParam,
+  serializeIdParam,
+  serializeOptionalNumber,
+  serializePageParam,
+  serializeSearchQuery,
+} from '@/lib/navigation/list-query-params';
+import { useDebouncedSearchDraft } from '@/lib/navigation/use-debounced-search-draft';
+import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
 import {
   getProductListPriceLabel,
   getProductListStockTotal,
   getProductListThumbnailUrl,
 } from '@/lib/products/list-display';
+import {
+  createDetailPrefetchHandlers,
+  prefetchVendorProductDetail,
+} from '@/lib/react-query/prefetch-dashboard-nav';
 import type { Product } from '@/types';
-import { getErrorMessage } from '@/lib/api/errors';
 
 const ALL = 'all';
 const SEARCH_DEBOUNCE_MS = 300;
+const PRODUCT_STATUS_VALUES = ['all', 'draft', 'published', 'archived'] as const;
+
+const vendorProductsQuerySpec = {
+  page: { parse: parsePageParam, serialize: serializePageParam },
+  q: { parse: parseSearchQuery, serialize: serializeSearchQuery },
+  status: {
+    parse: (raw: string | null) =>
+      parseEnumParam(raw, PRODUCT_STATUS_VALUES, ALL) as ProductStatusFilter,
+    serialize: (value: ProductStatusFilter) => serializeEnumParam(value, ALL),
+  },
+  category: {
+    parse: (raw: string | null) => parseIdParam(raw, ALL),
+    serialize: (value: string) => serializeIdParam(value, ALL),
+  },
+  petType: {
+    parse: (raw: string | null) => parseIdParam(raw, ALL),
+    serialize: (value: string) => serializeIdParam(value, ALL),
+  },
+  brand: {
+    parse: (raw: string | null) => parseIdParam(raw, ALL),
+    serialize: (value: string) => serializeIdParam(value, ALL),
+  },
+  tag: {
+    parse: (raw: string | null) => parseIdParam(raw, ALL),
+    serialize: (value: string) => serializeIdParam(value, ALL),
+  },
+  minPrice: {
+    parse: parseOptionalNumber,
+    serialize: serializeOptionalNumber,
+  },
+  maxPrice: {
+    parse: parseOptionalNumber,
+    serialize: serializeOptionalNumber,
+  },
+} satisfies ListQuerySpec;
 
 export default function VendorProductsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<ProductStatusFilter>(ALL);
-  const [categoryId, setCategoryId] = useState(ALL);
-  const [petTypeId, setPetTypeId] = useState(ALL);
-  const [brandId, setBrandId] = useState(ALL);
-  const [tagId, setTagId] = useState(ALL);
-  const [minPrice, setMinPrice] = useState<number | undefined>();
-  const [maxPrice, setMaxPrice] = useState<number | undefined>();
-  const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearch(searchInput.trim());
-      setPage(1);
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  const [params, setParams] = useListQueryState(vendorProductsQuerySpec);
+  const {
+    page,
+    q: search,
+    status,
+    category: categoryId,
+    petType: petTypeId,
+    brand: brandId,
+    tag: tagId,
+    minPrice,
+    maxPrice,
+  } = params;
+  const [searchInput, setSearchInput] = useDebouncedSearchDraft(search, (next) => {
+    setParams({ q: next });
+  }, SEARCH_DEBOUNCE_MS);
 
   const { data: categories = [] } = useApprovedCategories();
   const { data: petTypes = [] } = useApprovedPetTypes();
@@ -129,15 +175,17 @@ export default function VendorProductsPage() {
 
   const clearAllFilters = () => {
     setSearchInput('');
-    setSearch('');
-    setStatus(ALL);
-    setCategoryId(ALL);
-    setPetTypeId(ALL);
-    setBrandId(ALL);
-    setTagId(ALL);
-    setMinPrice(undefined);
-    setMaxPrice(undefined);
-    setPage(1);
+    setParams({
+      page: 1,
+      q: '',
+      status: ALL,
+      category: ALL,
+      petType: ALL,
+      brand: ALL,
+      tag: ALL,
+      minPrice: undefined,
+      maxPrice: undefined,
+    });
   };
 
   const columns = useMemo<ColumnDef<Product>[]>(
@@ -277,8 +325,6 @@ export default function VendorProductsPage() {
   const products = data?.items ?? [];
   const isEmpty = !isLoading && products.length === 0;
 
-  const resetPage = () => setPage(1);
-
   const emptyState = (
     <VendorProductsEmptyState
       mode={hasActiveFilters ? 'filtered' : 'catalog'}
@@ -324,29 +370,22 @@ export default function VendorProductsPage() {
           brands={brands}
           tags={tags}
           onStatusChange={(value) => {
-            setStatus(value);
-            resetPage();
+            setParams({ status: value });
           }}
           onCategoryChange={(value) => {
-            setCategoryId(value);
-            resetPage();
+            setParams({ category: value });
           }}
           onPetTypeChange={(value) => {
-            setPetTypeId(value);
-            resetPage();
+            setParams({ petType: value });
           }}
           onBrandChange={(value) => {
-            setBrandId(value);
-            resetPage();
+            setParams({ brand: value });
           }}
           onTagChange={(value) => {
-            setTagId(value);
-            resetPage();
+            setParams({ tag: value });
           }}
           onPriceRangeChange={(range) => {
-            setMinPrice(range.minPrice);
-            setMaxPrice(range.maxPrice);
-            resetPage();
+            setParams({ minPrice: range.minPrice, maxPrice: range.maxPrice });
           }}
         />
       </div>
@@ -435,7 +474,7 @@ export default function VendorProductsPage() {
                   variant="outline"
                   size="sm"
                   disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
+                  onClick={() => setParams((prev) => ({ page: prev.page - 1 }))}
                 >
                   ก่อนหน้า
                 </Button>
@@ -444,7 +483,7 @@ export default function VendorProductsPage() {
                   variant="outline"
                   size="sm"
                   disabled={page >= pagination.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
+                  onClick={() => setParams((prev) => ({ page: prev.page + 1 }))}
                 >
                   ถัดไป
                 </Button>

@@ -6,6 +6,51 @@ import VendorReviewsPage from '@/app/vendor/reviews/page';
 
 const createReviewReply = vi.fn();
 
+const nav = vi.hoisted(() => {
+  let currentParams = new URLSearchParams();
+  const listeners = new Set<() => void>();
+
+  function notify() {
+    listeners.forEach((listener) => listener());
+  }
+
+  function applyHref(href: string) {
+    const queryIndex = href.indexOf('?');
+    currentParams =
+      queryIndex >= 0 ? new URLSearchParams(href.slice(queryIndex + 1)) : new URLSearchParams();
+    notify();
+  }
+
+  return {
+    resetSearchParams: () => {
+      currentParams = new URLSearchParams();
+      notify();
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    getParams: () => currentParams,
+    applyHref,
+  };
+});
+
+vi.mock('next/navigation', async () => {
+  const react = await import('react');
+  return {
+    useRouter: () => ({
+      replace: (href: string) => {
+        nav.applyHref(href);
+      },
+      push: vi.fn(),
+      prefetch: vi.fn(),
+    }),
+    usePathname: () => '/vendor/reviews',
+    useSearchParams: () =>
+      react.useSyncExternalStore(nav.subscribe, nav.getParams, nav.getParams),
+  };
+});
+
 vi.mock('@/hooks/useVendorStoreId', () => ({
   useVendorStoreId: vi.fn(() => 'store-1'),
 }));
@@ -89,6 +134,7 @@ const reviewsFixture = {
 
 describe('Vendor reviews redesign integration', () => {
   beforeEach(() => {
+    nav.resetSearchParams();
     createReviewReply.mockReset();
     createReviewReply.mockResolvedValue({
       id: 'reply-new',

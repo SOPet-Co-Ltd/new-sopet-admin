@@ -1,7 +1,55 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AdminAuditLogsPage from './page';
+
+const nav = vi.hoisted(() => {
+  let currentParams = new URLSearchParams();
+  const listeners = new Set<() => void>();
+  const replaceMock = vi.fn();
+
+  function notify() {
+    listeners.forEach((listener) => listener());
+  }
+
+  function applyHref(href: string) {
+    const queryIndex = href.indexOf('?');
+    currentParams =
+      queryIndex >= 0 ? new URLSearchParams(href.slice(queryIndex + 1)) : new URLSearchParams();
+    notify();
+  }
+
+  return {
+    replaceMock,
+    resetSearchParams: () => {
+      currentParams = new URLSearchParams();
+      notify();
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    getParams: () => currentParams,
+    applyHref,
+  };
+});
+
+vi.mock('next/navigation', async () => {
+  const react = await import('react');
+  return {
+    useRouter: () => ({
+      replace: (href: string, options?: { scroll?: boolean }) => {
+        nav.replaceMock(href, options);
+        nav.applyHref(href);
+      },
+      push: vi.fn(),
+      prefetch: vi.fn(),
+    }),
+    usePathname: () => '/admin/audit-logs',
+    useSearchParams: () =>
+      react.useSyncExternalStore(nav.subscribe, nav.getParams, nav.getParams),
+  };
+});
 
 const mockUseAdminAuditLogs = vi.fn();
 
@@ -37,6 +85,8 @@ describe('AdminAuditLogsPage', () => {
   beforeEach(() => {
     mockUseAdminAuditLogs.mockReset();
     mockUseAdminAuditLogs.mockReturnValue(defaultHookReturn);
+    nav.resetSearchParams();
+    nav.replaceMock.mockReset();
   });
 
   /**
@@ -266,23 +316,30 @@ describe('AdminAuditLogsPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'ถัดไป' }));
 
-    const page2Params = mockUseAdminAuditLogs.mock.calls.at(-1)?.[0] as { page?: number };
-    expect(page2Params.page).toBe(2);
+    await waitFor(() => {
+      const page2Params = mockUseAdminAuditLogs.mock.calls.at(-1)?.[0] as { page?: number };
+      expect(page2Params.page).toBe(2);
+    });
+    expect(nav.replaceMock).toHaveBeenCalledWith('/admin/audit-logs?page=2', { scroll: false });
 
     await user.click(screen.getByRole('button', { name: /ขยายรายละเอียดบันทึก/ }));
     expect(screen.getByRole('button', { name: /ย่อรายละเอียดบันทึก/ })).toBeInTheDocument();
 
     await user.type(screen.getByLabelText('ค้นหาบันทึก'), 'pet');
 
-    expect(screen.queryByRole('button', { name: /ย่อรายละเอียดบันทึก/ })).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /ย่อรายละเอียดบันทึก/ })).not.toBeInTheDocument();
+    });
     expect(screen.getByRole('button', { name: /ขยายรายละเอียดบันทึก/ })).toBeInTheDocument();
 
-    const lastParams = mockUseAdminAuditLogs.mock.calls.at(-1)?.[0] as {
-      page?: number;
-      search?: string;
-    };
-    expect(lastParams.page).toBe(1);
-    expect(lastParams.search).toBe('pet');
+    await waitFor(() => {
+      const lastParams = mockUseAdminAuditLogs.mock.calls.at(-1)?.[0] as {
+        page?: number;
+        search?: string;
+      };
+      expect(lastParams.page).toBe(1);
+      expect(lastParams.search).toBe('pet');
+    });
   });
 
   /**
@@ -343,12 +400,14 @@ describe('AdminAuditLogsPage', () => {
 
     await user.type(screen.getByLabelText('ค้นหาด้วยรหัสคำขอ'), 'req-abc-123');
 
-    const lastParams = mockUseAdminAuditLogs.mock.calls.at(-1)?.[0] as {
-      page?: number;
-      requestId?: string;
-    };
-    expect(lastParams.requestId).toBe('req-abc-123');
-    expect(lastParams.page).toBe(1);
+    await waitFor(() => {
+      const lastParams = mockUseAdminAuditLogs.mock.calls.at(-1)?.[0] as {
+        page?: number;
+        requestId?: string;
+      };
+      expect(lastParams.requestId).toBe('req-abc-123');
+      expect(lastParams.page).toBe(1);
+    });
   });
 
   /**
@@ -451,7 +510,7 @@ describe('AdminAuditLogsPage', () => {
     expect(panel).not.toHaveClass('max-md:hidden');
 
     await user.type(screen.getByLabelText('ค้นหาบันทึก'), 'pet');
-    expect(screen.getByRole('button', { name: 'ตัวกรอง 1 รายการ' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'ตัวกรอง 1 รายการ' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'ตัวกรอง 1 รายการ' }));
     expect(screen.getByRole('button', { name: 'ตัวกรอง 1 รายการ' })).toHaveAttribute(

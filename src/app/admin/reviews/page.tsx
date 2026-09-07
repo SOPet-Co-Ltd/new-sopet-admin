@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import {
@@ -8,6 +7,8 @@ import {
   usePendingImportedReviews,
   useRejectReview,
 } from '@/hooks/useAdminReviews';
+import { parsePageParam, serializePageParam } from '@/lib/navigation/list-query-params';
+import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString('th-TH', {
@@ -19,8 +20,12 @@ function formatDate(value: string): string {
   });
 }
 
+const pageOnlyQuerySpec = {
+  page: { parse: parsePageParam, serialize: serializePageParam },
+} satisfies ListQuerySpec;
+
 export default function AdminReviewsPage() {
-  const [page, setPage] = useState(1);
+  const [{ page }, setParams] = useListQueryState(pageOnlyQuerySpec);
   const { data, isLoading, isError } = usePendingImportedReviews(page);
   const approveMutation = useApproveReview();
   const rejectMutation = useRejectReview();
@@ -106,7 +111,7 @@ export default function AdminReviewsPage() {
                 type="button"
                 variant="outline"
                 disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => setParams((p) => ({ page: Math.max(1, p.page - 1) }))}
               >
                 ก่อนหน้า
               </Button>
@@ -117,7 +122,7 @@ export default function AdminReviewsPage() {
                 type="button"
                 variant="outline"
                 disabled={page >= pagination.totalPages}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => setParams((p) => ({ page: p.page + 1 }))}
               >
                 ถัดไป
               </Button>

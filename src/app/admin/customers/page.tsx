@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -15,19 +15,40 @@ import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { useAdminCustomers } from '@/hooks/useAdminCustomers';
 import { getAdminCustomerDetail } from '@/lib/api/admin-customers';
-import { createDetailPrefetchHandlers } from '@/lib/react-query/prefetch-dashboard-nav';
+import { getErrorMessage } from '@/lib/api/errors';
+import {
+  parsePageParam,
+  parseSearchQuery,
+  serializePageParam,
+  serializeSearchQuery,
+} from '@/lib/navigation/list-query-params';
+import { useDebouncedSearchDraft } from '@/lib/navigation/use-debounced-search-draft';
+import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
 import { queryKeys } from '@/lib/react-query/keys';
+import { createDetailPrefetchHandlers } from '@/lib/react-query/prefetch-dashboard-nav';
 import { cn, formatDate } from '@/lib/utils';
 import type { AdminCustomer } from '@/types';
-import { getErrorMessage } from '@/lib/api/errors';
+
+const SEARCH_DEBOUNCE_MS = 300;
+
+const adminCustomersQuerySpec = {
+  page: { parse: parsePageParam, serialize: serializePageParam },
+  q: { parse: parseSearchQuery, serialize: serializeSearchQuery },
+} satisfies ListQuerySpec;
 
 export default function AdminCustomersPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [params, setParams] = useListQueryState(adminCustomersQuerySpec);
+  const { page, q: search } = params;
+  const commitSearch = useCallback((next: string) => setParams({ q: next }), [setParams]);
+  const [searchInput, setSearchInput] = useDebouncedSearchDraft(
+    search,
+    commitSearch,
+    SEARCH_DEBOUNCE_MS,
+  );
 
-  const trimmedSearch = search.trim();
+  const trimmedSearch = search;
   const hasSearch = trimmedSearch.length > 0;
 
   const queryParams = useMemo(
@@ -139,8 +160,8 @@ export default function AdminCustomersPage() {
   }, [hasSearch, pagination]);
 
   function clearSearch() {
-    setSearch('');
-    setPage(1);
+    setSearchInput('');
+    setParams({ q: '', page: 1 });
   }
 
   function goToCustomer(customer: AdminCustomer) {
@@ -153,10 +174,9 @@ export default function AdminCustomersPage() {
 
       <div className="mb-6 flex max-w-md items-center gap-2">
         <CustomersSearchField
-          value={search}
+          value={searchInput}
           onChange={(value) => {
-            setSearch(value);
-            setPage(1);
+            setSearchInput(value);
           }}
           onClear={clearSearch}
         />
@@ -215,7 +235,7 @@ export default function AdminCustomersPage() {
                     variant="outline"
                     size="sm"
                     disabled={page <= 1 || isFetching}
-                    onClick={() => setPage((current) => current - 1)}
+                    onClick={() => setParams((current) => ({ page: current.page - 1 }))}
                   >
                     ก่อนหน้า
                   </Button>
@@ -224,7 +244,7 @@ export default function AdminCustomersPage() {
                     variant="outline"
                     size="sm"
                     disabled={page >= pagination.totalPages || isFetching}
-                    onClick={() => setPage((current) => current + 1)}
+                    onClick={() => setParams((current) => ({ page: current.page + 1 }))}
                   >
                     ถัดไป
                   </Button>

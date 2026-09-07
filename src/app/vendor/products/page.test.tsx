@@ -7,8 +7,44 @@ import VendorProductsPage from './page';
 // jsdom doesn't implement scrollIntoView, which Radix Select calls when opening.
 Element.prototype.scrollIntoView = vi.fn();
 
-const mockPush = vi.fn();
-const mockPrefetch = vi.fn();
+const nav = vi.hoisted(() => {
+  let currentParams = new URLSearchParams();
+  const listeners = new Set<() => void>();
+  const pushMock = vi.fn();
+  const replaceMock = vi.fn();
+  const prefetchMock = vi.fn();
+
+  function notify() {
+    listeners.forEach((listener) => listener());
+  }
+
+  function applyHref(href: string) {
+    const queryIndex = href.indexOf('?');
+    currentParams =
+      queryIndex >= 0 ? new URLSearchParams(href.slice(queryIndex + 1)) : new URLSearchParams();
+    notify();
+  }
+
+  return {
+    pushMock,
+    replaceMock,
+    prefetchMock,
+    resetSearchParams: () => {
+      currentParams = new URLSearchParams();
+      notify();
+    },
+    setSearchParams: (value: string) => {
+      currentParams = new URLSearchParams(value);
+      notify();
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    getParams: () => currentParams,
+    applyHref,
+  };
+});
 
 const products: Product[] = [
   {
@@ -26,9 +62,22 @@ const products: Product[] = [
   },
 ];
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
-}));
+vi.mock('next/navigation', async () => {
+  const react = await import('react');
+  return {
+    useRouter: () => ({
+      push: nav.pushMock,
+      replace: (href: string, options?: { scroll?: boolean }) => {
+        nav.replaceMock(href, options);
+        nav.applyHref(href);
+      },
+      prefetch: nav.prefetchMock,
+    }),
+    usePathname: () => '/vendor/products',
+    useSearchParams: () =>
+      react.useSyncExternalStore(nav.subscribe, nav.getParams, nav.getParams),
+  };
+});
 
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({}),
@@ -75,13 +124,15 @@ vi.mock('@/hooks/useTaxonomy', () => ({
 
 vi.mock('@/lib/react-query/prefetch-dashboard-nav', () => ({
   createDetailPrefetchHandlers: () => ({}),
-  prefetchVendorProductDetail: (...args: unknown[]) => mockPrefetch(...args),
+  prefetchVendorProductDetail: (...args: unknown[]) => nav.prefetchMock(...args),
 }));
 
 describe('VendorProductsPage', () => {
   beforeEach(() => {
-    mockPush.mockReset();
-    mockPrefetch.mockReset();
+    nav.pushMock.mockReset();
+    nav.replaceMock.mockReset();
+    nav.prefetchMock.mockReset();
+    nav.resetSearchParams();
     mockUseVendorProducts.mockClear();
   });
 
@@ -91,7 +142,7 @@ describe('VendorProductsPage', () => {
 
     await user.click(screen.getAllByText('อาหารสุนัข')[0]!);
 
-    expect(mockPush).toHaveBeenCalledWith('/vendor/products/prod-1');
+    expect(nav.pushMock).toHaveBeenCalledWith('/vendor/products/prod-1');
   });
 
   it('shows pet type, brand, and tags columns', () => {
@@ -192,5 +243,36 @@ describe('VendorProductsPage', () => {
     expect(within(mobileCard).getByText('อาหาร')).toBeInTheDocument();
     expect(within(mobileCard).getByText('ออร์แกนิก')).toBeInTheDocument();
     expect(within(mobileCard).getByText('พรีเมียม')).toBeInTheDocument();
+  });
+
+  it('writes page=2 to the URL when Next is clicked', async () => {
+    const user = userEvent.setup();
+    mockUseVendorProducts.mockImplementation(() => ({
+      data: {
+        items: products,
+        pagination: { page: 1, limit: 10, total: 20, totalPages: 2 },
+      },
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refetch: vi.fn(),
+    }));
+
+    render(<VendorProductsPage />);
+    await user.click(screen.getByRole('button', { name: 'ถัดไป' }));
+
+    expect(nav.replaceMock).toHaveBeenCalledWith('/vendor/products?page=2', { scroll: false });
+  });
+
+  it('writes status filter to the URL and drops page', async () => {
+    const user = userEvent.setup();
+    nav.setSearchParams('page=3');
+    render(<VendorProductsPage />);
+
+    await user.click(screen.getByRole('button', { name: 'ฉบับร่าง' }));
+
+    const href = nav.replaceMock.mock.calls.at(-1)?.[0] as string;
+    expect(href).toContain('status=draft');
+    expect(href).not.toContain('page=');
   });
 });
