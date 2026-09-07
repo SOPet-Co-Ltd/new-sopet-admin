@@ -21,6 +21,9 @@
 /.next/
 /out/
 
+# Monaco AMD assets copied from node_modules (see scripts/copy-monaco.mjs)
+/public/monaco/
+
 # production
 /build
 

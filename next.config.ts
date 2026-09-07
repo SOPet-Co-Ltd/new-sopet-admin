@@ -64,6 +64,8 @@ const productionCsp = [
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline'",
+  // Monaco AMD workers (same-origin /monaco/vs + blob: bootstrap)
+  "worker-src 'self' blob:",
   "connect-src 'self'",
   "form-action 'self'",
 ].join('; ');
