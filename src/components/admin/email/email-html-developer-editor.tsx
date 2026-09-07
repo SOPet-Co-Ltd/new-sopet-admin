@@ -4,7 +4,8 @@ import dynamic from 'next/dynamic';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
-const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
+// Local monaco bootstrap (src/lib/monaco) — avoids jsDelivr CDN blocked by CSP.
+const MonacoEditor = dynamic(() => import('@/lib/monaco/monaco-editor'), {
   ssr: false,
   loading: () => (
     <div
