@@ -454,6 +454,21 @@ export const PUBLISH_PRODUCT = gql`
   }
 `;
 
+export const PUBLISH_PRODUCTS = gql`
+  mutation PublishProducts($ids: [String!]!) {
+    publishProducts(ids: $ids) {
+      publishedCount
+      failedCount
+      publishedIds
+      failures {
+        productId
+        code
+        message
+      }
+    }
+  }
+`;
+
 export const VENDOR_PRODUCTS_QUERY = gql`
   query VendorProducts(
     $search: String
@@ -479,6 +494,22 @@ export const VENDOR_PRODUCTS_QUERY = gql`
       page: $page
       limit: $limit
     ) {
+      items {
+        ${PRODUCT_LIST_FIELDS}
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+    }
+  }
+`;
+
+export const VENDOR_PUBLISHABLE_PRODUCTS_QUERY = gql`
+  query VendorPublishableProducts($search: String, $page: Int, $limit: Int) {
+    vendorPublishableProducts(search: $search, page: $page, limit: $limit) {
       items {
         ${PRODUCT_LIST_FIELDS}
       }

@@ -5,6 +5,7 @@ import {
   createProduct,
   deleteProduct,
   publishProduct,
+  publishProductsBatched,
   updateProduct,
   updateProductVariantStock,
 } from '@/lib/api/products';
@@ -51,6 +52,17 @@ export function usePublishProduct() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.products.publishChecklist(id),
       });
+    },
+  });
+}
+
+export function usePublishProducts() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: string[]) => publishProductsBatched(ids),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
     },
   });
 }

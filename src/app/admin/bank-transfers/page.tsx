@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import {
   useConfirmBankTransferPaid,
   usePendingBankTransferOrders,
 } from '@/hooks/useAdminBankTransfers';
+import { parsePageParam, serializePageParam } from '@/lib/navigation/list-query-params';
+import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString('th-TH', {
@@ -25,8 +26,12 @@ function formatMoney(amount: number): string {
   })}`;
 }
 
+const pageOnlyQuerySpec = {
+  page: { parse: parsePageParam, serialize: serializePageParam },
+} satisfies ListQuerySpec;
+
 export default function AdminBankTransfersPage() {
-  const [page, setPage] = useState(1);
+  const [{ page }, setParams] = useListQueryState(pageOnlyQuerySpec);
   const { data, isLoading, isError } = usePendingBankTransferOrders(page);
   const confirmMutation = useConfirmBankTransferPaid();
 
@@ -109,7 +114,7 @@ export default function AdminBankTransfersPage() {
                 type="button"
                 variant="outline"
                 disabled={page <= 1 || isLoading}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => setParams((p) => ({ page: Math.max(1, p.page - 1) }))}
               >
                 ก่อนหน้า
               </Button>
@@ -120,7 +125,7 @@ export default function AdminBankTransfersPage() {
                 type="button"
                 variant="outline"
                 disabled={page >= pagination.totalPages || isLoading}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => setParams((p) => ({ page: p.page + 1 }))}
               >
                 ถัดไป
               </Button>

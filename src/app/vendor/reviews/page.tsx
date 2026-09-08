@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { VendorReviewFilters } from '@/components/vendor/vendor-review-filters';
@@ -13,18 +13,39 @@ import { VendorReviewsEmptyState } from '@/components/vendor/vendor-reviews-empt
 import { useStoreProductReviews, useStoreReviewSummary } from '@/hooks/useReviews';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { VENDOR_REVIEWS_PAGE_SIZE } from '@/lib/api/reviews';
-import type { RatingFilter, ReplyFilter } from '@/lib/vendor/review-filters';
 import { getErrorMessage } from '@/lib/api/errors';
+import {
+  parseEnumParam,
+  parsePageParam,
+  serializeEnumParam,
+  serializePageParam,
+} from '@/lib/navigation/list-query-params';
+import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
+import type { RatingFilter, ReplyFilter } from '@/lib/vendor/review-filters';
 
 function formatFetchError(error: unknown): string {
   return getErrorMessage(error, 'โหลดไม่สำเร็จ');
 }
 
+const REPLY_VALUES = ['all', 'unreplied', 'replied'] as const;
+const RATING_VALUES = ['all', '1', '2', '3', '4', '5'] as const;
+
+const vendorReviewsQuerySpec = {
+  page: { parse: parsePageParam, serialize: serializePageParam },
+  reply: {
+    parse: (raw: string | null) => parseEnumParam(raw, REPLY_VALUES, 'all') as ReplyFilter,
+    serialize: (value: ReplyFilter) => serializeEnumParam(value, 'all'),
+  },
+  rating: {
+    parse: (raw: string | null) => parseEnumParam(raw, RATING_VALUES, 'all') as RatingFilter,
+    serialize: (value: RatingFilter) => serializeEnumParam(value, 'all'),
+  },
+} satisfies ListQuerySpec;
+
 export default function VendorReviewsPage() {
   const storeId = useVendorStoreId();
-  const [replyFilter, setReplyFilter] = useState<ReplyFilter>('all');
-  const [ratingFilter, setRatingFilter] = useState<RatingFilter>('all');
-  const [page, setPage] = useState(1);
+  const [params, setParams] = useListQueryState(vendorReviewsQuerySpec);
+  const { page, reply: replyFilter, rating: ratingFilter } = params;
 
   const queryParams = useMemo(
     () => ({
@@ -56,9 +77,7 @@ export default function VendorReviewsPage() {
     !reviewsLoading && !reviewsError && reviews.length === 0 && hasActiveFilters && !hasNoReviews;
 
   function clearFilters() {
-    setReplyFilter('all');
-    setRatingFilter('all');
-    setPage(1);
+    setParams({ reply: 'all', rating: 'all', page: 1 });
   }
 
   return (
@@ -72,12 +91,10 @@ export default function VendorReviewsPage() {
               replyFilter={replyFilter}
               ratingFilter={ratingFilter}
               onReplyFilterChange={(value) => {
-                setReplyFilter(value);
-                setPage(1);
+                setParams({ reply: value });
               }}
               onRatingFilterChange={(value) => {
-                setRatingFilter(value);
-                setPage(1);
+                setParams({ rating: value });
               }}
               disabled={filtersDisabled}
             />
@@ -166,7 +183,7 @@ export default function VendorReviewsPage() {
                     variant="outline"
                     size="sm"
                     disabled={page <= 1 || reviewsLoading}
-                    onClick={() => setPage((currentPage) => currentPage - 1)}
+                    onClick={() => setParams((current) => ({ page: current.page - 1 }))}
                   >
                     ก่อนหน้า
                   </Button>
@@ -175,7 +192,7 @@ export default function VendorReviewsPage() {
                     variant="outline"
                     size="sm"
                     disabled={page >= pagination.totalPages || reviewsLoading}
-                    onClick={() => setPage((currentPage) => currentPage + 1)}
+                    onClick={() => setParams((current) => ({ page: current.page + 1 }))}
                   >
                     ถัดไป
                   </Button>
