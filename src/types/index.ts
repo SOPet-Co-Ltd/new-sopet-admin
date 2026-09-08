@@ -408,6 +408,19 @@ export interface BatchPublishProductsResult {
   failures: BatchPublishProductFailure[];
 }
 
+export interface BatchApproveReviewFailure {
+  reviewId: string;
+  code: string;
+  message: string;
+}
+
+export interface BatchApproveReviewsResult {
+  approvedCount: number;
+  failedCount: number;
+  approvedIds: string[];
+  failures: BatchApproveReviewFailure[];
+}
+
 export interface CreateProductInput {
   name: string;
   description?: string;
