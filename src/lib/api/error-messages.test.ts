@@ -202,4 +202,26 @@ describe('ApiError + FORBIDDEN mapping', () => {
       formatFallbackErrorMessage(ERROR_MESSAGES.UNKNOWN_ERROR, 'SOME_NEW_CODE'),
     );
   });
+
+  it('maps Cloudflare 524 origin timeout to TIMEOUT Thai copy', async () => {
+    const { getErrorMessage, normalizeError } = await import('./errors');
+    const { ServerError } = await import('@apollo/client/errors');
+    const bodyText = JSON.stringify({
+      status: 524,
+      error_code: 524,
+      error_name: 'origin_response_timeout',
+      cloudflare_error: true,
+      detail: 'The origin web server did not return a complete response within 120 seconds.',
+    });
+    const err = new ServerError('Response not successful: Received status code 524', {
+      response: new Response(bodyText, { status: 524 }),
+      bodyText,
+    });
+
+    const normalized = normalizeError(err);
+    expect(normalized.code).toBe('TIMEOUT');
+    expect(normalized.status).toBe(524);
+    expect(getErrorMessage(err)).toBe(ERROR_MESSAGES.TIMEOUT);
+    expect(getErrorMessage(err)).not.toContain('cloudflare');
+  });
 });

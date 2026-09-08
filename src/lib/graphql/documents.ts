@@ -523,6 +523,15 @@ export const VENDOR_PUBLISHABLE_PRODUCTS_QUERY = gql`
   }
 `;
 
+export const VENDOR_PUBLISHABLE_PRODUCT_IDS_QUERY = gql`
+  query VendorPublishableProductIds($search: String) {
+    vendorPublishableProductIds(search: $search) {
+      ids
+      total
+    }
+  }
+`;
+
 export const SYNC_PRODUCT_VARIANTS = gql`
   mutation SyncProductVariants($productId: String!, $variants: [SyncProductVariantItemInput!]!) {
     syncProductVariants(productId: $productId, variants: $variants) {

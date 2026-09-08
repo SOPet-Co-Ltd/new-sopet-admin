@@ -67,6 +67,23 @@ function finalizeApiError(params: {
   });
 }
 
+function isCloudflareTimeoutPayload(bodyText: string | undefined): boolean {
+  if (!bodyText) return false;
+  try {
+    const parsed: unknown = JSON.parse(bodyText);
+    if (!parsed || typeof parsed !== 'object') return false;
+    const record = parsed as Record<string, unknown>;
+    return (
+      record.error_code === 524 ||
+      record.error_name === 'origin_response_timeout' ||
+      record.cloudflare_error === true ||
+      record.status === 524
+    );
+  } catch {
+    return /error 524|origin_response_timeout|cloudflare/i.test(bodyText);
+  }
+}
+
 export function normalizeError(err: unknown): ApiError {
   if (isApiError(err)) {
     return finalizeApiError({
@@ -82,6 +99,13 @@ export function normalizeError(err: unknown): ApiError {
   }
 
   if (ServerError.is(err) || ServerParseError.is(err)) {
+    if (err.statusCode === 524 || isCloudflareTimeoutPayload(err.bodyText)) {
+      return finalizeApiError({
+        code: 'TIMEOUT',
+        status: 524,
+      });
+    }
+
     const envelope = parseErrorEnvelope(err.bodyText);
     if (envelope) {
       return finalizeApiError({
@@ -106,6 +130,27 @@ export function normalizeError(err: unknown): ApiError {
     };
     const status = axiosLike.response?.status ?? 0;
     const data = axiosLike.response?.data;
+
+    if (status === 524) {
+      return finalizeApiError({
+        code: 'TIMEOUT',
+        status: 524,
+      });
+    }
+
+    if (typeof data === 'string' && isCloudflareTimeoutPayload(data)) {
+      return finalizeApiError({
+        code: 'TIMEOUT',
+        status: status || 524,
+      });
+    }
+
+    if (data && typeof data === 'object' && isCloudflareTimeoutPayload(JSON.stringify(data))) {
+      return finalizeApiError({
+        code: 'TIMEOUT',
+        status: status || 524,
+      });
+    }
 
     if (isErrorEnvelope(data)) {
       return finalizeApiError({
