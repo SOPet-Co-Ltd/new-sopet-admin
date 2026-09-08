@@ -1481,6 +1481,30 @@ export const APPROVE_REVIEW_MUTATION = gql`
   }
 `;
 
+export const APPROVE_REVIEWS_MUTATION = gql`
+  mutation ApproveReviews($ids: [String!]!) {
+    approveReviews(ids: $ids) {
+      approvedCount
+      failedCount
+      approvedIds
+      failures {
+        reviewId
+        code
+        message
+      }
+    }
+  }
+`;
+
+export const PENDING_IMPORTED_REVIEW_IDS_QUERY = gql`
+  query PendingImportedReviewIds {
+    pendingImportedReviewIds {
+      ids
+      total
+    }
+  }
+`;
+
 export const REJECT_REVIEW_MUTATION = gql`
   mutation RejectReview($id: String!) {
     rejectReview(id: $id) {
