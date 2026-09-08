@@ -191,7 +191,12 @@ describe('VendorBatchPublishDialog', () => {
     await user.click(screen.getByRole('checkbox', { name: /อาหารแมว/i }));
     await user.click(screen.getByRole('button', { name: 'เผยแพร่ 1 รายการ' }));
 
-    expect(mutateAsync).toHaveBeenCalledWith(['prod-2']);
+    expect(mutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ids: ['prod-2'],
+        onProgress: expect.any(Function),
+      }),
+    );
     expect(onPublished).toHaveBeenCalled();
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(showToast).toHaveBeenCalledWith(

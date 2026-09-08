@@ -60,7 +60,19 @@ export function usePublishProducts() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (ids: string[]) => publishProductsBatched(ids),
+    mutationFn: (
+      input:
+        | string[]
+        | {
+            ids: string[];
+            onProgress?: Parameters<typeof publishProductsBatched>[1];
+          },
+    ) => {
+      if (Array.isArray(input)) {
+        return publishProductsBatched(input);
+      }
+      return publishProductsBatched(input.ids, input.onProgress);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
     },

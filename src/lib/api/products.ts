@@ -12,8 +12,10 @@ import {
   UPDATE_PRODUCT_VARIANT,
   VENDOR_PRODUCTS_QUERY,
   VENDOR_PUBLISHABLE_PRODUCTS_QUERY,
+  VENDOR_PUBLISHABLE_PRODUCT_IDS_QUERY,
 } from '@/lib/graphql/documents';
 import { mapPagination, mapProduct } from '@/lib/graphql/mappers';
+import { getErrorMessage } from '@/lib/api/errors';
 import { variantItemsToSyncInput, type VariantItem } from '@/lib/variants';
 import type {
   BatchPublishProductsResult,
@@ -106,43 +108,72 @@ export function getVendorPublishableProducts(
   }));
 }
 
-/** Page through publishable products and collect every id (for select-all). */
+/** One lightweight IDs query for select-all (no product/image/variant hydration). */
 export async function getAllVendorPublishableProductIds(
   params: { search?: string } = {},
 ): Promise<string[]> {
-  const pageLimit = 100;
-  const ids: string[] = [];
-  let page = 1;
-  let totalPages = 1;
-
-  while (page <= totalPages) {
-    const result = await getVendorPublishableProducts({
-      search: params.search,
-      page,
-      limit: pageLimit,
-    });
-    ids.push(...result.items.map((product) => product.id));
-    totalPages = Math.max(result.pagination.totalPages, 1);
-    if (result.items.length === 0) break;
-    page += 1;
-  }
-
-  return ids;
+  const result = await executeQuery<{
+    vendorPublishableProductIds: { ids: string[]; total: number };
+  }>(VENDOR_PUBLISHABLE_PRODUCT_IDS_QUERY, {
+    search: params.search,
+  });
+  return result.vendorPublishableProductIds.ids;
 }
 
-export const BATCH_PUBLISH_MAX_IDS = 50;
+/** Smaller chunks stay under Cloudflare's 120s proxy window even on a slow origin. */
+export const BATCH_PUBLISH_MAX_IDS = 10;
+
+export type BatchPublishProgress = {
+  processed: number;
+  total: number;
+  chunkStart: number;
+  chunkEnd: number;
+};
+
+export type BatchPublishProgressCallback = (progress: BatchPublishProgress) => void;
 
 /** Publish in chunks of BATCH_PUBLISH_MAX_IDS and merge partial-success results. */
-export async function publishProductsBatched(ids: string[]): Promise<BatchPublishProductsResult> {
+export async function publishProductsBatched(
+  ids: string[],
+  onProgress?: BatchPublishProgressCallback,
+): Promise<BatchPublishProductsResult> {
   const uniqueIds = [...new Set(ids)];
   const publishedIds: string[] = [];
   const failures: BatchPublishProductsResult['failures'] = [];
+  const total = uniqueIds.length;
 
   for (let i = 0; i < uniqueIds.length; i += BATCH_PUBLISH_MAX_IDS) {
     const chunk = uniqueIds.slice(i, i + BATCH_PUBLISH_MAX_IDS);
-    const result = await publishProducts(chunk);
-    publishedIds.push(...result.publishedIds);
-    failures.push(...result.failures);
+    const chunkStart = i + 1;
+    const chunkEnd = Math.min(i + chunk.length, total);
+    onProgress?.({
+      processed: i,
+      total,
+      chunkStart,
+      chunkEnd,
+    });
+
+    try {
+      const result = await publishProducts(chunk);
+      publishedIds.push(...result.publishedIds);
+      failures.push(...result.failures);
+    } catch (err) {
+      const message = getErrorMessage(err, 'เผยแพร่สินค้าไม่สำเร็จ');
+      for (const productId of chunk) {
+        failures.push({
+          productId,
+          code: 'CHUNK_FAILED',
+          message,
+        });
+      }
+    }
+
+    onProgress?.({
+      processed: chunkEnd,
+      total,
+      chunkStart,
+      chunkEnd,
+    });
   }
 
   return {

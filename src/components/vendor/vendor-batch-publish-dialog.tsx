@@ -44,6 +44,7 @@ export function VendorBatchPublishDialog({
   const [searchCommitted, setSearchCommitted] = useState('');
   const [page, setPage] = useState(1);
   const [selectAllPending, setSelectAllPending] = useState(false);
+  const [publishProgressLabel, setPublishProgressLabel] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -111,8 +112,14 @@ export function VendorBatchPublishDialog({
   async function handlePublish() {
     if (selectedCount === 0 || busy) return;
     setFailureMessages([]);
+    setPublishProgressLabel(null);
     try {
-      const result = await publishMutation.mutateAsync([...selectedIds]);
+      const result = await publishMutation.mutateAsync({
+        ids: [...selectedIds],
+        onProgress: ({ chunkStart, chunkEnd, total }) => {
+          setPublishProgressLabel(`กำลังเผยแพร่ ${chunkStart}–${chunkEnd} จาก ${total}`);
+        },
+      });
       if (result.failedCount > 0) {
         setFailureMessages(result.failures.slice(0, 3).map((failure) => failure.message));
         show(
@@ -128,6 +135,8 @@ export function VendorBatchPublishDialog({
       }
     } catch (err) {
       setFailureMessages([getErrorMessage(err, 'เผยแพร่สินค้าไม่สำเร็จ')]);
+    } finally {
+      setPublishProgressLabel(null);
     }
   }
 
@@ -139,6 +148,7 @@ export function VendorBatchPublishDialog({
       setSearchCommitted('');
       setPage(1);
       setSelectAllPending(false);
+      setPublishProgressLabel(null);
     }
     onOpenChange(next);
   }
@@ -285,7 +295,7 @@ export function VendorBatchPublishDialog({
             aria-busy={publishMutation.isPending}
           >
             {publishMutation.isPending
-              ? 'กำลังเผยแพร่...'
+              ? (publishProgressLabel ?? 'กำลังเผยแพร่...')
               : selectedCount > 0
                 ? `เผยแพร่ ${selectedCount} รายการ`
                 : 'เผยแพร่'}
