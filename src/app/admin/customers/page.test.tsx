@@ -53,8 +53,7 @@ vi.mock('next/navigation', async () => {
       prefetch: vi.fn(),
     }),
     usePathname: () => '/admin/customers',
-    useSearchParams: () =>
-      react.useSyncExternalStore(nav.subscribe, nav.getParams, nav.getParams),
+    useSearchParams: () => react.useSyncExternalStore(nav.subscribe, nav.getParams, nav.getParams),
   };
 });
 

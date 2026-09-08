@@ -16,8 +16,7 @@ type ValuesFromSpec<S extends ListQuerySpec> = {
 };
 
 type SetParamsArg<S extends ListQuerySpec> =
-  | Partial<ValuesFromSpec<S>>
-  | ((prev: ValuesFromSpec<S>) => Partial<ValuesFromSpec<S>>);
+  Partial<ValuesFromSpec<S>> | ((prev: ValuesFromSpec<S>) => Partial<ValuesFromSpec<S>>);
 
 function readValues<S extends ListQuerySpec>(
   searchParams: URLSearchParams,
