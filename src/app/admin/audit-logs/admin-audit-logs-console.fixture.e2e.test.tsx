@@ -10,6 +10,50 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AdminAuditLog } from '@/types';
 import AdminAuditLogsPage from './page';
 
+const nav = vi.hoisted(() => {
+  let currentParams = new URLSearchParams();
+  const listeners = new Set<() => void>();
+
+  function notify() {
+    listeners.forEach((listener) => listener());
+  }
+
+  function applyHref(href: string) {
+    const queryIndex = href.indexOf('?');
+    currentParams =
+      queryIndex >= 0 ? new URLSearchParams(href.slice(queryIndex + 1)) : new URLSearchParams();
+    notify();
+  }
+
+  return {
+    resetSearchParams: () => {
+      currentParams = new URLSearchParams();
+      notify();
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    getParams: () => currentParams,
+    applyHref,
+  };
+});
+
+vi.mock('next/navigation', async () => {
+  const react = await import('react');
+  return {
+    useRouter: () => ({
+      replace: (href: string) => {
+        nav.applyHref(href);
+      },
+      push: vi.fn(),
+      prefetch: vi.fn(),
+    }),
+    usePathname: () => '/admin/audit-logs',
+    useSearchParams: () => react.useSyncExternalStore(nav.subscribe, nav.getParams, nav.getParams),
+  };
+});
+
 // jsdom doesn't implement scrollIntoView, which Radix Select calls when opening.
 Element.prototype.scrollIntoView = vi.fn();
 
@@ -78,6 +122,7 @@ const fixtureItems = [nullIdentityLog, dangerLog, overflowLog];
 
 describe('Admin Audit Logs Console [fixture-e2e]', () => {
   beforeEach(() => {
+    nav.resetSearchParams();
     mockUseAdminAuditLogs.mockReset();
     mockUseAdminAuditLogs.mockImplementation((params: { page?: number }) => ({
       data: {

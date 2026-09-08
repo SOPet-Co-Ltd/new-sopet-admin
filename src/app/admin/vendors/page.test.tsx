@@ -4,11 +4,54 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AdminVendor } from '@/types';
 import AdminVendorsPage from './page';
 
-const pushMock = vi.fn();
+const nav = vi.hoisted(() => {
+  let currentParams = new URLSearchParams();
+  const listeners = new Set<() => void>();
+  const pushMock = vi.fn();
+  const replaceMock = vi.fn();
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: pushMock }),
-}));
+  function notify() {
+    listeners.forEach((listener) => listener());
+  }
+
+  function applyHref(href: string) {
+    const queryIndex = href.indexOf('?');
+    currentParams =
+      queryIndex >= 0 ? new URLSearchParams(href.slice(queryIndex + 1)) : new URLSearchParams();
+    notify();
+  }
+
+  return {
+    pushMock,
+    replaceMock,
+    resetSearchParams: () => {
+      currentParams = new URLSearchParams();
+      notify();
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    getParams: () => currentParams,
+    applyHref,
+  };
+});
+
+vi.mock('next/navigation', async () => {
+  const react = await import('react');
+  return {
+    useRouter: () => ({
+      push: nav.pushMock,
+      replace: (href: string, options?: { scroll?: boolean }) => {
+        nav.replaceMock(href, options);
+        nav.applyHref(href);
+      },
+      prefetch: vi.fn(),
+    }),
+    usePathname: () => '/admin/vendors',
+    useSearchParams: () => react.useSyncExternalStore(nav.subscribe, nav.getParams, nav.getParams),
+  };
+});
 
 vi.mock('@/hooks/useAdminVendors', () => ({
   useAdminVendors: vi.fn(),
@@ -41,6 +84,7 @@ function mockVendors(overrides?: Partial<ReturnType<typeof useAdminVendors>>) {
 describe('AdminVendorsPage', () => {
   afterEach(() => {
     vi.clearAllMocks();
+    nav.resetSearchParams();
   });
 
   it('renders vendor list with result count and status badge', () => {
@@ -63,7 +107,7 @@ describe('AdminVendorsPage', () => {
 
     await user.type(screen.getByRole('searchbox', { name: 'ค้นหาผู้ขาย' }), 'nobody');
 
-    expect(screen.getByText('ไม่พบผู้ขายที่ตรงกับเงื่อนไข')).toBeInTheDocument();
+    expect(await screen.findByText('ไม่พบผู้ขายที่ตรงกับเงื่อนไข')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ล้างช่องค้นหา' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ล้างตัวกรอง' })).toBeInTheDocument();
   });
@@ -91,7 +135,7 @@ describe('AdminVendorsPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('โหลดรายการผู้ขายไม่สำเร็จ');
   });
 
-  it('filters inactive vendors client-side', async () => {
+  it('filters inactive vendors client-side and writes status to the URL', async () => {
     const user = userEvent.setup();
     mockVendors({
       data: [
@@ -112,6 +156,9 @@ describe('AdminVendorsPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'ระงับ' }));
 
+    expect(nav.replaceMock).toHaveBeenCalledWith('/admin/vendors?status=inactive', {
+      scroll: false,
+    });
     expect(screen.getByText('แสดง 1 จาก 2 รายการ')).toBeInTheDocument();
     expect(screen.getAllByText('Suspended Vendor').length).toBeGreaterThan(0);
     expect(screen.queryByText('Vendor SOPet')).not.toBeInTheDocument();

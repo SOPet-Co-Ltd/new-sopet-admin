@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
@@ -10,11 +9,13 @@ import {
   useRejectManualPayoutForQueue,
   useSettleManualPayoutForQueue,
 } from '@/hooks/usePayouts';
-import { formatThaiBankAccountNumber } from '@/lib/banks/formatThaiBankAccountNumber';
-import { commissionCopy } from '@/lib/i18n/th';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
 import type { AdminManualPayout } from '@/lib/api/payouts';
 import { getErrorMessage } from '@/lib/api/errors';
+import { formatThaiBankAccountNumber } from '@/lib/banks/formatThaiBankAccountNumber';
+import { commissionCopy } from '@/lib/i18n/th';
+import { parsePageParam, serializePageParam } from '@/lib/navigation/list-query-params';
+import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
+import { formatCurrency, formatDateTime } from '@/lib/utils';
 
 function SnapshotQueueBreakdown({ payout }: { payout: AdminManualPayout }) {
   return (
@@ -31,8 +32,12 @@ function SnapshotQueueBreakdown({ payout }: { payout: AdminManualPayout }) {
   );
 }
 
+const pageOnlyQuerySpec = {
+  page: { parse: parsePageParam, serialize: serializePageParam },
+} satisfies ListQuerySpec;
+
 export default function AdminManualPayoutsPage() {
-  const [page, setPage] = useState(1);
+  const [{ page }, setParams] = useListQueryState(pageOnlyQuerySpec);
   const { data, isLoading, isError } = usePendingManualPayouts(page);
   const settleMutation = useSettleManualPayoutForQueue();
   const rejectMutation = useRejectManualPayoutForQueue();
@@ -192,7 +197,7 @@ export default function AdminManualPayoutsPage() {
                 type="button"
                 variant="outline"
                 disabled={page <= 1 || isLoading}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => setParams((p) => ({ page: Math.max(1, p.page - 1) }))}
               >
                 ก่อนหน้า
               </Button>
@@ -203,7 +208,7 @@ export default function AdminManualPayoutsPage() {
                 type="button"
                 variant="outline"
                 disabled={page >= pagination.totalPages || isLoading}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => setParams((p) => ({ page: p.page + 1 }))}
               >
                 ถัดไป
               </Button>

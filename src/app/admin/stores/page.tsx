@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -19,14 +19,34 @@ import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
 import { useAdminStores } from '@/hooks/useAdminStores';
+import { getErrorMessage } from '@/lib/api/errors';
 import { labelStoreStatus } from '@/lib/i18n/th';
+import {
+  parseEnumParam,
+  parseSearchQuery,
+  serializeEnumParam,
+  serializeSearchQuery,
+} from '@/lib/navigation/list-query-params';
+import { useDebouncedSearchDraft } from '@/lib/navigation/use-debounced-search-draft';
+import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
 import {
   createDetailPrefetchHandlers,
   prefetchAdminStoreDetail,
 } from '@/lib/react-query/prefetch-dashboard-nav';
 import { cn, formatDate } from '@/lib/utils';
 import type { AdminStore } from '@/types';
-import { getErrorMessage } from '@/lib/api/errors';
+
+const SEARCH_DEBOUNCE_MS = 300;
+const STORE_STATUS_VALUES = ['all', 'pending', 'approved', 'rejected', 'suspended'] as const;
+
+const adminStoresQuerySpec = {
+  q: { parse: parseSearchQuery, serialize: serializeSearchQuery },
+  status: {
+    parse: (raw: string | null) =>
+      parseEnumParam(raw, STORE_STATUS_VALUES, 'all') as StoreStatusFilter,
+    serialize: (value: StoreStatusFilter) => serializeEnumParam(value, 'all'),
+  },
+} satisfies ListQuerySpec;
 
 function storeStatusBadge(store: AdminStore): { label: string; className: string } {
   const status = store.status;
@@ -48,10 +68,16 @@ function storeStatusBadge(store: AdminStore): { label: string; className: string
 export default function AdminStoresPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StoreStatusFilter>('all');
+  const [params, setParams] = useListQueryState(adminStoresQuerySpec);
+  const { q: search, status: statusFilter } = params;
+  const commitSearch = useCallback((next: string) => setParams({ q: next }), [setParams]);
+  const [searchInput, setSearchInput] = useDebouncedSearchDraft(
+    search,
+    commitSearch,
+    SEARCH_DEBOUNCE_MS,
+  );
 
-  const trimmedSearch = search.trim();
+  const trimmedSearch = search;
   const hasSearch = trimmedSearch.length > 0;
   const hasStatusFilter = statusFilter !== 'all';
   const hasFilters = hasSearch || hasStatusFilter;
@@ -168,8 +194,8 @@ export default function AdminStoresPage() {
   const showList = !isLoading && !error && filteredStores.length > 0;
 
   function clearFilters() {
-    setSearch('');
-    setStatusFilter('all');
+    setSearchInput('');
+    setParams({ q: '', status: 'all' });
   }
 
   function goToStore(store: AdminStore) {
@@ -203,23 +229,29 @@ export default function AdminStoresPage() {
             type="search"
             aria-label="ค้นหาร้านค้า"
             placeholder="ค้นหาชื่อร้าน slug หรือเจ้าของ..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
             className="pr-10 placeholder:text-muted-foreground"
           />
-          {hasSearch ? (
+          {hasSearch || searchInput.trim().length > 0 ? (
             <button
               type="button"
               aria-label="ล้างช่องค้นหา"
               className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 ease-out hover:bg-surface hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 motion-reduce:transition-none"
-              onClick={() => setSearch('')}
+              onClick={() => {
+                setSearchInput('');
+                setParams({ q: '' });
+              }}
             >
               <HiXMark className="size-4" aria-hidden="true" />
             </button>
           ) : null}
         </div>
 
-        <StoresStatusFilter value={statusFilter} onChange={setStatusFilter} />
+        <StoresStatusFilter
+          value={statusFilter}
+          onChange={(value) => setParams({ status: value })}
+        />
       </div>
 
       {error ? (

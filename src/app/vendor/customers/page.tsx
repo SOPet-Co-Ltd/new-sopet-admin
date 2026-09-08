@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { HiMagnifyingGlass, HiUsers, HiXMark } from 'react-icons/hi2';
@@ -11,9 +11,24 @@ import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
 import { useVendorCustomers } from '@/hooks/useVendorCustomers';
+import { getErrorMessage } from '@/lib/api/errors';
+import {
+  parsePageParam,
+  parseSearchQuery,
+  serializePageParam,
+  serializeSearchQuery,
+} from '@/lib/navigation/list-query-params';
+import { useDebouncedSearchDraft } from '@/lib/navigation/use-debounced-search-draft';
+import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
 import { cn, formatDate } from '@/lib/utils';
 import type { VendorCustomer } from '@/types';
-import { getErrorMessage } from '@/lib/api/errors';
+
+const SEARCH_DEBOUNCE_MS = 300;
+
+const vendorCustomersQuerySpec = {
+  page: { parse: parsePageParam, serialize: serializePageParam },
+  q: { parse: parseSearchQuery, serialize: serializeSearchQuery },
+} satisfies ListQuerySpec;
 
 function CustomersTableSkeleton() {
   return (
@@ -153,10 +168,16 @@ function CustomersMobileList({
 
 export default function VendorCustomersPage() {
   const router = useRouter();
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [params, setParams] = useListQueryState(vendorCustomersQuerySpec);
+  const { page, q: search } = params;
+  const commitSearch = useCallback((next: string) => setParams({ q: next }), [setParams]);
+  const [searchInput, setSearchInput] = useDebouncedSearchDraft(
+    search,
+    commitSearch,
+    SEARCH_DEBOUNCE_MS,
+  );
 
-  const trimmedSearch = search.trim();
+  const trimmedSearch = search;
   const hasSearch = trimmedSearch.length > 0;
 
   const queryParams = useMemo(
@@ -243,8 +264,8 @@ export default function VendorCustomersPage() {
   }, [hasSearch, pagination]);
 
   function clearSearch() {
-    setSearch('');
-    setPage(1);
+    setSearchInput('');
+    setParams({ q: '', page: 1 });
   }
 
   function goToCustomer(customer: VendorCustomer) {
@@ -261,14 +282,13 @@ export default function VendorCustomersPage() {
             type="search"
             aria-label="ค้นหาลูกค้า"
             placeholder="ค้นหาชื่อ เบอร์โทร หรืออีเมล..."
-            value={search}
+            value={searchInput}
             onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
+              setSearchInput(event.target.value);
             }}
             className="pr-10 placeholder:text-muted-foreground"
           />
-          {hasSearch ? (
+          {hasSearch || searchInput.trim().length > 0 ? (
             <button
               type="button"
               aria-label="ล้างช่องค้นหา"
@@ -327,7 +347,7 @@ export default function VendorCustomersPage() {
                     variant="outline"
                     size="sm"
                     disabled={page <= 1 || isFetching}
-                    onClick={() => setPage((current) => current - 1)}
+                    onClick={() => setParams((current) => ({ page: current.page - 1 }))}
                   >
                     ก่อนหน้า
                   </Button>
@@ -336,7 +356,7 @@ export default function VendorCustomersPage() {
                     variant="outline"
                     size="sm"
                     disabled={page >= pagination.totalPages || isFetching}
-                    onClick={() => setPage((current) => current + 1)}
+                    onClick={() => setParams((current) => ({ page: current.page + 1 }))}
                   >
                     ถัดไป
                   </Button>

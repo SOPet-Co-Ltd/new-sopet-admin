@@ -6,14 +6,17 @@ import {
   PRODUCT_QUERY,
   PRODUCT_VARIANT_SYNC_IMPACT,
   PUBLISH_PRODUCT,
+  PUBLISH_PRODUCTS,
   SYNC_PRODUCT_VARIANTS,
   UPDATE_PRODUCT,
   UPDATE_PRODUCT_VARIANT,
   VENDOR_PRODUCTS_QUERY,
+  VENDOR_PUBLISHABLE_PRODUCTS_QUERY,
 } from '@/lib/graphql/documents';
 import { mapPagination, mapProduct } from '@/lib/graphql/mappers';
 import { variantItemsToSyncInput, type VariantItem } from '@/lib/variants';
 import type {
+  BatchPublishProductsResult,
   CreateProductInput,
   Product,
   ProductPublishChecklist,
@@ -69,6 +72,12 @@ export function publishProduct(id: string): Promise<Product> {
   }).then((data) => mapProduct(data.publishProduct));
 }
 
+export function publishProducts(ids: string[]): Promise<BatchPublishProductsResult> {
+  return executeMutation<{ publishProducts: BatchPublishProductsResult }>(PUBLISH_PRODUCTS, {
+    ids,
+  }).then((data) => data.publishProducts);
+}
+
 export function getVendorProducts(
   params: Omit<ProductsQueryParams, 'storeId'> = {},
 ): Promise<ProductsResult> {
@@ -81,6 +90,67 @@ export function getVendorProducts(
     items: data.vendorProducts.items.map(mapProduct),
     pagination: mapPagination(data.vendorProducts.pagination),
   }));
+}
+
+export function getVendorPublishableProducts(
+  params: { search?: string; page?: number; limit?: number } = {},
+): Promise<ProductsResult> {
+  return executeQuery<{
+    vendorPublishableProducts: {
+      items: Parameters<typeof mapProduct>[0][];
+      pagination: Parameters<typeof mapPagination>[0];
+    };
+  }>(VENDOR_PUBLISHABLE_PRODUCTS_QUERY, params).then((data) => ({
+    items: data.vendorPublishableProducts.items.map(mapProduct),
+    pagination: mapPagination(data.vendorPublishableProducts.pagination),
+  }));
+}
+
+/** Page through publishable products and collect every id (for select-all). */
+export async function getAllVendorPublishableProductIds(
+  params: { search?: string } = {},
+): Promise<string[]> {
+  const pageLimit = 100;
+  const ids: string[] = [];
+  let page = 1;
+  let totalPages = 1;
+
+  while (page <= totalPages) {
+    const result = await getVendorPublishableProducts({
+      search: params.search,
+      page,
+      limit: pageLimit,
+    });
+    ids.push(...result.items.map((product) => product.id));
+    totalPages = Math.max(result.pagination.totalPages, 1);
+    if (result.items.length === 0) break;
+    page += 1;
+  }
+
+  return ids;
+}
+
+export const BATCH_PUBLISH_MAX_IDS = 50;
+
+/** Publish in chunks of BATCH_PUBLISH_MAX_IDS and merge partial-success results. */
+export async function publishProductsBatched(ids: string[]): Promise<BatchPublishProductsResult> {
+  const uniqueIds = [...new Set(ids)];
+  const publishedIds: string[] = [];
+  const failures: BatchPublishProductsResult['failures'] = [];
+
+  for (let i = 0; i < uniqueIds.length; i += BATCH_PUBLISH_MAX_IDS) {
+    const chunk = uniqueIds.slice(i, i + BATCH_PUBLISH_MAX_IDS);
+    const result = await publishProducts(chunk);
+    publishedIds.push(...result.publishedIds);
+    failures.push(...result.failures);
+  }
+
+  return {
+    publishedCount: publishedIds.length,
+    failedCount: failures.length,
+    publishedIds,
+    failures,
+  };
 }
 
 export function createProduct(input: CreateProductInput): Promise<Product> {
