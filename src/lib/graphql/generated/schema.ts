@@ -2264,6 +2264,7 @@ export type Query = {
   vendorOrders: Array<OrderType>;
   vendorProduct: ProductType;
   vendorProducts: ProductConnection;
+  vendorPublishableProductIds: VendorPublishableProductIdsType;
   vendorPublishableProducts: ProductConnection;
 };
 
@@ -2649,6 +2650,10 @@ export type QueryVendorProductsArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
   tag?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type QueryVendorPublishableProductIdsArgs = {
+  search?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QueryVendorPublishableProductsArgs = {
@@ -3590,6 +3595,12 @@ export type VendorInvitationType = {
 export type VendorLoginInput = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
+};
+
+export type VendorPublishableProductIdsType = {
+  __typename?: 'VendorPublishableProductIdsType';
+  ids: Array<Scalars['String']['output']>;
+  total: Scalars['Int']['output'];
 };
 
 export type VendorStoreType = {
