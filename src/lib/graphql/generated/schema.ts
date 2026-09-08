@@ -346,6 +346,21 @@ export type BankTransferSettingsType = {
   enabled: Scalars['Boolean']['output'];
 };
 
+export type BatchApproveReviewFailureType = {
+  __typename?: 'BatchApproveReviewFailureType';
+  code: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+  reviewId: Scalars['String']['output'];
+};
+
+export type BatchApproveReviewsResultType = {
+  __typename?: 'BatchApproveReviewsResultType';
+  approvedCount: Scalars['Int']['output'];
+  approvedIds: Array<Scalars['String']['output']>;
+  failedCount: Scalars['Int']['output'];
+  failures: Array<BatchApproveReviewFailureType>;
+};
+
 export type BatchPublishProductFailureType = {
   __typename?: 'BatchPublishProductFailureType';
   code: Scalars['String']['output'];
@@ -826,6 +841,7 @@ export type Mutation = {
   approveCategory: CategoryType;
   approvePetType: PetTypeType;
   approveReview: ReviewType;
+  approveReviews: BatchApproveReviewsResultType;
   approveStore: StoreType;
   approveStoreReactivationRequest: StoreReactivationRequestType;
   approveStoreRequest: StoreRequestType;
@@ -1058,6 +1074,10 @@ export type MutationApprovePetTypeArgs = {
 
 export type MutationApproveReviewArgs = {
   id: Scalars['String']['input'];
+};
+
+export type MutationApproveReviewsArgs = {
+  ids: Array<Scalars['String']['input']>;
 };
 
 export type MutationApproveStoreArgs = {
@@ -1913,6 +1933,12 @@ export type PayoutType = {
   storeId: Scalars['String']['output'];
 };
 
+export type PendingImportedReviewIdsType = {
+  __typename?: 'PendingImportedReviewIdsType';
+  ids: Array<Scalars['String']['output']>;
+  total: Scalars['Int']['output'];
+};
+
 export type PetTypeType = {
   __typename?: 'PetTypeType';
   approvalStatus: Scalars['String']['output'];
@@ -2197,6 +2223,7 @@ export type Query = {
   pendingBankTransferOrders: OrderConnection;
   pendingBrands: Array<BrandType>;
   pendingCategories: Array<CategoryType>;
+  pendingImportedReviewIds: PendingImportedReviewIdsType;
   pendingImportedReviews: AdminImportedReviewConnection;
   pendingManualPayouts: AdminManualPayoutConnection;
   pendingPetTypes: Array<PetTypeType>;
