@@ -346,6 +346,21 @@ export type BankTransferSettingsType = {
   enabled: Scalars['Boolean']['output'];
 };
 
+export type BatchPublishProductFailureType = {
+  __typename?: 'BatchPublishProductFailureType';
+  code: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+  productId: Scalars['String']['output'];
+};
+
+export type BatchPublishProductsResultType = {
+  __typename?: 'BatchPublishProductsResultType';
+  failedCount: Scalars['Int']['output'];
+  failures: Array<BatchPublishProductFailureType>;
+  publishedCount: Scalars['Int']['output'];
+  publishedIds: Array<Scalars['String']['output']>;
+};
+
 export type BrandType = {
   __typename?: 'BrandType';
   approvalStatus: Scalars['String']['output'];
@@ -875,6 +890,7 @@ export type Mutation = {
   mergeCart: CartType;
   previewEmailContentTemplate: EmailPreviewResultType;
   publishProduct: ProductType;
+  publishProducts: BatchPublishProductsResultType;
   reactivateAccount: CustomerAuthPayload;
   refreshToken: AuthTokens;
   registerStore: VendorAuthPayload;
@@ -1285,6 +1301,10 @@ export type MutationPreviewEmailContentTemplateArgs = {
 
 export type MutationPublishProductArgs = {
   id: Scalars['String']['input'];
+};
+
+export type MutationPublishProductsArgs = {
+  ids: Array<Scalars['String']['input']>;
 };
 
 export type MutationReactivateAccountArgs = {
@@ -2244,6 +2264,7 @@ export type Query = {
   vendorOrders: Array<OrderType>;
   vendorProduct: ProductType;
   vendorProducts: ProductConnection;
+  vendorPublishableProducts: ProductConnection;
 };
 
 export type QueryActiveSaleCampaignItemsArgs = {
@@ -2628,6 +2649,12 @@ export type QueryVendorProductsArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
   tag?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type QueryVendorPublishableProductsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type ReactivateAccountInput = {

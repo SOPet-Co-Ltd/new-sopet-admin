@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { HiOutlinePlus } from 'react-icons/hi2';
@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
 import { ProductThumbnail } from '@/components/vendor/product-thumbnail';
+import { VendorBatchPublishDialog } from '@/components/vendor/vendor-batch-publish-dialog';
 import {
   VendorProductFilters,
   type ProductStatusFilter,
@@ -96,6 +97,7 @@ const vendorProductsQuerySpec = {
 export default function VendorProductsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [batchPublishOpen, setBatchPublishOpen] = useState(false);
   const [params, setParams] = useListQueryState(vendorProductsQuerySpec);
   const {
     page,
@@ -108,9 +110,13 @@ export default function VendorProductsPage() {
     minPrice,
     maxPrice,
   } = params;
-  const [searchInput, setSearchInput] = useDebouncedSearchDraft(search, (next) => {
-    setParams({ q: next });
-  }, SEARCH_DEBOUNCE_MS);
+  const [searchInput, setSearchInput] = useDebouncedSearchDraft(
+    search,
+    (next) => {
+      setParams({ q: next });
+    },
+    SEARCH_DEBOUNCE_MS,
+  );
 
   const { data: categories = [] } = useApprovedCategories();
   const { data: petTypes = [] } = useApprovedPetTypes();
@@ -338,13 +344,28 @@ export default function VendorProductsPage() {
         title="สินค้า"
         description="ดูและจัดการสินค้าในร้าน — สถานะ ราคา และสต็อกที่สแกนได้ทันที"
         action={
-          <Button asChild>
-            <Link href="/vendor/products/new">
-              <HiOutlinePlus className="size-4" aria-hidden="true" />
-              เพิ่มสินค้า
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" variant="outline" onClick={() => setBatchPublishOpen(true)}>
+              เผยแพร่หลายรายการ
+            </Button>
+            <Button asChild>
+              <Link href="/vendor/products/new">
+                <HiOutlinePlus className="size-4" aria-hidden="true" />
+                เพิ่มสินค้า
+              </Link>
+            </Button>
+          </div>
         }
+      />
+
+      <VendorBatchPublishDialog
+        open={batchPublishOpen}
+        onOpenChange={setBatchPublishOpen}
+        onPublished={() => {
+          // Leave the draft filter — published rows drop out of that view, which
+          // looks like "status didn't change". Show the published list instead.
+          setParams({ status: 'published', page: 1 });
+        }}
       />
 
       <div className="mb-6">

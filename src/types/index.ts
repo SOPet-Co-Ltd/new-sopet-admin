@@ -395,6 +395,19 @@ export interface ProductsResult {
   };
 }
 
+export interface BatchPublishProductFailure {
+  productId: string;
+  code: string;
+  message: string;
+}
+
+export interface BatchPublishProductsResult {
+  publishedCount: number;
+  failedCount: number;
+  publishedIds: string[];
+  failures: BatchPublishProductFailure[];
+}
+
 export interface CreateProductInput {
   name: string;
   description?: string;

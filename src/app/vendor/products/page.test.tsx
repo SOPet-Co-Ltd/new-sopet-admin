@@ -74,8 +74,7 @@ vi.mock('next/navigation', async () => {
       prefetch: nav.prefetchMock,
     }),
     usePathname: () => '/vendor/products',
-    useSearchParams: () =>
-      react.useSyncExternalStore(nav.subscribe, nav.getParams, nav.getParams),
+    useSearchParams: () => react.useSyncExternalStore(nav.subscribe, nav.getParams, nav.getParams),
   };
 });
 
@@ -102,6 +101,27 @@ vi.mock('@/hooks/useProductMutations', () => ({
     isPending: false,
     error: null,
   }),
+  usePublishProducts: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    reset: vi.fn(),
+    error: null,
+  }),
+}));
+
+vi.mock('@/hooks/useVendorPublishableProducts', () => ({
+  useVendorPublishableProducts: () => ({
+    data: { items: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 0 } },
+    isLoading: false,
+    isFetching: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}));
+
+vi.mock('@/components/ui/toast', () => ({
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
+  useToast: () => ({ show: vi.fn(), showError: vi.fn() }),
 }));
 
 vi.mock('@/hooks/useTaxonomy', () => ({
@@ -143,6 +163,18 @@ describe('VendorProductsPage', () => {
     await user.click(screen.getAllByText('อาหารสุนัข')[0]!);
 
     expect(nav.pushMock).toHaveBeenCalledWith('/vendor/products/prod-1');
+  });
+
+  it('renders a batch publish button next to add product', async () => {
+    const user = userEvent.setup();
+    render(<VendorProductsPage />);
+
+    expect(screen.getByRole('link', { name: /เพิ่มสินค้า/ })).toBeInTheDocument();
+    const batchButton = screen.getByRole('button', { name: 'เผยแพร่หลายรายการ' });
+    expect(batchButton).toBeInTheDocument();
+
+    await user.click(batchButton);
+    expect(screen.getByRole('dialog', { name: 'เผยแพร่หลายรายการ' })).toBeInTheDocument();
   });
 
   it('shows pet type, brand, and tags columns', () => {
