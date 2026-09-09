@@ -59,8 +59,11 @@ vi.mock('@/hooks/usePayouts', () => ({
   })),
 }));
 
+const authGuardState = vi.hoisted(() => ({ renderChildren: true }));
+
 vi.mock('@/components/auth-guard', () => ({
-  AuthGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AuthGuard: ({ children }: { children: React.ReactNode }) =>
+    authGuardState.renderChildren ? <>{children}</> : <div data-testid="auth-blocked" />,
 }));
 
 vi.mock('@/lib/react-query/prefetch-dashboard-nav', () => ({
@@ -216,6 +219,23 @@ describe('buildAdminNavSections', () => {
 describe('AdminLayout sidebar badge', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authGuardState.renderChildren = true;
+  });
+
+  it('does not fetch admin pending counts until AuthGuard authorizes', () => {
+    authGuardState.renderChildren = false;
+    setupMocks();
+
+    render(
+      <AdminLayout>
+        <div>content</div>
+      </AdminLayout>,
+    );
+
+    expect(screen.getByTestId('auth-blocked')).toBeInTheDocument();
+    expect(mockedUsePendingStoreRequests).not.toHaveBeenCalled();
+    expect(mockedUsePendingVendorInvitations).not.toHaveBeenCalled();
+    expect(mockedUseUnreadCount).not.toHaveBeenCalled();
   });
 
   it('shows the combined pending request count on ศูนย์คำขอ', () => {

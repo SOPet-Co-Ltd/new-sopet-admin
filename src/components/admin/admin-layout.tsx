@@ -151,6 +151,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 }
 
 function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthGuard requiredRole="admin">
+      <AdminDashboardShell>{children}</AdminDashboardShell>
+    </AuthGuard>
+  );
+}
+
+function AdminDashboardShell({ children }: { children: React.ReactNode }) {
   const { data: storeRequests = [] } = usePendingStoreRequests();
   const { data: invitations = [] } = usePendingVendorInvitations();
   const { data: pendingCategories = [] } = usePendingCategories();
@@ -178,10 +186,8 @@ function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <AuthGuard requiredRole="admin">
-      <DashboardShell brandHref="/admin" brandLabel="Admin" navSections={navSections}>
-        {children}
-      </DashboardShell>
-    </AuthGuard>
+    <DashboardShell brandHref="/admin" brandLabel="Admin" navSections={navSections}>
+      {children}
+    </DashboardShell>
   );
 }
