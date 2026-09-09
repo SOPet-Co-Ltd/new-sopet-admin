@@ -158,6 +158,14 @@ export function VendorLayout({ children }: { children: React.ReactNode }) {
 }
 
 function VendorDashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthGuard requiredRole="vendor">
+      <VendorDashboardShell>{children}</VendorDashboardShell>
+    </AuthGuard>
+  );
+}
+
+function VendorDashboardShell({ children }: { children: React.ReactNode }) {
   const { data: stores = [], isLoading: isStoresLoading } = useMyStores();
   const storeId = useVendorStoreId();
   const { data: analytics } = useStoreAnalytics(storeId);
@@ -190,17 +198,15 @@ function VendorDashboardLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <AuthGuard requiredRole="vendor">
-      <DashboardShell
-        brandHref="/vendor"
-        brandLabel="ผู้ขาย"
-        navSections={navSections}
-        header={header}
-      >
-        <EmailVerificationBanner />
-        <SuspendedStoreBanner />
-        <VendorStoreGuard>{children}</VendorStoreGuard>
-      </DashboardShell>
-    </AuthGuard>
+    <DashboardShell
+      brandHref="/vendor"
+      brandLabel="ผู้ขาย"
+      navSections={navSections}
+      header={header}
+    >
+      <EmailVerificationBanner />
+      <SuspendedStoreBanner />
+      <VendorStoreGuard>{children}</VendorStoreGuard>
+    </DashboardShell>
   );
 }

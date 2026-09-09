@@ -106,12 +106,17 @@ export async function forwardGraphql(
   }
 }
 
-export async function refreshTokensUpstream(refreshToken: string): Promise<AuthTokenPair | null> {
+export async function refreshTokensUpstream(
+  refreshToken: string,
+  incomingRequest?: Request,
+): Promise<AuthTokenPair | null> {
   const { response, json } = await forwardGraphql(
     JSON.stringify({
       query: REFRESH_MUTATION,
       variables: { input: { refreshToken } },
     }),
+    undefined,
+    incomingRequest,
   );
 
   const tokens = (json.data as { refreshToken?: AuthTokenPair } | undefined)?.refreshToken;

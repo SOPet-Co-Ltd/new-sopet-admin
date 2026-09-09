@@ -47,8 +47,11 @@ vi.mock('@/hooks/useTheme', () => ({
   useTheme: vi.fn(),
 }));
 
+const authGuardState = vi.hoisted(() => ({ renderChildren: true }));
+
 vi.mock('@/components/auth-guard', () => ({
-  AuthGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AuthGuard: ({ children }: { children: React.ReactNode }) =>
+    authGuardState.renderChildren ? <>{children}</> : <div data-testid="auth-blocked" />,
 }));
 
 vi.mock('@/components/vendor/vendor-store-guard', () => ({
@@ -244,6 +247,23 @@ describe('buildVendorNavSections', () => {
 describe('VendorLayout sidebar nav', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authGuardState.renderChildren = true;
+  });
+
+  it('does not fetch vendor dashboard data until AuthGuard authorizes', () => {
+    authGuardState.renderChildren = false;
+    setupMocks();
+
+    render(
+      <VendorLayout>
+        <div>content</div>
+      </VendorLayout>,
+    );
+
+    expect(screen.getByTestId('auth-blocked')).toBeInTheDocument();
+    expect(mockedUseMyStores).not.toHaveBeenCalled();
+    expect(mockedUseStoreAnalytics).not.toHaveBeenCalled();
+    expect(mockedUseMyPendingStoreInvitations).not.toHaveBeenCalled();
   });
 
   it('shows full nav while stores are loading', () => {
