@@ -835,6 +835,79 @@ DELETE /api/v1/stores/{storeId}/webhook`}
 
       <Card>
         <CardHeader>
+          <h2 className="font-display font-medium text-ink">รายการรีวิว / ลบรีวิวนำเข้า</h2>
+        </CardHeader>
+        <CardBody className="space-y-4 text-sm">
+          <p className="text-muted">
+            ใช้ตรวจว่ารีวิวที่อัปโหลดไปถูกต้อง และลบรีวิวนำเข้า (
+            <code className="font-mono text-ink">source=vendor_import</code>) ได้ —
+            ลบรีวิวจากลูกค้าจริงไม่ได้
+          </p>
+          <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink whitespace-pre-wrap">
+            {`GET    /api/v1/stores/{storeId}/reviews?source=vendor_import
+DELETE /api/v1/stores/{storeId}/reviews/{reviewId}`}
+          </pre>
+          <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink whitespace-pre-wrap">
+            {`curl -X GET "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/reviews?source=vendor_import&page=1" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx"
+
+curl -X DELETE "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/reviews/{reviewId}" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx"`}
+          </pre>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="font-display font-medium text-ink">
+            นำเข้าข้อมูลร้านเก่า (Import only — ไม่กระทบ payout)
+          </h2>
+        </CardHeader>
+        <CardBody className="space-y-4 text-sm">
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
+            <p className="font-medium">Import (payout-safe)</p>
+            <p className="mt-1 text-muted dark:text-amber-100/80">
+              Endpoint กลุ่ม <code className="font-mono text-ink">/imported-*</code>{' '}
+              บันทึกลงตารางจริง (<code className="font-mono text-ink">customers</code> /{' '}
+              <code className="font-mono text-ink">orders</code>) ด้วย{' '}
+              <code className="font-mono text-ink">source: vendor_import</code> —{' '}
+              <strong>ไม่กระทบ payout / การชำระเงิน / สต็อก / webhook</strong>
+            </p>
+          </div>
+          <div>
+            <p className="font-medium text-ink">Endpoints</p>
+            <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink whitespace-pre-wrap">
+              {`POST/GET /api/v1/stores/{storeId}/imported-customers
+POST/GET /api/v1/stores/{storeId}/imported-customers/{id}/addresses
+POST/GET /api/v1/stores/{storeId}/imported-orders`}
+            </pre>
+          </div>
+          <p className="text-muted">
+            สินค้าใน GET/list มี <code className="font-mono text-ink">soldCount</code>{' '}
+            รวมยอดจากออเดอร์นำเข้าที่ map <code className="font-mono text-ink">productId</code>/
+            <code className="font-mono text-ink">sku</code> ได้
+          </p>
+          <div>
+            <p className="mb-2 font-medium text-ink">
+              ตัวอย่าง cURL (ลูกค้า + ที่อยู่ + ออเดอร์เก่า)
+            </p>
+            <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs text-ink whitespace-pre-wrap">
+              {`curl -X POST "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/imported-customers" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
+  -H "Content-Type: application/json" \\
+  -d '{"phone":"+66812345678","fullName":"สมชาย ใจดี","externalId":"OLD-CUST-001"}'
+
+curl -X POST "${apiBaseUrl}/api/v1/stores/${exampleStoreId}/imported-orders" \\
+  -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
+  -H "Content-Type: application/json" \\
+  -d '{"externalOrderNumber":"OLD-ORD-1001","placedAt":"2025-06-01T10:00:00.000Z","items":[{"productId":"{productId}","productName":"อาหารแมว","quantity":2,"unitPrice":499}]}'`}
+            </pre>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <h2 className="font-display font-medium text-ink">ดูรายการออเดอร์ (ตาข่ายรอง webhook)</h2>
         </CardHeader>
         <CardBody className="space-y-4 text-sm">
