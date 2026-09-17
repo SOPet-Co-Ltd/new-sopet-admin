@@ -50,6 +50,11 @@ describe('vendor api llms.txt route', () => {
     expect(body).toContain('/products/{productId}/reviews');
     expect(body).toContain('vendor_import');
     expect(body).toContain('ลูกค้าไม่ระบุชื่อ');
+    expect(body).toContain('/imported-customers');
+    expect(body).toContain('/imported-orders');
+    expect(body).toContain('soldCount');
+    expect(body).toContain('REVIEW_NOT_DELETABLE');
+    expect(body).toContain('payout-safe');
     expect(body).toContain('X-Sopet-Signature');
     expect(body).toContain('Authorization: Bearer sopet_sk_...');
     expect(body).toContain('X-Api-Key: sopet_sk_...');
@@ -61,8 +66,8 @@ describe('vendor api llms.txt route', () => {
     expect(body).toContain('| images | string[] |');
     expect(body).toContain('source URLs are never stored');
     expect(body).toContain('persist these for later GET/PATCH/DELETE');
-    expect(body).toContain('### List products');
-    expect(body).toContain('### Get product by id');
+    expect(body).toContain('### List / get products');
+    expect(body).toContain('### Create product (draft)');
     expect(body).not.toMatch(/Listing, updating, deleting/);
   });
 
