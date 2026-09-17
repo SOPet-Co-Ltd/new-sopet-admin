@@ -9,9 +9,11 @@ function buildLlmsTxtContent(adminOrigin: string): string {
 
   return `# SOPET Vendor API
 
-> REST API for approved SOPET stores: products (CRUD drafts), list orders (webhook catch-up), webhooks, and tracking updates for ERP/POS/n8n/Zapier.
+> REST for approved stores: products (CRUD drafts), live orders/webhooks/tracking, review import/list/delete, and **old-store import** (\`/imported-*\`).
 
 > API keys are store-scoped. Products via this API are always \`draft\` until published in the vendor UI. Image URLs are downloaded into object storage (source URLs are never stored).
+
+> **Import (payout-safe):** \`/imported-customers\`, \`/imported-orders\` write into live \`customers\`/\`orders\` with \`source: vendor_import\`. They do **not** affect payouts, payments, stock, or webhooks. Products return \`soldCount\` (includes import qty).
 
 ## Documentation
 
@@ -39,199 +41,81 @@ UUID from ${adminOrigin}/vendor/api — use in every \`/api/v1/stores/{storeId}/
 
 ## Endpoints
 
-### List products
+### List / get products
 
-- Method: \`GET\`
-- Path: \`/api/v1/stores/{storeId}/products\`
-- Success: \`200\` with \`{ items: Product[], pagination: { page, limit, total, totalPages } }\`
-- Query (all optional): \`page\` (default 1), \`limit\` (default 20, max 100), \`status\` (\`draft\`|\`published\`|\`archived\`; omit = all), \`search\` (product name)
-- Includes draft/published/archived for this store (soft-deleted excluded). Same product shape as create response (with variants).
-
-### Get product by id
-
-- Method: \`GET\`
-- Path: \`/api/v1/stores/{storeId}/products/{productId}\`
-- Success: \`200\` with the product object (same shape as create)
-- Errors: \`404 PRODUCT_NOT_FOUND\` if missing or wrong store
+- \`GET /api/v1/stores/{storeId}/products\` → \`{ items, pagination }\`; query: \`page\`, \`limit\` (max 100), \`status\` (\`draft\`|\`published\`|\`archived\`), \`search\`
+- \`GET /api/v1/stores/{storeId}/products/{productId}\` → product; \`404 PRODUCT_NOT_FOUND\`
+- Responses include variants + \`soldCount\`
 
 ### Create product (draft)
 
-- Method: \`POST\`
-- Path: \`/api/v1/stores/{storeId}/products\`
-- Success: \`201\` with the created product object (status \`draft\`)
-- **Important:** response includes product \`id\` (UUID) and each variant's \`id\` — persist these for later GET/PATCH/DELETE.
-
-#### Request body fields
+- Success: \`201\` draft. Response includes product \`id\` and each variant \`id\` — persist these for later GET/PATCH/DELETE.
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
 | name | string | yes | 1–255 chars |
-| description | string | no | Product description |
-| warning | string | no | Max 1000 chars |
+| description | string | no | |
+| warning | string | no | Max 1000 |
 | expiryDate | string | no | \`YYYY-MM-DD\` |
-| category | string | no | Approved category **name** (not id); case-insensitive match |
-| tags | string[] | no | Approved tag **names**; case-insensitive |
-| petType | string | no | Approved pet type **name**; recommended — required later to publish |
-| brand | string | no | Approved brand **name**; case-insensitive |
-| images | string[] | no | Remote image URLs (http/https), max 10; each ≤ 5 MB; jpeg/png/webp/gif. Server downloads → WebP → object storage; only storage URLs are persisted. First image = thumbnail. Any failure fails the whole create. |
-| variants | array | yes | Option groups / dimensions (≥ 1). No sku/stock/price here |
-| variantItems | array | yes | Purchasable combinations (≥ 1). Holds sku/stock/price |
+| category / tags / petType / brand | string / string[] | no | Approved taxonomy **names** |
+| images | string[] | no | Remote URLs max 10; ≤5MB; jpeg/png/webp/gif → WebP storage |
+| variants | array | yes | Option groups (≥1); no sku/stock/price |
+| variantItems | array | yes | Combinations (≥1) with sku/stock/price/options |
 
-#### variants[] / variantItems[]
+\`variants[].name\` + \`values[]\`; \`variantItems[].sku\`, \`stock\` (≥0), \`price\` (absolute THB), \`options\` map every group → value. basePrice = min(prices); always \`draft\`.
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| variants[].name | string | yes | Dimension name, e.g. "สี" |
-| variants[].values | string[] | yes | Allowed values |
-| variantItems[].sku | string | yes | Unique SKU |
-| variantItems[].stock | integer | yes | ≥ 0 |
-| variantItems[].price | number | yes | THB absolute price ≥ 0 |
-| variantItems[].options | object | yes | Map of every variants[].name → one of its values |
+### Update / delete product
 
-Create rules: base price = min(variantItems[].price); always \`draft\`; taxonomy names must already be approved.
+- \`PATCH /api/v1/stores/{storeId}/products/{productId}\` — optional \`name\`, \`description\`, \`warning\`, \`expiryDate\`, \`category\`, \`tags\`, \`petType\`, \`brand\`, \`images\` (full replace). Not stock/price/status/variants.
+- \`DELETE /api/v1/stores/{storeId}/products/{productId}\` → \`204\` soft delete
 
-### Delete product
+### Update variant stock / price
 
-- Method: \`DELETE\`
-- Path: \`/api/v1/stores/{storeId}/products/{productId}\`
-- Success: \`204\` empty body (soft delete)
-- Errors: \`404 PRODUCT_NOT_FOUND\` if missing or wrong store
-
-### Update product info
-
-- Method: \`PATCH\`
-- Path: \`/api/v1/stores/{storeId}/products/{productId}\`
-- Success: \`200\` with the updated product
-- Body: all fields optional; at least one required. Allowed: \`name\`, \`description\`, \`warning\`, \`expiryDate\`, \`category\`, \`tags\`, \`petType\`, \`brand\`, \`images\` (same semantics as create; \`images\` replaces the full set when sent, including \`[]\` to clear).
-- Not allowed: stock, price, status, variants.
-
-### Update variant stock / price (by id)
-
-- Method: \`PATCH\`
-- Path: \`/api/v1/stores/{storeId}/products/{productId}/variants/{variantId}\`
-- Success: \`200\` with the updated variant (\`price\` is absolute effective THB)
-- Body: \`stock\` (integer ≥ 0) and/or \`price\` (number ≥ 0 absolute THB); at least one required.
-
-### Update variant stock / price (by SKU)
-
-- Method: \`PATCH\`
-- Path: \`/api/v1/stores/{storeId}/variants/by-sku/{sku}\`
-- Same body as by-id. SKU lookup is store-scoped.
-
-Price rule: REST \`price\` is absolute; stored as \`priceAdjustment = price - product.basePrice\` (sibling variants / basePrice are not recomputed).
+- \`PATCH .../products/{productId}/variants/{variantId}\` or \`PATCH .../variants/by-sku/{sku}\`
+- Body: \`stock\` and/or \`price\` (absolute THB); at least one. Stored as \`priceAdjustment = price - basePrice\`.
 
 ### Configure order webhook
 
-- \`PUT /api/v1/stores/{storeId}/webhook\` — upsert URL + events
-- \`GET /api/v1/stores/{storeId}/webhook\` — current config (\`hasSecret: true\`; secret never re-shown)
-- \`DELETE /api/v1/stores/{storeId}/webhook\` — remove config
+- \`PUT/GET/DELETE /api/v1/stores/{storeId}/webhook\`
+- PUT: \`url\` (HTTPS), \`events?\`, \`enabled?\`, \`rotateSecret?\`
+- Outbound: \`POST\` JSON + \`X-Sopet-Event\`, \`X-Sopet-Delivery-Id\`, \`X-Sopet-Signature: sha256=<hmac_hex>\`
+- Events: \`order.create\`, \`order.payment_failed\`, \`order.paid\`, \`order.processing\`, \`order.on_hold\`, \`order.shipped\`, \`order.delivered\`, \`order.cancelled\`, \`order.refunded\`
 
-PUT body:
+### List orders / tracking
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| url | string | yes | HTTPS callback URL |
-| events | string[] | no | subset of events below; omit = all events |
-| enabled | boolean | no | default true |
-| rotateSecret | boolean | no | true regenerates signing secret (returned once) |
+- \`GET /api/v1/stores/{storeId}/orders\` — query: \`page\`, \`limit\`, \`status\`, \`fulfillmentStatus\`, \`updatedSince\`, \`createdSince\`, \`createdUntil\`
+- \`PATCH /api/v1/stores/{storeId}/orders/{orderId}/tracking\` — \`trackingNumber\`, \`fulfillmentProvider\`, \`trackingUrl?\`
 
-Outbound delivery (SOPET → your URL):
+### Reviews
 
-- Method: \`POST\`, \`Content-Type: application/json\`
-- Headers: \`X-Sopet-Event\`, \`X-Sopet-Delivery-Id\`, \`X-Sopet-Signature: sha256=<hmac_hex>\`
-- Body: store-scoped order payload (only that store's line items + customer/shipping snapshot)
+- \`POST /api/v1/stores/{storeId}/products/{productId}/reviews\` — \`rating\` 1–5, \`comment?\`, \`images?\` (max 5) → \`pending\` / \`vendor_import\` / \`ลูกค้าไม่ระบุชื่อ\` (admin must approve)
+- \`GET /api/v1/stores/{storeId}/reviews\` — query: \`page\`, \`limit\`, \`productId\`, \`status\`, \`source\`
+- \`DELETE /api/v1/stores/{storeId}/reviews/{reviewId}\` → \`204\` only \`vendor_import\` (\`403 REVIEW_NOT_DELETABLE\`)
 
-| Event | When |
-| --- | --- |
-| \`order.create\` | Customer placed the order (pending payment) |
-| \`order.payment_failed\` | Charge failed or QR expired; order stays pending_payment for retry |
-| \`order.paid\` | Payment succeeded — ready to fulfill |
-| \`order.processing\` | Vendor acknowledged / preparing |
-| \`order.on_hold\` | Order held (e.g. store suspension) |
-| \`order.shipped\` | Shipped (tracking set) |
-| \`order.delivered\` | Customer confirmed delivery |
-| \`order.cancelled\` | Order cancelled |
-| \`order.refunded\` | Order refunded |
+### Old-store import (merge into live tables — no payout/stock/webhook)
 
-### List orders (webhook catch-up)
-
-- \`GET /api/v1/stores/{storeId}/orders\` → \`{ items, pagination }\` (store-scoped; fields align with webhook \`data\`: \`orderId\`, \`sku\`, customer, shippingAddress)
-- Query: \`page\`, \`limit\` (max 100), \`status\`, \`fulfillmentStatus\`, \`updatedSince\` (ISO-8601; poll with this), \`createdSince\`, \`createdUntil\`
-- Sort: \`updatedAt\` DESC. Use \`orderId\`/\`id\` for PATCH tracking.
-
-### Update order tracking
-
-- Method: \`PATCH\`
-- Path: \`/api/v1/stores/{storeId}/orders/{orderId}/tracking\`
-- Success: \`200\` with store-scoped order + items (includes tracking fields)
-- Body: \`trackingNumber\` (required), \`fulfillmentProvider\` (required), \`trackingUrl\` (optional HTTPS)
-- Behavior: auto-acknowledges pending items then ships; if already shipped, updates tracking fields only
-
-### Import product review (unknown customer)
-
-- Method: \`POST\`
-- Path: \`/api/v1/stores/{storeId}/products/{productId}/reviews\`
-- Success: \`201\` with review object (\`status: pending\`, \`source: vendor_import\`, \`customerName: ลูกค้าไม่ระบุชื่อ\`)
-- Body: \`rating\` (1–5 required), \`comment\` (optional, ≤ 2000), \`images\` (optional HTTPS URL array, max 5)
-- Imported reviews are **not public** until a platform admin approves them in the admin dashboard (\`/admin/reviews\`). After approval they appear on the storefront as unknown customer.
-
-#### Example curl (update stock by SKU)
-
-\`\`\`bash
-curl -X PATCH "${apiBaseUrl}/api/v1/stores/{storeId}/variants/by-sku/CAT-ORG-2KG-CHK" \\
-  -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
-  -H "Content-Type: application/json" \\
-  -d '{"stock":100,"price":529}'
-\`\`\`
-
-#### Example curl (tracking)
-
-\`\`\`bash
-curl -X PATCH "${apiBaseUrl}/api/v1/stores/{storeId}/orders/{orderId}/tracking" \\
-  -H "Authorization: Bearer sopet_sk_xxxxxxxx" \\
-  -H "Content-Type: application/json" \\
-  -d '{"trackingNumber":"TH123456789","fulfillmentProvider":"Kerry"}'
-\`\`\`
+- \`POST/GET /api/v1/stores/{storeId}/imported-customers\` — \`phone\`, \`fullName\`, \`email?\`, \`externalId?\`; upserts \`customers\` with \`source: vendor_import\`
+- \`POST/GET /api/v1/stores/{storeId}/imported-customers/{id}/addresses\` — Thai address fields → \`saved_addresses\`
+- \`POST/GET /api/v1/stores/{storeId}/imported-orders\` — \`externalOrderNumber\`, \`placedAt\`, \`customerId?\`, \`items[]\` (\`productName\`, \`quantity\`, \`unitPrice\`, \`productId?\`/\`sku?\`); rows in \`orders\` with \`source: vendor_import\` (excluded from payouts)
 
 ## Error responses
 
-Shape:
+\`{ "success": false, "error": { "code", "message" }, "meta": { "timestamp", "path", "method" } }\`
 
-\`\`\`json
-{
-  "success": false,
-  "error": { "code": "ERROR_CODE", "message": "..." },
-  "meta": { "timestamp": "...", "path": "...", "method": "..." }
-}
-\`\`\`
-
-| HTTP | Code | Meaning |
-| --- | --- | --- |
-| 401 | INVALID_API_KEY | Missing, invalid, revoked, or wrong-store key |
-| 403 | STORE_SUSPENDED | Store not approved or suspended |
-| 400 | VALIDATION_ERROR | Request body failed validation / empty PATCH |
-| 400 | VARIANTS_REQUIRED | Missing/empty variants (create) |
-| 400 | VARIANT_ITEMS_REQUIRED | Missing/empty variantItems (create) |
-| 400 | INVALID_VARIANT_OPTIONS | options missing a group or using undeclared values |
-| 400 | CATEGORY_NOT_FOUND / TAG_NOT_FOUND / PET_TYPE_NOT_FOUND / BRAND_NOT_FOUND | Unknown or unapproved taxonomy name |
-| 400 | SKU_EXISTS | SKU already exists (create) |
-| 400 | INVALID_IMAGE_URL / INVALID_IMAGE_TYPE / IMAGE_TOO_LARGE | Image download or validation failed |
-| 400 | TOO_MANY_IMAGES | More than 10 images |
-| 400 | INVALID_WEBHOOK_URL / INVALID_WEBHOOK_EVENT | Bad webhook config |
-| 400 | INVALID_ORDER_STATUS | Order cannot accept tracking update |
-| 404 | PRODUCT_NOT_FOUND | Missing product or wrong store |
-| 404 | VARIANT_NOT_FOUND | Missing variant, wrong store, or not under productId |
-| 404 | WEBHOOK_NOT_FOUND | Webhook not configured |
-| 404 | ORDER_NOT_FOUND | Missing order |
+| HTTP | Code |
+| --- | --- |
+| 401 | INVALID_API_KEY |
+| 403 | STORE_SUSPENDED / REVIEW_NOT_DELETABLE |
+| 400 | VALIDATION_ERROR / VARIANTS_REQUIRED / VARIANT_ITEMS_REQUIRED / INVALID_VARIANT_OPTIONS / CATEGORY_NOT_FOUND / TAG_NOT_FOUND / PET_TYPE_NOT_FOUND / BRAND_NOT_FOUND / SKU_EXISTS / INVALID_IMAGE_URL / INVALID_IMAGE_TYPE / IMAGE_TOO_LARGE / TOO_MANY_IMAGES / INVALID_WEBHOOK_URL / INVALID_WEBHOOK_EVENT / INVALID_ORDER_STATUS |
+| 404 | PRODUCT_NOT_FOUND / VARIANT_NOT_FOUND / WEBHOOK_NOT_FOUND / ORDER_NOT_FOUND / REVIEW_NOT_FOUND / IMPORTED_CUSTOMER_NOT_FOUND |
+| 409 | IMPORTED_CUSTOMER_CONFLICT / IMPORTED_ORDER_CONFLICT |
 
 ## Out of scope
 
-- Publishing products via REST
-- Multipart / base64 image upload on REST (use image URLs instead)
-- Creating new variants after product create
-- GraphQL / admin JWT flows for these integrations
+- Publishing products via REST; multipart/base64 upload; creating variants after create
+- Turning imported data into payouts / stock mutations; GraphQL / admin JWT for these integrations
 
-Use the human docs at ${adminOrigin}/vendor/api/docs for the Thai UI field tables.
+Use ${adminOrigin}/vendor/api/docs for Thai field tables.
 `;
 }
 
