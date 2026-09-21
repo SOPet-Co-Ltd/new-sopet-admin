@@ -147,6 +147,7 @@ export const queryKeys = {
     ads: () => ['platform', 'ads'] as const,
     loginPageImages: () => ['platform', 'loginPageImages'] as const,
     bankTransfer: () => ['platform', 'bankTransfer'] as const,
+    storefrontMaintenance: () => ['platform', 'storefrontMaintenance'] as const,
   },
   adminTeam: {
     all: ['adminTeam'] as const,

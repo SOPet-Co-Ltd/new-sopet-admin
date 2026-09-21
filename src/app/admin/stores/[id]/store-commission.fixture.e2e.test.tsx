@@ -263,6 +263,36 @@ vi.mock('@/hooks/usePlatformSettings', () => ({
     isError: false,
     error: null,
   }),
+  useBankTransferSettings: () => ({
+    data: {
+      enabled: false,
+      bankName: '',
+      accountName: '',
+      accountNumber: '',
+      branchName: null,
+    },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useUpdateBankTransferDetails: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    reset: vi.fn(),
+  }),
+  useStorefrontMaintenance: () => ({
+    data: { enabled: false, reason: null, customMessage: null, untilAt: null },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useUpdateStorefrontMaintenance: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    reset: vi.fn(),
+  }),
 }));
 
 vi.mock('@/components/admin/vendor-combobox', () => ({
@@ -366,6 +396,7 @@ describe('store commission — admin rate configure journey [fixture-e2e]', () =
       'ads',
       'loginImages',
       'bankTransfer',
+      'storefront',
     ]);
     expect(JSON.stringify(platformSettingsTabLabels)).not.toMatch(/คอมมิชชัน|commission/i);
 

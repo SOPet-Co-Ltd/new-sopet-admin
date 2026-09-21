@@ -1856,6 +1856,28 @@ export const UPDATE_BANK_TRANSFER_DETAILS = gql`
   }
 `;
 
+export const STOREFRONT_MAINTENANCE_QUERY = gql`
+  query StorefrontMaintenance {
+    storefrontMaintenance {
+      enabled
+      reason
+      customMessage
+      untilAt
+    }
+  }
+`;
+
+export const UPDATE_STOREFRONT_MAINTENANCE = gql`
+  mutation UpdateStorefrontMaintenance($input: UpdateStorefrontMaintenanceInput!) {
+    updateStorefrontMaintenance(input: $input) {
+      enabled
+      reason
+      customMessage
+      untilAt
+    }
+  }
+`;
+
 const ADMIN_TEAM_MEMBER_FIELDS = `
   id
   email

@@ -34,13 +34,19 @@ export interface DateTimePickerProps {
   'aria-invalid'?: boolean;
   'aria-describedby'?: string;
   placeholder?: string;
+  /** Earliest allowed value (`YYYY-MM-DD` or `YYYY-MM-DDTHH:mm`). Past slots are disabled. */
+  min?: string;
 }
+
+type DateParts = { year: number; month: number; day: number };
+type TimeParts = { hour: number; minute: number };
+type DateTimeParts = DateParts & TimeParts;
 
 function pad2(value: number): string {
   return String(value).padStart(2, '0');
 }
 
-function parseDateValue(value: string): { year: number; month: number; day: number } | null {
+function parseDateValue(value: string): DateParts | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
   if (!match) return null;
   const year = Number(match[1]);
@@ -50,17 +56,45 @@ function parseDateValue(value: string): { year: number; month: number; day: numb
   return { year, month, day };
 }
 
-function parseTimeValue(value: string): { hour: number; minute: number } {
+function parseTimeValue(value: string): TimeParts {
   const match = /T(\d{2}):(\d{2})/.exec(value);
   if (!match) return { hour: 0, minute: 0 };
   return { hour: Number(match[1]), minute: Number(match[2]) };
 }
 
-function buildValue(
-  date: { year: number; month: number; day: number },
-  time: { hour: number; minute: number },
-  mode: DateTimePickerMode,
-): string {
+function parseMinParts(min: string | undefined): DateTimeParts | null {
+  if (!min?.trim()) return null;
+  const date = parseDateValue(min);
+  if (!date) return null;
+  const time = /T\d{2}:\d{2}/.test(min) ? parseTimeValue(min) : { hour: 0, minute: 0 };
+  return { ...date, ...time };
+}
+
+function toLocalMs(parts: DateTimeParts): number {
+  return new Date(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute).getTime();
+}
+
+function isDayBeforeMin(
+  year: number,
+  month: number,
+  day: number,
+  min: DateTimeParts | null,
+): boolean {
+  if (!min) return false;
+  const dayMs = new Date(year, month - 1, day).setHours(0, 0, 0, 0);
+  const minDayMs = new Date(min.year, min.month - 1, min.day).setHours(0, 0, 0, 0);
+  return dayMs < minDayMs;
+}
+
+function clampToMin(parts: DateTimeParts, min: DateTimeParts | null): DateTimeParts {
+  if (!min) return parts;
+  if (toLocalMs(parts) < toLocalMs(min)) {
+    return { ...min };
+  }
+  return parts;
+}
+
+function buildValue(date: DateParts, time: TimeParts, mode: DateTimePickerMode): string {
   const datePart = `${date.year}-${pad2(date.month)}-${pad2(date.day)}`;
   if (mode === 'date') return datePart;
   return `${datePart}T${pad2(time.hour)}:${pad2(time.minute)}`;
@@ -113,6 +147,7 @@ export function DateTimePicker({
   'aria-invalid': ariaInvalid,
   'aria-describedby': ariaDescribedBy,
   placeholder,
+  min,
 }: DateTimePickerProps) {
   const generatedId = useId();
   const pickerId = id ?? generatedId;
@@ -121,6 +156,7 @@ export function DateTimePicker({
   const [open, setOpen] = useState(false);
 
   const today = new Date();
+  const minParts = parseMinParts(min);
   const parsed = parseDateValue(value);
   const [viewYear, setViewYear] = useState(parsed?.year ?? today.getFullYear());
   const [viewMonth, setViewMonth] = useState(parsed?.month ?? today.getMonth() + 1);
@@ -136,6 +172,10 @@ export function DateTimePicker({
 
   const selectedDay = parsed?.day ?? null;
   const time = parseTimeValue(value);
+  const canGoPrevMonth =
+    !minParts ||
+    viewYear > minParts.year ||
+    (viewYear === minParts.year && viewMonth > minParts.month);
 
   useEffect(() => {
     if (!open) return;
@@ -149,15 +189,29 @@ export function DateTimePicker({
   }, [open]);
 
   function emitChange(year: number, month: number, day: number, hour: number, minute: number) {
-    onChange(buildValue({ year, month, day }, { hour, minute }, mode));
+    if (isDayBeforeMin(year, month, day, minParts)) {
+      return;
+    }
+    const clamped = clampToMin({ year, month, day, hour, minute }, minParts);
+    onChange(
+      buildValue(
+        { year: clamped.year, month: clamped.month, day: clamped.day },
+        { hour: clamped.hour, minute: clamped.minute },
+        mode,
+      ),
+    );
   }
 
   function selectDay(day: number) {
+    if (isDayBeforeMin(viewYear, viewMonth, day, minParts)) {
+      return;
+    }
     emitChange(viewYear, viewMonth, day, time.hour, time.minute);
     if (mode === 'date') setOpen(false);
   }
 
   function shiftMonth(delta: number) {
+    if (delta < 0 && !canGoPrevMonth) return;
     const date = new Date(viewYear, viewMonth - 1 + delta, 1);
     setViewYear(date.getFullYear());
     setViewMonth(date.getMonth() + 1);
@@ -200,6 +254,7 @@ export function DateTimePicker({
               size="sm"
               variant="outline"
               aria-label="เดือนก่อนหน้า"
+              disabled={!canGoPrevMonth}
               onClick={() => shiftMonth(-1)}
             >
               ‹
@@ -231,19 +286,28 @@ export function DateTimePicker({
               day === null ? (
                 <span key={`empty-${index}`} aria-hidden />
               ) : (
-                <button
-                  key={`${viewYear}-${viewMonth}-${day}`}
-                  type="button"
-                  className={cn(
-                    'h-8 rounded-md text-sm transition-colors hover:bg-brand-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30',
-                    selectedDay === day && 'bg-brand text-white hover:bg-brand',
-                  )}
-                  aria-label={`${day} ${THAI_MONTHS[viewMonth - 1]} ${viewYear + 543}`}
-                  aria-pressed={selectedDay === day}
-                  onClick={() => selectDay(day)}
-                >
-                  {day}
-                </button>
+                (() => {
+                  const dayDisabled = isDayBeforeMin(viewYear, viewMonth, day, minParts);
+                  return (
+                    <button
+                      key={`${viewYear}-${viewMonth}-${day}`}
+                      type="button"
+                      disabled={dayDisabled}
+                      className={cn(
+                        'h-8 rounded-md text-sm transition-colors hover:bg-brand-tint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30',
+                        selectedDay === day && 'bg-brand text-white hover:bg-brand',
+                        dayDisabled &&
+                          'cursor-not-allowed text-muted opacity-40 hover:bg-transparent',
+                      )}
+                      aria-label={`${day} ${THAI_MONTHS[viewMonth - 1]} ${viewYear + 543}`}
+                      aria-pressed={selectedDay === day}
+                      aria-disabled={dayDisabled}
+                      onClick={() => selectDay(day)}
+                    >
+                      {day}
+                    </button>
+                  );
+                })()
               ),
             )}
           </div>
@@ -262,7 +326,7 @@ export function DateTimePicker({
                   value={pad2(time.hour)}
                   onChange={(event) => {
                     const hour = Math.min(23, Math.max(0, Number(event.target.value) || 0));
-                    const day = selectedDay ?? 1;
+                    const day = selectedDay ?? minParts?.day ?? 1;
                     emitChange(viewYear, viewMonth, day, hour, time.minute);
                   }}
                 />
@@ -279,7 +343,7 @@ export function DateTimePicker({
                   value={pad2(time.minute)}
                   onChange={(event) => {
                     const minute = Math.min(59, Math.max(0, Number(event.target.value) || 0));
-                    const day = selectedDay ?? 1;
+                    const day = selectedDay ?? minParts?.day ?? 1;
                     emitChange(viewYear, viewMonth, day, time.hour, minute);
                   }}
                 />

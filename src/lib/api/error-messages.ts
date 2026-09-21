@@ -215,6 +215,11 @@ export const ERROR_MESSAGES = {
   STORE_OWNER_REQUIRED: 'เฉพาะเจ้าของร้านเท่านั้นที่ดำเนินการนี้ได้',
   STORE_REQUEST_NOT_FOUND: 'ไม่พบคำขอเปิดร้าน',
   STORE_SUSPENDED: 'ร้านค้านี้ถูกระงับชั่วคราว กรุณาส่งคำขอเปิดใช้งานใหม่หรือติดต่อฝ่ายสนับสนุน',
+  STOREFRONT_MAINTENANCE_CUSTOM_MESSAGE_REQUIRED: 'กรุณาระบุเหตุผลเพิ่มเติม',
+  STOREFRONT_MAINTENANCE_CUSTOM_MESSAGE_TOO_LONG: 'ข้อความเหตุผลยาวเกินไป',
+  STOREFRONT_MAINTENANCE_REASON_REQUIRED: 'กรุณาเลือกเหตุผลในการปิดหน้าร้าน',
+  STOREFRONT_MAINTENANCE_UNTIL_INVALID: 'วันที่สิ้นสุดไม่ถูกต้อง',
+  STOREFRONT_MAINTENANCE_UNTIL_NOT_FUTURE: 'ต้องเป็นเวลาในอนาคต',
   SUSPENDED_STORE_ITEM_REMOVED: 'ลบสินค้าจากร้านที่ถูกระงับออกจากตะกร้าแล้ว',
   TAG_NOT_APPROVED: 'แท็กยังไม่ได้รับการอนุมัติ',
   TAG_NOT_FOUND: 'ไม่พบแท็ก',
@@ -756,6 +761,31 @@ const ERROR_CATALOG_BASE: Array<{ code: ErrorMessageCode; message: string; group
   {
     code: 'STOREFRONT_URL_NOT_CONFIGURED',
     message: ERROR_MESSAGES.STOREFRONT_URL_NOT_CONFIGURED,
+    group: 'ทั่วไป / ระบบ',
+  },
+  {
+    code: 'STOREFRONT_MAINTENANCE_CUSTOM_MESSAGE_REQUIRED',
+    message: ERROR_MESSAGES.STOREFRONT_MAINTENANCE_CUSTOM_MESSAGE_REQUIRED,
+    group: 'ทั่วไป / ระบบ',
+  },
+  {
+    code: 'STOREFRONT_MAINTENANCE_CUSTOM_MESSAGE_TOO_LONG',
+    message: ERROR_MESSAGES.STOREFRONT_MAINTENANCE_CUSTOM_MESSAGE_TOO_LONG,
+    group: 'ทั่วไป / ระบบ',
+  },
+  {
+    code: 'STOREFRONT_MAINTENANCE_REASON_REQUIRED',
+    message: ERROR_MESSAGES.STOREFRONT_MAINTENANCE_REASON_REQUIRED,
+    group: 'ทั่วไป / ระบบ',
+  },
+  {
+    code: 'STOREFRONT_MAINTENANCE_UNTIL_INVALID',
+    message: ERROR_MESSAGES.STOREFRONT_MAINTENANCE_UNTIL_INVALID,
+    group: 'ทั่วไป / ระบบ',
+  },
+  {
+    code: 'STOREFRONT_MAINTENANCE_UNTIL_NOT_FUTURE',
+    message: ERROR_MESSAGES.STOREFRONT_MAINTENANCE_UNTIL_NOT_FUTURE,
     group: 'ทั่วไป / ระบบ',
   },
   {

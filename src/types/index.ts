@@ -1118,6 +1118,20 @@ export interface UpdateBankTransferDetailsInput {
   branchName?: string | null;
 }
 
+export interface StorefrontMaintenance {
+  enabled: boolean;
+  reason: 'MAINTENANCE' | 'NOT_READY' | 'SYSTEM_UPDATE' | 'OTHER' | null;
+  customMessage: string | null;
+  untilAt: string | null;
+}
+
+export interface UpdateStorefrontMaintenanceInput {
+  enabled: boolean;
+  reason?: 'MAINTENANCE' | 'NOT_READY' | 'SYSTEM_UPDATE' | 'OTHER' | null;
+  customMessage?: string | null;
+  untilAt?: string | null;
+}
+
 export interface AdminTeamMember {
   id: string;
   email: string;

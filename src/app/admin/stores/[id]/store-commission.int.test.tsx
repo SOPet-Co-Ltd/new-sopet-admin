@@ -584,6 +584,7 @@ describe('store commission — absence locks [AC-004 / AC-005 / AC-F-003c / AC-F
       'ads',
       'loginImages',
       'bankTransfer',
+      'storefront',
     ]);
     expect(JSON.stringify(platformSettingsTabLabels)).not.toMatch(/คอมมิชชัน|commission/i);
   });

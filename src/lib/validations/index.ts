@@ -312,3 +312,58 @@ export const bankTransferFormSchema = z.object({
 });
 
 export type BankTransferFormValues = z.infer<typeof bankTransferFormSchema>;
+
+export const STOREFRONT_MAINTENANCE_REASONS = [
+  'MAINTENANCE',
+  'NOT_READY',
+  'SYSTEM_UPDATE',
+  'OTHER',
+] as const;
+
+export type StorefrontMaintenanceReason = (typeof STOREFRONT_MAINTENANCE_REASONS)[number];
+
+export const storefrontMaintenanceFormSchema = z
+  .object({
+    enabled: z.boolean(),
+    reason: z.enum(STOREFRONT_MAINTENANCE_REASONS).nullable(),
+    customMessage: z.string().max(255, 'ข้อความยาวเกินไป'),
+    untilAt: z.string(),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.enabled) return;
+
+    if (!value.reason) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['reason'],
+        message: 'กรุณาเลือกเหตุผล',
+      });
+    }
+
+    if (value.reason === 'OTHER' && !value.customMessage.trim()) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['customMessage'],
+        message: 'กรุณาระบุเหตุผลเพิ่มเติม',
+      });
+    }
+
+    if (value.untilAt.trim()) {
+      const ms = Date.parse(value.untilAt);
+      if (Number.isNaN(ms)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['untilAt'],
+          message: 'วันที่ไม่ถูกต้อง',
+        });
+      } else if (ms <= Date.now()) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['untilAt'],
+          message: 'ต้องเป็นเวลาในอนาคต',
+        });
+      }
+    }
+  });
+
+export type StorefrontMaintenanceFormValues = z.infer<typeof storefrontMaintenanceFormSchema>;
