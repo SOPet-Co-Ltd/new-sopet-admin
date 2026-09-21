@@ -15,6 +15,7 @@ import {
   getAllPlatformSponsors,
   getBankTransferSettings,
   getLoginPageImages,
+  getStorefrontMaintenance,
   loginImagesFormToUpdateInput,
   reorderPlatformBanners,
   reorderPlatformSponsors,
@@ -23,6 +24,7 @@ import {
   updatePlatformAd,
   updatePlatformBanner,
   updatePlatformSponsor,
+  updateStorefrontMaintenance,
 } from '@/lib/api/platform';
 import { queryKeys } from '@/lib/react-query/keys';
 import type { BankTransferFormValues, LoginImagesFormValues } from '@/lib/validations';
@@ -33,6 +35,7 @@ import type {
   UpdatePlatformAdInput,
   UpdatePlatformBannerInput,
   UpdatePlatformSponsorInput,
+  UpdateStorefrontMaintenanceInput,
 } from '@/types';
 
 export function useAllPlatformBanners() {
@@ -225,6 +228,25 @@ export function useUpdateBankTransferDetails() {
       }),
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: queryKeys.platform.bankTransfer() });
+    },
+  });
+}
+
+export function useStorefrontMaintenance() {
+  return useQuery({
+    queryKey: queryKeys.platform.storefrontMaintenance(),
+    queryFn: getStorefrontMaintenance,
+  });
+}
+
+export function useUpdateStorefrontMaintenance() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateStorefrontMaintenanceInput) => updateStorefrontMaintenance(input),
+    onSuccess: () => {
+      return queryClient.invalidateQueries({
+        queryKey: queryKeys.platform.storefrontMaintenance(),
+      });
     },
   });
 }

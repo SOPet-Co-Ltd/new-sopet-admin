@@ -102,6 +102,7 @@ export const platformSettingsTabLabels = {
   ads: 'โฆษณาป๊อปอัพ',
   loginImages: 'รูปหน้าเข้าสู่ระบบ',
   bankTransfer: 'บัญชีรับโอน',
+  storefront: 'หน้าร้าน',
 } as const;
 
 export const commissionCopy = {

@@ -15,11 +15,13 @@ import {
   LOGIN_PAGE_IMAGES_QUERY,
   REORDER_PLATFORM_BANNERS,
   REORDER_PLATFORM_SPONSORS,
+  STOREFRONT_MAINTENANCE_QUERY,
   UPDATE_BANK_TRANSFER_DETAILS,
   UPDATE_LOGIN_PAGE_IMAGES,
   UPDATE_PLATFORM_AD,
   UPDATE_PLATFORM_BANNER,
   UPDATE_PLATFORM_SPONSOR,
+  UPDATE_STOREFRONT_MAINTENANCE,
 } from '@/lib/graphql/documents';
 import type {
   BankTransferSettings,
@@ -30,11 +32,13 @@ import type {
   PlatformAd,
   PlatformBanner,
   PlatformSponsor,
+  StorefrontMaintenance,
   UpdateBankTransferDetailsInput,
   UpdateLoginPageImagesInput,
   UpdatePlatformAdInput,
   UpdatePlatformBannerInput,
   UpdatePlatformSponsorInput,
+  UpdateStorefrontMaintenanceInput,
 } from '@/types';
 import type { LoginImagesFormValues } from '@/lib/validations';
 
@@ -240,4 +244,26 @@ export function updateBankTransferDetails(
       },
     },
   ).then((data) => data.updateBankTransferDetails);
+}
+
+export function getStorefrontMaintenance(): Promise<StorefrontMaintenance> {
+  return executeQuery<{ storefrontMaintenance: StorefrontMaintenance }>(
+    STOREFRONT_MAINTENANCE_QUERY,
+  ).then((data) => data.storefrontMaintenance);
+}
+
+export function updateStorefrontMaintenance(
+  input: UpdateStorefrontMaintenanceInput,
+): Promise<StorefrontMaintenance> {
+  return executeMutation<{ updateStorefrontMaintenance: StorefrontMaintenance }>(
+    UPDATE_STOREFRONT_MAINTENANCE,
+    {
+      input: {
+        enabled: input.enabled,
+        reason: input.reason ?? null,
+        customMessage: input.customMessage === '' ? null : (input.customMessage ?? null),
+        untilAt: input.untilAt === '' ? null : (input.untilAt ?? null),
+      },
+    },
+  ).then((data) => data.updateStorefrontMaintenance);
 }

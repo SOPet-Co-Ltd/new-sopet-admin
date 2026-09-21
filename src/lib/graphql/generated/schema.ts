@@ -936,7 +936,7 @@ export type Mutation = {
   revokeAdminInvitation: AdminInvitationType;
   revokeStoreApiKey: Scalars['Boolean']['output'];
   revokeStoreInvitation: StoreMemberInvitationType;
-  sendCustomerOtp: MessagePayload;
+  sendCustomerOtp: SendCustomerOtpPayload;
   sendTestEmailContentTemplate: Scalars['Boolean']['output'];
   setAdminActive: AdminTeamMemberType;
   setCategoryImage: CategoryType;
@@ -984,6 +984,7 @@ export type Mutation = {
   updateStoreAsAdmin: AdminStoreType;
   updateStoreMemberRole: StoreMemberType;
   updateStorePayout: MyStoreType;
+  updateStorefrontMaintenance: StorefrontMaintenanceType;
   updateTag: TagType;
   updateUserProfile: UserProfile;
   updateVendorAsAdmin: AdminVendorType;
@@ -1634,6 +1635,10 @@ export type MutationUpdateStorePayoutArgs = {
   input: UpdateStorePayoutInput;
 };
 
+export type MutationUpdateStorefrontMaintenanceArgs = {
+  input: UpdateStorefrontMaintenanceInput;
+};
+
 export type MutationUpdateTagArgs = {
   input: UpdateTagInput;
 };
@@ -2279,6 +2284,7 @@ export type Query = {
   storeReviews: Array<StoreProductReviewType>;
   storeSaleCampaigns: Array<SaleCampaignType>;
   storeShippingOptions: Array<StoreShippingOptionType>;
+  storefrontMaintenance: StorefrontMaintenanceType;
   stores: Array<StoreType>;
   tagDeleteImpact: TaxonomyDeleteImpactType;
   topProducts: Array<TopProductType>;
@@ -2928,6 +2934,12 @@ export type SendCustomerOtpInput = {
   phone: Scalars['String']['input'];
 };
 
+export type SendCustomerOtpPayload = {
+  __typename?: 'SendCustomerOtpPayload';
+  message: Scalars['String']['output'];
+  referenceCode: Scalars['String']['output'];
+};
+
 export type SendTestEmailContentTemplateInput = {
   bodyHtml?: InputMaybe<Scalars['String']['input']>;
   containerId?: InputMaybe<Scalars['ID']['input']>;
@@ -3131,6 +3143,22 @@ export type StoreType = {
   name: Scalars['String']['output'];
   slug: Scalars['String']['output'];
   status: Scalars['String']['output'];
+};
+
+/** Why the storefront is closed for visitors */
+export enum StorefrontMaintenanceReason {
+  Maintenance = 'MAINTENANCE',
+  NotReady = 'NOT_READY',
+  Other = 'OTHER',
+  SystemUpdate = 'SYSTEM_UPDATE',
+}
+
+export type StorefrontMaintenanceType = {
+  __typename?: 'StorefrontMaintenanceType';
+  customMessage?: Maybe<Scalars['String']['output']>;
+  enabled: Scalars['Boolean']['output'];
+  reason?: Maybe<Scalars['String']['output']>;
+  untilAt?: Maybe<Scalars['String']['output']>;
 };
 
 export type SubmitStoreReactivationRequestInput = {
@@ -3471,6 +3499,13 @@ export type UpdateStoreSettingsInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   logoUrl?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateStorefrontMaintenanceInput = {
+  customMessage?: InputMaybe<Scalars['String']['input']>;
+  enabled: Scalars['Boolean']['input'];
+  reason?: InputMaybe<StorefrontMaintenanceReason>;
+  untilAt?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateTagInput = {
