@@ -10,6 +10,7 @@ export const PLATFORM_SETTINGS_TAB_PANEL_IDS = {
   ads: 'platform-settings-panel-ads',
   loginImages: 'platform-settings-panel-loginImages',
   bankTransfer: 'platform-settings-panel-bankTransfer',
+  storefront: 'platform-settings-panel-storefront',
 } as const;
 
 type PlatformSettingsLoadErrorProps = {

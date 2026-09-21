@@ -48,6 +48,14 @@ vi.mock('@/components/ui/image-upload-field', () => ({
   ImageUploadField: () => <div data-testid="image-upload-field" />,
 }));
 
+vi.mock('./storefront-maintenance-panel', () => ({
+  StorefrontMaintenancePanel: () => (
+    <div>
+      <h2>สถานะหน้าร้าน</h2>
+    </div>
+  ),
+}));
+
 vi.mock('@/hooks/usePlatformSettings', () => ({
   useAllPlatformBanners: () => useAllPlatformBanners(),
   useAllPlatformSponsors: () => useAllPlatformSponsors(),
@@ -158,6 +166,18 @@ vi.mock('@/hooks/usePlatformSettings', () => ({
     isError: false,
     reset: vi.fn(),
   }),
+  useStorefrontMaintenance: () => ({
+    data: { enabled: false, reason: null, customMessage: null, untilAt: null },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useUpdateStorefrontMaintenance: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    reset: vi.fn(),
+  }),
 }));
 
 function mockPlatformSettingsQueries(
@@ -204,7 +224,7 @@ describe('AdminPlatformSettingsPage', () => {
 
     expect(screen.getByRole('heading', { name: 'ตั้งค่าแพลตฟอร์ม' })).toBeInTheDocument();
     expect(
-      screen.getByText('จัดการแบนเนอร์ สปอนเซอร์ โฆษณา และบัญชีรับโอนเงินบนแพลตฟอร์ม'),
+      screen.getByText('จัดการแบนเนอร์ สปอนเซอร์ โฆษณา บัญชีรับโอน และสถานะหน้าร้าน'),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'รหัสข้อผิดพลาด' })).toHaveAttribute(
       'href',
@@ -216,6 +236,7 @@ describe('AdminPlatformSettingsPage', () => {
     expect(screen.getByRole('tab', { name: 'โฆษณาป๊อปอัพ' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'รูปหน้าเข้าสู่ระบบ' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'บัญชีรับโอน' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'หน้าร้าน' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /แบนเนอร์ \(1\)/ })).toBeInTheDocument();
     expect(screen.getByText('Summer Sale')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'เพิ่มแบนเนอร์' })).toBeInTheDocument();
