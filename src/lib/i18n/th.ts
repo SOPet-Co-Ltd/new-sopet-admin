@@ -20,6 +20,8 @@ export const paymentMethodLabels: Record<string, string> = {
   credit_card: 'บัตรเครดิต',
   cod: 'เก็บเงินปลายทาง',
   bank_transfer: 'โอนเงินเข้าบัญชี',
+  truemoney: 'TrueMoney',
+  shopeepay: 'ShopeePay',
 };
 
 export const fulfillmentStatusLabels: Record<string, string> = {
