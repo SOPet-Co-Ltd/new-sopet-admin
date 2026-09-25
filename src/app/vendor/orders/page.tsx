@@ -37,7 +37,14 @@ import type { Order } from '@/types';
 const ALL = 'all';
 const SEARCH_DEBOUNCE_MS = 300;
 const ORDER_STATUS_SET = new Set<string>(ORDER_STATUSES);
-const PAYMENT_METHOD_SET = new Set(['promptpay', 'credit_card', 'cod', 'bank_transfer']);
+const PAYMENT_METHOD_SET = new Set([
+  'promptpay',
+  'credit_card',
+  'cod',
+  'bank_transfer',
+  'truemoney',
+  'shopeepay',
+]);
 
 function buildOrdersQuery(params: {
   queue?: OrderQueueView;
