@@ -26,7 +26,6 @@ export interface VariantSyncImpactDialogProps {
   onOpenChange: (open: boolean) => void;
   productId: string;
   variants: VariantItem[];
-  productBasePrice: number;
   onSyncSuccess?: () => void;
 }
 
@@ -92,7 +91,6 @@ export function VariantSyncImpactDialog({
   onOpenChange,
   productId,
   variants,
-  productBasePrice,
   onSyncSuccess,
 }: VariantSyncImpactDialogProps) {
   const [mutationError, setMutationError] = useState<string | null>(null);
@@ -103,7 +101,7 @@ export function VariantSyncImpactDialog({
     isError: isImpactError,
     isFetching,
     refetch,
-  } = useVariantSyncImpact(productId, variants, productBasePrice, open && !!productId);
+  } = useVariantSyncImpact(productId, variants, open && !!productId);
 
   const isSyncPending = syncMutation.isPending;
   const isBlocked = impact?.blocked === true;
@@ -126,7 +124,6 @@ export function VariantSyncImpactDialog({
       await syncMutation.mutateAsync({
         productId,
         variants,
-        productBasePrice,
       });
       handleOpenChange(false);
       onSyncSuccess?.();

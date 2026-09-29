@@ -124,14 +124,12 @@ export function variantItemsFromProduct(
   }));
 }
 
-export function variantItemsToSyncInput(
-  items: VariantItem[],
-  productBasePrice = 0,
-): Array<{
+export function variantItemsToSyncInput(items: VariantItem[]): Array<{
   id?: string;
   sku: string;
   stockQuantity: number;
-  priceModifier: number;
+  /** Absolute THB sell price — backend recomputes basePrice on sync. */
+  price: number;
   compareAtPrice: number | null;
   attributes: Record<string, string>;
 }> {
@@ -139,7 +137,7 @@ export function variantItemsToSyncInput(
     id: item.id,
     sku: item.sku.trim(),
     stockQuantity: item.stockQuantity,
-    priceModifier: Math.max(0, item.price - productBasePrice),
+    price: Math.max(0, Number(item.price) || 0),
     compareAtPrice: item.compareAtPrice ?? null,
     attributes: item.options,
   }));

@@ -171,6 +171,7 @@ describe('buildVendorNavSections', () => {
     expect(sections[1].items).toEqual([
       expect.objectContaining({ href: '/vendor/notifications', label: 'การแจ้งเตือน' }),
       expect.objectContaining({ href: '/vendor/settings', label: 'ตั้งค่า' }),
+      expect.objectContaining({ href: '/guide/vendor', label: 'คู่มือการใช้งาน' }),
     ]);
   });
 
@@ -219,6 +220,7 @@ describe('buildVendorNavSections', () => {
     expect(labels).toContain('API');
     expect(labels).toContain('การแจ้งเตือน');
     expect(labels).toContain('ตั้งค่า');
+    expect(labels).toContain('คู่มือการใช้งาน');
   });
 
   it('hides operational nav when active store is suspended', () => {
@@ -231,7 +233,13 @@ describe('buildVendorNavSections', () => {
     });
 
     const labels = sections.flatMap((section) => section.items.map((item) => item.label));
-    expect(labels).toEqual(['ร้านค้าของฉัน', 'คำเชิญ / คำขอ', 'การแจ้งเตือน', 'ตั้งค่า']);
+    expect(labels).toEqual([
+      'ร้านค้าของฉัน',
+      'คำเชิญ / คำขอ',
+      'การแจ้งเตือน',
+      'ตั้งค่า',
+      'คู่มือการใช้งาน',
+    ]);
     expect(sections[0].items.find((item) => item.href === '/vendor/requests')?.badge).toBe(2);
   });
 

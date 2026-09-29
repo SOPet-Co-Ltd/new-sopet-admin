@@ -9,15 +9,8 @@ export function useSyncProductVariants() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      productId,
-      variants,
-      productBasePrice = 0,
-    }: {
-      productId: string;
-      variants: VariantItem[];
-      productBasePrice?: number;
-    }) => syncProductVariants(productId, variants, productBasePrice),
+    mutationFn: ({ productId, variants }: { productId: string; variants: VariantItem[] }) =>
+      syncProductVariants(productId, variants),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
       queryClient.invalidateQueries({

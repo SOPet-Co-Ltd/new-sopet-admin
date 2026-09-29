@@ -311,7 +311,6 @@ export default function ProductVariantsPage() {
         onOpenChange={setImpactOpen}
         productId={product.id}
         variants={items}
-        productBasePrice={product.basePrice}
         onSyncSuccess={handleSyncSuccess}
       />
     </div>

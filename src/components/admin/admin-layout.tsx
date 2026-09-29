@@ -17,6 +17,7 @@ import {
   HiTag,
   HiTicket,
   HiTruck,
+  HiBookOpen,
   HiUserCircle,
   HiUserGroup,
   HiUsers,
@@ -137,6 +138,7 @@ export function buildAdminNavSections({
         { href: '/admin/settings', label: 'ตั้งค่าแพลตฟอร์ม', icon: HiCog6Tooth },
         { href: '/admin/team', label: 'ทีมผู้ดูแล', icon: HiShieldCheck },
         { href: '/admin/profile', label: 'โปรไฟล์', icon: HiUserCircle },
+        { href: '/guide/admin', label: 'คู่มือการใช้งาน', icon: HiBookOpen },
       ],
     },
   ];

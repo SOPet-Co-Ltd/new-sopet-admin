@@ -16,6 +16,7 @@ import {
 import { VendorOrdersActionMenu } from '@/components/vendor/vendor-orders-action-menu';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { HelpDeepLink } from '@/components/help/help-deep-link';
 import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
@@ -371,6 +372,7 @@ export default function VendorOrdersPage() {
             ? 'คิวออเดอร์ที่ต้องดำเนินการ — เรียงจากใหม่ที่สุด'
             : 'ดูและดำเนินการคำสั่งซื้อจากลูกค้า'
         }
+        action={<HelpDeepLink role="vendor" slug="orders" />}
       />
 
       <VendorOrderFilters

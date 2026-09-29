@@ -85,7 +85,6 @@ describe('VariantSyncImpactDialog', () => {
         onOpenChange={onOpenChange}
         productId="prod-1"
         variants={variants}
-        productBasePrice={0}
         onSyncSuccess={onSyncSuccess}
       />,
     );
@@ -109,7 +108,6 @@ describe('VariantSyncImpactDialog', () => {
         onOpenChange={onOpenChange}
         productId="prod-1"
         variants={variants}
-        productBasePrice={0}
       />,
     );
 
@@ -136,7 +134,6 @@ describe('VariantSyncImpactDialog', () => {
         onOpenChange={onOpenChange}
         productId="prod-1"
         variants={variants}
-        productBasePrice={0}
         onSyncSuccess={onSyncSuccess}
       />,
     );

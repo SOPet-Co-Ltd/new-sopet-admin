@@ -34,33 +34,30 @@ describe('compare-at discount helpers', () => {
 });
 
 describe('variantItemsToSyncInput', () => {
-  it('includes compareAtPrice (including null) in sync payload', () => {
+  it('includes absolute price and compareAtPrice (including null) in sync payload', () => {
     expect(
-      variantItemsToSyncInput(
-        [
-          {
-            sku: 'A',
-            stockQuantity: 1,
-            price: 100,
-            compareAtPrice: 150,
-            options: { size: 'M' },
-          },
-          {
-            sku: 'B',
-            stockQuantity: 2,
-            price: 200,
-            compareAtPrice: null,
-            options: { size: 'L' },
-          },
-        ],
-        0,
-      ),
+      variantItemsToSyncInput([
+        {
+          sku: 'A',
+          stockQuantity: 1,
+          price: 100,
+          compareAtPrice: 150,
+          options: { size: 'M' },
+        },
+        {
+          sku: 'B',
+          stockQuantity: 2,
+          price: 200,
+          compareAtPrice: null,
+          options: { size: 'L' },
+        },
+      ]),
     ).toEqual([
       {
         id: undefined,
         sku: 'A',
         stockQuantity: 1,
-        priceModifier: 100,
+        price: 100,
         compareAtPrice: 150,
         attributes: { size: 'M' },
       },
@@ -68,9 +65,31 @@ describe('variantItemsToSyncInput', () => {
         id: undefined,
         sku: 'B',
         stockQuantity: 2,
-        priceModifier: 200,
+        price: 200,
         compareAtPrice: null,
         attributes: { size: 'L' },
+      },
+    ]);
+  });
+
+  it('sends absolute price below a prior product base without clamping', () => {
+    expect(
+      variantItemsToSyncInput([
+        {
+          sku: 'LOW',
+          stockQuantity: 1,
+          price: 400,
+          options: { size: '30ml' },
+        },
+      ]),
+    ).toEqual([
+      {
+        id: undefined,
+        sku: 'LOW',
+        stockQuantity: 1,
+        price: 400,
+        compareAtPrice: null,
+        attributes: { size: '30ml' },
       },
     ]);
   });

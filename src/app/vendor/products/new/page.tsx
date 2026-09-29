@@ -105,7 +105,6 @@ export default function NewProductPage() {
       await syncMutation.mutateAsync({
         productId: product.id,
         variants: items,
-        productBasePrice: 0,
       });
 
       router.push(`/vendor/products/${product.id}/variants?fromWizard=1`);
