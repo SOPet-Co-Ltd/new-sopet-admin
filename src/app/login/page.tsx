@@ -266,6 +266,11 @@ function LoginPageContent() {
                     สมัครเป็นผู้ขาย
                   </Link>
                 </p>
+                <p className="text-center text-sm text-muted">
+                  <Link href="/guide" className="font-medium text-brand hover:underline">
+                    อ่านคู่มืออย่างเป็นทางการ
+                  </Link>
+                </p>
               </form>
             )}
           </CardBody>

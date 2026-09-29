@@ -3,6 +3,7 @@
 import {
   HiBanknotes,
   HiBell,
+  HiBookOpen,
   HiBuildingStorefront,
   HiCodeBracket,
   HiCog6Tooth,
@@ -87,6 +88,7 @@ const accountSection = (isOwner: boolean): DashboardNavSection => ({
       : []),
     { href: '/vendor/notifications', label: 'การแจ้งเตือน', icon: HiBell },
     { href: '/vendor/settings', label: 'ตั้งค่า', icon: HiCog6Tooth },
+    { href: '/guide/vendor', label: 'คู่มือการใช้งาน', icon: HiBookOpen },
   ],
 });
 
@@ -112,6 +114,7 @@ const suspendedAccountSection: DashboardNavSection = {
   items: [
     { href: '/vendor/notifications', label: 'การแจ้งเตือน', icon: HiBell },
     { href: '/vendor/settings', label: 'ตั้งค่า', icon: HiCog6Tooth },
+    { href: '/guide/vendor', label: 'คู่มือการใช้งาน', icon: HiBookOpen },
   ],
 };
 

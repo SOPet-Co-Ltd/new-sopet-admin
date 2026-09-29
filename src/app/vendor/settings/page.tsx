@@ -12,6 +12,7 @@ import { VendorPayoutAccountPanel } from '@/components/vendor/vendor-payout-acco
 import { VendorPayoutBalancePanel } from '@/components/vendor/vendor-payout-balance-panel';
 import { VendorPayoutHistoryPanel } from '@/components/vendor/vendor-payout-history-panel';
 import { VendorStoreSettingsPanel } from '@/components/vendor/vendor-store-settings-panel';
+import { HelpDeepLink } from '@/components/help/help-deep-link';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -254,7 +255,11 @@ function VendorSettingsPageContent() {
 
   return (
     <div>
-      <PageHeader title="ตั้งค่า" description="ข้อมูลบัญชีและร้านค้า" />
+      <PageHeader
+        title="ตั้งค่า"
+        description="ข้อมูลบัญชีและร้านค้า"
+        action={<HelpDeepLink role="vendor" slug="settings" />}
+      />
 
       <Card className="mb-6">
         <CardBody className="text-sm text-pretty text-muted-foreground">

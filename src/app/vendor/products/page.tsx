@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { HiOutlinePlus } from 'react-icons/hi2';
+import { HelpDeepLink } from '@/components/help/help-deep-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
@@ -345,6 +346,7 @@ export default function VendorProductsPage() {
         description="ดูและจัดการสินค้าในร้าน — สถานะ ราคา และสต็อกที่สแกนได้ทันที"
         action={
           <div className="flex flex-wrap items-center gap-2">
+            <HelpDeepLink role="vendor" slug="products" />
             <Button type="button" variant="outline" onClick={() => setBatchPublishOpen(true)}>
               เผยแพร่หลายรายการ
             </Button>

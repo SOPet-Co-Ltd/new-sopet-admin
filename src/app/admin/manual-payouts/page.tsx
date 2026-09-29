@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { HelpDeepLink } from '@/components/help/help-deep-link';
 import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
@@ -55,6 +56,7 @@ export default function AdminManualPayoutsPage() {
       <PageHeader
         title="Payout Manual"
         description="คำขอรับเงินจากยอดโอนเข้าบัญชี SOPET — โอนให้ร้านนอกระบบแล้วกดอนุมัติ (หรือปฏิเสธ)"
+        action={<HelpDeepLink role="admin" slug="manual-payouts" />}
       />
 
       <Card>

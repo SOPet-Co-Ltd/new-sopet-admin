@@ -79,4 +79,22 @@ describe('VariantItemsSpreadsheet', () => {
 
     expect(table.getByDisplayValue('SKU-RED-2')).toBeInTheDocument();
   });
+
+  it('edits price below the prior value and keeps it after blur', async () => {
+    render(
+      <StatefulHarness
+        initialItems={[
+          { id: 'v1', sku: 'SKU-1', stockQuantity: 5, price: 490, options: { ชนิด: '30 ml' } },
+        ]}
+      />,
+    );
+
+    const table = within(screen.getByRole('table'));
+    const priceInput = table.getByLabelText(/ราคา \(บาท\)/);
+    await userEvent.clear(priceInput);
+    await userEvent.type(priceInput, '400');
+    await userEvent.tab();
+
+    expect(table.getByDisplayValue('400')).toBeInTheDocument();
+  });
 });

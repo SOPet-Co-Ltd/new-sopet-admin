@@ -3198,6 +3198,7 @@ export type SyncProductVariantItemInput = {
   attributes: Scalars['String']['input'];
   compareAtPrice?: InputMaybe<Scalars['Float']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
+  price?: InputMaybe<Scalars['Float']['input']>;
   priceModifier?: InputMaybe<Scalars['Float']['input']>;
   sku: Scalars['String']['input'];
   stockQuantity: Scalars['Int']['input'];

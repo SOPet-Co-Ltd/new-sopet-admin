@@ -466,6 +466,8 @@ export interface SyncVariantInput {
   id?: string;
   sku: string;
   stockQuantity: number;
+  /** Absolute THB sell price (preferred for sync). */
+  price?: number;
   priceModifier?: number;
   compareAtPrice?: number | null;
   attributes: Record<string, string>;
