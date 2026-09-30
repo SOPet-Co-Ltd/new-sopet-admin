@@ -52,7 +52,7 @@ export default function RegisterPage() {
     try {
       const { email, password, fullName } = values;
       await register.mutateAsync({ email, password, fullName });
-      router.replace('/vendor/requests');
+      router.replace('/vendor/onboarding');
     } catch (err) {
       form.setError('root', {
         message: getErrorMessage(err, 'ลงทะเบียนไม่สำเร็จ'),

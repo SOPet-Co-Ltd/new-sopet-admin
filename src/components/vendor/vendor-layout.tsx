@@ -11,6 +11,7 @@ import {
   HiHome,
   HiInboxArrowDown,
   HiMegaphone,
+  HiRocketLaunch,
   HiShoppingBag,
   HiStar,
   HiTicket,
@@ -95,6 +96,7 @@ const accountSection = (isOwner: boolean): DashboardNavSection => ({
 const noStoresNavSection = (pendingRequestCount?: number): DashboardNavSection => ({
   title: 'ร้านค้า',
   items: [
+    { href: '/vendor/onboarding', label: 'เริ่มต้นตั้งค่าร้าน', icon: HiRocketLaunch },
     { href: '/vendor/stores', label: 'ร้านค้าของฉัน', icon: HiBuildingStorefront },
     {
       href: '/vendor/requests',

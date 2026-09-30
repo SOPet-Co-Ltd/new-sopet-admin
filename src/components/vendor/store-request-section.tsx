@@ -1,8 +1,6 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,16 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ImageUploadField } from '@/components/ui/image-upload-field';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useMyStoreRequests, useSubmitStoreRequest } from '@/hooks/useStoreRequests';
-import { useCurrentUser } from '@/hooks/useAuth';
+import { StoreRequestForm } from '@/components/vendor/store-request-form';
+import { useMyStoreRequests } from '@/hooks/useStoreRequests';
 import { getErrorMessage } from '@/lib/api/errors';
 import { labelStoreRequestStatus } from '@/lib/i18n/th';
-import { storeRequestSchema, type StoreRequestFormValues } from '@/lib/validations';
 import { cn } from '@/lib/utils';
 
 function requestStatusClass(status: string): string {
@@ -59,45 +52,8 @@ export function StoreRequestSection({
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
   const { data: requests = [], isLoading, error } = useMyStoreRequests();
-  const submitMutation = useSubmitStoreRequest();
-  const { user } = useCurrentUser();
-  const isEmailVerified = user?.emailVerified === true;
-
-  const form = useForm<StoreRequestFormValues>({
-    resolver: zodResolver(storeRequestSchema),
-    defaultValues: {
-      storeName: '',
-      description: '',
-      contactPhone: '',
-      contactEmail: '',
-      address: '',
-      logoUrl: '',
-    },
-  });
-
-  async function onSubmit(values: StoreRequestFormValues) {
-    try {
-      await submitMutation.mutateAsync({
-        ...values,
-        contactEmail: values.contactEmail || undefined,
-        logoUrl: values.logoUrl || undefined,
-      });
-      form.reset();
-      setOpen(false);
-    } catch {
-      // surfaced via mutation state
-    }
-  }
-
-  function handleCancel() {
-    form.reset();
-    setOpen(false);
-  }
 
   function handleOpenChange(nextOpen: boolean) {
-    if (!nextOpen) {
-      form.reset();
-    }
     setOpen(nextOpen);
   }
 
@@ -113,140 +69,15 @@ export function StoreRequestSection({
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>ขอเปิดร้านใหม่</DialogTitle>
-            <DialogDescription>ส่งคำขอเปิดร้านค้าใหม่บนแพลตฟอร์ม</DialogDescription>
+            <DialogDescription>
+              กรอกชื่อร้านค้าเพื่อส่งคำขอ — ข้อมูลอื่นไม่บังคับ แต่ช่วยให้ทีมงานตรวจสอบได้เร็วขึ้น
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label htmlFor="req-name" required>
-                ชื่อร้านค้า
-              </Label>
-              <Input
-                id="req-name"
-                placeholder="เช่น ร้านสัตว์เลี้ยงสุขใจ"
-                aria-invalid={!!form.formState.errors.storeName}
-                aria-describedby={form.formState.errors.storeName ? 'req-name-error' : undefined}
-                {...form.register('storeName')}
-                className="mt-1.5"
-              />
-              {form.formState.errors.storeName ? (
-                <p id="req-name-error" role="alert" className="mt-1 text-xs text-danger">
-                  {form.formState.errors.storeName.message}
-                </p>
-              ) : null}
-            </div>
-            <div className="sm:col-span-2">
-              <ImageUploadField
-                label="โลโก้ร้านค้า"
-                value={form.watch('logoUrl') ?? ''}
-                onChange={(url) => form.setValue('logoUrl', url, { shouldDirty: true })}
-                folder="stores"
-                showUrl={false}
-                disabled={submitMutation.isPending}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <Label htmlFor="req-desc">รายละเอียด</Label>
-              <Textarea
-                id="req-desc"
-                aria-invalid={!!form.formState.errors.description}
-                aria-describedby={form.formState.errors.description ? 'req-desc-error' : undefined}
-                {...form.register('description')}
-                className="mt-1.5"
-                rows={3}
-              />
-              {form.formState.errors.description ? (
-                <p id="req-desc-error" role="alert" className="mt-1 text-xs text-danger">
-                  {form.formState.errors.description.message}
-                </p>
-              ) : null}
-            </div>
-            <div>
-              <Label htmlFor="req-phone">เบอร์โทร</Label>
-              <Input
-                id="req-phone"
-                type="tel"
-                autoComplete="tel"
-                placeholder="0812345678"
-                aria-invalid={!!form.formState.errors.contactPhone}
-                aria-describedby={
-                  form.formState.errors.contactPhone ? 'req-phone-error' : undefined
-                }
-                {...form.register('contactPhone')}
-                className="mt-1.5"
-              />
-              {form.formState.errors.contactPhone ? (
-                <p id="req-phone-error" role="alert" className="mt-1 text-xs text-danger">
-                  {form.formState.errors.contactPhone.message}
-                </p>
-              ) : null}
-            </div>
-            <div>
-              <Label htmlFor="req-email">อีเมลติดต่อ</Label>
-              <Input
-                id="req-email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                aria-invalid={!!form.formState.errors.contactEmail}
-                aria-describedby={
-                  form.formState.errors.contactEmail ? 'req-email-error' : undefined
-                }
-                {...form.register('contactEmail')}
-                className="mt-1.5"
-              />
-              {form.formState.errors.contactEmail ? (
-                <p id="req-email-error" role="alert" className="mt-1 text-xs text-danger">
-                  {form.formState.errors.contactEmail.message}
-                </p>
-              ) : null}
-            </div>
-            <div className="sm:col-span-2">
-              <Label htmlFor="req-address">ที่อยู่</Label>
-              <Textarea
-                id="req-address"
-                placeholder="เลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด รหัสไปรษณีย์"
-                aria-invalid={!!form.formState.errors.address}
-                aria-describedby={form.formState.errors.address ? 'req-address-error' : undefined}
-                {...form.register('address')}
-                className="mt-1.5"
-                rows={2}
-              />
-              {form.formState.errors.address ? (
-                <p id="req-address-error" role="alert" className="mt-1 text-xs text-danger">
-                  {form.formState.errors.address.message}
-                </p>
-              ) : null}
-            </div>
-            {!isEmailVerified && user?.email ? (
-              <p className="sm:col-span-2 text-sm text-muted-foreground">
-                กรุณายืนยันอีเมลก่อนส่งคำขอ —{' '}
-                <a
-                  href="#email-verification-banner"
-                  className="font-medium text-secondary underline-offset-2 hover:underline"
-                >
-                  ดูวิธียืนยัน
-                </a>
-              </p>
-            ) : null}
-            <div className="sm:col-span-2 flex flex-wrap gap-3">
-              {submitMutation.error ? (
-                <p className="mb-2 w-full text-sm text-danger" role="alert">
-                  {getErrorMessage(submitMutation.error, 'ส่งคำขอไม่สำเร็จ')}
-                </p>
-              ) : null}
-              <Button
-                type="submit"
-                className="min-h-9"
-                disabled={submitMutation.isPending || !isEmailVerified}
-                aria-busy={submitMutation.isPending}
-              >
-                {submitMutation.isPending ? 'กำลังส่ง...' : 'ส่งคำขอเปิดร้าน'}
-              </Button>
-              <Button type="button" variant="outline" className="min-h-9" onClick={handleCancel}>
-                ยกเลิก
-              </Button>
-            </div>
-          </form>
+          <StoreRequestForm
+            showCancel
+            onCancel={() => setOpen(false)}
+            onSuccess={() => setOpen(false)}
+          />
         </DialogContent>
       </Dialog>
 

@@ -42,6 +42,10 @@ describe('StoreRequestSection', () => {
 
     expect(screen.queryByText('ยังไม่ได้ยืนยันอีเมล')).not.toBeInTheDocument();
     expect(screen.getByText(/กรุณายืนยันอีเมลก่อนส่งคำขอ/)).toBeInTheDocument();
+    expect(screen.getByText(/จำเป็นเฉพาะชื่อร้านค้า/)).toBeInTheDocument();
+    expect(screen.getByText(/กรอกชื่อร้านค้าเพื่อส่งคำขอ/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/รายละเอียด \(ไม่บังคับ\)/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/เบอร์โทร \(ไม่บังคับ\)/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ดูวิธียืนยัน' })).toHaveAttribute(
       'href',
       '#email-verification-banner',
