@@ -29,13 +29,16 @@ const TYPE_GROUPS: ReadonlyArray<{
 
 export function PromotionTypeSelector({
   basePath,
+  tourId,
 }: {
   basePath: '/vendor/promotions/new' | '/admin/promotions/new';
+  /** Optional `data-tour-id` for action-guide spotlights. */
+  tourId?: string;
 }) {
   const isAdmin = basePath === '/admin/promotions/new';
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className="mx-auto max-w-2xl space-y-8" data-tour-id={tourId}>
       {TYPE_GROUPS.map((group) => {
         const types = isAdmin ? group.types.filter(isAdminCreatablePromotionType) : group.types;
         if (types.length === 0) return null;

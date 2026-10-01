@@ -47,6 +47,18 @@ vi.mock('@/hooks/useTheme', () => ({
   useTheme: vi.fn(),
 }));
 
+vi.mock('@/hooks/useStoreSettings', () => ({
+  useMyStore: vi.fn(() => ({ data: undefined })),
+}));
+
+vi.mock('@/hooks/useShipping', () => ({
+  useMyStoreShippingOptions: vi.fn(() => ({ data: [] })),
+}));
+
+vi.mock('@/hooks/useVendorProducts', () => ({
+  useVendorProducts: vi.fn(() => ({ data: { items: [] } })),
+}));
+
 const authGuardState = vi.hoisted(() => ({ renderChildren: true }));
 
 vi.mock('@/components/auth-guard', () => ({
@@ -158,12 +170,13 @@ function setupMocks({
 }
 
 describe('buildVendorNavSections', () => {
-  it('returns ร้านค้าของฉัน, คำเชิญ / คำขอ, การแจ้งเตือน, and ตั้งค่า when vendor has no stores', () => {
+  it('returns เริ่มต้นตั้งค่าร้าน, ร้านค้าของฉัน, คำเชิญ / คำขอ, การแจ้งเตือน, and ตั้งค่า when vendor has no stores', () => {
     const sections = buildVendorNavSections({ hasStores: false, isOwner: false, isManager: false });
 
     expect(sections).toHaveLength(2);
     expect(sections[0].title).toBe('ร้านค้า');
     expect(sections[0].items).toEqual([
+      expect.objectContaining({ href: '/vendor/onboarding', label: 'เริ่มต้นตั้งค่าร้าน' }),
       expect.objectContaining({ href: '/vendor/stores', label: 'ร้านค้าของฉัน' }),
       expect.objectContaining({ href: '/vendor/requests', label: 'คำเชิญ / คำขอ' }),
     ]);
@@ -223,6 +236,21 @@ describe('buildVendorNavSections', () => {
     expect(labels).toContain('คู่มือการใช้งาน');
   });
 
+  it('includes ทัวร์แนะนำ link to tours hub when showToursLink is provided', () => {
+    const sections = buildVendorNavSections({
+      hasStores: true,
+      isOwner: false,
+      isManager: false,
+      showToursLink: true,
+    });
+
+    const tours = sections
+      .flatMap((section) => section.items)
+      .find((item) => item.label === 'ทัวร์แนะนำ');
+    expect(tours?.href).toBe('/vendor/tours');
+    expect(tours?.onClick).toBeUndefined();
+  });
+
   it('hides operational nav when active store is suspended', () => {
     const sections = buildVendorNavSections({
       hasStores: true,
@@ -234,6 +262,7 @@ describe('buildVendorNavSections', () => {
 
     const labels = sections.flatMap((section) => section.items.map((item) => item.label));
     expect(labels).toEqual([
+      'เริ่มต้นตั้งค่าร้าน',
       'ร้านค้าของฉัน',
       'คำเชิญ / คำขอ',
       'การแจ้งเตือน',
@@ -297,6 +326,7 @@ describe('VendorLayout sidebar nav', () => {
       </VendorLayout>,
     );
 
+    expect(screen.getByRole('link', { name: 'เริ่มต้นตั้งค่าร้าน' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ร้านค้าของฉัน' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'คำเชิญ / คำขอ' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'การแจ้งเตือน' })).toBeInTheDocument();

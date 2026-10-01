@@ -10,6 +10,7 @@ import { VendorReviewProductBreakdown } from '@/components/vendor/vendor-review-
 import { VendorReviewSummarySection } from '@/components/vendor/vendor-review-summary-section';
 import { VendorReviewSummarySkeleton } from '@/components/vendor/vendor-review-summary-skeleton';
 import { VendorReviewsEmptyState } from '@/components/vendor/vendor-reviews-empty-state';
+import { PageFeatureSpotlight } from '@/components/vendor/product-tour/page-feature-spotlight';
 import { useStoreProductReviews, useStoreReviewSummary } from '@/hooks/useReviews';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { VENDOR_REVIEWS_PAGE_SIZE } from '@/lib/api/reviews';
@@ -82,6 +83,10 @@ export default function VendorReviewsPage() {
 
   return (
     <div>
+      <PageFeatureSpotlight
+        featureId="reviews-empty-intro"
+        eligible={Boolean(storeId) && !reviewsLoading && !reviewsError && hasNoReviews === true}
+      />
       <PageHeader
         title="รีวิว"
         description="รีวิวสินค้าจากลูกค้า — สรุปคะแนนและตอบกลับได้ที่นี่"

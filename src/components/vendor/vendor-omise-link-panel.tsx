@@ -74,7 +74,7 @@ export function VendorOmiseLinkPanel({ store, loading }: VendorOmiseLinkPanelPro
   }
 
   return (
-    <Card>
+    <Card data-tour-id="action-payout-omise">
       <CardHeader className="space-y-1">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           ขั้นตอน 2

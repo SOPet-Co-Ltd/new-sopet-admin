@@ -42,6 +42,10 @@ import {
 } from '@/lib/validations';
 import { cn } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api/errors';
+import { PageFeatureSpotlight } from '@/components/vendor/product-tour/page-feature-spotlight';
+import { ActionGuideSpotlight } from '@/components/vendor/product-tour/action-guide-spotlight';
+import { ACTION_GUIDE_QUERY, startActionGuide } from '@/lib/vendor/action-guide';
+import { useBootstrapActionGuide } from '@/lib/vendor/use-bootstrap-action-guide';
 
 type SettingsTab = keyof typeof settingsTabLabels;
 
@@ -91,13 +95,16 @@ function VendorSettingsPageContent() {
   const searchParams = useSearchParams();
   const { user } = useCurrentUser();
   const { isOwner } = useIsStoreOwner();
-  const requestedTab = parseSettingsTab(searchParams.get('tab'));
+  const setupPayoutGuide = searchParams.get(ACTION_GUIDE_QUERY) === 'setup-payout';
+  const requestedTab = setupPayoutGuide ? 'payout' : parseSettingsTab(searchParams.get('tab'));
   const tab = !isOwner && OWNER_ONLY_TABS.includes(requestedTab) ? 'profile' : requestedTab;
   const { data: store, isLoading: storeLoading } = useMyStore();
   const updateProfile = useUpdateUserProfile();
   const changePassword = useChangePassword();
   const updateStore = useUpdateStore();
   const updatePayout = useUpdateStorePayout();
+
+  useBootstrapActionGuide('setup-payout', undefined, { ensureQuery: { tab: 'payout' } });
 
   function selectTab(next: SettingsTab) {
     const params = new URLSearchParams(searchParams.toString());
@@ -504,7 +511,16 @@ function VendorSettingsPageContent() {
           role="tabpanel"
           aria-labelledby="settings-tab-payout"
           className="space-y-6"
+          data-tour-id="payout-setup-panel"
         >
+          <ActionGuideSpotlight guideId="setup-payout" />
+          <PageFeatureSpotlight
+            featureId="payout-setup"
+            eligible={!storeLoading && isOwner}
+            onCompleted={() => {
+              startActionGuide('setup-payout', { userId: user?.id });
+            }}
+          />
           <VendorPayoutAccountPanel
             form={payoutForm}
             store={store}

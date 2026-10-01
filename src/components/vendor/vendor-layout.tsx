@@ -11,17 +11,21 @@ import {
   HiHome,
   HiInboxArrowDown,
   HiMegaphone,
+  HiQuestionMarkCircle,
+  HiRocketLaunch,
   HiShoppingBag,
   HiStar,
   HiTicket,
   HiUserGroup,
   HiUsers,
 } from 'react-icons/hi2';
+import { useCallback, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { AuthGuard } from '@/components/auth-guard';
 import { DashboardShell, type DashboardNavSection } from '@/components/dashboard-shell';
 import { ActiveStoreDisplay } from '@/components/vendor/active-store-display';
 import { EmailVerificationBanner } from '@/components/vendor/email-verification-banner';
+import { ProductTourProvider } from '@/components/vendor/product-tour/product-tour-provider';
 import { SuspendedStoreBanner } from '@/components/vendor/suspended-store-banner';
 import { VendorStoreGuard } from '@/components/vendor/vendor-store-guard';
 import { useIsStoreManager, useIsStoreOwner } from '@/hooks/useMembershipRole';
@@ -36,13 +40,19 @@ import { vendorHasStores } from '@/lib/vendor/vendor-store-access';
 const storeSection = (pendingRequestCount?: number): DashboardNavSection => ({
   title: 'ร้านค้า',
   items: [
-    { href: '/vendor', label: 'แดชบอร์ด', exact: true, icon: HiHome },
-    { href: '/vendor/stores', label: 'ร้านค้าของฉัน', icon: HiBuildingStorefront },
+    { href: '/vendor', label: 'แดชบอร์ด', exact: true, icon: HiHome, tourId: 'nav-dashboard' },
+    {
+      href: '/vendor/stores',
+      label: 'ร้านค้าของฉัน',
+      icon: HiBuildingStorefront,
+      tourId: 'nav-stores',
+    },
     {
       href: '/vendor/requests',
       label: 'คำเชิญ / คำขอ',
       icon: HiInboxArrowDown,
       badge: pendingRequestCount,
+      tourId: 'nav-requests',
     },
   ],
 });
@@ -55,46 +65,69 @@ const salesSection = (pendingOrderCount?: number): DashboardNavSection => ({
       label: 'คำสั่งซื้อ',
       icon: HiShoppingBag,
       badge: pendingOrderCount,
+      tourId: 'nav-orders',
     },
-    { href: '/vendor/products', label: 'สินค้า', icon: HiCube },
-    { href: '/vendor/customers', label: 'ลูกค้า', icon: HiUsers },
-    { href: '/vendor/reviews', label: 'รีวิว', icon: HiStar },
+    { href: '/vendor/products', label: 'สินค้า', icon: HiCube, tourId: 'nav-products' },
+    { href: '/vendor/customers', label: 'ลูกค้า', icon: HiUsers, tourId: 'nav-customers' },
+    { href: '/vendor/reviews', label: 'รีวิว', icon: HiStar, tourId: 'nav-reviews' },
   ],
 });
 
 const marketingSection: DashboardNavSection = {
   title: 'การตลาด',
   items: [
-    { href: '/vendor/promotions', label: 'โปรโมชัน', icon: HiTicket },
-    { href: '/vendor/campaigns', label: 'แคมเปญ', icon: HiMegaphone },
+    { href: '/vendor/promotions', label: 'โปรโมชัน', icon: HiTicket, tourId: 'nav-promotions' },
+    { href: '/vendor/campaigns', label: 'แคมเปญ', icon: HiMegaphone, tourId: 'nav-campaigns' },
   ],
 };
 
 const teamSection: DashboardNavSection = {
   title: 'ทีม',
-  items: [{ href: '/vendor/team', label: 'ทีมงาน', icon: HiUserGroup }],
+  items: [{ href: '/vendor/team', label: 'ทีมงาน', icon: HiUserGroup, tourId: 'nav-team' }],
 };
 
 const systemSection: DashboardNavSection = {
   title: 'ระบบ',
-  items: [{ href: '/vendor/api', label: 'API', icon: HiCodeBracket }],
+  items: [{ href: '/vendor/api', label: 'API', icon: HiCodeBracket, tourId: 'nav-api' }],
 };
 
-const accountSection = (isOwner: boolean): DashboardNavSection => ({
+const accountSection = (isOwner: boolean, showToursLink?: boolean): DashboardNavSection => ({
   title: 'บัญชี',
   items: [
     ...(isOwner
-      ? [{ href: '/vendor/settings?tab=payout', label: 'รับเงิน', icon: HiBanknotes }]
+      ? [
+          {
+            href: '/vendor/settings?tab=payout',
+            label: 'รับเงิน',
+            icon: HiBanknotes,
+            tourId: 'nav-payout',
+          },
+        ]
       : []),
-    { href: '/vendor/notifications', label: 'การแจ้งเตือน', icon: HiBell },
-    { href: '/vendor/settings', label: 'ตั้งค่า', icon: HiCog6Tooth },
-    { href: '/guide/vendor', label: 'คู่มือการใช้งาน', icon: HiBookOpen },
+    {
+      href: '/vendor/notifications',
+      label: 'การแจ้งเตือน',
+      icon: HiBell,
+      tourId: 'nav-notifications',
+    },
+    { href: '/vendor/settings', label: 'ตั้งค่า', icon: HiCog6Tooth, tourId: 'nav-settings' },
+    { href: '/guide/vendor', label: 'คู่มือการใช้งาน', icon: HiBookOpen, tourId: 'nav-help' },
+    ...(showToursLink
+      ? [
+          {
+            href: '/vendor/tours',
+            label: 'ทัวร์แนะนำ',
+            icon: HiQuestionMarkCircle,
+          },
+        ]
+      : []),
   ],
 });
 
 const noStoresNavSection = (pendingRequestCount?: number): DashboardNavSection => ({
   title: 'ร้านค้า',
   items: [
+    { href: '/vendor/onboarding', label: 'เริ่มต้นตั้งค่าร้าน', icon: HiRocketLaunch },
     { href: '/vendor/stores', label: 'ร้านค้าของฉัน', icon: HiBuildingStorefront },
     {
       href: '/vendor/requests',
@@ -125,6 +158,7 @@ export function buildVendorNavSections({
   isSuspended = false,
   pendingOrderCount,
   pendingRequestCount,
+  showToursLink,
 }: {
   hasStores: boolean;
   isOwner: boolean;
@@ -133,6 +167,7 @@ export function buildVendorNavSections({
   isSuspended?: boolean;
   pendingOrderCount?: number;
   pendingRequestCount?: number;
+  showToursLink?: boolean;
 }): DashboardNavSection[] {
   if (!hasStores) {
     return [noStoresNavSection(pendingRequestCount), accountSection(isOwner)];
@@ -148,7 +183,7 @@ export function buildVendorNavSections({
     marketingSection,
     ...(isOwner ? [teamSection] : []),
     ...(isManager ? [systemSection] : []),
-    accountSection(isOwner),
+    accountSection(isOwner, showToursLink),
   ];
 }
 
@@ -169,6 +204,40 @@ function VendorDashboardLayout({ children }: { children: React.ReactNode }) {
 }
 
 function VendorDashboardShell({ children }: { children: React.ReactNode }) {
+  const { data: stores = [], isLoading: isStoresLoading } = useMyStores();
+  const storeId = useVendorStoreId();
+  const activeStore = stores.find((entry) => entry.store.id === storeId);
+  const isSuspended = activeStore?.store.status === 'suspended';
+  const hasStores = vendorHasStores(stores);
+
+  const [forceMobileNavOpen, setForceMobileNavOpen] = useState(false);
+
+  const handleMobileNavForTour = useCallback((open: boolean) => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    setForceMobileNavOpen(open && isMobile);
+  }, []);
+
+  return (
+    <ProductTourProvider
+      hasStores={!isStoresLoading && hasStores}
+      isSuspended={!isStoresLoading && isSuspended}
+      onMobileNavOpenChange={handleMobileNavForTour}
+    >
+      <VendorDashboardShellInner forceMobileNavOpen={forceMobileNavOpen}>
+        {children}
+      </VendorDashboardShellInner>
+    </ProductTourProvider>
+  );
+}
+
+function VendorDashboardShellInner({
+  children,
+  forceMobileNavOpen,
+}: {
+  children: React.ReactNode;
+  forceMobileNavOpen: boolean;
+}) {
   const { data: stores = [], isLoading: isStoresLoading } = useMyStores();
   const storeId = useVendorStoreId();
   const { data: analytics } = useStoreAnalytics(storeId);
@@ -192,6 +261,7 @@ function VendorDashboardShell({ children }: { children: React.ReactNode }) {
     isSuspended: !isStoresLoading && isSuspended,
     pendingOrderCount: isSuspended ? undefined : analytics?.pendingOrders,
     pendingRequestCount: pendingRequestCount > 0 ? pendingRequestCount : undefined,
+    showToursLink: !isStoresLoading && hasStores && !isSuspended,
   });
 
   const header = (
@@ -206,6 +276,7 @@ function VendorDashboardShell({ children }: { children: React.ReactNode }) {
       brandLabel="ผู้ขาย"
       navSections={navSections}
       header={header}
+      forceMobileNavOpen={forceMobileNavOpen}
     >
       <EmailVerificationBanner />
       <SuspendedStoreBanner />

@@ -13,6 +13,7 @@ export function VendorReviewsEmptyState({ mode, onClearFilters }: VendorReviewsE
     <div
       className="flex flex-col items-center justify-center rounded-xl border border-border bg-card px-6 py-14 text-center"
       role="status"
+      data-tour-id="reviews-empty-state"
     >
       <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-surface text-muted-foreground">
         {isFiltered ? (

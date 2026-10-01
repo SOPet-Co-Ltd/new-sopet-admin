@@ -17,6 +17,10 @@ export type DashboardNavItem = {
   disabled?: boolean;
   icon?: ComponentType<{ className?: string }>;
   badge?: number;
+  /** Spotlight product-tour target id (`data-tour-id`). */
+  tourId?: string;
+  /** When set, render a button instead of a link (e.g. replay tour). */
+  onClick?: () => void;
 };
 
 export type DashboardNavSection = {
@@ -30,12 +34,15 @@ export function DashboardShell({
   header,
   navSections,
   children,
+  forceMobileNavOpen = false,
 }: {
   brandHref: string;
   brandLabel: string;
   header?: React.ReactNode;
   navSections: DashboardNavSection[];
   children: React.ReactNode;
+  /** Keeps the mobile drawer open (e.g. while a product tour highlights nav). */
+  forceMobileNavOpen?: boolean;
 }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -46,8 +53,12 @@ export function DashboardShell({
 
   if (pathname !== prevPathname) {
     setPrevPathname(pathname);
-    setMobileOpen(false);
+    if (!forceMobileNavOpen) {
+      setMobileOpen(false);
+    }
   }
+
+  const navOpen = mobileOpen || forceMobileNavOpen;
 
   const sidebar = (
     <div className="flex h-full flex-col">
@@ -70,11 +81,15 @@ export function DashboardShell({
             ) : null}
             <div className="space-y-1">
               {section.items.map((item) => {
-                const active = item.exact
-                  ? pathname === item.href
-                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                const active = item.onClick
+                  ? false
+                  : item.exact
+                    ? pathname === item.href
+                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
                 const Icon = item.icon;
-                const prefetchHandlers = createDashboardNavPrefetchHandlers(queryClient, item.href);
+                const prefetchHandlers = item.onClick
+                  ? null
+                  : createDashboardNavPrefetchHandlers(queryClient, item.href);
                 const className = cn(
                   'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
                   item.disabled
@@ -83,23 +98,45 @@ export function DashboardShell({
                       ? 'bg-brand-tint font-semibold text-brand'
                       : 'text-muted hover:bg-surface hover:text-ink',
                 );
+                const itemKey = item.onClick ? `action:${item.label}` : item.href;
 
                 if (item.disabled) {
                   return (
-                    <span key={item.href} className={className} aria-disabled="true">
+                    <span
+                      key={itemKey}
+                      className={className}
+                      aria-disabled="true"
+                      data-tour-id={item.tourId}
+                    >
                       {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
                       <span className="flex-1">{item.label}</span>
                     </span>
                   );
                 }
 
+                if (item.onClick) {
+                  return (
+                    <button
+                      key={itemKey}
+                      type="button"
+                      className={cn(className, 'w-full text-left')}
+                      data-tour-id={item.tourId}
+                      onClick={item.onClick}
+                    >
+                      {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
+                      <span className="flex-1">{item.label}</span>
+                    </button>
+                  );
+                }
+
                 return (
                   <Link
-                    key={item.href}
+                    key={itemKey}
                     href={item.href}
                     className={className}
-                    onMouseEnter={prefetchHandlers.onMouseEnter}
-                    onFocus={prefetchHandlers.onFocus}
+                    data-tour-id={item.tourId}
+                    onMouseEnter={prefetchHandlers?.onMouseEnter}
+                    onFocus={prefetchHandlers?.onFocus}
                   >
                     {Icon ? <Icon className="size-4 shrink-0" aria-hidden="true" /> : null}
                     <span className="flex-1">{item.label}</span>
@@ -157,13 +194,15 @@ export function DashboardShell({
         {sidebar}
       </aside>
 
-      {mobileOpen ? (
+      {navOpen ? (
         <div className="fixed inset-0 z-50 md:hidden">
           <button
             type="button"
             aria-label="ปิดเมนู"
             className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]"
-            onClick={() => setMobileOpen(false)}
+            onClick={() => {
+              if (!forceMobileNavOpen) setMobileOpen(false);
+            }}
           />
           <aside className="absolute inset-y-0 left-0 w-64 border-r border-border bg-white shadow-[var(--shadow-elevated)]">
             {sidebar}
@@ -176,7 +215,7 @@ export function DashboardShell({
           <button
             type="button"
             aria-label="เปิดเมนู"
-            aria-expanded={mobileOpen}
+            aria-expanded={navOpen}
             onClick={() => setMobileOpen(true)}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-ink transition-colors hover:bg-surface"
           >

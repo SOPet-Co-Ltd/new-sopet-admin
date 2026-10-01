@@ -8,6 +8,7 @@ import { StatCard } from '@/components/vendor/stat-card';
 import { VendorActionQueue } from '@/components/vendor/vendor-action-queue';
 import { VendorAnalyticsReport } from '@/components/vendor/vendor-analytics-report';
 import { VendorDashboardSkeleton } from '@/components/vendor/vendor-dashboard-skeleton';
+import { VendorOnboardingResumeBanner } from '@/components/vendor/onboarding/vendor-onboarding-resume-banner';
 import { VendorPayoutSnapshot } from '@/components/vendor/vendor-payout-snapshot';
 import { VendorStoreReadinessChecklist } from '@/components/vendor/vendor-store-readiness-checklist';
 import { Card, CardBody } from '@/components/ui/card';
@@ -44,6 +45,8 @@ export default function VendorDashboardPage() {
 
       {storeId && !isLoading ? (
         <>
+          <VendorOnboardingResumeBanner />
+
           <VendorStoreReadinessChecklist />
 
           <VendorActionQueue orders={orders} storeId={storeId} />

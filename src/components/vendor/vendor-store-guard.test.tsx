@@ -78,7 +78,7 @@ describe('VendorStoreGuard', () => {
     expect(show).not.toHaveBeenCalled();
   });
 
-  it('redirects blocked routes to /vendor/stores with a Thai info toast', async () => {
+  it('redirects blocked routes to /vendor/onboarding with a Thai info toast', async () => {
     mockStores({ stores: [] });
 
     render(

@@ -43,15 +43,22 @@ function FormSection({
   description,
   children,
   className,
+  tourId,
 }: {
   id: string;
   title: string;
   description?: string;
   children: React.ReactNode;
   className?: string;
+  /** Optional `data-tour-id` for action-guide spotlights. */
+  tourId?: string;
 }) {
   return (
-    <section aria-labelledby={id} className={cn('space-y-4 p-5 md:p-6', className)}>
+    <section
+      aria-labelledby={id}
+      className={cn('space-y-4 p-5 md:p-6', className)}
+      data-tour-id={tourId}
+    >
       <div>
         <h3 id={id} className="font-display text-sm font-medium text-balance text-ink">
           {title}
@@ -204,6 +211,7 @@ export function PromotionFormFields({
         id={basicsId}
         title="ข้อมูลโปรโมชัน"
         description="รหัสและชื่อที่ลูกค้าเห็นตอนชำระเงิน"
+        tourId="action-promo-basics"
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -320,6 +328,7 @@ export function PromotionFormFields({
                       ? 'ลดเฉพาะค่าจัดส่งเป็นบาทคงที่ — ไม่หักจากราคาสินค้า'
                       : 'กำหนดมูลค่าส่วนลดและยอดซื้อขั้นต่ำให้ชัดเจน'))
         }
+        tourId="action-promo-rules"
       >
         {isBxgy ? (
           <div className="space-y-4">
@@ -668,6 +677,7 @@ export function PromotionFormFields({
         id={scheduleId}
         title="ระยะเวลา"
         description="เว้นว่างได้ — โปรโมชันจะใช้ได้จนกว่าจะปิดเอง"
+        tourId="action-promo-schedule"
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <div>

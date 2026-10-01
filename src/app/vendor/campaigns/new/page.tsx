@@ -1,8 +1,16 @@
 'use client';
 
+import { Suspense } from 'react';
 import { SaleCampaignForm } from '@/components/vendor/sale-campaign-form';
+import { ActionGuideSpotlight } from '@/components/vendor/product-tour/action-guide-spotlight';
 import { useCreateSaleCampaign } from '@/hooks/useSaleCampaigns';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
+import { useBootstrapActionGuide } from '@/lib/vendor/use-bootstrap-action-guide';
+
+function CreateCampaignGuideBootstrap() {
+  useBootstrapActionGuide('create-campaign');
+  return <ActionGuideSpotlight guideId="create-campaign" />;
+}
 
 export default function VendorSaleCampaignCreatePage() {
   const storeId = useVendorStoreId();
@@ -23,17 +31,22 @@ export default function VendorSaleCampaignCreatePage() {
   }
 
   return (
-    <SaleCampaignForm
-      title="สร้างแคมเปญ"
-      backHref="/vendor/campaigns"
-      listHref="/vendor/campaigns"
-      isPending={createMutation.isPending}
-      onSubmit={async (input) => {
-        await createMutation.mutateAsync({
-          ...input,
-          storeId,
-        });
-      }}
-    />
+    <>
+      <Suspense fallback={null}>
+        <CreateCampaignGuideBootstrap />
+      </Suspense>
+      <SaleCampaignForm
+        title="สร้างแคมเปญ"
+        backHref="/vendor/campaigns"
+        listHref="/vendor/campaigns"
+        isPending={createMutation.isPending}
+        onSubmit={async (input) => {
+          await createMutation.mutateAsync({
+            ...input,
+            storeId,
+          });
+        }}
+      />
+    </>
   );
 }

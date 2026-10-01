@@ -17,6 +17,8 @@ import type { Promotion } from '@/types';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
+  usePathname: () => '/vendor/promotions/new/percentage',
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock('next/link', () => ({
@@ -25,6 +27,18 @@ vi.mock('next/link', () => ({
       {children}
     </a>
   ),
+}));
+
+vi.mock('@/hooks/useAuth', () => ({
+  useCurrentUser: () => ({ user: { id: 'user-1' }, isLoading: false }),
+}));
+
+vi.mock('@/components/vendor/product-tour/product-tour-provider', () => ({
+  useProductTour: () => ({ isActive: false, startTour: vi.fn() }),
+}));
+
+vi.mock('@/components/vendor/product-tour/action-guide-spotlight', () => ({
+  ActionGuideSpotlight: () => null,
 }));
 
 function NewCustomerHarness({ defaultValues }: { defaultValues?: Partial<PromotionFormValues> }) {
