@@ -4,9 +4,24 @@ import type { VendorStore } from '@/types';
 import VendorStoresPage from './page';
 
 const push = vi.fn();
+const replace = vi.fn();
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => ({ push, replace }),
+  usePathname: () => '/vendor/stores',
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+vi.mock('@/hooks/useAuth', () => ({
+  useCurrentUser: () => ({ user: { id: 'user-1' }, isLoading: false }),
+}));
+
+vi.mock('@/components/vendor/product-tour/page-feature-spotlight', () => ({
+  PageFeatureSpotlight: () => null,
+}));
+
+vi.mock('@/lib/vendor/use-bootstrap-action-guide', () => ({
+  useBootstrapActionGuide: vi.fn(),
 }));
 
 vi.mock('@/hooks/useMyStores', () => ({

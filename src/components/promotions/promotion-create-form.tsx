@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { HiArrowLeft, HiOutlineExclamationCircle } from 'react-icons/hi2';
 import { PromotionFormFields } from '@/components/promotions/promotion-form-fields';
@@ -29,7 +29,6 @@ import type { CreatePromotionInput } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
 
 function CreatePromotionGuideBootstrap() {
-  const searchParams = useSearchParams();
   useBootstrapActionGuide('create-promotion');
 
   useEffect(() => {
@@ -42,7 +41,7 @@ function CreatePromotionGuideBootstrap() {
     ensureFormStep();
     window.addEventListener(ACTION_GUIDE_CHANGE_EVENT, ensureFormStep);
     return () => window.removeEventListener(ACTION_GUIDE_CHANGE_EVENT, ensureFormStep);
-  }, [searchParams]);
+  }, []);
 
   return <ActionGuideSpotlight guideId="create-promotion" />;
 }

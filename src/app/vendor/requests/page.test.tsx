@@ -3,6 +3,20 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import VendorRequestsPage from '@/app/vendor/requests/page';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  usePathname: () => '/vendor/requests',
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+vi.mock('@/hooks/useAuth', () => ({
+  useCurrentUser: () => ({ user: { id: 'user-1' }, isLoading: false }),
+}));
+
+vi.mock('@/components/vendor/product-tour/page-feature-spotlight', () => ({
+  PageFeatureSpotlight: () => null,
+}));
+
 vi.mock('@tanstack/react-query', async () => {
   const actual =
     await vi.importActual<typeof import('@tanstack/react-query')>('@tanstack/react-query');
