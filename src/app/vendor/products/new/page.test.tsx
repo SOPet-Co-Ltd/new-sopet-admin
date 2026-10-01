@@ -12,6 +12,7 @@ const mockSyncMutateAsync = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock('@/hooks/useProductMutations', () => ({
@@ -28,6 +29,10 @@ vi.mock('@/hooks/useSyncProductVariants', () => ({
     isPending: false,
     error: null,
   }),
+}));
+
+vi.mock('@/components/vendor/product-tour/product-tour-provider', () => ({
+  useProductTour: () => ({ startTour: vi.fn(), isActive: false }),
 }));
 
 vi.mock('@/hooks/useTaxonomy', () => ({
@@ -147,7 +152,9 @@ describe('NewProductPage', () => {
     expect(mockSyncMutateAsync).toHaveBeenCalledWith(
       expect.objectContaining({ productId: 'prod-1' }),
     );
-    expect(mockPush).toHaveBeenCalledWith('/vendor/products/prod-1/variants?fromWizard=1');
+    expect(mockPush).toHaveBeenCalledWith(
+      '/vendor/products/prod-1/variants?fromWizard=1&guide=create-product',
+    );
   });
 
   it('keeps cancel reachable from every step', () => {

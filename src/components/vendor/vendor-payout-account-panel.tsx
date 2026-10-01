@@ -71,7 +71,7 @@ function SavedBankAccount({
   const holder = accountName?.trim() || '—';
 
   return (
-    <div className="rounded-lg border border-border bg-card">
+    <div className="rounded-lg border border-border bg-card" data-tour-id="action-payout-bank">
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex items-center gap-2.5">
@@ -108,6 +108,7 @@ function SavedBankAccount({
           onClick={onEdit}
           aria-labelledby={titleId}
           className="w-full shrink-0 sm:w-auto"
+          data-tour-id="action-payout-save"
         >
           <HiOutlinePencilSquare className="size-3.5 shrink-0" aria-hidden />
           แก้ไข
@@ -253,7 +254,7 @@ export function VendorPayoutAccountPanel({
               <p className="text-sm text-muted-foreground">แก้ไขบัญชีธนาคารที่บันทึกไว้</p>
             ) : null}
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2" data-tour-id="action-payout-bank">
               <div className="sm:col-span-2">
                 <Label htmlFor="bankCode" required>
                   ธนาคาร
@@ -381,6 +382,7 @@ export function VendorPayoutAccountPanel({
                 disabled={saving}
                 aria-busy={saving}
                 className="w-full sm:w-auto"
+                data-tour-id="action-payout-save"
               >
                 {saving ? 'กำลังบันทึก...' : 'บันทึกบัญชีธนาคาร'}
               </Button>

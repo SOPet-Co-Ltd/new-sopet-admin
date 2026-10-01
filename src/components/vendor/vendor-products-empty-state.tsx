@@ -38,7 +38,9 @@ export function VendorProductsEmptyState({ mode, onClearFilters }: VendorProduct
         ) : null}
         {!isFiltered ? (
           <Button asChild>
-            <Link href="/vendor/products/new">เพิ่มสินค้า</Link>
+            <Link href="/vendor/products/new" data-tour-id="products-add-cta-empty">
+              เพิ่มสินค้า
+            </Link>
           </Button>
         ) : null}
       </div>

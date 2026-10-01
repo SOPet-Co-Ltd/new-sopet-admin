@@ -26,7 +26,12 @@ export function ActiveStoreDisplay() {
 
   if (isLoading) {
     return (
-      <div className="space-y-2" aria-busy="true" aria-label="กำลังโหลดร้านค้า">
+      <div
+        className="space-y-2"
+        aria-busy="true"
+        aria-label="กำลังโหลดร้านค้า"
+        data-tour-id="active-store"
+      >
         <div className="h-4 w-32 animate-pulse rounded bg-surface" />
         <div className="h-3 w-20 animate-pulse rounded bg-surface" />
       </div>
@@ -34,7 +39,11 @@ export function ActiveStoreDisplay() {
   }
 
   if (stores.length === 0) {
-    return <p className="text-xs text-muted">ยังไม่มีร้านค้า — ส่งคำขอเปิดร้านได้ด้านล่าง</p>;
+    return (
+      <p className="text-xs text-muted" data-tour-id="active-store">
+        ยังไม่มีร้านค้า — ส่งคำขอเปิดร้านได้ด้านล่าง
+      </p>
+    );
   }
 
   const active = stores.find((entry) => entry.store.id === storeId) ?? stores[0];
@@ -42,7 +51,7 @@ export function ActiveStoreDisplay() {
 
   if (stores.length === 1) {
     return (
-      <div>
+      <div data-tour-id="active-store">
         <p className="truncate text-sm font-medium text-ink">{active.store.name}</p>
         <p className="text-xs text-muted">{labelMembershipRole(active.membershipRole)}</p>
         {active.store.status === 'suspended' ? (
@@ -63,7 +72,7 @@ export function ActiveStoreDisplay() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-tour-id="active-store">
       <label htmlFor="active-store-switcher" className="text-xs font-medium text-muted">
         ร้านที่ใช้งาน
       </label>

@@ -65,7 +65,7 @@ export function StoreRequestForm({
         จำเป็นเฉพาะชื่อร้านค้า (<span className="text-danger">*</span>) —
         โลโก้และข้อมูลติดต่อไม่บังคับ แต่แนะนำให้กรอกเพื่อให้ทีมงานติดต่อและอนุมัติได้เร็วขึ้น
       </p>
-      <div className="sm:col-span-2">
+      <div className="sm:col-span-2" data-tour-id="action-store-name">
         <Label htmlFor={`${idPrefix}-name`} required>
           ชื่อร้านค้า
         </Label>
@@ -84,91 +84,95 @@ export function StoreRequestForm({
           </p>
         ) : null}
       </div>
-      <div className="sm:col-span-2">
-        <ImageUploadField
-          label="โลโก้ร้านค้า (ไม่บังคับ)"
-          value={form.watch('logoUrl') ?? ''}
-          onChange={(url) => form.setValue('logoUrl', url, { shouldDirty: true })}
-          folder="stores"
-          showUrl={false}
-          disabled={submitMutation.isPending}
-        />
-      </div>
-      <div className="sm:col-span-2">
-        <Label htmlFor={`${idPrefix}-desc`}>รายละเอียด (ไม่บังคับ)</Label>
-        <Textarea
-          id={`${idPrefix}-desc`}
-          placeholder="เช่น ประเภทสินค้า จุดเด่นของร้าน"
-          aria-invalid={!!form.formState.errors.description}
-          aria-describedby={
-            form.formState.errors.description ? `${idPrefix}-desc-error` : undefined
-          }
-          {...form.register('description')}
-          className="mt-1.5"
-          rows={3}
-        />
-        {form.formState.errors.description ? (
-          <p id={`${idPrefix}-desc-error`} role="alert" className="mt-1 text-xs text-danger">
-            {form.formState.errors.description.message}
-          </p>
-        ) : null}
-      </div>
-      <div>
-        <Label htmlFor={`${idPrefix}-phone`}>เบอร์โทร (ไม่บังคับ)</Label>
-        <Input
-          id={`${idPrefix}-phone`}
-          type="tel"
-          autoComplete="tel"
-          placeholder="0812345678"
-          aria-invalid={!!form.formState.errors.contactPhone}
-          aria-describedby={
-            form.formState.errors.contactPhone ? `${idPrefix}-phone-error` : undefined
-          }
-          {...form.register('contactPhone')}
-          className="mt-1.5"
-        />
-        {form.formState.errors.contactPhone ? (
-          <p id={`${idPrefix}-phone-error`} role="alert" className="mt-1 text-xs text-danger">
-            {form.formState.errors.contactPhone.message}
-          </p>
-        ) : null}
-      </div>
-      <div>
-        <Label htmlFor={`${idPrefix}-email`}>อีเมลติดต่อ (ไม่บังคับ)</Label>
-        <Input
-          id={`${idPrefix}-email`}
-          type="email"
-          autoComplete="email"
-          placeholder="you@example.com"
-          aria-invalid={!!form.formState.errors.contactEmail}
-          aria-describedby={
-            form.formState.errors.contactEmail ? `${idPrefix}-email-error` : undefined
-          }
-          {...form.register('contactEmail')}
-          className="mt-1.5"
-        />
-        {form.formState.errors.contactEmail ? (
-          <p id={`${idPrefix}-email-error`} role="alert" className="mt-1 text-xs text-danger">
-            {form.formState.errors.contactEmail.message}
-          </p>
-        ) : null}
-      </div>
-      <div className="sm:col-span-2">
-        <Label htmlFor={`${idPrefix}-address`}>ที่อยู่ (ไม่บังคับ)</Label>
-        <Textarea
-          id={`${idPrefix}-address`}
-          placeholder="เลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด รหัสไปรษณีย์"
-          aria-invalid={!!form.formState.errors.address}
-          aria-describedby={form.formState.errors.address ? `${idPrefix}-address-error` : undefined}
-          {...form.register('address')}
-          className="mt-1.5"
-          rows={2}
-        />
-        {form.formState.errors.address ? (
-          <p id={`${idPrefix}-address-error`} role="alert" className="mt-1 text-xs text-danger">
-            {form.formState.errors.address.message}
-          </p>
-        ) : null}
+      <div className="sm:col-span-2 grid gap-4 sm:grid-cols-2" data-tour-id="action-store-contact">
+        <div className="sm:col-span-2">
+          <ImageUploadField
+            label="โลโก้ร้านค้า (ไม่บังคับ)"
+            value={form.watch('logoUrl') ?? ''}
+            onChange={(url) => form.setValue('logoUrl', url, { shouldDirty: true })}
+            folder="stores"
+            showUrl={false}
+            disabled={submitMutation.isPending}
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Label htmlFor={`${idPrefix}-desc`}>รายละเอียด (ไม่บังคับ)</Label>
+          <Textarea
+            id={`${idPrefix}-desc`}
+            placeholder="เช่น ประเภทสินค้า จุดเด่นของร้าน"
+            aria-invalid={!!form.formState.errors.description}
+            aria-describedby={
+              form.formState.errors.description ? `${idPrefix}-desc-error` : undefined
+            }
+            {...form.register('description')}
+            className="mt-1.5"
+            rows={3}
+          />
+          {form.formState.errors.description ? (
+            <p id={`${idPrefix}-desc-error`} role="alert" className="mt-1 text-xs text-danger">
+              {form.formState.errors.description.message}
+            </p>
+          ) : null}
+        </div>
+        <div>
+          <Label htmlFor={`${idPrefix}-phone`}>เบอร์โทร (ไม่บังคับ)</Label>
+          <Input
+            id={`${idPrefix}-phone`}
+            type="tel"
+            autoComplete="tel"
+            placeholder="0812345678"
+            aria-invalid={!!form.formState.errors.contactPhone}
+            aria-describedby={
+              form.formState.errors.contactPhone ? `${idPrefix}-phone-error` : undefined
+            }
+            {...form.register('contactPhone')}
+            className="mt-1.5"
+          />
+          {form.formState.errors.contactPhone ? (
+            <p id={`${idPrefix}-phone-error`} role="alert" className="mt-1 text-xs text-danger">
+              {form.formState.errors.contactPhone.message}
+            </p>
+          ) : null}
+        </div>
+        <div>
+          <Label htmlFor={`${idPrefix}-email`}>อีเมลติดต่อ (ไม่บังคับ)</Label>
+          <Input
+            id={`${idPrefix}-email`}
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            aria-invalid={!!form.formState.errors.contactEmail}
+            aria-describedby={
+              form.formState.errors.contactEmail ? `${idPrefix}-email-error` : undefined
+            }
+            {...form.register('contactEmail')}
+            className="mt-1.5"
+          />
+          {form.formState.errors.contactEmail ? (
+            <p id={`${idPrefix}-email-error`} role="alert" className="mt-1 text-xs text-danger">
+              {form.formState.errors.contactEmail.message}
+            </p>
+          ) : null}
+        </div>
+        <div className="sm:col-span-2">
+          <Label htmlFor={`${idPrefix}-address`}>ที่อยู่ (ไม่บังคับ)</Label>
+          <Textarea
+            id={`${idPrefix}-address`}
+            placeholder="เลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด รหัสไปรษณีย์"
+            aria-invalid={!!form.formState.errors.address}
+            aria-describedby={
+              form.formState.errors.address ? `${idPrefix}-address-error` : undefined
+            }
+            {...form.register('address')}
+            className="mt-1.5"
+            rows={2}
+          />
+          {form.formState.errors.address ? (
+            <p id={`${idPrefix}-address-error`} role="alert" className="mt-1 text-xs text-danger">
+              {form.formState.errors.address.message}
+            </p>
+          ) : null}
+        </div>
       </div>
       {!isEmailVerified && user?.email ? (
         <p className="sm:col-span-2 text-sm text-muted-foreground">
@@ -192,6 +196,7 @@ export function StoreRequestForm({
           className="min-h-9"
           disabled={submitMutation.isPending || !isEmailVerified}
           aria-busy={submitMutation.isPending}
+          data-tour-id="action-store-submit"
         >
           {submitMutation.isPending ? 'กำลังส่ง...' : 'ส่งคำขอเปิดร้าน'}
         </Button>

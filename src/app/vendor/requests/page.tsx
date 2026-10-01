@@ -23,6 +23,7 @@ import {
 } from '@/lib/i18n/th';
 import { queryKeys } from '@/lib/react-query/keys';
 import type { MyPendingStoreInvitation, StoreReactivationRequest } from '@/types';
+import { PageFeatureSpotlight } from '@/components/vendor/product-tour/page-feature-spotlight';
 
 function requestStatusClass(status: string): string {
   if (status === 'approved') return 'bg-success-bg text-success';
@@ -177,12 +178,13 @@ export default function VendorRequestsPage() {
 
   return (
     <div className="space-y-6">
+      <PageFeatureSpotlight featureId="requests-inbox" eligible={!loadingInvitations} />
       <PageHeader
         title="คำเชิญ / คำขอ"
         description="ตอบรับคำเชิญเข้าร้านและติดตามคำขอที่คุณส่งไว้"
       />
 
-      <Card>
+      <Card data-tour-id="requests-invitations-panel">
         <CardHeader>
           <h2 className="font-display font-medium text-ink">คำเชิญเข้าร้าน</h2>
         </CardHeader>

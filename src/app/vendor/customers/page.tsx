@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
+import { PageFeatureSpotlight } from '@/components/vendor/product-tour/page-feature-spotlight';
 import { useVendorCustomers } from '@/hooks/useVendorCustomers';
 import { getErrorMessage } from '@/lib/api/errors';
 import {
@@ -83,7 +84,10 @@ function CustomersEmptyState({
   onClearSearch: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card px-6 py-14 text-center shadow-[var(--shadow-card)]">
+    <div
+      className="flex flex-col items-center justify-center rounded-xl border border-border bg-card px-6 py-14 text-center shadow-[var(--shadow-card)]"
+      data-tour-id="customers-empty-state"
+    >
       <div
         className="flex size-12 items-center justify-center rounded-full bg-surface text-muted-foreground"
         aria-hidden="true"
@@ -274,6 +278,7 @@ export default function VendorCustomersPage() {
 
   return (
     <div>
+      <PageFeatureSpotlight featureId="customers-empty-intro" eligible={showEmpty && !hasSearch} />
       <PageHeader title="ลูกค้า" description="ลูกค้าที่เคยสั่งซื้อสินค้าจากร้านของคุณ" />
 
       <div className="mb-6 flex max-w-md items-center gap-2">

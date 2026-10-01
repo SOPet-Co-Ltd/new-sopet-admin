@@ -4,14 +4,17 @@ export function Card({
   className,
   children,
   role,
+  'data-tour-id': dataTourId,
 }: {
   className?: string;
   children: React.ReactNode;
   role?: React.AriaRole;
+  'data-tour-id'?: string;
 }) {
   return (
     <div
       role={role}
+      data-tour-id={dataTourId}
       className={cn(
         'min-w-0 rounded-xl border border-border bg-card shadow-[var(--shadow-card)]',
         className,

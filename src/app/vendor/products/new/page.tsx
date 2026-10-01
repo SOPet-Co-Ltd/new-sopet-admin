@@ -2,8 +2,8 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2';
 import { VariantOptionGroupsEditor } from '@/components/vendor/variant-option-groups-editor';
@@ -14,6 +14,7 @@ import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Stepper } from '@/components/ui/stepper';
+import { CreateProductGuideSpotlight } from '@/components/vendor/product-tour/create-product-guide-spotlight';
 import { ProductDescriptionEditor } from '@/components/vendor/product-description-editor';
 import { useCreateProduct } from '@/hooks/useProductMutations';
 import { useSyncProductVariants } from '@/hooks/useSyncProductVariants';
@@ -25,6 +26,11 @@ import {
 import { productCreateSchema, type ProductCreateFormValues } from '@/lib/validations';
 import { PRODUCT_WIZARD_STEPS } from '@/lib/product-wizard';
 import { getErrorMessage } from '@/lib/api/errors';
+import {
+  CREATE_PRODUCT_GUIDE_QUERY,
+  CREATE_PRODUCT_GUIDE_QUERY_VALUE,
+  startCreateProductGuide,
+} from '@/lib/vendor/create-product-guide';
 
 const LAST_FORM_STEP = 3;
 
@@ -34,11 +40,18 @@ function emptyGroup(): VariantOptionGroup {
 
 export default function NewProductPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const createMutation = useCreateProduct();
   const syncMutation = useSyncProductVariants();
   const [step, setStep] = useState(1);
   const [groups, setGroups] = useState<VariantOptionGroup[]>([emptyGroup()]);
   const [variantError, setVariantError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get(CREATE_PRODUCT_GUIDE_QUERY) === CREATE_PRODUCT_GUIDE_QUERY_VALUE) {
+      startCreateProductGuide();
+    }
+  }, [searchParams]);
 
   function handleGroupsChange(next: VariantOptionGroup[]) {
     setGroups(next);
@@ -107,7 +120,9 @@ export default function NewProductPage() {
         variants: items,
       });
 
-      router.push(`/vendor/products/${product.id}/variants?fromWizard=1`);
+      router.push(
+        `/vendor/products/${product.id}/variants?fromWizard=1&${CREATE_PRODUCT_GUIDE_QUERY}=${CREATE_PRODUCT_GUIDE_QUERY_VALUE}`,
+      );
     } catch {
       // surfaced via mutation state
     }
@@ -115,6 +130,7 @@ export default function NewProductPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <CreateProductGuideSpotlight step={step as 1 | 2 | 3} />
       <PageHeader
         title="สร้างสินค้า"
         description={`ขั้นที่ ${step} จาก ${PRODUCT_WIZARD_STEPS.length} — ${currentStepMeta.label}`}
@@ -137,7 +153,7 @@ export default function NewProductPage() {
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {step === 1 ? (
-          <Card>
+          <Card data-tour-id="create-product-name">
             <CardHeader>
               <h2 className="text-balance font-display font-medium text-ink">ข้อมูลพื้นฐาน</h2>
               <p className="mt-1 text-sm text-muted-foreground text-pretty">
@@ -183,7 +199,7 @@ export default function NewProductPage() {
         ) : null}
 
         {step === 2 ? (
-          <Card>
+          <Card data-tour-id="create-product-taxonomy">
             <CardHeader>
               <h2 className="text-balance font-display font-medium text-ink">การจัดหมวดหมู่</h2>
               <p className="mt-1 text-sm text-muted-foreground text-pretty">
@@ -214,7 +230,7 @@ export default function NewProductPage() {
         ) : null}
 
         {step === 3 ? (
-          <Card>
+          <Card data-tour-id="create-product-options">
             <CardHeader>
               <h2 className="text-balance font-display font-medium text-ink">
                 ตัวเลือกสินค้า <span className="text-danger">*</span>

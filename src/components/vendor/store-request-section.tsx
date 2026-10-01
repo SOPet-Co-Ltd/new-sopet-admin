@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { ActionGuideSpotlight } from '@/components/vendor/product-tour/action-guide-spotlight';
 import { StoreRequestForm } from '@/components/vendor/store-request-form';
 import { useMyStoreRequests } from '@/hooks/useStoreRequests';
 import { getErrorMessage } from '@/lib/api/errors';
@@ -67,6 +68,7 @@ export function StoreRequestSection({
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+          {open ? <ActionGuideSpotlight guideId="request-store" /> : null}
           <DialogHeader>
             <DialogTitle>ขอเปิดร้านใหม่</DialogTitle>
             <DialogDescription>

@@ -47,6 +47,18 @@ vi.mock('@/hooks/useTheme', () => ({
   useTheme: vi.fn(),
 }));
 
+vi.mock('@/hooks/useStoreSettings', () => ({
+  useMyStore: vi.fn(() => ({ data: undefined })),
+}));
+
+vi.mock('@/hooks/useShipping', () => ({
+  useMyStoreShippingOptions: vi.fn(() => ({ data: [] })),
+}));
+
+vi.mock('@/hooks/useVendorProducts', () => ({
+  useVendorProducts: vi.fn(() => ({ data: { items: [] } })),
+}));
+
 const authGuardState = vi.hoisted(() => ({ renderChildren: true }));
 
 vi.mock('@/components/auth-guard', () => ({
@@ -222,6 +234,21 @@ describe('buildVendorNavSections', () => {
     expect(labels).toContain('การแจ้งเตือน');
     expect(labels).toContain('ตั้งค่า');
     expect(labels).toContain('คู่มือการใช้งาน');
+  });
+
+  it('includes ทัวร์แนะนำ link to tours hub when showToursLink is provided', () => {
+    const sections = buildVendorNavSections({
+      hasStores: true,
+      isOwner: false,
+      isManager: false,
+      showToursLink: true,
+    });
+
+    const tours = sections
+      .flatMap((section) => section.items)
+      .find((item) => item.label === 'ทัวร์แนะนำ');
+    expect(tours?.href).toBe('/vendor/tours');
+    expect(tours?.onClick).toBeUndefined();
   });
 
   it('hides operational nav when active store is suspended', () => {

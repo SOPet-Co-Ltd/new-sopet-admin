@@ -61,6 +61,10 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
 }));
 
+vi.mock('@/components/vendor/product-tour/product-tour-provider', () => ({
+  useProductTour: () => ({ startTour: vi.fn(), isActive: false }),
+}));
+
 vi.mock('@/hooks/useProduct', () => ({
   useProduct: () => ({ data: mockProduct, isLoading: false, error: null }),
 }));
