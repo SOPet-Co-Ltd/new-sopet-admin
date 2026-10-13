@@ -10,6 +10,31 @@ const mockPush = vi.fn();
 const mockCreateMutateAsync = vi.fn();
 const mockSyncMutateAsync = vi.fn();
 
+// Avoid loading BlockNote/Mantine in page tests (jsdom lacks pointer APIs).
+vi.mock('next/dynamic', () => ({
+  default: () => {
+    function MockBlockEditor({
+      id,
+      value,
+      onChange,
+    }: {
+      id: string;
+      value: string;
+      onChange: (value: string) => void;
+    }) {
+      return (
+        <textarea
+          id={id}
+          aria-label="รายละเอียด"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      );
+    }
+    return MockBlockEditor;
+  },
+}));
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   useSearchParams: () => new URLSearchParams(),
