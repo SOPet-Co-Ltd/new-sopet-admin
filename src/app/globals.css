@@ -191,3 +191,25 @@ h4 {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
 }
+
+/* Product description BlockNote — nest inside our bordered field */
+.product-description-block-editor .bn-editor {
+  background: transparent;
+  padding-inline: 0.75rem;
+  padding-block: 0.5rem;
+  min-height: 120px;
+  font-family: inherit;
+}
+
+.product-description-block-editor .bn-container {
+  background: transparent;
+}
+
+.product-description-block-editor .bn-editor:focus-visible {
+  outline: none;
+}
+
+.product-description-block-editor .bn-block-outer {
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
