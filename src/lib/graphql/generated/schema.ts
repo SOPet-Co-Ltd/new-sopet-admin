@@ -2061,6 +2061,7 @@ export type ProductType = {
   averageRating: Scalars['Float']['output'];
   basePrice: Scalars['Float']['output'];
   brandId?: Maybe<Scalars['String']['output']>;
+  brandName?: Maybe<Scalars['String']['output']>;
   category?: Maybe<Scalars['String']['output']>;
   categoryId?: Maybe<Scalars['String']['output']>;
   compareAtPrice?: Maybe<Scalars['Float']['output']>;
@@ -2779,6 +2780,7 @@ export type ReviewType = {
   comment?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   customerName: Scalars['String']['output'];
+  customerProfilePhotoUrl?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   images: Array<ReviewImageType>;
   productId: Scalars['String']['output'];
@@ -3056,6 +3058,7 @@ export type StoreProductReviewType = {
   comment?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   customerName: Scalars['String']['output'];
+  customerProfilePhotoUrl?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   images: Array<ReviewImageType>;
   productId: Scalars['String']['output'];
