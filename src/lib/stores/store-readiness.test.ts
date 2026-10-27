@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { buildStoreReadinessChecklist, isPayoutSetupComplete } from './store-readiness';
 
 describe('isPayoutSetupComplete', () => {
-  it('treats not_connected and failed as incomplete', () => {
-    expect(isPayoutSetupComplete('not_connected')).toBe(false);
-    expect(isPayoutSetupComplete('failed')).toBe(false);
+  it('treats unverified and rejected as incomplete', () => {
+    expect(isPayoutSetupComplete('unverified')).toBe(false);
+    expect(isPayoutSetupComplete('rejected')).toBe(false);
     expect(isPayoutSetupComplete(undefined)).toBe(false);
   });
 
-  it('treats pending and active as complete', () => {
-    expect(isPayoutSetupComplete('pending')).toBe(true);
-    expect(isPayoutSetupComplete('active')).toBe(true);
+  it('treats pending_review and verified as complete', () => {
+    expect(isPayoutSetupComplete('pending_review')).toBe(true);
+    expect(isPayoutSetupComplete('verified')).toBe(true);
   });
 });
 
@@ -19,7 +19,7 @@ describe('buildStoreReadinessChecklist', () => {
     const checklist = buildStoreReadinessChecklist({
       shippingOptions: [],
       products: [{ status: 'draft' }],
-      omiseRecipientStatus: 'not_connected',
+      bankAccountVerificationStatus: 'unverified',
     });
 
     expect(checklist.allComplete).toBe(false);
@@ -31,7 +31,7 @@ describe('buildStoreReadinessChecklist', () => {
     const checklist = buildStoreReadinessChecklist({
       shippingOptions: [{ id: 'ship-1' } as never],
       products: [{ status: 'published' }],
-      omiseRecipientStatus: 'active',
+      bankAccountVerificationStatus: 'verified',
     });
 
     expect(checklist.allComplete).toBe(true);

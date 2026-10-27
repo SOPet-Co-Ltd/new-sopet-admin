@@ -26,7 +26,7 @@ export function VendorStoreReadinessChecklist() {
   const checklist = buildStoreReadinessChecklist({
     shippingOptions,
     products: productsResult?.items ?? [],
-    omiseRecipientStatus: store?.omiseRecipientStatus,
+    bankAccountVerificationStatus: store?.bankAccountVerificationStatus,
   });
 
   const ownerOnlyKeys = new Set<StoreReadinessItemKey>(['payout']);

@@ -135,10 +135,7 @@ export function VendorPayoutAccountPanel({
     message: string;
   } | null>(null);
 
-  const omiseWasLinked =
-    store?.omiseRecipientStatus === 'active' ||
-    store?.omiseRecipientStatus === 'pending' ||
-    Boolean(store?.omiseRecipientId);
+  const bankWasVerified = store?.bankAccountVerificationStatus === 'verified';
 
   useEffect(() => {
     if (!saveFeedback || saveFeedback.type !== 'success') return;
@@ -168,9 +165,9 @@ export function VendorPayoutAccountPanel({
       setPendingValues(null);
       setSaveFeedback({
         type: 'success',
-        message: omiseWasLinked
-          ? 'บันทึกบัญชีแล้ว — สถานะ Omise ถูกยกเลิกการยืนยันแล้ว กรุณายืนยันกับ Omise อีกครั้งในขั้นตอน 2'
-          : 'บันทึกบัญชีธนาคารในระบบแล้ว — ขั้นถัดไปกดยืนยันกับ Omise (ถ้าต้องการรับเงิน Omise)',
+        message: bankWasVerified
+          ? 'บันทึกบัญชีแล้ว — สถานะการตรวจสอบถูกรีเซ็ต รอทีม SOPET ตรวจสอบบัญชีใหม่ในขั้นตอน 2'
+          : 'บันทึกบัญชีธนาคารแล้ว — ส่งให้ทีม SOPET ตรวจสอบในขั้นตอน 2',
       });
     } catch (err) {
       setSaveFeedback({
@@ -219,7 +216,7 @@ export function VendorPayoutAccountPanel({
           บัญชีธนาคารรับเงิน
         </h2>
         <p className="text-sm text-muted-foreground">
-          บันทึกลงฐานข้อมูล SOPET เท่านั้น — ยังไม่ส่งไป Omise จนกว่าจะกดยืนยันในขั้นตอนถัดไป
+          เมื่อบันทึกแล้ว ทีม SOPET จะตรวจสอบบัญชีก่อนเปิดให้ขอรับเงิน
         </p>
       </CardHeader>
       <CardBody>
@@ -414,9 +411,9 @@ export function VendorPayoutAccountPanel({
               <DialogTitle>ยืนยันการเปลี่ยนบัญชีรับเงิน</DialogTitle>
               <DialogDescription>
                 การเปลี่ยนบัญชีธนาคารจะบันทึกข้อมูลใหม่ใน SOPET
-                {omiseWasLinked
-                  ? ' และยกเลิกสถานะยืนยัน Omise ของบัญชีเดิม — ต้องส่งยืนยันกับ Omise อีกครั้งก่อนรับเงินผ่าน PromptPay / บัตร'
-                  : ' — ยอดโอน Manual ยังใช้บัญชีใหม่ได้ทันทีหลังบันทึก'}
+                {bankWasVerified
+                  ? ' และรีเซ็ตสถานะการตรวจสอบของบัญชีเดิม — ต้องรอทีม SOPET ตรวจสอบบัญชีใหม่ก่อนขอรับเงินได้'
+                  : ' — ทีม SOPET จะตรวจสอบบัญชีใหม่อีกครั้ง'}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

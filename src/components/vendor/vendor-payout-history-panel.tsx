@@ -90,7 +90,7 @@ export function VendorPayoutHistoryPanel() {
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {formatDateTime(payout.createdAt)}
                       {' · '}
-                      {payout.settlementRail === 'manual' ? 'โอนเงินเข้าบัญชี' : 'Omise'}
+                      โอนเงินเข้าบัญชี
                     </p>
                   </div>
                   <Badge

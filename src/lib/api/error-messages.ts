@@ -154,6 +154,7 @@ export const ERROR_MESSAGES = {
   PAYOUT_BELOW_MINIMUM: 'จำนวนเงินโอนต่ำกว่าขั้นต่ำ',
   PAYOUT_MISMATCH: 'ข้อมูลการโอนเงินไม่ตรงกัน',
   PAYOUT_NOT_FOUND: 'ไม่พบรายการโอนเงิน',
+  BANK_ACCOUNT_NOT_VERIFIED: 'บัญชีธนาคารยังไม่ผ่านการตรวจสอบ',
   PAYOUT_NOT_PENDING: 'รายการโอนเงินไม่อยู่ในสถานะรอ',
   PAYOUT_WRONG_RAIL: 'ช่องทางโอนเงินไม่ถูกต้อง',
   PENDING_REACTIVATION_REQUEST_EXISTS: 'มีคำขอเปิดใช้งานร้านที่รออนุมัติอยู่แล้ว',
@@ -613,6 +614,11 @@ export const ERROR_CATALOG_DOCS: Partial<Record<ErrorMessageCode, ErrorCatalogDo
     why: 'ไม่พบรายการโอนเงิน',
     possibleIssue: 'รหัสผิดหรือถูกลบ',
     howToFix: 'เปิดจากรายการโอนเงินล่าสุด',
+  },
+  BANK_ACCOUNT_NOT_VERIFIED: {
+    why: 'บัญชีธนาคารของร้านยังไม่ผ่านการตรวจสอบจากทีม SOPET',
+    possibleIssue: 'บัญชีอยู่ระหว่างรอตรวจสอบ หรือถูกปฏิเสธ',
+    howToFix: 'รอทีม SOPET ตรวจสอบบัญชี หรือแก้ไขบัญชีธนาคารตามเหตุผลที่แจ้ง แล้วบันทึกใหม่',
   },
   PAYOUT_NOT_PENDING: {
     why: 'รายการโอนไม่อยู่ในสถานะรออนุมัติ/รอจ่าย',
@@ -1146,6 +1152,11 @@ const ERROR_CATALOG_BASE: Array<{ code: ErrorMessageCode; message: string; group
   {
     code: 'PAYOUT_NOT_FOUND',
     message: ERROR_MESSAGES.PAYOUT_NOT_FOUND,
+    group: 'คำสั่งซื้อ / การชำระเงิน / โอนเงิน',
+  },
+  {
+    code: 'BANK_ACCOUNT_NOT_VERIFIED',
+    message: ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED,
     group: 'คำสั่งซื้อ / การชำระเงิน / โอนเงิน',
   },
   {

@@ -35,9 +35,9 @@ export function VendorOnboardingResumeBanner() {
       buildStoreReadinessChecklist({
         shippingOptions,
         products: productsResult?.items ?? [],
-        omiseRecipientStatus: store?.omiseRecipientStatus,
+        bankAccountVerificationStatus: store?.bankAccountVerificationStatus,
       }),
-    [shippingOptions, productsResult?.items, store?.omiseRecipientStatus],
+    [shippingOptions, productsResult?.items, store?.bankAccountVerificationStatus],
   );
 
   const readiness = useMemo(

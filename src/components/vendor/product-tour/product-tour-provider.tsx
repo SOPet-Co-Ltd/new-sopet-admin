@@ -85,9 +85,9 @@ export function ProductTourProvider({
     return buildStoreReadinessChecklist({
       shippingOptions,
       products: productsResult?.items ?? [],
-      omiseRecipientStatus: store?.omiseRecipientStatus,
+      bankAccountVerificationStatus: store?.bankAccountVerificationStatus,
     });
-  }, [isOwner, shippingOptions, productsResult?.items, store?.omiseRecipientStatus]);
+  }, [isOwner, shippingOptions, productsResult?.items, store?.bankAccountVerificationStatus]);
 
   const startTour = useCallback(() => {
     if (!user?.id || steps.length === 0) return;

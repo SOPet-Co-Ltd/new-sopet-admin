@@ -3,8 +3,9 @@ import {
   ADMIN_STORE_QUERY,
   ADMIN_STORES_QUERY,
   CREATE_STORE_AS_ADMIN,
-  LINK_STORE_OMISE_RECIPIENT_AS_ADMIN,
+  REJECT_STORE_BANK_ACCOUNT,
   UPDATE_STORE_AS_ADMIN,
+  VERIFY_STORE_BANK_ACCOUNT,
 } from '@/lib/graphql/documents';
 import { mapAdminStore } from '@/lib/graphql/mappers';
 import type { AdminStore, CreateStoreAsAdminInput, UpdateStoreAsAdminInput } from '@/types';
@@ -74,9 +75,15 @@ export function updateStoreAsAdmin(
   }).then((data) => mapAdminStore(data.updateStoreAsAdmin));
 }
 
-export function linkStoreOmiseRecipientAsAdmin(storeId: string): Promise<AdminStore> {
-  return executeMutation<{ linkStoreOmiseRecipientAsAdmin: GqlAdminStore }>(
-    LINK_STORE_OMISE_RECIPIENT_AS_ADMIN,
-    { storeId },
-  ).then((data) => mapAdminStore(data.linkStoreOmiseRecipientAsAdmin));
+export function verifyStoreBankAccount(storeId: string): Promise<AdminStore> {
+  return executeMutation<{ verifyStoreBankAccount: GqlAdminStore }>(VERIFY_STORE_BANK_ACCOUNT, {
+    storeId,
+  }).then((data) => mapAdminStore(data.verifyStoreBankAccount));
+}
+
+export function rejectStoreBankAccount(storeId: string, reason: string): Promise<AdminStore> {
+  return executeMutation<{ rejectStoreBankAccount: GqlAdminStore }>(REJECT_STORE_BANK_ACCOUNT, {
+    storeId,
+    reason,
+  }).then((data) => mapAdminStore(data.rejectStoreBankAccount));
 }

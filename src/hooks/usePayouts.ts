@@ -8,10 +8,8 @@ import {
   getStorePayoutSummary,
   getStorePayouts,
   rejectManualPayout,
-  requestManualPayout,
   requestPayout,
   settleManualPayout,
-  triggerPayout,
   ADMIN_MANUAL_PAYOUT_PAGE_SIZE,
 } from '@/lib/api/payouts';
 import { useIsStoreOwner } from '@/hooks/useMembershipRole';
@@ -45,16 +43,6 @@ export function useRequestPayout() {
   });
 }
 
-export function useRequestManualPayout() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: requestManualPayout,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
-    },
-  });
-}
-
 export function useAdminStorePayoutSummary(storeId: string) {
   return useQuery({
     queryKey: queryKeys.payouts.adminSummary(storeId),
@@ -68,17 +56,6 @@ export function useAdminStorePayouts(storeId: string) {
     queryKey: queryKeys.payouts.adminHistory(storeId),
     queryFn: () => getAdminStorePayouts(storeId),
     enabled: !!storeId,
-  });
-}
-
-export function useTriggerPayout(storeId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (amount?: number) => triggerPayout({ storeId, amount }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.adminSummary(storeId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.adminHistory(storeId) });
-    },
   });
 }
 

@@ -6,18 +6,15 @@ import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { useIsStoreOwner } from '@/hooks/useMembershipRole';
-import {
-  useRequestManualPayout,
-  useRequestPayout,
-  useStorePayoutSummary,
-} from '@/hooks/usePayouts';
+import { useRequestPayout, useStorePayoutSummary } from '@/hooks/usePayouts';
 import { useMyStore } from '@/hooks/useStoreSettings';
 import { commissionCopy } from '@/lib/i18n/th';
+import { resolveBankVerificationStatus } from '@/lib/payouts/bank-verification';
 import { formatCurrency } from '@/lib/utils';
-import type { PayoutRailSummary } from '@/types';
+import type { PayoutSummary } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
 
-function AvailableVendorSnapshotBreakdown({ rail }: { rail: PayoutRailSummary }) {
+function AvailableVendorSnapshotBreakdown({ rail }: { rail: PayoutSummary }) {
   return (
     <CommissionBreakdown
       variant="available"
@@ -40,17 +37,15 @@ export function VendorPayoutSnapshot() {
   const { isOwner } = useIsStoreOwner();
   const { data: summary, isLoading: summaryLoading } = useStorePayoutSummary(isOwner);
   const { data: store, isLoading: storeLoading } = useMyStore();
-  const requestOmise = useRequestPayout();
-  const requestManual = useRequestManualPayout();
+  const requestPayout = useRequestPayout();
 
   if (!isOwner) return null;
 
   const isLoading = summaryLoading || storeLoading;
-  const omiseVerified = store?.omiseRecipientStatus === 'active';
+  const bankStatus = resolveBankVerificationStatus(store?.bankAccountVerificationStatus);
+  const bankVerified = bankStatus === 'verified';
   const needsBankSetup = !store?.bankAccountNumber;
-  const omise = summary?.omise;
-  const manual = summary?.manual;
-  const canRequestOmise = Boolean(omiseVerified && omise?.canRequestPayout);
+  const canRequest = Boolean(bankVerified && summary?.canRequestPayout);
 
   return (
     <section aria-labelledby="vendor-payout-snapshot-heading" className="space-y-3">
@@ -73,70 +68,37 @@ export function VendorPayoutSnapshot() {
         <CardBody className="space-y-5">
           {isLoading ? (
             <p className="text-sm text-muted">กำลังโหลดยอดเงิน...</p>
-          ) : summary && omise && manual ? (
+          ) : summary ? (
             <>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div className="space-y-3 rounded-lg border border-brand/25 bg-brand-tint/40 p-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-brand">
-                      Manual · ส่งให้แอดมิน
+              <div className="space-y-3 rounded-lg border border-brand/25 bg-brand-tint/40 p-4">
+                <div>
+                  <p className="text-sm text-muted">ยอดพร้อมขอรับเงิน</p>
+                  <p className="mt-1 text-2xl font-semibold text-ink tabular-nums">
+                    {formatCurrency(summary.availableBalance)}
+                  </p>
+                  <AvailableVendorSnapshotBreakdown rail={summary} />
+                  {!needsBankSetup && !bankVerified ? (
+                    <p className="mt-1 text-sm text-amber-800">
+                      {bankStatus === 'rejected'
+                        ? 'บัญชีไม่ผ่านการตรวจสอบ — แก้ไขที่หน้า รับเงิน'
+                        : 'บัญชีรอทีม SOPET ตรวจสอบ — ขอรับเงินได้เมื่อผ่านแล้ว'}
                     </p>
-                    <p className="mt-1 text-sm text-muted">ยอดจากลูกค้าโอนเข้าบัญชี SOPET</p>
-                    <p className="mt-1 text-2xl font-semibold text-ink tabular-nums">
-                      {formatCurrency(manual.availableBalance)}
+                  ) : summary.pendingPayoutAmount > 0 ? (
+                    <p className="mt-1 text-sm text-amber-800">
+                      ส่งคำขอแล้ว — รอแอดมินโอนและอนุมัติ{' '}
+                      {formatCurrency(summary.pendingPayoutAmount)}
                     </p>
-                    <AvailableVendorSnapshotBreakdown rail={manual} />
-                    {manual.pendingPayoutAmount > 0 ? (
-                      <p className="mt-1 text-sm text-amber-800">
-                        ส่งคำขอแล้ว — รอแอดมินโอนและอนุมัติ{' '}
-                        {formatCurrency(manual.pendingPayoutAmount)}
-                      </p>
-                    ) : null}
-                  </div>
-                  <Button
-                    size="sm"
-                    className="w-full sm:w-auto"
-                    onClick={() => requestManual.mutate()}
-                    disabled={!manual.canRequestPayout || requestManual.isPending}
-                    aria-busy={requestManual.isPending}
-                  >
-                    {requestManual.isPending
-                      ? 'กำลังส่งคำขอ...'
-                      : 'ขอรับเงิน Manual (ส่งให้แอดมิน)'}
-                  </Button>
+                  ) : null}
                 </div>
-
-                <div className="space-y-3 rounded-lg border border-border p-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Omise · อัตโนมัติ
-                    </p>
-                    <p className="mt-1 text-sm text-muted">ยอด PromptPay / บัตร</p>
-                    <p className="mt-1 text-2xl font-semibold text-ink tabular-nums">
-                      {formatCurrency(omise.availableBalance)}
-                    </p>
-                    <AvailableVendorSnapshotBreakdown rail={omise} />
-                    {!omiseVerified ? (
-                      <p className="mt-1 text-sm text-amber-800">
-                        บัญชียังไม่ผ่าน Omise — ไปยืนยันที่หน้า รับเงิน
-                      </p>
-                    ) : omise.pendingPayoutAmount > 0 ? (
-                      <p className="mt-1 text-sm text-amber-800">
-                        กำลังรอโอน Omise {formatCurrency(omise.pendingPayoutAmount)}
-                      </p>
-                    ) : null}
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full sm:w-auto"
-                    onClick={() => requestOmise.mutate()}
-                    disabled={!canRequestOmise || requestOmise.isPending}
-                    aria-busy={requestOmise.isPending}
-                  >
-                    {requestOmise.isPending ? 'กำลังส่งคำขอ...' : 'ขอรับเงิน Omise'}
-                  </Button>
-                </div>
+                <Button
+                  size="sm"
+                  className="w-full sm:w-auto"
+                  onClick={() => requestPayout.mutate()}
+                  disabled={!canRequest || requestPayout.isPending}
+                  aria-busy={requestPayout.isPending}
+                >
+                  {requestPayout.isPending ? 'กำลังส่งคำขอ...' : 'ขอรับเงิน'}
+                </Button>
               </div>
 
               {needsBankSetup ? (
@@ -145,19 +107,14 @@ export function VendorPayoutSnapshot() {
                 </p>
               ) : null}
 
-              {requestManual.isError ? (
+              {requestPayout.isError ? (
                 <p className="text-sm text-danger" role="alert">
-                  {getErrorMessage(requestManual.error, 'ส่งคำขอ Manual ไม่สำเร็จ')}
+                  {getErrorMessage(requestPayout.error, 'ส่งคำขอรับเงินไม่สำเร็จ')}
                 </p>
               ) : null}
-              {requestOmise.isError ? (
-                <p className="text-sm text-danger" role="alert">
-                  {getErrorMessage(requestOmise.error, 'ส่งคำขอ Omise ไม่สำเร็จ')}
-                </p>
-              ) : null}
-              {requestManual.isSuccess ? (
+              {requestPayout.isSuccess ? (
                 <p className="text-sm text-success" role="status">
-                  ส่งคำขอ Manual สำเร็จ — รอแอดมินโอนแล้วอนุมัติ
+                  ส่งคำขอสำเร็จ — รอแอดมินโอนแล้วอนุมัติ
                 </p>
               ) : null}
 

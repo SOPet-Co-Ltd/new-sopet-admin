@@ -31,7 +31,8 @@ export interface Store {
   status: StoreStatus | string;
 }
 
-export type OmiseRecipientStatus = 'not_connected' | 'pending' | 'active' | 'failed';
+export type BankAccountVerificationStatus =
+  'unverified' | 'pending_review' | 'verified' | 'rejected';
 
 export interface StoreDetail extends Store {
   contactPhone?: string;
@@ -41,9 +42,8 @@ export interface StoreDetail extends Store {
   bankAccountNumber?: string;
   bankName?: string;
   bankCode?: string;
-  omiseRecipientId?: string;
-  omiseRecipientStatus?: OmiseRecipientStatus;
-  omiseRecipientFailureMessage?: string;
+  bankAccountVerificationStatus?: BankAccountVerificationStatus;
+  bankAccountRejectionReason?: string;
 }
 
 export type TaxonomyStatus = 'pending' | 'approved' | 'rejected';
@@ -1153,18 +1153,6 @@ export interface InviteAdminInput {
   email: string;
 }
 
-export interface PayoutRailSummary {
-  grossRevenue: number;
-  totalPaidOut: number;
-  availableBalance: number;
-  pendingPayoutAmount: number;
-  canRequestPayout: boolean;
-  productSold: number;
-  shippingFees: number;
-  commissionAmount: number;
-  commissionRate: number | null;
-}
-
 export interface PayoutSummary {
   storeId: string;
   grossRevenue: number;
@@ -1177,8 +1165,6 @@ export interface PayoutSummary {
   shippingFees: number;
   commissionAmount: number;
   commissionRate: number | null;
-  omise: PayoutRailSummary;
-  manual: PayoutRailSummary;
 }
 
 export interface Payout {
@@ -1187,7 +1173,7 @@ export interface Payout {
   amount: number;
   netAmount: number;
   status: string;
-  settlementRail: 'omise' | 'manual' | string;
+  settlementRail: string;
   createdAt: string;
   productSold: number | null;
   shippingFees: number | null;

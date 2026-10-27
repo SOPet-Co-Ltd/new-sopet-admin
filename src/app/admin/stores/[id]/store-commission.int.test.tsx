@@ -61,7 +61,6 @@ const payoutsQueryState: {
 const ownerState = { isOwner: true };
 const payoutsHistoryState: { items: PayoutCommissionFixture[] } = { items: [] };
 const pendingManualState: { items: AdminManualPayoutCommissionFixture[] } = { items: [] };
-const triggerMutate = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: 'store-1' }),
@@ -84,7 +83,15 @@ vi.mock('@/hooks/useAdminStores', () => ({
     mutateAsync: vi.fn(),
     isPending: false,
   }),
-  useLinkStoreOmiseRecipientAsAdmin: () => ({
+  useVerifyStoreBankAccount: () => ({
+    mutateAsync: vi.fn(),
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
+  useRejectStoreBankAccount: () => ({
     mutateAsync: vi.fn(),
     mutate: vi.fn(),
     isPending: false,
@@ -112,13 +119,6 @@ vi.mock('@/hooks/usePayouts', () => ({
     error: payoutsQueryState.error,
     refetch: vi.fn(),
   }),
-  useTriggerPayout: () => ({
-    mutate: triggerMutate,
-    isPending: false,
-    isError: false,
-    isSuccess: false,
-    error: null,
-  }),
   useSettleManualPayout: () => ({
     mutate: vi.fn(),
     isPending: false,
@@ -134,13 +134,6 @@ vi.mock('@/hooks/usePayouts', () => ({
     error: null,
   }),
   useRequestPayout: () => ({
-    mutate: vi.fn(),
-    isPending: false,
-    isError: false,
-    isSuccess: false,
-    error: null,
-  }),
-  useRequestManualPayout: () => ({
     mutate: vi.fn(),
     isPending: false,
     isError: false,
@@ -170,7 +163,7 @@ vi.mock('@/hooks/useMembershipRole', () => ({
 
 vi.mock('@/hooks/useStoreSettings', () => ({
   useMyStore: () => ({
-    data: { omiseRecipientStatus: 'active', bankAccountNumber: '1234567890' },
+    data: { bankAccountVerificationStatus: 'verified', bankAccountNumber: '1234567890' },
     isLoading: false,
   }),
 }));
@@ -241,7 +234,6 @@ function resetPayoutsQueryState() {
   payoutsQueryState.error = null;
   payoutsHistoryState.items = [];
   pendingManualState.items = [];
-  triggerMutate.mockReset();
 }
 
 function assertAvailableFours(netLabel: string) {
@@ -431,9 +423,7 @@ describe('store commission — available-balance fours [FE-INT-1-available]', ()
   it('shows the same fixture fours on admin panel, vendor balance, and vendor snapshot and binds availableBalance', () => {
     const { unmount: unmountAdmin } = render(<AdminStorePayoutPanel storeId="store-1" />);
     assertAvailableFours(commissionCopy.breakdown.netPayable.admin);
-    expect(
-      screen.getByRole('button', { name: `Trigger Omise (${formatCurrency(1410)})` }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Trigger Omise/ })).not.toBeInTheDocument();
     expect(screen.queryByText('ยอดสุทธิที่ได้รับ')).not.toBeInTheDocument();
     unmountAdmin();
 
@@ -445,7 +435,7 @@ describe('store commission — available-balance fours [FE-INT-1-available]', ()
     render(<VendorPayoutSnapshot />);
     assertAvailableFours(commissionCopy.breakdown.netPayable.vendor);
     expect(screen.getAllByText(commissionCopy.breakdown.productSold).length).toBeGreaterThanOrEqual(
-      2,
+      1,
     );
     expect(screen.getAllByText(formatCurrency(1410)).length).toBeGreaterThan(0);
   });
@@ -481,9 +471,7 @@ describe('store commission — four-number breakdown [integration]', () => {
   it('shows the same combined fours on admin and vendor and binds only the already-net transfer', () => {
     const { unmount: unmountAdmin } = render(<AdminStorePayoutPanel storeId="store-1" />);
     assertSnapshotFours(commissionCopy.breakdown.netPayable.admin);
-    expect(
-      screen.getByRole('button', { name: `Trigger Omise (${formatCurrency(1410)})` }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Trigger Omise/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /฿1,400/ })).not.toBeInTheDocument();
     unmountAdmin();
 
@@ -510,13 +498,13 @@ describe('store commission — four-number breakdown [integration]', () => {
     render(<VendorPayoutSnapshot />);
     assertAvailableFours(commissionCopy.breakdown.netPayable.vendor);
     expect(screen.getAllByText(commissionCopy.breakdown.productSold).length).toBeGreaterThanOrEqual(
-      2,
+      1,
     );
     expect(screen.getAllByText(formatCurrency(1410)).length).toBeGreaterThan(0);
   });
 });
 
-describe('store commission — snapshot bind and omit-amount trigger [integration]', () => {
+describe('store commission — snapshot bind [integration]', () => {
   beforeEach(() => {
     resetPayoutsQueryState();
     payoutsQueryState.summary = liveTenPercentAvailableSummary;
@@ -532,7 +520,7 @@ describe('store commission — snapshot bind and omit-amount trigger [integratio
     resetPayoutsQueryState();
   });
 
-  it('binds snapshotted fours (or —) and triggers Omise without an amount', async () => {
+  it('binds snapshotted fours (or —) without an Omise trigger action', async () => {
     expect(formatBreakdownAmount(null)).toBe('—');
     expect(formatBreakdownAmount(null)).not.toBe(formatCurrency(0));
 
@@ -546,11 +534,7 @@ describe('store commission — snapshot bind and omit-amount trigger [integratio
     expect(screen.getAllByText(formatCurrency(1410)).length).toBeGreaterThan(0);
     expect(screen.queryByText(/PAYOUT_AMOUNT_MISMATCH/)).not.toBeInTheDocument();
 
-    await userEvent.click(
-      screen.getByRole('button', { name: `Trigger Omise (${formatCurrency(1410)})` }),
-    );
-    expect(triggerMutate).toHaveBeenCalledWith(undefined);
-    expect(triggerMutate.mock.calls[0]?.[0]).toBeUndefined();
+    expect(screen.queryByRole('button', { name: /Trigger Omise/ })).not.toBeInTheDocument();
     unmountAdmin();
 
     render(<VendorPayoutHistoryPanel />);
