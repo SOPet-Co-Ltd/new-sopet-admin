@@ -197,6 +197,14 @@ describe('buildAdminNavSections', () => {
     expect(notificationsItem?.badge).toBeUndefined();
   });
 
+  it('includes คำสั่งซื้อ under จัดการ', () => {
+    const sections = buildAdminNavSections();
+    const manage = sections.find((section) => section.title === 'จัดการ');
+    const ordersItem = manage?.items.find((item) => item.href === '/admin/orders');
+
+    expect(ordersItem).toEqual(expect.objectContaining({ label: 'คำสั่งซื้อ' }));
+  });
+
   it('adds a badge to รีวิวนำเข้า when pending imported reviews exist', () => {
     const sections = buildAdminNavSections({ pendingImportedReviewCount: 2 });
     const reviewsItem = sections

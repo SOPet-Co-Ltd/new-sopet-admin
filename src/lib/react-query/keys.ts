@@ -140,6 +140,12 @@ export const queryKeys = {
     all: ['bankTransfers'] as const,
     pending: (page: number) => ['bankTransfers', 'pending', page] as const,
   },
+  adminOrders: {
+    all: ['adminOrders'] as const,
+    list: (params: { page: number; search?: string; status?: string }) =>
+      ['adminOrders', 'list', params] as const,
+    detail: (id: string) => ['adminOrders', 'detail', id] as const,
+  },
   platform: {
     all: ['platform'] as const,
     banners: () => ['platform', 'banners'] as const,
