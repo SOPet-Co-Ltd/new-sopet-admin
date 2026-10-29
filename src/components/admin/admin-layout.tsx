@@ -14,6 +14,7 @@ import {
   HiMagnifyingGlass,
   HiRectangleGroup,
   HiShieldCheck,
+  HiShoppingBag,
   HiTag,
   HiTicket,
   HiTruck,
@@ -65,6 +66,7 @@ export function buildAdminNavSections({
         { href: '/admin/stores', label: 'ร้านค้า', icon: HiBuildingStorefront },
         { href: '/admin/vendors', label: 'ผู้ขาย', icon: HiUserGroup },
         { href: '/admin/customers', label: 'ลูกค้า', icon: HiUsers },
+        { href: '/admin/orders', label: 'คำสั่งซื้อ', icon: HiShoppingBag },
       ],
     },
     {
