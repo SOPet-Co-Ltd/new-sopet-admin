@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState, type ComponentType } from 'react';
+import { useCallback, useState, useSyncExternalStore, type ComponentType } from 'react';
 import {
   HiArrowRightOnRectangle,
   HiBars3,
@@ -35,6 +35,37 @@ export type DashboardNavSection = {
 };
 
 const SIDEBAR_COLLAPSED_KEY = 'sopet-admin-sidebar-collapsed';
+const SIDEBAR_COLLAPSED_EVENT = 'sopet-admin-sidebar-collapsed';
+
+function subscribeSidebarCollapsed(onStoreChange: () => void) {
+  window.addEventListener('storage', onStoreChange);
+  window.addEventListener(SIDEBAR_COLLAPSED_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener('storage', onStoreChange);
+    window.removeEventListener(SIDEBAR_COLLAPSED_EVENT, onStoreChange);
+  };
+}
+
+function getSidebarCollapsedSnapshot() {
+  try {
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function getSidebarCollapsedServerSnapshot() {
+  return false;
+}
+
+function setSidebarCollapsedPreference(next: boolean) {
+  try {
+    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0');
+  } catch {
+    // ignore quota / private-mode write failures
+  }
+  window.dispatchEvent(new Event(SIDEBAR_COLLAPSED_EVENT));
+}
 
 export function DashboardShell({
   brandHref,
@@ -58,15 +89,12 @@ export function DashboardShell({
   const logout = useLogout();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
-  const [collapsed, setCollapsed] = useState(false);
-
-  useEffect(() => {
-    try {
-      setCollapsed(window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1');
-    } catch {
-      setCollapsed(false);
-    }
-  }, []);
+  const subscribe = useCallback(subscribeSidebarCollapsed, []);
+  const collapsed = useSyncExternalStore(
+    subscribe,
+    getSidebarCollapsedSnapshot,
+    getSidebarCollapsedServerSnapshot,
+  );
 
   if (pathname !== prevPathname) {
     setPrevPathname(pathname);
@@ -76,15 +104,6 @@ export function DashboardShell({
   }
 
   const navOpen = mobileOpen || forceMobileNavOpen;
-
-  function setCollapsedPreference(next: boolean) {
-    setCollapsed(next);
-    try {
-      window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0');
-    } catch {
-      // ignore quota / private-mode write failures
-    }
-  }
 
   function renderSidebar(options: { collapsed: boolean; showCollapseToggle: boolean }) {
     const { collapsed: isCollapsed, showCollapseToggle } = options;
@@ -120,7 +139,7 @@ export function DashboardShell({
               type="button"
               aria-label={isCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}
               aria-expanded={!isCollapsed}
-              onClick={() => setCollapsedPreference(!isCollapsed)}
+              onClick={() => setSidebarCollapsedPreference(!isCollapsed)}
               className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:bg-surface hover:text-ink"
             >
               {isCollapsed ? (
