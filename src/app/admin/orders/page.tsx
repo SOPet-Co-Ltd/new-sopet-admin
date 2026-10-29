@@ -37,15 +37,15 @@ import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
 const SEARCH_DEBOUNCE_MS = 300;
 const ALL = 'all';
 
-const ADMIN_ORDER_STATUS_FILTERS = [...ORDER_STATUSES, 'on_hold'] as const;
-type AdminOrderStatusFilter = (typeof ADMIN_ORDER_STATUS_FILTERS)[number] | typeof ALL;
+const ADMIN_ORDER_STATUS_VALUES = [ALL, ...ORDER_STATUSES, 'on_hold'] as const;
+type AdminOrderStatusFilter = (typeof ADMIN_ORDER_STATUS_VALUES)[number];
 
 const adminOrdersQuerySpec = {
   page: { parse: parsePageParam, serialize: serializePageParam },
   q: { parse: parseSearchQuery, serialize: serializeSearchQuery },
   status: {
-    parse: (value: string | null | undefined) =>
-      parseEnumParam(value, [ALL, ...ADMIN_ORDER_STATUS_FILTERS], ALL),
+    parse: (raw: string | null) =>
+      parseEnumParam(raw, ADMIN_ORDER_STATUS_VALUES, ALL) as AdminOrderStatusFilter,
     serialize: (value: AdminOrderStatusFilter) => serializeEnumParam(value, ALL),
   },
 } satisfies ListQuerySpec;
@@ -240,10 +240,9 @@ export default function AdminOrdersPage() {
             <SelectValue placeholder="ทุกสถานะ" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>ทุกสถานะ</SelectItem>
-            {ADMIN_ORDER_STATUS_FILTERS.map((status) => (
+            {ADMIN_ORDER_STATUS_VALUES.map((status) => (
               <SelectItem key={status} value={status}>
-                {labelOrderStatus(status)}
+                {status === ALL ? 'ทุกสถานะ' : labelOrderStatus(status)}
               </SelectItem>
             ))}
           </SelectContent>
