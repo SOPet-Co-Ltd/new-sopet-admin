@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState, useSyncExternalStore, type ComponentType } from 'react';
+import { useState, useSyncExternalStore, type ComponentType } from 'react';
 import {
   HiArrowRightOnRectangle,
   HiBars3,
@@ -89,9 +89,8 @@ export function DashboardShell({
   const logout = useLogout();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
-  const subscribe = useCallback(subscribeSidebarCollapsed, []);
   const collapsed = useSyncExternalStore(
-    subscribe,
+    subscribeSidebarCollapsed,
     getSidebarCollapsedSnapshot,
     getSidebarCollapsedServerSnapshot,
   );
