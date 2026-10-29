@@ -179,6 +179,85 @@ export const VENDOR_ORDERS_QUERY = gql`
   }
 `;
 
+const ADMIN_ORDER_FIELDS = `
+  order {
+    id
+    orderNumber
+    status
+    createdAt
+    subtotal
+    shippingFee
+    discountAmount
+    total
+    paymentMethod
+    guestPhone
+    guestName
+    guestEmail
+    items {
+      id
+      storeId
+      productName
+      unitPrice
+      quantity
+      subtotal
+      fulfillmentStatus
+      trackingNumber
+      fulfillmentProvider
+      trackingUrl
+      variantOptions
+    }
+    storeShippings {
+      storeId
+      optionName
+      shippingFee
+    }
+    shippingAddress {
+      fullName
+      phone
+      addressLine1
+      addressLine2
+      tumbon
+      amphoe
+      province
+      postalCode
+    }
+  }
+  stores {
+    id
+    name
+  }
+  customer {
+    id
+    fullName
+    phone
+    email
+  }
+`;
+
+export const ADMIN_ORDERS_QUERY = gql`
+  query AdminOrders($page: Int, $limit: Int, $search: String, $status: String) {
+    adminOrders(page: $page, limit: $limit, search: $search, status: $status) {
+      items {
+        ${ADMIN_ORDER_FIELDS}
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+    }
+  }
+`;
+
+export const ADMIN_ORDER_QUERY = gql`
+  query AdminOrder($id: String!) {
+    adminOrder(id: $id) {
+      ${ADMIN_ORDER_FIELDS}
+    }
+  }
+`;
+
 export const UPDATE_ORDER_STATUS = gql`
   mutation UpdateOrderStatus($input: UpdateOrderStatusInput!) {
     updateOrderStatus(input: $input) {

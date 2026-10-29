@@ -214,6 +214,33 @@ export type AdminManualPayoutType = {
   storeName: Scalars['String']['output'];
 };
 
+export type AdminOrder = {
+  __typename?: 'AdminOrder';
+  customer?: Maybe<AdminOrderCustomer>;
+  order: OrderType;
+  stores: Array<AdminOrderStore>;
+};
+
+export type AdminOrderConnection = {
+  __typename?: 'AdminOrderConnection';
+  items: Array<AdminOrder>;
+  pagination: PaginationMeta;
+};
+
+export type AdminOrderCustomer = {
+  __typename?: 'AdminOrderCustomer';
+  email?: Maybe<Scalars['String']['output']>;
+  fullName?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  phone: Scalars['String']['output'];
+};
+
+export type AdminOrderStore = {
+  __typename?: 'AdminOrderStore';
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type AdminStoreType = {
   __typename?: 'AdminStoreType';
   address?: Maybe<Scalars['String']['output']>;
@@ -2169,6 +2196,8 @@ export type Query = {
   adminCustomer: AdminCustomerType;
   adminCustomerDetail: AdminCustomerDetailType;
   adminCustomers: AdminCustomerConnection;
+  adminOrder: AdminOrder;
+  adminOrders: AdminOrderConnection;
   adminStore: AdminStoreType;
   adminStorePayoutSummary: PayoutSummaryType;
   adminStorePayouts: Array<PayoutType>;
@@ -2334,6 +2363,17 @@ export type QueryAdminCustomersArgs = {
   limit?: Scalars['Int']['input'];
   page?: Scalars['Int']['input'];
   search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type QueryAdminOrderArgs = {
+  id: Scalars['String']['input'];
+};
+
+export type QueryAdminOrdersArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QueryAdminStoreArgs = {
