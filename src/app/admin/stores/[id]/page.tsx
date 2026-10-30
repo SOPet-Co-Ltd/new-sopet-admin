@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { AdminStoreCustomerSummaryCard } from '@/components/admin/admin-store-customer-summary-card';
 import { AdminStoreOmisePanel } from '@/components/admin/admin-store-omise-panel';
 import { AdminStorePayoutPanel } from '@/components/admin/admin-store-payout-panel';
 import {
@@ -159,6 +160,8 @@ export default function AdminStoreEditPage() {
         onStatusChange={handleStatusChange}
         statusMessage={statusMessage}
       />
+
+      <AdminStoreCustomerSummaryCard storeId={params.id} storeCreatedAt={store.createdAt} />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <Card>

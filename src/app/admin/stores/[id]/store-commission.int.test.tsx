@@ -70,6 +70,28 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: vi.fn() }),
 }));
 
+vi.mock('@/hooks/useCustomerSummaries', () => ({
+  useStoreCustomerSummary: () => ({
+    data: {
+      year: 2026,
+      month: 10,
+      lifetimeMonths: null,
+      repeatRate: null,
+      purchasesPerMonth: null,
+      averageOrderValue: null,
+      newCustomerCount: 0,
+      oldCustomerCount: 0,
+      oldCustomerPercent: null,
+      orderCount: 0,
+      buyersInMonth: 0,
+      totalCustomers: 0,
+    },
+    isLoading: false,
+    error: null,
+  }),
+  useCustomerPurchaseSummary: vi.fn(),
+}));
+
 vi.mock('@/hooks/useAdminStores', () => ({
   useAdminStore: () => ({
     data: storeState.current,

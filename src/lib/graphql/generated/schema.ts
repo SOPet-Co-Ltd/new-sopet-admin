@@ -697,6 +697,19 @@ export type CustomerProfile = {
   profilePhotoUrl?: Maybe<Scalars['String']['output']>;
 };
 
+export type CustomerPurchaseSummaryType = {
+  __typename?: 'CustomerPurchaseSummaryType';
+  averageOrderValue?: Maybe<Scalars['Float']['output']>;
+  cohortLabel: Scalars['String']['output'];
+  cohortLabelTh: Scalars['String']['output'];
+  daysSinceLastOrder?: Maybe<Scalars['Int']['output']>;
+  lastOrderAt?: Maybe<Scalars['DateTime']['output']>;
+  month: Scalars['Int']['output'];
+  monthsSinceLastOrder?: Maybe<Scalars['Int']['output']>;
+  purchasesInMonth: Scalars['Int']['output'];
+  year: Scalars['Int']['output'];
+};
+
 export type CustomerReviewType = {
   __typename?: 'CustomerReviewType';
   comment?: Maybe<Scalars['String']['output']>;
@@ -2221,6 +2234,7 @@ export type Query = {
   brandDeleteImpact: TaxonomyDeleteImpactType;
   cart: CartType;
   categoryDeleteImpact: TaxonomyDeleteImpactType;
+  customerPurchaseSummary: CustomerPurchaseSummaryType;
   customerReviewableItems: Array<CustomerReviewableItemType>;
   emailContainer?: Maybe<EmailContainerType>;
   emailContainers: Array<EmailContainerType>;
@@ -2305,6 +2319,7 @@ export type Query = {
   storeAnalytics: StoreAnalyticsType;
   storeApiKeys: Array<StoreApiKeyType>;
   storeBySlug: StoreType;
+  storeCustomerSummary: StoreCustomerSummaryType;
   storeInvitations: Array<StoreMemberInvitationType>;
   storeMembers: Array<StoreMemberType>;
   storePayoutSummary: PayoutSummaryType;
@@ -2418,6 +2433,12 @@ export type QueryCartArgs = {
 
 export type QueryCategoryDeleteImpactArgs = {
   categoryId: Scalars['String']['input'];
+};
+
+export type QueryCustomerPurchaseSummaryArgs = {
+  customerId: Scalars['String']['input'];
+  month: Scalars['Int']['input'];
+  year: Scalars['Int']['input'];
 };
 
 export type QueryEmailContainerArgs = {
@@ -2642,6 +2663,12 @@ export type QueryStoreApiKeysArgs = {
 
 export type QueryStoreBySlugArgs = {
   slug: Scalars['String']['input'];
+};
+
+export type QueryStoreCustomerSummaryArgs = {
+  month: Scalars['Int']['input'];
+  storeId: Scalars['String']['input'];
+  year: Scalars['Int']['input'];
 };
 
 export type QueryStoreProductReviewsArgs = {
@@ -3056,6 +3083,22 @@ export type StoreApiKeyType = {
   lastUsedAt?: Maybe<Scalars['DateTime']['output']>;
   name: Scalars['String']['output'];
   revokedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type StoreCustomerSummaryType = {
+  __typename?: 'StoreCustomerSummaryType';
+  averageOrderValue?: Maybe<Scalars['Float']['output']>;
+  buyersInMonth: Scalars['Int']['output'];
+  lifetimeMonths?: Maybe<Scalars['Float']['output']>;
+  month: Scalars['Int']['output'];
+  newCustomerCount: Scalars['Int']['output'];
+  oldCustomerCount: Scalars['Int']['output'];
+  oldCustomerPercent?: Maybe<Scalars['Float']['output']>;
+  orderCount: Scalars['Int']['output'];
+  purchasesPerMonth?: Maybe<Scalars['Float']['output']>;
+  repeatRate?: Maybe<Scalars['Float']['output']>;
+  totalCustomers: Scalars['Int']['output'];
+  year: Scalars['Int']['output'];
 };
 
 export type StoreInvitationPreviewType = {

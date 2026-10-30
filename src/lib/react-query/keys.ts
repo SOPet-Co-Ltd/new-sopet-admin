@@ -49,6 +49,10 @@ export const queryKeys = {
       ['analytics', 'platformSalesByCategory', fromDate, toDate, limit] as const,
     platformTopProducts: (limit?: number) => ['analytics', 'platformTopProducts', limit] as const,
     platformTopStores: (limit?: number) => ['analytics', 'platformTopStores', limit] as const,
+    storeCustomerSummary: (storeId: string, year: number, month: number) =>
+      ['analytics', 'storeCustomerSummary', storeId, year, month] as const,
+    customerPurchaseSummary: (customerId: string, year: number, month: number) =>
+      ['analytics', 'customerPurchaseSummary', customerId, year, month] as const,
   },
   taxonomy: {
     all: ['taxonomy'] as const,
