@@ -13,6 +13,7 @@ import {
   InsightFact,
 } from '@/components/customers/customer-detail-primitives';
 import { AdminCustomerOrderHistory } from '@/components/admin/admin-customer-order-history';
+import { AdminCustomerPurchaseSummaryCard } from '@/components/admin/admin-customer-purchase-summary-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
@@ -141,6 +142,11 @@ export default function AdminCustomerEditPage() {
           </CardBody>
         </Card>
       </section>
+
+      <AdminCustomerPurchaseSummaryCard
+        customerId={params.id}
+        accountCreatedAt={customer.createdAt}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <Card>
