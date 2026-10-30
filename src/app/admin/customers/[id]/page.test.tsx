@@ -70,6 +70,25 @@ vi.mock('@/hooks/useAdminCustomers', () => ({
   }),
 }));
 
+vi.mock('@/hooks/useCustomerSummaries', () => ({
+  useCustomerPurchaseSummary: () => ({
+    data: {
+      year: 2026,
+      month: 3,
+      purchasesInMonth: 2,
+      averageOrderValue: 1250,
+      cohortLabel: 'old',
+      cohortLabelTh: 'ลูกค้าเก่า',
+      lastOrderAt: '2026-01-08T12:00:00.000Z',
+      monthsSinceLastOrder: 2,
+      daysSinceLastOrder: 16,
+    },
+    isLoading: false,
+    error: null,
+  }),
+  useStoreCustomerSummary: vi.fn(),
+}));
+
 describe('AdminCustomerEditPage', () => {
   beforeEach(() => {
     useAdminCustomerDetailMock.mockReturnValue({
@@ -88,6 +107,9 @@ describe('AdminCustomerEditPage', () => {
     expect(screen.getByText('ยืนยันแล้ว')).toBeInTheDocument();
     expect(screen.getByText('ยอดใช้จ่ายรวม')).toBeInTheDocument();
     expect(screen.getByText('จำนวนคำสั่งซื้อ')).toBeInTheDocument();
+    expect(screen.getByText('สั่งซื้อครั้งล่าสุด')).toBeInTheDocument();
+    expect(screen.getByText('Purchases per Month')).toBeInTheDocument();
+    expect(screen.getByText('สถานะลูกค้า')).toBeInTheDocument();
     expect(screen.getByText('ที่อยู่ที่บันทึก')).toBeInTheDocument();
     expect(screen.getByText('สินค้าที่ชอบ')).toBeInTheDocument();
     expect(screen.getByText('ORD-001')).toBeInTheDocument();

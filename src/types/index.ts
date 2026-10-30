@@ -490,6 +490,33 @@ export interface PlatformAnalytics {
   totalCustomers: number;
 }
 
+export interface StoreCustomerSummary {
+  year: number;
+  month: number;
+  lifetimeMonths: number | null;
+  repeatRate: number | null;
+  purchasesPerMonth: number | null;
+  averageOrderValue: number | null;
+  newCustomerCount: number;
+  oldCustomerCount: number;
+  oldCustomerPercent: number | null;
+  orderCount: number;
+  buyersInMonth: number;
+  totalCustomers: number;
+}
+
+export interface CustomerPurchaseSummary {
+  year: number;
+  month: number;
+  purchasesInMonth: number;
+  averageOrderValue: number | null;
+  cohortLabel: string;
+  cohortLabelTh: string;
+  lastOrderAt: string | null;
+  monthsSinceLastOrder: number | null;
+  daysSinceLastOrder: number | null;
+}
+
 export interface SalesTimePoint {
   date: string;
   revenue: number;

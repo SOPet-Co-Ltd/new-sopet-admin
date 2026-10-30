@@ -718,6 +718,41 @@ export const PLATFORM_ANALYTICS_QUERY = gql`
   }
 `;
 
+export const STORE_CUSTOMER_SUMMARY_QUERY = gql`
+  query StoreCustomerSummary($storeId: String!, $year: Int!, $month: Int!) {
+    storeCustomerSummary(storeId: $storeId, year: $year, month: $month) {
+      year
+      month
+      lifetimeMonths
+      repeatRate
+      purchasesPerMonth
+      averageOrderValue
+      newCustomerCount
+      oldCustomerCount
+      oldCustomerPercent
+      orderCount
+      buyersInMonth
+      totalCustomers
+    }
+  }
+`;
+
+export const CUSTOMER_PURCHASE_SUMMARY_QUERY = gql`
+  query CustomerPurchaseSummary($customerId: String!, $year: Int!, $month: Int!) {
+    customerPurchaseSummary(customerId: $customerId, year: $year, month: $month) {
+      year
+      month
+      purchasesInMonth
+      averageOrderValue
+      cohortLabel
+      cohortLabelTh
+      lastOrderAt
+      monthsSinceLastOrder
+      daysSinceLastOrder
+    }
+  }
+`;
+
 export const PLATFORM_SALES_OVER_TIME_QUERY = gql`
   query PlatformSalesOverTime($fromDate: String, $toDate: String) {
     platformSalesOverTime(fromDate: $fromDate, toDate: $toDate) {

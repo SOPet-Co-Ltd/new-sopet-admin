@@ -109,46 +109,45 @@ export function DashboardShell({
 
     return (
       <div className="flex h-full flex-col">
-        <div
-          className={cn(
-            'border-b border-border',
-            isCollapsed
-              ? 'flex flex-col items-center gap-2 px-2 py-4'
-              : 'flex items-center gap-2 px-5 py-6',
-          )}
-        >
-          <Link
-            href={brandHref}
+        <div className={cn('border-b border-border', isCollapsed ? 'px-2 py-4' : 'px-5 py-4')}>
+          <div
             className={cn(
-              'inline-flex min-w-0 items-baseline gap-1',
-              isCollapsed && 'justify-center',
-              !isCollapsed && showCollapseToggle && 'flex-1',
+              isCollapsed ? 'flex flex-col items-center gap-2' : 'flex items-center gap-2',
             )}
-            title={`SOPet ${brandLabel}`}
           >
-            <span className="font-display text-xl font-semibold text-ink">
-              {isCollapsed ? 'S' : 'SOPet'}
-            </span>
-            {!isCollapsed ? (
-              <span className="text-xs font-medium text-brand">{brandLabel}</span>
-            ) : null}
-          </Link>
-          {showCollapseToggle ? (
-            <button
-              type="button"
-              aria-label={isCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}
-              aria-expanded={!isCollapsed}
-              onClick={() => setSidebarCollapsedPreference(!isCollapsed)}
-              className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:bg-surface hover:text-ink"
-            >
-              {isCollapsed ? (
-                <HiChevronRight className="size-4" aria-hidden="true" />
-              ) : (
-                <HiChevronLeft className="size-4" aria-hidden="true" />
+            <Link
+              href={brandHref}
+              className={cn(
+                'inline-flex min-w-0 items-baseline gap-1',
+                isCollapsed && 'justify-center',
+                !isCollapsed && showCollapseToggle && 'flex-1',
               )}
-            </button>
-          ) : null}
-          {!isCollapsed ? header : null}
+              title={`SOPet ${brandLabel}`}
+            >
+              <span className="font-display text-xl font-semibold text-ink">
+                {isCollapsed ? 'S' : 'SOPet'}
+              </span>
+              {!isCollapsed ? (
+                <span className="text-xs font-medium text-brand">{brandLabel}</span>
+              ) : null}
+            </Link>
+            {showCollapseToggle ? (
+              <button
+                type="button"
+                aria-label={isCollapsed ? 'ขยายเมนู' : 'ย่อเมนู'}
+                aria-expanded={!isCollapsed}
+                onClick={() => setSidebarCollapsedPreference(!isCollapsed)}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted transition-colors hover:bg-surface hover:text-ink"
+              >
+                {isCollapsed ? (
+                  <HiChevronRight className="size-4" aria-hidden="true" />
+                ) : (
+                  <HiChevronLeft className="size-4" aria-hidden="true" />
+                )}
+              </button>
+            ) : null}
+          </div>
+          {!isCollapsed && header ? <div className="min-w-0">{header}</div> : null}
         </div>
 
         <nav className={cn('flex-1 overflow-y-auto', isCollapsed ? 'p-2' : 'p-4')}>
