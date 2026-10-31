@@ -171,6 +171,7 @@ export const queryKeys = {
       ['adminCustomers', 'list', params] as const,
     detail: (id: string) => ['adminCustomers', 'detail', id] as const,
     detailInsights: (id: string) => ['adminCustomers', 'detailInsights', id] as const,
+    addresses: (customerId: string) => ['adminCustomers', 'addresses', customerId] as const,
   },
   adminAuditLogs: {
     all: ['adminAuditLogs'] as const,

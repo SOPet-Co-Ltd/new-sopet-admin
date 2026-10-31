@@ -1,8 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import {
+  AdminOrderShippingEditDialog,
+  AdminOrderStatusEditDialog,
+} from '@/components/admin/admin-order-edit-dialogs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import {
   Table,
@@ -93,6 +98,8 @@ function MoneyRow({
 
 export function AdminOrderDetail({ record }: AdminOrderDetailProps) {
   const { order, stores, customer } = record;
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [shippingDialogOpen, setShippingDialogOpen] = useState(false);
   const storeNameById = new Map(stores.map((store) => [store.id, store.name || store.id]));
   const storeIds = [...new Set(order.items.map((item) => item.storeId))];
   const customerName = customer?.fullName || getOrderCustomerName(order);
@@ -103,6 +110,18 @@ export function AdminOrderDetail({ record }: AdminOrderDetailProps) {
 
   return (
     <div className="space-y-6">
+      <AdminOrderStatusEditDialog
+        open={statusDialogOpen}
+        onOpenChange={setStatusDialogOpen}
+        orderId={order.id}
+        currentStatus={order.status}
+      />
+      <AdminOrderShippingEditDialog
+        open={shippingDialogOpen}
+        onOpenChange={setShippingDialogOpen}
+        order={order}
+      />
+
       <Card>
         <CardHeader className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -111,7 +130,17 @@ export function AdminOrderDetail({ record }: AdminOrderDetailProps) {
               {formatDateTime(order.createdAt)} · {labelPaymentMethod(order.paymentMethod)}
             </p>
           </div>
-          <Badge status={order.status}>{labelOrderStatus(order.status)}</Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge status={order.status}>{labelOrderStatus(order.status)}</Badge>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setStatusDialogOpen(true)}
+            >
+              แก้ไขสถานะ
+            </Button>
+          </div>
         </CardHeader>
         <CardBody className="space-y-3">
           <DetailRow label="เลขคำสั่งซื้อ">{order.orderNumber}</DetailRow>
@@ -248,8 +277,19 @@ export function AdminOrderDetail({ record }: AdminOrderDetailProps) {
         </Card>
 
         <Card>
-          <CardHeader>
-            <h2 className="font-display text-lg font-semibold text-ink">การจัดส่ง</h2>
+          <CardHeader className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="font-display text-lg font-semibold text-ink">การจัดส่ง</h2>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={!order.shippingAddress}
+              onClick={() => setShippingDialogOpen(true)}
+            >
+              แก้ไขที่อยู่
+            </Button>
           </CardHeader>
           <CardBody className="space-y-3">
             <DetailRow label="ผู้รับ">{order.shippingAddress?.fullName || '—'}</DetailRow>

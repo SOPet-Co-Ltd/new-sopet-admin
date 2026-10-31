@@ -1,7 +1,17 @@
-import { executeQuery } from '@/lib/graphql/client';
-import { ADMIN_ORDER_QUERY, ADMIN_ORDERS_QUERY } from '@/lib/graphql/documents';
+import { executeMutation, executeQuery } from '@/lib/graphql/client';
+import {
+  ADMIN_ORDER_QUERY,
+  ADMIN_ORDERS_QUERY,
+  UPDATE_ORDER_SHIPPING_ADDRESS_AS_ADMIN,
+  UPDATE_ORDER_STATUS,
+} from '@/lib/graphql/documents';
 import { mapOrder, mapPagination } from '@/lib/graphql/mappers';
-import type { Order, Paginated } from '@/types';
+import type {
+  Order,
+  Paginated,
+  UpdateOrderShippingAddressAsAdminInput,
+  UpdateOrderStatusInput,
+} from '@/types';
 
 export type AdminOrderStore = {
   id: string;
@@ -65,5 +75,22 @@ export function getAdminOrders(params: {
 export function getAdminOrder(id: string): Promise<AdminOrder> {
   return executeQuery<{ adminOrder: GqlAdminOrder }>(ADMIN_ORDER_QUERY, { id }).then((data) =>
     mapAdminOrder(data.adminOrder),
+  );
+}
+
+export function updateAdminOrderStatus(input: UpdateOrderStatusInput): Promise<Order> {
+  return executeMutation<{ updateOrderStatus: Parameters<typeof mapOrder>[0] }>(
+    UPDATE_ORDER_STATUS,
+    { input },
+  ).then((data) => mapOrder(data.updateOrderStatus));
+}
+
+export function updateAdminOrderShippingAddress(
+  input: UpdateOrderShippingAddressAsAdminInput,
+): Promise<Order> {
+  return executeMutation<{
+    updateOrderShippingAddressAsAdmin: Parameters<typeof mapOrder>[0];
+  }>(UPDATE_ORDER_SHIPPING_ADDRESS_AS_ADMIN, { input }).then((data) =>
+    mapOrder(data.updateOrderShippingAddressAsAdmin),
   );
 }
