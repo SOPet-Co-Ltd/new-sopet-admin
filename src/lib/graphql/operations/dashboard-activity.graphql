@@ -1,0 +1,7 @@
+subscription DashboardActivity {
+  dashboardActivity {
+    kind
+    entityId
+    storeId
+  }
+}

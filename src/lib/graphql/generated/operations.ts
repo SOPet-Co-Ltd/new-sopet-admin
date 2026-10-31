@@ -6,6 +6,16 @@ export type Incremental<T> =
 import type * as Types from './schema';
 
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type DashboardActivitySubscriptionVariables = Exact<{ [key: string]: never }>;
+
+export type DashboardActivitySubscription = {
+  dashboardActivity: {
+    kind: Types.DashboardActivityKind;
+    entityId: string;
+    storeId: string | null;
+  };
+};
+
 export type EmailPlaceholderInfoFieldsFragment = {
   name: string;
   required: boolean;
@@ -1309,6 +1319,33 @@ export const SaleCampaignFieldsFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<SaleCampaignFieldsFragment, unknown>;
+export const DashboardActivityDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'subscription',
+      name: { kind: 'Name', value: 'DashboardActivity' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'dashboardActivity' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'kind' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'entityId' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DashboardActivitySubscription, DashboardActivitySubscriptionVariables>;
 export const EmailContainersDocument = {
   kind: 'Document',
   definitions: [

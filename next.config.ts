@@ -55,6 +55,26 @@ function imageRemotePatterns(): RemotePattern[] {
 
 const isLocalDev = process.env.NODE_ENV === 'development';
 
+function graphqlBackendWsConnectSrc(): string | null {
+  const origin = process.env.NEXT_PUBLIC_GRAPHQL_BACKEND_ORIGIN;
+  if (!origin) {
+    return null;
+  }
+  try {
+    const url = new URL(origin);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    url.pathname = '';
+    url.search = '';
+    url.hash = '';
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+const wsConnectSrc = graphqlBackendWsConnectSrc();
+const connectSrc = ["'self'", ...(wsConnectSrc ? [wsConnectSrc] : [])].join(' ');
+
 const productionCsp = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -66,7 +86,7 @@ const productionCsp = [
   "script-src 'self' 'unsafe-inline'",
   // Monaco AMD workers (same-origin /monaco/vs + blob: bootstrap)
   "worker-src 'self' blob:",
-  "connect-src 'self'",
+  `connect-src ${connectSrc}`,
   "form-action 'self'",
 ].join('; ');
 
