@@ -220,7 +220,7 @@ export default function AdminOrdersPage() {
     <div className="space-y-6">
       <PageHeader
         title="คำสั่งซื้อ"
-        description="ดูคำสั่งซื้อทั้งหมดจากทุกผู้ขาย — ดูได้อย่างเดียว ไม่สามารถแก้ไขได้"
+        description="ดูคำสั่งซื้อทั้งหมดจากทุกผู้ขาย — แก้ไขสถานะและที่อยู่จัดส่งได้จากหน้ารายละเอียด"
       />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

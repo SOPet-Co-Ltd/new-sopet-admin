@@ -29,14 +29,15 @@ export function buildUpdateStoreAsAdminInput(
   values: AdminStoreFormValues | AdminStoreEditFormValues,
   options?: { commissionRateDirty?: boolean },
 ): UpdateStoreAsAdminInput {
+  const contactPhone = values.contactPhone?.replace(/[\s-]/g, '').trim() || null;
   const input: UpdateStoreAsAdminInput = {
     name: values.name,
-    slug: values.slug || undefined,
-    description: values.description || undefined,
+    slug: values.slug?.trim() || undefined,
+    description: values.description?.trim() ? values.description.trim() : null,
     status: values.status,
-    contactPhone: values.contactPhone || undefined,
-    contactEmail: values.contactEmail || undefined,
-    address: values.address || undefined,
+    contactPhone,
+    contactEmail: values.contactEmail?.trim() ? values.contactEmail.trim() : null,
+    address: values.address?.trim() ? values.address.trim() : null,
     ownerId: values.ownerId ? values.ownerId : null,
   };
 

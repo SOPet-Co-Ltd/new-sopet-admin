@@ -268,6 +268,25 @@ export const UPDATE_ORDER_STATUS = gql`
   }
 `;
 
+export const UPDATE_ORDER_SHIPPING_ADDRESS_AS_ADMIN = gql`
+  mutation UpdateOrderShippingAddressAsAdmin($input: UpdateOrderShippingAddressAsAdminInput!) {
+    updateOrderShippingAddressAsAdmin(input: $input) {
+      id
+      orderNumber
+      shippingAddress {
+        fullName
+        phone
+        addressLine1
+        addressLine2
+        tumbon
+        amphoe
+        province
+        postalCode
+      }
+    }
+  }
+`;
+
 const VENDOR_ORDER_WORKFLOW_FIELDS = `
   id
   orderNumber
@@ -2232,6 +2251,70 @@ export const SET_CUSTOMER_ACTIVE = gql`
   mutation SetCustomerActive($id: String!, $isActive: Boolean!) {
     setCustomerActive(id: $id, isActive: $isActive) {
       ${ADMIN_CUSTOMER_FIELDS}
+    }
+  }
+`;
+
+export const VERIFY_CUSTOMER_PHONE_AS_ADMIN = gql`
+  mutation VerifyCustomerPhoneAsAdmin($id: String!) {
+    verifyCustomerPhoneAsAdmin(id: $id) {
+      ${ADMIN_CUSTOMER_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_CUSTOMER_ADDRESS_FIELDS = `
+  id
+  label
+  fullName
+  phone
+  addressLine1
+  addressLine2
+  tumbon
+  amphoe
+  province
+  postalCode
+  isDefault
+`;
+
+export const ADMIN_CUSTOMER_ADDRESSES_QUERY = gql`
+  query AdminCustomerAddresses($customerId: String!) {
+    adminCustomerAddresses(customerId: $customerId) {
+      ${ADMIN_CUSTOMER_ADDRESS_FIELDS}
+    }
+  }
+`;
+
+export const CREATE_CUSTOMER_ADDRESS_AS_ADMIN = gql`
+  mutation CreateCustomerAddressAsAdmin($customerId: String!, $input: CreateAddressInput!) {
+    createCustomerAddressAsAdmin(customerId: $customerId, input: $input) {
+      ${ADMIN_CUSTOMER_ADDRESS_FIELDS}
+    }
+  }
+`;
+
+export const UPDATE_CUSTOMER_ADDRESS_AS_ADMIN = gql`
+  mutation UpdateCustomerAddressAsAdmin(
+    $customerId: String!
+    $id: String!
+    $input: UpdateAddressInput!
+  ) {
+    updateCustomerAddressAsAdmin(customerId: $customerId, id: $id, input: $input) {
+      ${ADMIN_CUSTOMER_ADDRESS_FIELDS}
+    }
+  }
+`;
+
+export const DELETE_CUSTOMER_ADDRESS_AS_ADMIN = gql`
+  mutation DeleteCustomerAddressAsAdmin($customerId: String!, $id: String!) {
+    deleteCustomerAddressAsAdmin(customerId: $customerId, id: $id)
+  }
+`;
+
+export const SET_CUSTOMER_DEFAULT_ADDRESS_AS_ADMIN = gql`
+  mutation SetCustomerDefaultAddressAsAdmin($customerId: String!, $id: String!) {
+    setCustomerDefaultAddressAsAdmin(customerId: $customerId, id: $id) {
+      ${ADMIN_CUSTOMER_ADDRESS_FIELDS}
     }
   }
 `;
