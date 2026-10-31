@@ -55,14 +55,31 @@ function imageRemotePatterns(): RemotePattern[] {
 
 const isLocalDev = process.env.NODE_ENV === 'development';
 
-function graphqlBackendWsConnectSrc(): string | null {
-  const origin = process.env.NEXT_PUBLIC_GRAPHQL_BACKEND_ORIGIN;
-  if (!origin) {
+function isLocalApiHost(url: string): boolean {
+  return /localhost|127\.0\.0\.1/i.test(url);
+}
+
+/** Convert an API origin or GraphQL HTTP URL into `ws(s)://host/graphql`. */
+function toGraphqlWsUrl(originOrUrl: string): string | null {
+  try {
+    const url = new URL(originOrUrl);
+    if (url.protocol === 'https:' || url.protocol === 'wss:') {
+      url.protocol = 'wss:';
+    } else {
+      url.protocol = 'ws:';
+    }
+    url.pathname = '/graphql';
+    url.search = '';
+    url.hash = '';
+    return url.toString();
+  } catch {
     return null;
   }
+}
+
+function toWsConnectSrc(wsUrl: string): string | null {
   try {
-    const url = new URL(origin);
-    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    const url = new URL(wsUrl);
     url.pathname = '';
     url.search = '';
     url.hash = '';
@@ -72,7 +89,36 @@ function graphqlBackendWsConnectSrc(): string | null {
   }
 }
 
-const wsConnectSrc = graphqlBackendWsConnectSrc();
+/**
+ * Prefer public NEXT_PUBLIC_* hosts; fall back to GRAPHQL_SSR_URL (Vercel server env).
+ * Local hosts are skipped so a missing public var does not bake localhost into the bundle.
+ */
+function resolveGraphqlWsUrlForBuild(): string | null {
+  const explicit = process.env.NEXT_PUBLIC_GRAPHQL_WS_URL?.trim();
+  if (explicit && !isLocalApiHost(explicit)) {
+    return explicit;
+  }
+
+  for (const candidate of [
+    process.env.NEXT_PUBLIC_GRAPHQL_BACKEND_ORIGIN,
+    process.env.NEXT_PUBLIC_API_URL,
+    process.env.GRAPHQL_SSR_URL,
+  ]) {
+    const value = candidate?.trim();
+    if (!value || isLocalApiHost(value)) {
+      continue;
+    }
+    const wsUrl = toGraphqlWsUrl(value);
+    if (wsUrl) {
+      return wsUrl;
+    }
+  }
+
+  return null;
+}
+
+const derivedWsUrl = resolveGraphqlWsUrlForBuild();
+const wsConnectSrc = derivedWsUrl ? toWsConnectSrc(derivedWsUrl) : null;
 const connectSrc = ["'self'", ...(wsConnectSrc ? [wsConnectSrc] : [])].join(' ');
 
 const productionCsp = [
@@ -91,6 +137,13 @@ const productionCsp = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
+  // GRAPHQL_SSR_URL is server-only; expose a derived wss URL so the browser
+  // subscription client does not fall back to localhost on Vercel.
+  env: {
+    ...(process.env.NEXT_PUBLIC_GRAPHQL_WS_URL || !derivedWsUrl
+      ? {}
+      : { NEXT_PUBLIC_GRAPHQL_WS_URL: derivedWsUrl }),
+  },
   async headers() {
     return [
       {

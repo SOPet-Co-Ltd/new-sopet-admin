@@ -2,6 +2,7 @@ const DEFAULT_SERVER_GRAPHQL_URL = 'http://localhost:3002/graphql';
 const DEFAULT_SERVER_GRAPHQL_WS_URL = 'ws://localhost:3002/graphql';
 const DEFAULT_API_BASE_URL = 'http://localhost:3002';
 const DEFAULT_BROWSER_GRAPHQL_URL = '/graphql';
+const DEFAULT_BROWSER_GRAPHQL_WS_ORIGIN = 'http://localhost:3002';
 
 /**
  * Browser GraphQL must stay same-origin (`/graphql` BFF).
@@ -21,25 +22,6 @@ export const GRAPHQL_URL =
     ? (process.env.GRAPHQL_SSR_URL ?? DEFAULT_SERVER_GRAPHQL_URL)
     : resolveBrowserGraphqlUrl();
 
-/** WebSocket endpoint for GraphQL subscriptions (browser connects directly to API). */
-export function getGraphqlWsUrl(): string {
-  if (typeof window === 'undefined') {
-    return process.env.GRAPHQL_WS_SSR_URL ?? DEFAULT_SERVER_GRAPHQL_WS_URL;
-  }
-
-  if (process.env.NEXT_PUBLIC_GRAPHQL_WS_URL) {
-    return process.env.NEXT_PUBLIC_GRAPHQL_WS_URL;
-  }
-
-  const backendOrigin = process.env.NEXT_PUBLIC_GRAPHQL_BACKEND_ORIGIN ?? 'http://localhost:3002';
-  const url = new URL(backendOrigin);
-  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-  url.pathname = '/graphql';
-  url.search = '';
-  url.hash = '';
-  return url.toString();
-}
-
 function stripTrailingSlash(url: string): string {
   return url.replace(/\/$/, '');
 }
@@ -50,6 +32,65 @@ function originFromGraphqlUrl(graphqlUrl: string): string {
 
 function isLocalApiHost(url: string): boolean {
   return /localhost|127\.0\.0\.1/i.test(url);
+}
+
+/** Convert an API origin or GraphQL HTTP/WS URL into `ws(s)://host/graphql`. */
+export function toGraphqlWsUrl(originOrUrl: string): string {
+  const url = new URL(originOrUrl);
+  if (url.protocol === 'https:' || url.protocol === 'wss:') {
+    url.protocol = 'wss:';
+  } else {
+    url.protocol = 'ws:';
+  }
+  url.pathname = '/graphql';
+  url.search = '';
+  url.hash = '';
+  return url.toString();
+}
+
+function firstNonLocalCandidate(...candidates: Array<string | undefined>): string | undefined {
+  for (const candidate of candidates) {
+    const value = candidate?.trim();
+    if (value && !isLocalApiHost(value)) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Browser WebSocket URL for GraphQL subscriptions (direct to API).
+ * Prefer an explicit WS URL, then public API hosts. Local fallback is localhost.
+ *
+ * Deployed builds also inject `NEXT_PUBLIC_GRAPHQL_WS_URL` from `GRAPHQL_SSR_URL`
+ * via next.config when the public vars are unset (see next.config.ts).
+ */
+export function resolveBrowserGraphqlWsUrl(
+  env: Record<string, string | undefined> = process.env,
+): string {
+  const explicit = env.NEXT_PUBLIC_GRAPHQL_WS_URL?.trim();
+  if (explicit) {
+    return explicit;
+  }
+
+  const origin =
+    firstNonLocalCandidate(
+      env.NEXT_PUBLIC_GRAPHQL_BACKEND_ORIGIN,
+      env.NEXT_PUBLIC_API_URL,
+      // Server-only; available in tests / SSR. Client builds get this via next.config inject.
+      env.GRAPHQL_SSR_URL,
+    ) ?? DEFAULT_BROWSER_GRAPHQL_WS_ORIGIN;
+
+  return toGraphqlWsUrl(origin);
+}
+
+/** WebSocket endpoint for GraphQL subscriptions (browser connects directly to API). */
+export function getGraphqlWsUrl(): string {
+  if (typeof window === 'undefined') {
+    return process.env.GRAPHQL_WS_SSR_URL ?? DEFAULT_SERVER_GRAPHQL_WS_URL;
+  }
+
+  return resolveBrowserGraphqlWsUrl();
 }
 
 /** Direct REST API base URL (no trailing slash). Vendor public API is not proxied like GraphQL. */
