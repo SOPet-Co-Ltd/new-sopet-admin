@@ -739,6 +739,24 @@ export type CustomerReviewableItemType = {
   reviewDeadline?: Maybe<Scalars['DateTime']['output']>;
 };
 
+export enum DashboardActivityKind {
+  BankTransfer = 'BANK_TRANSFER',
+  Order = 'ORDER',
+  Payout = 'PAYOUT',
+  Reactivation = 'REACTIVATION',
+  Review = 'REVIEW',
+  StoreRequest = 'STORE_REQUEST',
+  StoreStatus = 'STORE_STATUS',
+  Taxonomy = 'TAXONOMY',
+}
+
+export type DashboardActivityType = {
+  __typename?: 'DashboardActivityType';
+  entityId: Scalars['String']['output'];
+  kind: DashboardActivityKind;
+  storeId?: Maybe<Scalars['String']['output']>;
+};
+
 export type DeleteTaxonomyInput = {
   id: Scalars['String']['input'];
   replacementCategoryId?: InputMaybe<Scalars['String']['input']>;
@@ -3309,6 +3327,7 @@ export type SubmitStoreRequestInput = {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  dashboardActivity: DashboardActivityType;
   paymentStatusUpdated: PaymentType;
 };
 

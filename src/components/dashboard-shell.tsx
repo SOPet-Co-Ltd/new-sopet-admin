@@ -13,6 +13,7 @@ import {
 } from 'react-icons/hi2';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useCurrentUser, useLogout } from '@/hooks/useAuth';
+import { useDashboardActivity } from '@/hooks/useDashboardActivity';
 import { createDashboardNavPrefetchHandlers } from '@/lib/react-query/prefetch-dashboard-nav';
 import { cn } from '@/lib/utils';
 
@@ -87,6 +88,7 @@ export function DashboardShell({
   const queryClient = useQueryClient();
   const { user } = useCurrentUser();
   const logout = useLogout();
+  useDashboardActivity(Boolean(user));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
   const collapsed = useSyncExternalStore(
