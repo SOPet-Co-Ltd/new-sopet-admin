@@ -310,6 +310,18 @@ export interface UpdateOrderStatusInput {
   status: string;
 }
 
+export interface UpdateOrderShippingAddressAsAdminInput {
+  orderId: string;
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  tumbon?: string;
+  amphoe: string;
+  province: string;
+  postalCode: string;
+}
+
 export interface RejectStoreInput {
   storeId: string;
   rejectionReason?: string;
@@ -740,13 +752,13 @@ export interface CreateStoreAsAdminInput {
 export interface UpdateStoreAsAdminInput {
   name?: string;
   slug?: string;
-  description?: string;
+  description?: string | null;
   logoUrl?: string;
   bannerUrl?: string;
   status?: StoreStatus | string;
-  contactPhone?: string;
-  contactEmail?: string;
-  address?: string;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  address?: string | null;
   ownerId?: string | null;
   commissionRate?: number;
 }
@@ -856,10 +868,50 @@ export interface AdminCustomerDetail extends AdminCustomer {
 }
 
 export interface UpdateCustomerAsAdminInput {
-  fullName?: string;
-  email?: string;
+  fullName?: string | null;
+  email?: string | null;
   phone?: string;
-  dateOfBirth?: string;
+  dateOfBirth?: string | null;
+}
+
+export interface SavedAddress {
+  id: string;
+  label?: string | null;
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  tumbon?: string | null;
+  amphoe: string;
+  province: string;
+  postalCode: string;
+  isDefault: boolean;
+}
+
+export interface CreateCustomerAddressAsAdminInput {
+  label: string;
+  recipientName: string;
+  recipientPhone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  tumbon?: string;
+  amphoe: string;
+  province: string;
+  postalCode: string;
+  isDefault?: boolean;
+}
+
+export interface UpdateCustomerAddressAsAdminInput {
+  label?: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  addressLine1?: string;
+  addressLine2?: string | null;
+  tumbon?: string | null;
+  amphoe?: string;
+  province?: string;
+  postalCode?: string;
+  isDefault?: boolean;
 }
 
 export interface VendorCustomer {

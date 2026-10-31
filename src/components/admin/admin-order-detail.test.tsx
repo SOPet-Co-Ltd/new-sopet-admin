@@ -1,7 +1,24 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { AdminOrderDetail } from './admin-order-detail';
 import type { AdminOrder } from '@/lib/api/admin-orders';
+
+vi.mock('@/hooks/useAdminOrders', () => ({
+  useUpdateAdminOrderStatus: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+    reset: vi.fn(),
+  }),
+  useUpdateAdminOrderShippingAddress: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+    reset: vi.fn(),
+  }),
+}));
 
 const multiStoreOrder: AdminOrder = {
   order: {
@@ -95,6 +112,8 @@ describe('AdminOrderDetail', () => {
     );
     expect(screen.queryByText('ขั้นตอนถัดไป')).not.toBeInTheDocument();
     expect(screen.queryByText('บันทึกออเดอร์')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'แก้ไขสถานะ' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'แก้ไขที่อยู่' })).toBeInTheDocument();
   });
 
   it('shows guest contact without a customer link', () => {

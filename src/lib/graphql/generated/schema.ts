@@ -739,6 +739,24 @@ export type CustomerReviewableItemType = {
   reviewDeadline?: Maybe<Scalars['DateTime']['output']>;
 };
 
+export enum DashboardActivityKind {
+  BankTransfer = 'BANK_TRANSFER',
+  Order = 'ORDER',
+  Payout = 'PAYOUT',
+  Reactivation = 'REACTIVATION',
+  Review = 'REVIEW',
+  StoreRequest = 'STORE_REQUEST',
+  StoreStatus = 'STORE_STATUS',
+  Taxonomy = 'TAXONOMY',
+}
+
+export type DashboardActivityType = {
+  __typename?: 'DashboardActivityType';
+  entityId: Scalars['String']['output'];
+  kind: DashboardActivityKind;
+  storeId?: Maybe<Scalars['String']['output']>;
+};
+
 export type DeleteTaxonomyInput = {
   id: Scalars['String']['input'];
   replacementCategoryId?: InputMaybe<Scalars['String']['input']>;
@@ -899,6 +917,7 @@ export type Mutation = {
   createAddress: SavedAddressType;
   createBrand: BrandType;
   createCategory: CategoryType;
+  createCustomerAddressAsAdmin: SavedAddressType;
   createEmailContainer: EmailContainerType;
   createOrder: OrderType;
   createPayment: PaymentType;
@@ -923,6 +942,7 @@ export type Mutation = {
   deleteAddress: Scalars['Boolean']['output'];
   deleteBrand: DeleteTaxonomyResultType;
   deleteCategory: DeleteTaxonomyResultType;
+  deleteCustomerAddressAsAdmin: Scalars['Boolean']['output'];
   deletePaymentMethod: Scalars['Boolean']['output'];
   deletePetType: DeleteTaxonomyResultType;
   deletePlatformAd: Scalars['Boolean']['output'];
@@ -983,6 +1003,7 @@ export type Mutation = {
   setAdminActive: AdminTeamMemberType;
   setCategoryImage: CategoryType;
   setCustomerActive: AdminCustomerType;
+  setCustomerDefaultAddressAsAdmin: SavedAddressType;
   setDefaultAddress: SavedAddressType;
   setDefaultEmailContainer: EmailContainerType;
   setDefaultPaymentMethod: SavedPaymentMethodType;
@@ -1002,10 +1023,12 @@ export type Mutation = {
   updateBrand: BrandType;
   updateCartItem: CartType;
   updateCategory: CategoryType;
+  updateCustomerAddressAsAdmin: SavedAddressType;
   updateCustomerAsAdmin: AdminCustomerType;
   updateEmailContainer: EmailContainerType;
   updateEmailContentTemplate: EmailContentTemplateType;
   updateLoginPageImages: LoginPageImagesType;
+  updateOrderShippingAddressAsAdmin: OrderType;
   updateOrderStatus: OrderType;
   updatePetType: PetTypeType;
   updatePlatformAd: PlatformAdType;
@@ -1033,6 +1056,7 @@ export type Mutation = {
   uploadImage: UploadResultType;
   vendorLogin: VendorAuthPayload;
   verifyCustomerOtp: CustomerAuthPayload;
+  verifyCustomerPhoneAsAdmin: AdminCustomerType;
   verifyEmail: MessagePayload;
 };
 
@@ -1176,6 +1200,11 @@ export type MutationCreateCategoryArgs = {
   input: CreateCategoryInput;
 };
 
+export type MutationCreateCustomerAddressAsAdminArgs = {
+  customerId: Scalars['String']['input'];
+  input: CreateAddressInput;
+};
+
 export type MutationCreateEmailContainerArgs = {
   input: CreateEmailContainerInput;
 };
@@ -1272,6 +1301,11 @@ export type MutationDeleteBrandArgs = {
 
 export type MutationDeleteCategoryArgs = {
   input: DeleteTaxonomyInput;
+};
+
+export type MutationDeleteCustomerAddressAsAdminArgs = {
+  customerId: Scalars['String']['input'];
+  id: Scalars['String']['input'];
 };
 
 export type MutationDeletePaymentMethodArgs = {
@@ -1490,6 +1524,11 @@ export type MutationSetCustomerActiveArgs = {
   isActive: Scalars['Boolean']['input'];
 };
 
+export type MutationSetCustomerDefaultAddressAsAdminArgs = {
+  customerId: Scalars['String']['input'];
+  id: Scalars['String']['input'];
+};
+
 export type MutationSetDefaultAddressArgs = {
   id: Scalars['String']['input'];
 };
@@ -1571,6 +1610,12 @@ export type MutationUpdateCategoryArgs = {
   input: UpdateCategoryInput;
 };
 
+export type MutationUpdateCustomerAddressAsAdminArgs = {
+  customerId: Scalars['String']['input'];
+  id: Scalars['String']['input'];
+  input: UpdateAddressInput;
+};
+
 export type MutationUpdateCustomerAsAdminArgs = {
   input: UpdateCustomerAsAdminInput;
 };
@@ -1587,6 +1632,10 @@ export type MutationUpdateEmailContentTemplateArgs = {
 
 export type MutationUpdateLoginPageImagesArgs = {
   input: UpdateLoginPageImagesInput;
+};
+
+export type MutationUpdateOrderShippingAddressAsAdminArgs = {
+  input: UpdateOrderShippingAddressAsAdminInput;
 };
 
 export type MutationUpdateOrderStatusArgs = {
@@ -1704,6 +1753,10 @@ export type MutationVendorLoginArgs = {
 
 export type MutationVerifyCustomerOtpArgs = {
   input: VerifyCustomerOtpInput;
+};
+
+export type MutationVerifyCustomerPhoneAsAdminArgs = {
+  id: Scalars['String']['input'];
 };
 
 export type MutationVerifyEmailArgs = {
@@ -2207,6 +2260,7 @@ export type Query = {
   addresses: Array<SavedAddressType>;
   adminAuditLogs: AdminAuditLogConnection;
   adminCustomer: AdminCustomerType;
+  adminCustomerAddresses: Array<SavedAddressType>;
   adminCustomerDetail: AdminCustomerDetailType;
   adminCustomers: AdminCustomerConnection;
   adminOrder: AdminOrder;
@@ -2368,6 +2422,10 @@ export type QueryAdminAuditLogsArgs = {
 
 export type QueryAdminCustomerArgs = {
   id: Scalars['String']['input'];
+};
+
+export type QueryAdminCustomerAddressesArgs = {
+  customerId: Scalars['String']['input'];
 };
 
 export type QueryAdminCustomerDetailArgs = {
@@ -3269,6 +3327,7 @@ export type SubmitStoreRequestInput = {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  dashboardActivity: DashboardActivityType;
   paymentStatusUpdated: PaymentType;
 };
 
@@ -3405,6 +3464,18 @@ export type UpdateLoginPageImagesInput = {
   altText?: InputMaybe<Scalars['String']['input']>;
   desktopImageUrl: Scalars['String']['input'];
   mobileImageUrl?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateOrderShippingAddressAsAdminInput = {
+  addressLine1: Scalars['String']['input'];
+  addressLine2?: InputMaybe<Scalars['String']['input']>;
+  amphoe: Scalars['String']['input'];
+  fullName: Scalars['String']['input'];
+  orderId: Scalars['String']['input'];
+  phone: Scalars['String']['input'];
+  postalCode: Scalars['String']['input'];
+  province: Scalars['String']['input'];
+  tumbon?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateOrderStatusInput = {

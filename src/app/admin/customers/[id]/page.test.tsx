@@ -68,6 +68,43 @@ vi.mock('@/hooks/useAdminCustomers', () => ({
     isError: false,
     error: null,
   }),
+  useVerifyCustomerPhoneAsAdmin: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+    reset: vi.fn(),
+  }),
+  useAdminCustomerAddresses: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+    error: null,
+  }),
+  useCreateCustomerAddressAsAdmin: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+  }),
+  useUpdateCustomerAddressAsAdmin: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+  }),
+  useDeleteCustomerAddressAsAdmin: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+  }),
+  useSetCustomerDefaultAddressAsAdmin: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+  }),
 }));
 
 vi.mock('@/hooks/useCustomerSummaries', () => ({
@@ -110,7 +147,7 @@ describe('AdminCustomerEditPage', () => {
     expect(screen.getByText('สั่งซื้อครั้งล่าสุด')).toBeInTheDocument();
     expect(screen.getByText('Purchases per Month')).toBeInTheDocument();
     expect(screen.getByText('สถานะลูกค้า')).toBeInTheDocument();
-    expect(screen.getByText('ที่อยู่ที่บันทึก')).toBeInTheDocument();
+    expect(screen.getByText('ที่อยู่จัดส่งที่บันทึกไว้')).toBeInTheDocument();
     expect(screen.getByText('สินค้าที่ชอบ')).toBeInTheDocument();
     expect(screen.getByText('ORD-001')).toBeInTheDocument();
     expect(screen.getByText('อาหารสุนัขพรีเมียม')).toBeInTheDocument();
