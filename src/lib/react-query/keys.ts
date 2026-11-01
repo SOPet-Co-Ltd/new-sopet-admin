@@ -22,7 +22,17 @@ export const queryKeys = {
   orders: {
     all: ['orders'] as const,
     vendorRoot: () => ['orders', 'vendor'] as const,
-    vendor: (storeId: string) => ['orders', 'vendor', storeId] as const,
+    vendor: (params: {
+      storeId: string;
+      page?: number;
+      limit?: number;
+      queue?: string;
+      status?: string;
+      paymentMethod?: string;
+      search?: string;
+    }) => ['orders', 'vendor', params] as const,
+    vendorDetail: (storeId: string, orderId: string) =>
+      ['orders', 'vendor', 'detail', storeId, orderId] as const,
     auditLog: (orderId: string, storeId: string) =>
       ['orders', 'auditLog', orderId, storeId] as const,
   },

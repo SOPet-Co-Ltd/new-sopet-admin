@@ -18,9 +18,11 @@ vi.mock('@/lib/api/stores', () => ({
 }));
 
 vi.mock('@/lib/api/orders', () => ({
+  VENDOR_ORDERS_PAGE_SIZE: 20,
   getVendorOrders: vi.fn(async () => ({
     items: [],
-    pagination: { page: 1, total: 0, totalPages: 0 },
+    pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+    actionableCount: 0,
   })),
 }));
 
@@ -80,10 +82,17 @@ describe('per-query staleTime tuning', () => {
       defaultOptions: { queries: { retry: false, staleTime: GLOBAL_STALE_TIME } },
     });
 
-    renderHook(() => useVendorOrders('store-1'), { wrapper: createWrapper(queryClient) });
+    renderHook(() => useVendorOrders({ storeId: 'store-1' }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
-      expect(getStaleTime(queryClient, queryKeys.orders.vendor('store-1'))).toBe(0);
+      expect(
+        getStaleTime(
+          queryClient,
+          queryKeys.orders.vendor({ storeId: 'store-1', page: 1, limit: 20 }),
+        ),
+      ).toBe(0);
     });
   });
 });

@@ -133,8 +133,60 @@ export const REJECT_STORE = gql`
 `;
 
 export const VENDOR_ORDERS_QUERY = gql`
-  query VendorOrders($storeId: String!) {
-    vendorOrders(storeId: $storeId) {
+  query VendorOrders(
+    $storeId: String!
+    $page: Int
+    $limit: Int
+    $queue: VendorOrderQueueFilter
+    $status: String
+    $paymentMethod: String
+    $search: String
+  ) {
+    vendorOrders(
+      storeId: $storeId
+      page: $page
+      limit: $limit
+      queue: $queue
+      status: $status
+      paymentMethod: $paymentMethod
+      search: $search
+    ) {
+      items {
+        id
+        orderNumber
+        status
+        createdAt
+        subtotal
+        shippingFee
+        discountAmount
+        total
+        paymentMethod
+        guestPhone
+        guestName
+        guestEmail
+        items {
+          id
+          storeId
+          fulfillmentStatus
+          trackingNumber
+          fulfillmentProvider
+          trackingUrl
+        }
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+      actionableCount
+    }
+  }
+`;
+
+export const VENDOR_ORDER_QUERY = gql`
+  query VendorOrder($storeId: String!, $id: String!) {
+    vendorOrder(storeId: $storeId, id: $id) {
       id
       orderNumber
       status
