@@ -200,6 +200,7 @@ export const ERROR_MESSAGES = {
   SHIPPING_OPTION_REQUIRED: 'ต้องเลือกตัวเลือกการจัดส่ง',
   SHIPPING_PROVIDER_NOT_FOUND: 'ไม่พบผู้ให้บริการจัดส่ง',
   SKU_EXISTS: 'รหัส SKU นี้ถูกใช้งานแล้ว',
+  SKU_TOO_LONG: 'รหัส SKU ยาวเกิน 100 ตัวอักษร — แก้ในตารางหรืออัปเดตรายการตัวเลือกใหม่',
   SLUG_EXISTS: 'ชื่อย่อ (slug) นี้ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น',
   SMS_DELIVERY_FAILED: 'ส่ง SMS ไม่สำเร็จ',
   SMS_NOT_CONFIGURED: 'ยังไม่ได้ตั้งค่า SMS',
@@ -568,6 +569,11 @@ export const ERROR_CATALOG_DOCS: Partial<Record<ErrorMessageCode, ErrorCatalogDo
     why: 'รหัส SKU ซ้ำกับที่มีอยู่แล้ว',
     possibleIssue: 'ใช้ SKU เดิมกับตัวเลือกใหม่',
     howToFix: 'เปลี่ยนเป็น SKU ที่ไม่ซ้ำในร้าน/ระบบ',
+  },
+  SKU_TOO_LONG: {
+    why: 'รหัส SKU ยาวเกินขีดจำกัด 100 ตัวอักษร',
+    possibleIssue: 'ชื่อสินค้ายาวทำให้ระบบสร้าง SKU จาก slug ไม่พอดี',
+    howToFix: 'ย่อ SKU ในตาราง หรือกดอัปเดตรายการตัวเลือกให้ระบบสร้างใหม่',
   },
   VARIANTS_REQUIRED: {
     why: 'สินค้าต้องมีตัวเลือกอย่างน้อยหนึ่งรายการ',
@@ -1347,6 +1353,7 @@ const ERROR_CATALOG_BASE: Array<{ code: ErrorMessageCode; message: string; group
     group: 'แคตตาล็อก / อนุกรมวิธาน',
   },
   { code: 'SKU_EXISTS', message: ERROR_MESSAGES.SKU_EXISTS, group: 'แคตตาล็อก / อนุกรมวิธาน' },
+  { code: 'SKU_TOO_LONG', message: ERROR_MESSAGES.SKU_TOO_LONG, group: 'แคตตาล็อก / อนุกรมวิธาน' },
   {
     code: 'VARIANTS_REQUIRED',
     message: ERROR_MESSAGES.VARIANTS_REQUIRED,

@@ -2179,7 +2179,9 @@ export type ProductType = {
 
 export type ProductVariantSyncImpactRemovedType = {
   __typename?: 'ProductVariantSyncImpactRemovedType';
+  disposition: VariantRemovalDisposition;
   id: Scalars['String']['output'];
+  openCartCount: Scalars['Int']['output'];
   optionKey: Scalars['String']['output'];
   optionsJson?: Maybe<Scalars['String']['output']>;
   reasons: Array<VariantRemovalBlockReason>;
@@ -3742,6 +3744,12 @@ export type ValidatePromotionsTargetInput = {
 export enum VariantRemovalBlockReason {
   HasOpenCarts = 'HAS_OPEN_CARTS',
   HasOrders = 'HAS_ORDERS',
+}
+
+export enum VariantRemovalDisposition {
+  ClearCartAndDelete = 'CLEAR_CART_AND_DELETE',
+  Delete = 'DELETE',
+  Retire = 'RETIRE',
 }
 
 export type VendorAuthPayload = {
