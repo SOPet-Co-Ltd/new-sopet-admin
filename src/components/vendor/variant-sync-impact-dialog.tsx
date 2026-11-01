@@ -14,10 +14,9 @@ import {
 import { useSyncProductVariants } from '@/hooks/useSyncProductVariants';
 import { useVariantSyncImpact } from '@/hooks/useVariantSyncImpact';
 import { isApiError, getErrorMessage } from '@/lib/api/errors';
-import { ERROR_MESSAGES } from '@/lib/api/error-messages';
 import { cn } from '@/lib/utils';
 import type { VariantItem } from '@/lib/variants';
-import type { VariantRemovalBlockReason } from '@/types';
+import type { ProductVariantSyncImpactRemoved, VariantRemovalDisposition } from '@/types';
 
 const OVERFLOW_DISPLAY_LIMIT = 10;
 
@@ -29,19 +28,18 @@ export interface VariantSyncImpactDialogProps {
   onSyncSuccess?: () => void;
 }
 
-function formatBlockReasons(reasons: VariantRemovalBlockReason[]): string {
-  const hasOrders = reasons.includes('HAS_ORDERS');
-  const hasCarts = reasons.includes('HAS_OPEN_CARTS');
-  if (hasOrders && hasCarts) {
-    return 'มีประวัติคำสั่งซื้อและอยู่ในตะกร้าสินค้า';
+function formatDisposition(disposition: VariantRemovalDisposition, openCartCount: number): string {
+  switch (disposition) {
+    case 'RETIRE':
+      return openCartCount > 0
+        ? 'เก็บไว้สำหรับคำสั่งซื้อเดิม · ลบออกจากตะกร้า · ไม่ขายต่อ'
+        : 'เก็บไว้สำหรับคำสั่งซื้อเดิม · ไม่ขายต่อในร้าน';
+    case 'CLEAR_CART_AND_DELETE':
+      return `ลบออกจากตะกร้า (${openCartCount}) แล้วลบ SKU`;
+    case 'DELETE':
+    default:
+      return 'ลบ SKU';
   }
-  if (hasOrders) {
-    return 'มีประวัติคำสั่งซื้อ';
-  }
-  if (hasCarts) {
-    return 'อยู่ในตะกร้าสินค้า';
-  }
-  return 'ไม่สามารถลบได้';
 }
 
 function ImpactStat({
@@ -86,6 +84,41 @@ function ImpactLoadingSkeleton() {
   );
 }
 
+function RemovedSkuList({
+  variants,
+  ariaLabel,
+}: {
+  variants: ProductVariantSyncImpactRemoved[];
+  ariaLabel: string;
+}) {
+  const visible = variants.slice(0, OVERFLOW_DISPLAY_LIMIT);
+  const overflowCount = Math.max(0, variants.length - OVERFLOW_DISPLAY_LIMIT);
+
+  return (
+    <div className="space-y-2">
+      <ul
+        aria-label={ariaLabel}
+        className="max-h-[40vh] divide-y divide-border overflow-y-auto rounded-lg border border-border"
+      >
+        {visible.map((variant) => (
+          <li
+            key={variant.id}
+            className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 px-3 py-2.5"
+          >
+            <span className="font-medium text-ink">{variant.sku}</span>
+            <span className="text-sm text-muted-foreground">
+              {formatDisposition(variant.disposition, variant.openCartCount)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {overflowCount > 0 ? (
+        <p className="text-sm text-muted-foreground">และอีก {overflowCount} รายการ</p>
+      ) : null}
+    </div>
+  );
+}
+
 export function VariantSyncImpactDialog({
   open,
   onOpenChange,
@@ -104,9 +137,14 @@ export function VariantSyncImpactDialog({
   } = useVariantSyncImpact(productId, variants, open && !!productId);
 
   const isSyncPending = syncMutation.isPending;
-  const isBlocked = impact?.blocked === true;
-  const canConfirm =
-    !!impact && !impact.blocked && !isLoadingImpact && !isImpactError && !isSyncPending;
+  const canConfirm = !!impact && !isLoadingImpact && !isImpactError && !isSyncPending;
+  const removedList = impact?.removedVariants ?? [];
+  const hasRetire = removedList.some((entry) => entry.disposition === 'RETIRE');
+  const hasCartClear = removedList.some(
+    (entry) =>
+      entry.disposition === 'CLEAR_CART_AND_DELETE' ||
+      (entry.disposition === 'RETIRE' && entry.openCartCount > 0),
+  );
 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
@@ -116,7 +154,7 @@ export function VariantSyncImpactDialog({
   }
 
   async function handleConfirmSync() {
-    if (!impact || impact.blocked) {
+    if (!impact) {
       return;
     }
     setMutationError(null);
@@ -129,27 +167,19 @@ export function VariantSyncImpactDialog({
       onSyncSuccess?.();
     } catch (error) {
       if (isApiError(error) && error.code === 'VARIANT_REMOVAL_BLOCKED') {
-        setMutationError(ERROR_MESSAGES.VARIANT_REMOVAL_BLOCKED);
+        setMutationError('บันทึกไม่สำเร็จ — ลองอีกครั้งหรือปรับตัวเลือกแล้วบันทึกใหม่');
       } else {
         setMutationError(getErrorMessage(error, 'บันทึก SKU/สต็อก/ราคาไม่สำเร็จ'));
       }
     }
   }
 
-  const title = isBlocked
-    ? 'ไม่สามารถบันทึกได้ — มี SKU ที่ถูกใช้งาน'
-    : 'ยืนยันการบันทึกตัวเลือกสินค้า';
-
-  const removedList = impact?.removedVariants ?? [];
-  const visibleRemoved = removedList.slice(0, OVERFLOW_DISPLAY_LIMIT);
-  const overflowCount = Math.max(0, removedList.length - OVERFLOW_DISPLAY_LIMIT);
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent aria-labelledby="variant-sync-impact-title" className="max-w-xl">
         <DialogHeader>
           <DialogTitle id="variant-sync-impact-title" className="text-balance">
-            {title}
+            ยืนยันการบันทึกตัวเลือกสินค้า
           </DialogTitle>
           <DialogDescription className="sr-only">
             ตรวจสอบผลกระทบก่อนบันทึกตัวเลือกสินค้า
@@ -167,37 +197,6 @@ export function VariantSyncImpactDialog({
               ลองอีกครั้ง
             </Button>
           </div>
-        ) : impact && isBlocked ? (
-          <div className="space-y-3">
-            <div
-              className="flex gap-2.5 rounded-lg bg-danger-bg p-3 text-sm text-danger"
-              aria-live="assertive"
-            >
-              <HiExclamationTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-              <p className="text-pretty">
-                ไม่สามารถลบ SKU ต่อไปนี้ เพราะมีประวัติคำสั่งซื้อ และ/หรือ อยู่ในตะกร้าสินค้า
-              </p>
-            </div>
-            <ul
-              aria-label="SKU ที่ถูกบล็อก"
-              className="max-h-[40vh] divide-y divide-border overflow-y-auto rounded-lg border border-border"
-            >
-              {visibleRemoved.map((variant) => (
-                <li
-                  key={variant.id}
-                  className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 px-3 py-2.5"
-                >
-                  <span className="font-medium text-ink">{variant.sku}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {formatBlockReasons(variant.reasons)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {overflowCount > 0 ? (
-              <p className="text-sm text-muted-foreground">และอีก {overflowCount} รายการ</p>
-            ) : null}
-          </div>
         ) : impact ? (
           <div className="space-y-4">
             <div
@@ -207,34 +206,39 @@ export function VariantSyncImpactDialog({
             >
               <ImpactStat label="คงไว้" value={impact.kept} />
               <ImpactStat label="สร้างใหม่" value={impact.new} tone="success" />
-              <ImpactStat label="ลบ" value={impact.removed} tone="danger" />
+              <ImpactStat label="นำออก" value={impact.removed} tone="danger" />
             </div>
-            {/* Keep compact text for tests / screen readers that match prior copy */}
             <p className="sr-only">
               คงไว้ {impact.kept} · สร้างใหม่ {impact.new} · ลบ {impact.removed}
             </p>
+
             {impact.removed === 0 ? (
               <p className="rounded-lg border border-border bg-surface/60 px-3 py-2.5 text-sm text-muted-foreground">
                 ไม่มีการลบ SKU — บันทึกจะอัปเดตสต็อกและราคาของรายการที่มีอยู่
               </p>
             ) : (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-ink">SKU ที่จะถูกลบ ({impact.removed})</p>
-                <p className="text-xs text-muted-foreground">
-                  soft-delete เมื่อไม่มีอ้างอิงจากคำสั่งซื้อหรือตะกร้า
-                </p>
-                <ul className="max-h-[40vh] divide-y divide-border overflow-y-auto rounded-lg border border-border text-sm text-ink">
-                  {visibleRemoved.map((variant) => (
-                    <li key={variant.id} className="px-3 py-2 font-medium">
-                      {variant.sku}
-                    </li>
-                  ))}
-                </ul>
-                {overflowCount > 0 ? (
-                  <p className="text-sm text-muted-foreground">และอีก {overflowCount} รายการ</p>
-                ) : null}
+              <div className="space-y-3">
+                {(hasRetire || hasCartClear) && (
+                  <div
+                    className="flex gap-2.5 rounded-lg bg-warning-bg/80 p-3 text-sm text-ink"
+                    aria-live="polite"
+                  >
+                    <HiExclamationTriangle
+                      className="mt-0.5 size-5 shrink-0 text-warning-text"
+                      aria-hidden="true"
+                    />
+                    <p className="text-pretty">
+                      {hasRetire
+                        ? 'SKU ที่มีประวัติคำสั่งซื้อจะถูกเก็บไว้ในระบบเพื่อออเดอร์เดิม แต่ลูกค้าใหม่จะซื้อไม่ได้'
+                        : 'SKU ในตะกร้าจะถูกลบออกจากตะกร้าลูกค้าก่อนลบจากรายการสินค้า'}
+                    </p>
+                  </div>
+                )}
+                <p className="text-sm font-medium text-ink">SKU ที่จะนำออก ({impact.removed})</p>
+                <RemovedSkuList variants={removedList} ariaLabel="SKU ที่จะนำออก" />
               </div>
             )}
+
             {mutationError ? (
               <p role="alert" className="rounded-lg bg-danger-bg px-3 py-2.5 text-sm text-danger">
                 {mutationError}
@@ -247,7 +251,7 @@ export function VariantSyncImpactDialog({
           <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
             ยกเลิก
           </Button>
-          {impact && !isBlocked && !isImpactError && !isLoadingImpact ? (
+          {impact && !isImpactError && !isLoadingImpact ? (
             <Button
               type="button"
               disabled={!canConfirm}

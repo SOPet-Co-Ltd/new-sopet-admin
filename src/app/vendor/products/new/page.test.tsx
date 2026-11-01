@@ -167,7 +167,9 @@ describe('NewProductPage', () => {
 
     const user = await goToStep3();
     await user.type(screen.getByLabelText('ชื่อตัวเลือกที่ 1'), 'สี');
-    await user.type(screen.getByLabelText('ค่าตัวเลือกที่ 1'), 'แดง, น้ำเงิน');
+    const addValue = screen.getByLabelText('เพิ่มค่าตัวเลือกที่ 1');
+    await user.type(addValue, 'แดง{Enter}');
+    await user.type(addValue, 'น้ำเงิน{Enter}');
 
     await user.click(screen.getByRole('button', { name: 'สร้างสินค้าและไปกำหนดตัวเลือก' }));
 

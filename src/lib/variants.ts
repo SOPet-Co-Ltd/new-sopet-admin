@@ -77,25 +77,62 @@ export function cartesianProduct(groups: VariantOptionGroup[]): Record<string, s
   );
 }
 
+/** Matches product_variants.sku varchar(100). */
+export const MAX_SKU_LENGTH = 100;
+
+/** Build a slug-based SKU that always fits the DB limit. Prefer keeping option suffixes. */
+export function buildAutoSku(productSlug: string, options: Record<string, string>): string {
+  const slugPart = Object.values(options)
+    .map((value) => value.toLowerCase().replace(/[^\p{L}\p{N}\p{M}]+/gu, '-'))
+    .filter(Boolean)
+    .join('-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  const base = productSlug.trim().replace(/-+/g, '-').replace(/^-|-$/g, '') || 'sku';
+  const raw = slugPart ? `${base}-${slugPart}` : base;
+  if (raw.length <= MAX_SKU_LENGTH) {
+    return raw;
+  }
+
+  const suffix = slugPart ? `-${slugPart}` : '';
+  if (suffix.length >= MAX_SKU_LENGTH) {
+    return suffix.slice(-MAX_SKU_LENGTH).replace(/^-/, '') || 'sku';
+  }
+
+  return `${base.slice(0, MAX_SKU_LENGTH - suffix.length)}${suffix}`;
+}
+
 export function buildCombinationsFromGroups(
   groups: VariantOptionGroup[],
   existing: VariantCombination[],
   productSlug: string,
 ): VariantCombination[] {
   const existingByKey = new Map(existing.map((item) => [variantOptionKey(item.options), item]));
+  const usedSkus = new Set(existing.map((item) => item.sku.trim().toLowerCase()).filter(Boolean));
 
   const combos = cartesianProduct(groups.filter((group) => group.name.trim()));
 
   return combos.map((options) => {
     const key = variantOptionKey(options);
     const match = existingByKey.get(key);
-    const slugPart = Object.values(options)
-      .map((value) => value.toLowerCase().replace(/[^\p{L}\p{N}\p{M}]+/gu, '-'))
-      .join('-');
+
+    let sku = match?.sku?.trim() || buildAutoSku(productSlug, options);
+    if (!match?.sku) {
+      let candidate = sku.slice(0, MAX_SKU_LENGTH);
+      let suffix = 2;
+      while (usedSkus.has(candidate.toLowerCase())) {
+        const tag = `-${suffix}`;
+        candidate = `${sku.slice(0, Math.max(1, MAX_SKU_LENGTH - tag.length))}${tag}`;
+        suffix += 1;
+      }
+      sku = candidate;
+      usedSkus.add(sku.toLowerCase());
+    }
 
     return {
       id: match?.id,
-      sku: match?.sku ?? `${productSlug}-${slugPart}`,
+      sku,
       stockQuantity: match?.stockQuantity ?? 0,
       price: match?.price ?? 0,
       compareAtPrice: match?.compareAtPrice ?? null,
@@ -135,7 +172,7 @@ export function variantItemsToSyncInput(items: VariantItem[]): Array<{
 }> {
   return items.map((item) => ({
     id: item.id,
-    sku: item.sku.trim(),
+    sku: item.sku.trim().slice(0, MAX_SKU_LENGTH),
     stockQuantity: item.stockQuantity,
     price: Math.max(0, Number(item.price) || 0),
     compareAtPrice: item.compareAtPrice ?? null,
@@ -175,4 +212,38 @@ export function formatCombinationLabel(options: Record<string, string>): string 
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `${key}: ${value}`)
     .join(' · ');
+}
+
+/** Patch describing an in-place option rename that should rewrite existing SKU rows. */
+export type VariantOptionRename =
+  | { type: 'group'; from: string; to: string }
+  | { type: 'value'; group: string; from: string; to: string };
+
+/** Rewrite option keys/values on existing items so rename keeps id, sku, stock, and price. */
+export function applyOptionRename<T extends { options: Record<string, string> }>(
+  items: T[],
+  rename: VariantOptionRename,
+): T[] {
+  if (rename.type === 'group') {
+    const from = rename.from.trim();
+    const to = rename.to.trim();
+    if (!from || !to || from === to) return items;
+    return items.map((item) => {
+      if (!(from in item.options)) return item;
+      const nextOptions: Record<string, string> = {};
+      for (const [key, value] of Object.entries(item.options)) {
+        nextOptions[key === from ? to : key] = value;
+      }
+      return { ...item, options: nextOptions };
+    });
+  }
+
+  const group = rename.group.trim();
+  const from = rename.from.trim();
+  const to = rename.to.trim();
+  if (!group || !from || !to || from === to) return items;
+  return items.map((item) => {
+    if (item.options[group] !== from) return item;
+    return { ...item, options: { ...item.options, [group]: to } };
+  });
 }

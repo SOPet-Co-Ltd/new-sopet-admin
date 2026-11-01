@@ -1,10 +1,56 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyOptionRename,
+  buildAutoSku,
+  buildCombinationsFromGroups,
   compareAtFromDiscountPercent,
   discountPercentFromCompareAt,
   formatCombinationLabel,
+  MAX_SKU_LENGTH,
   variantItemsToSyncInput,
 } from '@/lib/variants';
+
+describe('applyOptionRename', () => {
+  const items = [
+    { id: '1', sku: 'A', stockQuantity: 2, price: 100, options: { สี: 'แดง', ไซส์: 'M' } },
+    { id: '2', sku: 'B', stockQuantity: 3, price: 120, options: { สี: 'น้ำเงิน', ไซส์: 'M' } },
+  ];
+
+  it('rewrites group name on existing items', () => {
+    expect(applyOptionRename(items, { type: 'group', from: 'สี', to: 'Color' })).toEqual([
+      { ...items[0], options: { Color: 'แดง', ไซส์: 'M' } },
+      { ...items[1], options: { Color: 'น้ำเงิน', ไซส์: 'M' } },
+    ]);
+  });
+
+  it('rewrites a single value while keeping id sku stock and price', () => {
+    expect(
+      applyOptionRename(items, { type: 'value', group: 'สี', from: 'แดง', to: 'แดงเข้ม' }),
+    ).toEqual([{ ...items[0], options: { สี: 'แดงเข้ม', ไซส์: 'M' } }, items[1]]);
+  });
+});
+
+describe('buildAutoSku', () => {
+  it('keeps short slug + option value under the limit', () => {
+    expect(buildAutoSku('shampoo', { สี: 'แดง' })).toBe('shampoo-แดง');
+  });
+
+  it('truncates long product slugs while keeping the option suffix', () => {
+    const longSlug =
+      'bactedene-gel-สูตรเดียวกับเบตาดีน-แบคทีดีนเจล-ยาทาแผลแบบเจล-ฆ่าเชื้อโรค-ปฐมพยาบาล-ล้างออกง่าย-ขนาด10กรัม-1';
+    const sku = buildAutoSku(longSlug, { ตัวเลือก: 'test' });
+    expect(sku.length).toBeLessThanOrEqual(MAX_SKU_LENGTH);
+    expect(sku.endsWith('-test')).toBe(true);
+  });
+});
+
+describe('buildCombinationsFromGroups', () => {
+  it('never emits SKUs longer than 100 characters for new combinations', () => {
+    const longSlug = 'a'.repeat(120);
+    const items = buildCombinationsFromGroups([{ name: 'Size', values: ['xl'] }], [], longSlug);
+    expect(items[0]?.sku.length).toBeLessThanOrEqual(MAX_SKU_LENGTH);
+  });
+});
 
 describe('formatCombinationLabel', () => {
   it('sorts option keys before joining with middle-dot separator', () => {
