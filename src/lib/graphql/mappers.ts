@@ -42,10 +42,10 @@ type GqlStore = {
 type GqlOrderItem = {
   id: string;
   storeId: string;
-  productName: string;
-  unitPrice: number;
-  quantity: number;
-  subtotal: number;
+  productName?: string | null;
+  unitPrice?: number | null;
+  quantity?: number | null;
+  subtotal?: number | null;
   fulfillmentStatus: string;
   trackingNumber?: string | null;
   fulfillmentProvider?: string | null;
@@ -149,10 +149,10 @@ export function mapOrder(order: GqlOrder): Order {
       return {
         id: item.id,
         storeId: item.storeId,
-        productName: item.productName,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-        subtotal: item.subtotal,
+        productName: item.productName ?? '',
+        unitPrice: item.unitPrice ?? 0,
+        quantity: item.quantity ?? 0,
+        subtotal: item.subtotal ?? 0,
         fulfillmentStatus: item.fulfillmentStatus,
         trackingNumber: item.trackingNumber ?? undefined,
         fulfillmentProvider: item.fulfillmentProvider ?? undefined,

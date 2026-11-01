@@ -2397,7 +2397,8 @@ export type Query = {
   vendorCustomer: VendorCustomerType;
   vendorCustomerDetail: VendorCustomerDetailType;
   vendorCustomers: VendorCustomerConnection;
-  vendorOrders: Array<OrderType>;
+  vendorOrder: OrderType;
+  vendorOrders: VendorOrderConnection;
   vendorProduct: ProductType;
   vendorProducts: ProductConnection;
   vendorPublishableProductIds: VendorPublishableProductIdsType;
@@ -2794,7 +2795,18 @@ export type QueryVendorCustomersArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type QueryVendorOrderArgs = {
+  id: Scalars['String']['input'];
+  storeId: Scalars['String']['input'];
+};
+
 export type QueryVendorOrdersArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  paymentMethod?: InputMaybe<Scalars['String']['input']>;
+  queue?: InputMaybe<VendorOrderQueueFilter>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
   storeId: Scalars['String']['input'];
 };
 
@@ -3828,6 +3840,19 @@ export type VendorLoginInput = {
   email: Scalars['String']['input'];
   password: Scalars['String']['input'];
 };
+
+export type VendorOrderConnection = {
+  __typename?: 'VendorOrderConnection';
+  actionableCount: Scalars['Int']['output'];
+  items: Array<OrderType>;
+  pagination: PaginationMeta;
+};
+
+/** Vendor order list queue filter */
+export enum VendorOrderQueueFilter {
+  Action = 'ACTION',
+  All = 'ALL',
+}
 
 export type VendorPublishableProductIdsType = {
   __typename?: 'VendorPublishableProductIdsType';
