@@ -3,6 +3,7 @@ import {
   ADMIN_STORE_REQUESTS_QUERY,
   APPROVE_STORE_REQUEST,
   MY_STORE_REQUESTS_QUERY,
+  PENDING_STORE_REQUEST_IDS_QUERY,
   PENDING_STORE_REQUESTS_QUERY,
   REJECT_STORE_REQUEST,
   SUBMIT_STORE_REQUEST,
@@ -22,6 +23,12 @@ export function getPendingStoreRequests(): Promise<StoreRequest[]> {
   return executeQuery<{ pendingStoreRequests: GqlStoreRequest[] }>(
     PENDING_STORE_REQUESTS_QUERY,
   ).then((data) => data.pendingStoreRequests.map(mapStoreRequest));
+}
+
+export function getPendingStoreRequestIds(): Promise<Array<{ id: string }>> {
+  return executeQuery<{ pendingStoreRequests: Array<{ id: string }> }>(
+    PENDING_STORE_REQUEST_IDS_QUERY,
+  ).then((data) => data.pendingStoreRequests);
 }
 
 /** Full history (all statuses) for the admin request center. */

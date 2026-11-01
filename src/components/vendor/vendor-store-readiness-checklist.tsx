@@ -7,7 +7,7 @@ import { Card, CardBody } from '@/components/ui/card';
 import { useIsStoreOwner } from '@/hooks/useMembershipRole';
 import { useMyStore } from '@/hooks/useStoreSettings';
 import { useMyStoreShippingOptions } from '@/hooks/useShipping';
-import { useVendorProducts } from '@/hooks/useVendorProducts';
+import { useVendorPublishedProductProbe } from '@/hooks/useVendorProducts';
 import {
   STORE_READINESS_ACTIONS,
   STORE_READINESS_LABELS,
@@ -20,12 +20,13 @@ export function VendorStoreReadinessChecklist() {
   const { isOwner } = useIsStoreOwner();
   const { data: store, isLoading: storeLoading } = useMyStore();
   const { data: shippingOptions = [], isLoading: shippingLoading } = useMyStoreShippingOptions();
-  const { data: productsResult, isLoading: productsLoading } = useVendorProducts({ limit: 50 });
+  const { data: publishedProducts = [], isLoading: productsLoading } =
+    useVendorPublishedProductProbe();
 
   const isLoading = storeLoading || shippingLoading || productsLoading;
   const checklist = buildStoreReadinessChecklist({
     shippingOptions,
-    products: productsResult?.items ?? [],
+    products: publishedProducts,
     omiseRecipientStatus: store?.omiseRecipientStatus,
   });
 

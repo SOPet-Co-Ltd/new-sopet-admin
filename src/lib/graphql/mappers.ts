@@ -85,7 +85,7 @@ type GqlOrder = {
   guestEmail?: string | null;
   shippingAddress?: GqlOrderShippingAddress | null;
   storeShippings?: GqlOrderStoreShipping[];
-  items: GqlOrderItem[];
+  items?: GqlOrderItem[];
 };
 
 export function mapUser(user: GqlUser, storeId?: string): User {
@@ -144,7 +144,7 @@ export function mapOrder(order: GqlOrder): Order {
         optionName: shipping.optionName,
         shippingFee: shipping.shippingFee,
       })) ?? [],
-    items: order.items.map((item) => {
+    items: (order.items ?? []).map((item) => {
       const parsedOptions = parseOrderVariantOptions(item.variantOptions);
       return {
         id: item.id,
@@ -576,6 +576,7 @@ type GqlAdminVendor = {
   isActive: boolean;
   lastLoginAt?: string | null;
   createdAt?: string | null;
+  storeCount?: number | null;
   stores?: Array<{ id: string; name: string; slug: string; status: string }>;
 };
 
@@ -588,7 +589,7 @@ export function mapAdminVendor(vendor: GqlAdminVendor): AdminVendor {
     isActive: vendor.isActive,
     lastLoginAt: vendor.lastLoginAt ?? undefined,
     createdAt: vendor.createdAt ?? undefined,
-    storeCount: vendor.stores?.length,
+    storeCount: vendor.storeCount ?? vendor.stores?.length,
     stores: vendor.stores?.map((store) => ({
       id: store.id,
       name: store.name,

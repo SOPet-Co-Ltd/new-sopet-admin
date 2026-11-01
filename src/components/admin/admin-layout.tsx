@@ -27,14 +27,9 @@ import { usePathname } from 'next/navigation';
 import { AuthGuard } from '@/components/auth-guard';
 import { DashboardShell, type DashboardNavSection } from '@/components/dashboard-shell';
 import { useUnreadCount } from '@/hooks/useNotifications';
-import { usePendingStoreRequests } from '@/hooks/useStoreRequests';
-import {
-  usePendingBrands,
-  usePendingCategories,
-  usePendingPetTypes,
-  usePendingTags,
-} from '@/hooks/useTaxonomy';
-import { usePendingVendorInvitations } from '@/hooks/useVendorInvitations';
+import { usePendingStoreRequestIds } from '@/hooks/useStoreRequests';
+import { usePendingTaxonomyIds } from '@/hooks/useTaxonomy';
+import { usePendingVendorInvitationIds } from '@/hooks/useVendorInvitations';
 import { usePendingImportedReviews } from '@/hooks/useAdminReviews';
 import { usePendingBankTransferOrders } from '@/hooks/useAdminBankTransfers';
 import { usePendingManualPayouts } from '@/hooks/usePayouts';
@@ -163,20 +158,22 @@ function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
 }
 
 function AdminDashboardShell({ children }: { children: React.ReactNode }) {
-  const { data: storeRequests = [] } = usePendingStoreRequests();
-  const { data: invitations = [] } = usePendingVendorInvitations();
-  const { data: pendingCategories = [] } = usePendingCategories();
-  const { data: pendingTags = [] } = usePendingTags();
-  const { data: pendingPetTypes = [] } = usePendingPetTypes();
-  const { data: pendingBrands = [] } = usePendingBrands();
+  const { data: storeRequestIds } = usePendingStoreRequestIds();
+  const { data: invitationIds } = usePendingVendorInvitationIds();
+  const { data: pendingTaxonomyIds } = usePendingTaxonomyIds();
   const { data: unreadNotificationCount } = useUnreadCount();
-  const { data: pendingImportedReviews } = usePendingImportedReviews(1);
-  const { data: pendingBankTransfers } = usePendingBankTransferOrders(1);
-  const { data: pendingManualPayouts } = usePendingManualPayouts(1);
+  const { data: pendingImportedReviews } = usePendingImportedReviews(1, 1);
+  const { data: pendingBankTransfers } = usePendingBankTransferOrders(1, 1);
+  const { data: pendingManualPayouts } = usePendingManualPayouts(1, 1);
 
-  const pendingRequestCount = storeRequests.length + invitations.length;
+  const pendingRequestCount =
+    (Array.isArray(storeRequestIds) ? storeRequestIds.length : 0) +
+    (Array.isArray(invitationIds) ? invitationIds.length : 0);
   const pendingTaxonomyCount =
-    pendingCategories.length + pendingTags.length + pendingPetTypes.length + pendingBrands.length;
+    (pendingTaxonomyIds?.pendingCategories?.length ?? 0) +
+    (pendingTaxonomyIds?.pendingTags?.length ?? 0) +
+    (pendingTaxonomyIds?.pendingPetTypes?.length ?? 0) +
+    (pendingTaxonomyIds?.pendingBrands?.length ?? 0);
   const pendingImportedReviewCount = pendingImportedReviews?.pagination.total ?? 0;
   const pendingBankTransferCount = pendingBankTransfers?.pagination.total ?? 0;
   const pendingManualPayoutCount = pendingManualPayouts?.pagination.total ?? 0;

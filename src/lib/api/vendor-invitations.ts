@@ -2,6 +2,7 @@ import { executeMutation, executeQuery } from '@/lib/graphql/client';
 import {
   ACCEPT_VENDOR_INVITATION,
   INVITE_VENDOR,
+  PENDING_VENDOR_INVITATION_IDS_QUERY,
   PENDING_VENDOR_INVITATIONS_QUERY,
 } from '@/lib/graphql/documents';
 import { mapUser, mapVendorInvitation } from '@/lib/graphql/mappers';
@@ -13,6 +14,12 @@ export function getPendingVendorInvitations(): Promise<VendorInvitation[]> {
   return executeQuery<{ pendingVendorInvitations: GqlVendorInvitation[] }>(
     PENDING_VENDOR_INVITATIONS_QUERY,
   ).then((data) => data.pendingVendorInvitations.map(mapVendorInvitation));
+}
+
+export function getPendingVendorInvitationIds(): Promise<Array<{ id: string }>> {
+  return executeQuery<{ pendingVendorInvitations: Array<{ id: string }> }>(
+    PENDING_VENDOR_INVITATION_IDS_QUERY,
+  ).then((data) => data.pendingVendorInvitations);
 }
 
 export function inviteVendor(input: InviteVendorInput): Promise<VendorInvitation> {

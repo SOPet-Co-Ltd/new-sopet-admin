@@ -54,7 +54,10 @@ vi.mock('@/hooks/useAdminVendors', () => ({
 
 vi.mock('@/hooks/usePayouts', () => ({
   useAdminStorePayoutSummary: () => ({ data: null, isLoading: false }),
-  useAdminStorePayouts: () => ({ data: [], isLoading: false }),
+  useAdminStorePayouts: () => ({
+    data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 1 } },
+    isLoading: false,
+  }),
   useTriggerPayout: () => ({
     mutate: vi.fn(),
     isPending: false,

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { VendorPromotionListItem } from '@/components/vendor/vendor-promotion-list-item';
@@ -14,10 +15,23 @@ import { startActionGuide } from '@/lib/vendor/action-guide';
 import type { Promotion } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
 
+const STORE_PROMOTIONS_PAGE_SIZE = 20;
+
 export default function VendorPromotionsPage() {
   const { user } = useCurrentUser();
   const storeId = useVendorStoreId();
-  const { data: promotions = [], isLoading, error } = useStorePromotions(storeId);
+  const [page, setPage] = useState(1);
+  const [pagedStoreId, setPagedStoreId] = useState(storeId);
+  if (pagedStoreId !== storeId) {
+    setPagedStoreId(storeId);
+    setPage(1);
+  }
+  const { data, isLoading, error } = useStorePromotions(storeId, {
+    page: pagedStoreId === storeId ? page : 1,
+    limit: STORE_PROMOTIONS_PAGE_SIZE,
+  });
+  const promotions = data?.items ?? [];
+  const pagination = data?.pagination;
   const deleteMutation = useDeletePromotion();
   const toggleMutation = useTogglePromotion();
 
@@ -111,6 +125,34 @@ export default function VendorPromotionsPage() {
             );
           })}
         </ul>
+      ) : null}
+
+      {storeId && pagination && pagination.totalPages > 1 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+          <span className="tabular-nums">
+            หน้า {pagination.page} จาก {pagination.totalPages}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((current) => current - 1)}
+            >
+              ก่อนหน้า
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= pagination.totalPages}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              ถัดไป
+            </Button>
+          </div>
+        </div>
       ) : null}
     </div>
   );

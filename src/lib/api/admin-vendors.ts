@@ -8,14 +8,31 @@ import {
   UPDATE_VENDOR_AS_ADMIN,
 } from '@/lib/graphql/documents';
 import { mapAdminVendor, mapAdminVendorDetail } from '@/lib/graphql/mappers';
-import type { AdminVendor, AdminVendorDetail, UpdateVendorAsAdminInput } from '@/types';
+import type {
+  AdminVendor,
+  AdminVendorDetail,
+  AdminVendorsQueryParams,
+  Paginated,
+  UpdateVendorAsAdminInput,
+} from '@/types';
 
 type GqlAdminVendor = Parameters<typeof mapAdminVendor>[0];
 
-export function getAdminVendors(search?: string): Promise<AdminVendor[]> {
-  return executeQuery<{ adminVendors: GqlAdminVendor[] }>(ADMIN_VENDORS_QUERY, {
-    search: search || undefined,
-  }).then((data) => data.adminVendors.map(mapAdminVendor));
+export function getAdminVendors(
+  params: AdminVendorsQueryParams = {},
+): Promise<Paginated<AdminVendor>> {
+  return executeQuery<{
+    adminVendors: { items: GqlAdminVendor[]; pagination: Paginated<AdminVendor>['pagination'] };
+  }>(ADMIN_VENDORS_QUERY, {
+    page: params.page ?? 1,
+    limit: params.limit ?? 20,
+    search: params.search || undefined,
+    status: params.status || undefined,
+    sort: params.sort || undefined,
+  }).then((data) => ({
+    items: data.adminVendors.items.map(mapAdminVendor),
+    pagination: data.adminVendors.pagination,
+  }));
 }
 
 export function getAdminVendor(id: string): Promise<AdminVendor> {

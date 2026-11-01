@@ -7,7 +7,13 @@ import {
   UPDATE_STORE_AS_ADMIN,
 } from '@/lib/graphql/documents';
 import { mapAdminStore } from '@/lib/graphql/mappers';
-import type { AdminStore, CreateStoreAsAdminInput, UpdateStoreAsAdminInput } from '@/types';
+import type {
+  AdminStore,
+  AdminStoresQueryParams,
+  CreateStoreAsAdminInput,
+  Paginated,
+  UpdateStoreAsAdminInput,
+} from '@/types';
 import type { AdminStoreEditFormValues, AdminStoreFormValues } from '@/lib/validations';
 
 type GqlAdminStore = Parameters<typeof mapAdminStore>[0];
@@ -48,10 +54,21 @@ export function buildUpdateStoreAsAdminInput(
   return input;
 }
 
-export function getAdminStores(): Promise<AdminStore[]> {
-  return executeQuery<{ adminStores: GqlAdminStore[] }>(ADMIN_STORES_QUERY).then((data) =>
-    data.adminStores.map(mapAdminStore),
-  );
+export function getAdminStores(
+  params: AdminStoresQueryParams = {},
+): Promise<Paginated<AdminStore>> {
+  return executeQuery<{
+    adminStores: { items: GqlAdminStore[]; pagination: Paginated<AdminStore>['pagination'] };
+  }>(ADMIN_STORES_QUERY, {
+    page: params.page ?? 1,
+    limit: params.limit ?? 20,
+    search: params.search || undefined,
+    status: params.status || undefined,
+    sort: params.sort || undefined,
+  }).then((data) => ({
+    items: data.adminStores.items.map(mapAdminStore),
+    pagination: data.adminStores.pagination,
+  }));
 }
 
 export function getAdminStore(id: string): Promise<AdminStore> {

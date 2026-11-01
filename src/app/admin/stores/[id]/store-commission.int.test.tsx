@@ -125,8 +125,30 @@ vi.mock('@/hooks/usePayouts', () => ({
     data: payoutsQueryState.summary,
     isLoading: payoutsQueryState.isLoading,
   }),
-  useAdminStorePayouts: () => ({ data: payoutsHistoryState.items, isLoading: false }),
-  useStorePayouts: () => ({ data: payoutsHistoryState.items, isLoading: false }),
+  useAdminStorePayouts: () => ({
+    data: {
+      items: payoutsHistoryState.items,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: payoutsHistoryState.items.length,
+        totalPages: 1,
+      },
+    },
+    isLoading: false,
+  }),
+  useStorePayouts: () => ({
+    data: {
+      items: payoutsHistoryState.items,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: payoutsHistoryState.items.length,
+        totalPages: 1,
+      },
+    },
+    isLoading: false,
+  }),
   useStorePayoutSummary: () => ({
     data: payoutsQueryState.summary,
     isLoading: payoutsQueryState.isLoading,

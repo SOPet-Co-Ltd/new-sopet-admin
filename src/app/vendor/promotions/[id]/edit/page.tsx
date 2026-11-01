@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { PromotionEditForm } from '@/components/promotions/promotion-edit-form';
 import { Card, CardBody } from '@/components/ui/card';
-import { useStorePromotion, useUpdatePromotion } from '@/hooks/usePromotions';
+import { usePromotion, useUpdatePromotion } from '@/hooks/usePromotions';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { getErrorMessage } from '@/lib/api/errors';
 
@@ -12,7 +12,7 @@ export default function VendorPromotionEditPage() {
   const params = useParams<{ id: string }>();
   const id = typeof params.id === 'string' ? params.id : '';
   const storeId = useVendorStoreId();
-  const { data: promotion, isLoading, error, isNotFound } = useStorePromotion(id, storeId);
+  const { data: promotion, isLoading, error, isNotFound } = usePromotion(id);
   const updateMutation = useUpdatePromotion();
 
   if (!storeId) {
