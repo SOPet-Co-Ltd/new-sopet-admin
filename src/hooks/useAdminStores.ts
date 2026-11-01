@@ -9,12 +9,16 @@ import {
   updateStoreAsAdmin,
 } from '@/lib/api/admin-stores';
 import { queryKeys } from '@/lib/react-query/keys';
-import type { CreateStoreAsAdminInput, UpdateStoreAsAdminInput } from '@/types';
+import type {
+  AdminStoresQueryParams,
+  CreateStoreAsAdminInput,
+  UpdateStoreAsAdminInput,
+} from '@/types';
 
-export function useAdminStores() {
+export function useAdminStores(params: AdminStoresQueryParams = {}) {
   return useQuery({
-    queryKey: queryKeys.adminStores.list(),
-    queryFn: getAdminStores,
+    queryKey: queryKeys.adminStores.list(params),
+    queryFn: () => getAdminStores(params),
   });
 }
 

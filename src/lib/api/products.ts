@@ -10,6 +10,7 @@ import {
   SYNC_PRODUCT_VARIANTS,
   UPDATE_PRODUCT,
   UPDATE_PRODUCT_VARIANT,
+  VENDOR_PRODUCT_STATUS_PROBE_QUERY,
   VENDOR_PRODUCTS_QUERY,
   VENDOR_PUBLISHABLE_PRODUCTS_QUERY,
   VENDOR_PUBLISHABLE_PRODUCT_IDS_QUERY,
@@ -97,6 +98,14 @@ export function getVendorProducts(
     items: data.vendorProducts.items.map(mapProduct),
     pagination: mapPagination(data.vendorProducts.pagination),
   }));
+}
+
+export function getVendorPublishedProductProbe(): Promise<Array<{ id: string; status: string }>> {
+  return executeQuery<{
+    vendorProducts: { items: Array<{ id: string; status: string }> };
+  }>(VENDOR_PRODUCT_STATUS_PROBE_QUERY, { page: 1, limit: 1, status: 'published' }).then(
+    (data) => data.vendorProducts.items,
+  );
 }
 
 export function getVendorPublishableProducts(

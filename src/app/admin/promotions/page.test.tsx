@@ -80,7 +80,10 @@ describe('AdminPromotionsPage', () => {
 
   it('renders bordered list with clear inactive activate affordance', () => {
     usePlatformPromotions.mockReturnValue({
-      data: [platformPromo],
+      data: {
+        items: [platformPromo],
+        pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      },
       isLoading: false,
       error: null,
     });

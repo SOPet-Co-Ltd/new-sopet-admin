@@ -23,7 +23,6 @@ export function useVendorOrders(params: UseVendorOrdersParams) {
   const search = params.search?.trim() || undefined;
 
   return useQuery({
-    staleTime: 0,
     queryKey: queryKeys.orders.vendor({
       storeId: storeId ?? '',
       page,
@@ -49,7 +48,6 @@ export function useVendorOrders(params: UseVendorOrdersParams) {
 
 export function useVendorOrder(storeId: string | undefined, orderId: string | undefined) {
   return useQuery({
-    staleTime: 0,
     queryKey: queryKeys.orders.vendorDetail(storeId ?? '', orderId ?? ''),
     queryFn: () => getVendorOrder(storeId!, orderId!),
     enabled: Boolean(storeId && orderId),

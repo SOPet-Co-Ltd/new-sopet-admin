@@ -18,7 +18,7 @@ describe('invalidateQueriesForDashboardActivity', () => {
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: queryKeys.orders.all });
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: queryKeys.adminOrders.all });
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: queryKeys.analytics.all });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: queryKeys.products.all });
+    expect(invalidateQueries).not.toHaveBeenCalledWith({ queryKey: queryKeys.products.all });
   });
 
   it('invalidates store request keys for STORE_REQUEST events', () => {

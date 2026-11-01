@@ -241,6 +241,12 @@ export type AdminOrderStore = {
   name: Scalars['String']['output'];
 };
 
+export type AdminStoreConnection = {
+  __typename?: 'AdminStoreConnection';
+  items: Array<AdminStoreType>;
+  pagination: PaginationMeta;
+};
+
 export type AdminStoreType = {
   __typename?: 'AdminStoreType';
   address?: Maybe<Scalars['String']['output']>;
@@ -288,6 +294,12 @@ export type AdminVendorActivityType = {
   storeName?: Maybe<Scalars['String']['output']>;
 };
 
+export type AdminVendorConnection = {
+  __typename?: 'AdminVendorConnection';
+  items: Array<AdminVendorListItem>;
+  pagination: PaginationMeta;
+};
+
 export type AdminVendorDetailType = {
   __typename?: 'AdminVendorDetailType';
   createdAt: Scalars['DateTime']['output'];
@@ -314,6 +326,18 @@ export type AdminVendorInsightsType = {
   recentOrders: Array<AdminCustomerRecentOrder>;
   storeCount: Scalars['Int']['output'];
   totalRevenue: Scalars['Float']['output'];
+};
+
+export type AdminVendorListItem = {
+  __typename?: 'AdminVendorListItem';
+  createdAt: Scalars['DateTime']['output'];
+  email: Scalars['String']['output'];
+  fullName: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  isActive: Scalars['Boolean']['output'];
+  lastLoginAt?: Maybe<Scalars['DateTime']['output']>;
+  role: Scalars['String']['output'];
+  storeCount: Scalars['Int']['output'];
 };
 
 export type AdminVendorMembershipType = {
@@ -1988,6 +2012,12 @@ export type PaymentType = {
   status: Scalars['String']['output'];
 };
 
+export type PayoutConnection = {
+  __typename?: 'PayoutConnection';
+  items: Array<PayoutType>;
+  pagination: PaginationMeta;
+};
+
 export type PayoutRailSummaryType = {
   __typename?: 'PayoutRailSummaryType';
   availableBalance: Scalars['Float']['output'];
@@ -2208,6 +2238,12 @@ export type ProductVariantType = {
   stockQuantity: Scalars['Int']['output'];
 };
 
+export type PromotionConnection = {
+  __typename?: 'PromotionConnection';
+  items: Array<PromotionType>;
+  pagination: PaginationMeta;
+};
+
 export type PromotionEligibilityResult = {
   __typename?: 'PromotionEligibilityResult';
   code: Scalars['String']['output'];
@@ -2269,15 +2305,15 @@ export type Query = {
   adminOrders: AdminOrderConnection;
   adminStore: AdminStoreType;
   adminStorePayoutSummary: PayoutSummaryType;
-  adminStorePayouts: Array<PayoutType>;
+  adminStorePayouts: PayoutConnection;
   adminStoreReactivationRequests: Array<StoreReactivationRequestType>;
   adminStoreRequests: Array<StoreRequestType>;
   adminStoreShippingOptions: Array<StoreShippingOptionType>;
-  adminStores: Array<AdminStoreType>;
+  adminStores: AdminStoreConnection;
   adminTeamMembers: Array<AdminTeamMemberType>;
   adminVendor: AdminVendorType;
   adminVendorDetail: AdminVendorDetailType;
-  adminVendors: Array<AdminVendorType>;
+  adminVendors: AdminVendorConnection;
   allPlatformAds: Array<PlatformAdType>;
   allPlatformBanners: Array<PlatformBannerType>;
   allPlatformSponsors: Array<PlatformSponsorType>;
@@ -2342,7 +2378,7 @@ export type Query = {
   platformAds: Array<PlatformAdType>;
   platformAnalytics: PlatformAnalyticsType;
   platformBanners: Array<PlatformBannerType>;
-  platformPromotions: Array<PromotionType>;
+  platformPromotions: PromotionConnection;
   platformSalesByCategory: Array<SalesBreakdownItemType>;
   platformSalesByPaymentMethod: Array<SalesBreakdownItemType>;
   platformSalesOverTime: Array<SalesTimePointType>;
@@ -2356,6 +2392,7 @@ export type Query = {
   productReviews: Array<ReviewType>;
   productVariantSyncImpact: ProductVariantSyncImpactType;
   products: ProductConnection;
+  promotion: PromotionType;
   recommendedProducts: Array<ProductType>;
   rejectedBrands: Array<BrandType>;
   rejectedCategories: Array<CategoryType>;
@@ -2379,9 +2416,9 @@ export type Query = {
   storeInvitations: Array<StoreMemberInvitationType>;
   storeMembers: Array<StoreMemberType>;
   storePayoutSummary: PayoutSummaryType;
-  storePayouts: Array<PayoutType>;
+  storePayouts: PayoutConnection;
   storeProductReviews: StoreProductReviewConnection;
-  storePromotions: Array<PromotionType>;
+  storePromotions: PromotionConnection;
   storeReactivationRequests: Array<StoreReactivationRequestType>;
   storeReviewSummary: StoreReviewSummaryType;
   storeReviews: Array<StoreProductReviewType>;
@@ -2461,6 +2498,8 @@ export type QueryAdminStorePayoutSummaryArgs = {
 };
 
 export type QueryAdminStorePayoutsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
   storeId: Scalars['String']['input'];
 };
 
@@ -2472,6 +2511,14 @@ export type QueryAdminStoreShippingOptionsArgs = {
   storeId: Scalars['String']['input'];
 };
 
+export type QueryAdminStoresArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type QueryAdminVendorArgs = {
   id: Scalars['String']['input'];
 };
@@ -2481,7 +2528,11 @@ export type QueryAdminVendorDetailArgs = {
 };
 
 export type QueryAdminVendorsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QueryBrandDeleteImpactArgs = {
@@ -2519,6 +2570,11 @@ export type QueryExportSearchAnalyticsCsvArgs = {
   toDate?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
+export type QueryFavoritesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type QueryGetAdminInvitationByTokenArgs = {
   token: Scalars['String']['input'];
 };
@@ -2541,6 +2597,8 @@ export type QueryMyReviewsArgs = {
 };
 
 export type QueryNotificationsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
   unreadOnly?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
@@ -2597,6 +2655,11 @@ export type QueryPlatformAnalyticsArgs = {
   toDate?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type QueryPlatformPromotionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type QueryPlatformSalesByCategoryArgs = {
   fromDate?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -2635,6 +2698,8 @@ export type QueryProductPublishChecklistArgs = {
 };
 
 export type QueryProductReviewsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
   productId: Scalars['String']['input'];
 };
 
@@ -2658,6 +2723,10 @@ export type QueryProductsArgs = {
   sortOrder?: InputMaybe<Scalars['String']['input']>;
   storeId?: InputMaybe<Scalars['String']['input']>;
   tag?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type QueryPromotionArgs = {
+  id: Scalars['String']['input'];
 };
 
 export type QueryRecommendedProductsArgs = {
@@ -2732,6 +2801,11 @@ export type QueryStoreCustomerSummaryArgs = {
   year: Scalars['Int']['input'];
 };
 
+export type QueryStorePayoutsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type QueryStoreProductReviewsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
@@ -2741,6 +2815,8 @@ export type QueryStoreProductReviewsArgs = {
 };
 
 export type QueryStorePromotionsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
   storeId: Scalars['String']['input'];
 };
 
@@ -2753,6 +2829,8 @@ export type QueryStoreReviewSummaryArgs = {
 };
 
 export type QueryStoreReviewsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
   storeId: Scalars['String']['input'];
 };
 
@@ -3848,7 +3926,6 @@ export type VendorOrderConnection = {
   pagination: PaginationMeta;
 };
 
-/** Vendor order list queue filter */
 export enum VendorOrderQueueFilter {
   Action = 'ACTION',
   All = 'ALL',

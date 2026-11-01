@@ -77,7 +77,7 @@ describe('per-query staleTime tuning', () => {
     });
   });
 
-  it('configures vendor orders with staleTime 0 for fresh status reads', async () => {
+  it('inherits the default staleTime for vendor orders', async () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false, staleTime: GLOBAL_STALE_TIME } },
     });
@@ -92,7 +92,7 @@ describe('per-query staleTime tuning', () => {
           queryClient,
           queryKeys.orders.vendor({ storeId: 'store-1', page: 1, limit: 20 }),
         ),
-      ).toBe(0);
+      ).toBe(GLOBAL_STALE_TIME);
     });
   });
 });

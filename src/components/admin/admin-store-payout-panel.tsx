@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
@@ -83,8 +84,14 @@ function SnapshotPayoutBreakdown({ payout }: { payout: Payout }) {
 }
 
 export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
+  const [historyPage, setHistoryPage] = useState(1);
   const { data: summary, isLoading: summaryLoading } = useAdminStorePayoutSummary(storeId);
-  const { data: payouts = [], isLoading: historyLoading } = useAdminStorePayouts(storeId);
+  const { data: payoutPage, isLoading: historyLoading } = useAdminStorePayouts(
+    storeId,
+    historyPage,
+  );
+  const payouts = payoutPage?.items ?? [];
+  const historyPagination = payoutPage?.pagination;
   const triggerMutation = useTriggerPayout(storeId);
   const settleManualMutation = useSettleManualPayout(storeId);
   const rejectManualMutation = useRejectManualPayout(storeId);
@@ -299,6 +306,33 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
               ) : (
                 <p className="text-sm text-muted-foreground">ยังไม่มีประวัติ payout</p>
               )}
+              {historyPagination && historyPagination.totalPages > 1 ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+                  <span className="tabular-nums">
+                    หน้า {historyPagination.page} จาก {historyPagination.totalPages}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={historyPage <= 1}
+                      onClick={() => setHistoryPage((current) => current - 1)}
+                    >
+                      ก่อนหน้า
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={historyPage >= historyPagination.totalPages}
+                      onClick={() => setHistoryPage((current) => current + 1)}
+                    >
+                      ถัดไป
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">ไม่พบข้อมูล payout</p>

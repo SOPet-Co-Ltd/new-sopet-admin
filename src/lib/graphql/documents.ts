@@ -286,11 +286,36 @@ const ADMIN_ORDER_FIELDS = `
   }
 `;
 
+const ADMIN_ORDER_LIST_FIELDS = `
+  order {
+    id
+    orderNumber
+    status
+    createdAt
+    total
+    paymentMethod
+    guestPhone
+    guestName
+    shippingAddress {
+      phone
+    }
+  }
+  stores {
+    id
+    name
+  }
+  customer {
+    id
+    fullName
+    phone
+  }
+`;
+
 export const ADMIN_ORDERS_QUERY = gql`
   query AdminOrders($page: Int, $limit: Int, $search: String, $status: String) {
     adminOrders(page: $page, limit: $limit, search: $search, status: $status) {
       items {
-        ${ADMIN_ORDER_FIELDS}
+        ${ADMIN_ORDER_LIST_FIELDS}
       }
       pagination {
         page
@@ -462,7 +487,7 @@ const PRODUCT_IMAGE_FIELDS = `
   isThumbnail
 `;
 
-const PRODUCT_LIST_FIELDS = `
+const PRODUCT_DETAIL_FIELDS = `
   id
   storeId
   name
@@ -489,6 +514,30 @@ const PRODUCT_LIST_FIELDS = `
     compareAtPrice
     stockQuantity
     optionsJson
+  }
+`;
+
+const PRODUCT_LIST_FIELDS = `
+  id
+  storeId
+  name
+  slug
+  basePrice
+  thumbnailUrl
+  status
+  category
+  categoryId
+  petTypeId
+  brandId
+  tags
+  tagIds
+  images {
+    imageUrl
+    isThumbnail
+  }
+  variants {
+    price
+    stockQuantity
   }
 `;
 
@@ -573,7 +622,7 @@ export const DELETE_PRODUCT = gql`
 export const PRODUCT_QUERY = gql`
   query Product($id: String!) {
     vendorProduct(id: $id) {
-      ${PRODUCT_LIST_FIELDS}
+      ${PRODUCT_DETAIL_FIELDS}
       averageRating
       reviewCount
       soldCount
@@ -652,6 +701,17 @@ export const VENDOR_PRODUCTS_QUERY = gql`
         limit
         total
         totalPages
+      }
+    }
+  }
+`;
+
+export const VENDOR_PRODUCT_STATUS_PROBE_QUERY = gql`
+  query VendorProductStatusProbe($status: String, $page: Int, $limit: Int) {
+    vendorProducts(status: $status, page: $page, limit: $limit) {
+      items {
+        id
+        status
       }
     }
   }
@@ -1143,9 +1203,29 @@ const PROMOTION_FIELDS = `
   createdAt
 `;
 
+const LIST_PAGINATION_FIELDS = `
+  page
+  limit
+  total
+  totalPages
+`;
+
 export const PLATFORM_PROMOTIONS_QUERY = gql`
-  query PlatformPromotions {
-    platformPromotions {
+  query PlatformPromotions($page: Int!, $limit: Int!) {
+    platformPromotions(page: $page, limit: $limit) {
+      items {
+        ${PROMOTION_FIELDS}
+      }
+      pagination {
+        ${LIST_PAGINATION_FIELDS}
+      }
+    }
+  }
+`;
+
+export const PROMOTION_QUERY = gql`
+  query Promotion($id: String!) {
+    promotion(id: $id) {
       ${PROMOTION_FIELDS}
     }
   }
@@ -1227,6 +1307,14 @@ export const PENDING_STORE_REQUESTS_QUERY = gql`
   query PendingStoreRequests {
     pendingStoreRequests {
       ${STORE_REQUEST_FIELDS}
+    }
+  }
+`;
+
+export const PENDING_STORE_REQUEST_IDS_QUERY = gql`
+  query PendingStoreRequestIds {
+    pendingStoreRequests {
+      id
     }
   }
 `;
@@ -1350,9 +1438,14 @@ const ADMIN_STORE_FIELDS = `
 `;
 
 export const ADMIN_STORES_QUERY = gql`
-  query AdminStores {
-    adminStores {
-      ${ADMIN_STORE_FIELDS}
+  query AdminStores($page: Int!, $limit: Int!, $search: String, $status: String, $sort: String) {
+    adminStores(page: $page, limit: $limit, search: $search, status: $status, sort: $sort) {
+      items {
+        ${ADMIN_STORE_FIELDS}
+      }
+      pagination {
+        ${LIST_PAGINATION_FIELDS}
+      }
     }
   }
 `;
@@ -1405,6 +1498,17 @@ const ADMIN_VENDOR_FIELDS = `
   }
 `;
 
+const ADMIN_VENDOR_LIST_FIELDS = `
+  id
+  email
+  fullName
+  role
+  isActive
+  lastLoginAt
+  createdAt
+  storeCount
+`;
+
 const ADMIN_VENDOR_INSIGHTS_FIELDS = `
   storeCount
   membershipCount
@@ -1444,9 +1548,14 @@ const ADMIN_VENDOR_INSIGHTS_FIELDS = `
 `;
 
 export const ADMIN_VENDORS_QUERY = gql`
-  query AdminVendors($search: String) {
-    adminVendors(search: $search) {
-      ${ADMIN_VENDOR_FIELDS}
+  query AdminVendors($page: Int!, $limit: Int!, $search: String, $status: String, $sort: String) {
+    adminVendors(page: $page, limit: $limit, search: $search, status: $status, sort: $sort) {
+      items {
+        ${ADMIN_VENDOR_LIST_FIELDS}
+      }
+      pagination {
+        ${LIST_PAGINATION_FIELDS}
+      }
     }
   }
 `;
@@ -1539,6 +1648,31 @@ export const PENDING_VENDOR_INVITATIONS_QUERY = gql`
       status
       token
       expiresAt
+    }
+  }
+`;
+
+export const PENDING_VENDOR_INVITATION_IDS_QUERY = gql`
+  query PendingVendorInvitationIds {
+    pendingVendorInvitations {
+      id
+    }
+  }
+`;
+
+export const PENDING_TAXONOMY_IDS_QUERY = gql`
+  query PendingTaxonomyIds {
+    pendingCategories {
+      id
+    }
+    pendingTags {
+      id
+    }
+    pendingPetTypes {
+      id
+    }
+    pendingBrands {
+      id
     }
   }
 `;
@@ -2679,17 +2813,33 @@ export const ADMIN_STORE_PAYOUT_SUMMARY_QUERY = gql`
 `;
 
 export const STORE_PAYOUTS_QUERY = gql`
-  query StorePayouts {
-    storePayouts {
-      ${PAYOUT_FIELDS}
+  query StorePayouts($page: Int!, $limit: Int!) {
+    storePayouts(page: $page, limit: $limit) {
+      items {
+        ${PAYOUT_FIELDS}
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
     }
   }
 `;
 
 export const ADMIN_STORE_PAYOUTS_QUERY = gql`
-  query AdminStorePayouts($storeId: String!) {
-    adminStorePayouts(storeId: $storeId) {
-      ${PAYOUT_FIELDS}
+  query AdminStorePayouts($storeId: String!, $page: Int!, $limit: Int!) {
+    adminStorePayouts(storeId: $storeId, page: $page, limit: $limit) {
+      items {
+        ${PAYOUT_FIELDS}
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
     }
   }
 `;

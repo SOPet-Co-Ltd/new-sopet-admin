@@ -61,6 +61,7 @@ vi.mock('@/hooks/useShipping', () => ({
 
 vi.mock('@/hooks/useVendorProducts', () => ({
   useVendorProducts: vi.fn(() => ({ data: { items: [] } })),
+  useVendorPublishedProductProbe: vi.fn(() => ({ data: [] })),
 }));
 
 const authGuardState = vi.hoisted(() => ({ renderChildren: true }));

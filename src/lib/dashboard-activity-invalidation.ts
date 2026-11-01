@@ -13,7 +13,6 @@ export function invalidateQueriesForDashboardActivity(
       void queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.adminOrders.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.analytics.all });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
       break;
     case DashboardActivityKind.BankTransfer:
       void queryClient.invalidateQueries({ queryKey: queryKeys.bankTransfers.all });

@@ -53,8 +53,6 @@ function imageRemotePatterns(): RemotePattern[] {
   return patterns;
 }
 
-const isLocalDev = process.env.NODE_ENV === 'development';
-
 function isLocalApiHost(url: string): boolean {
   return /localhost|127\.0\.0\.1/i.test(url);
 }
@@ -145,12 +143,14 @@ const nextConfig: NextConfig = {
       : { NEXT_PUBLIC_GRAPHQL_WS_URL: derivedWsUrl }),
   },
   async headers() {
+    // Read NODE_ENV at call time (module load may see Vite's "development").
+    const skipCsp = process.env.NODE_ENV === 'development';
     return [
       {
         source: '/:path*',
         headers: [
           // Skip CSP locally so MinIO/http assets and HMR are unrestricted.
-          ...(isLocalDev ? [] : [{ key: 'Content-Security-Policy', value: productionCsp }]),
+          ...(skipCsp ? [] : [{ key: 'Content-Security-Policy', value: productionCsp }]),
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',

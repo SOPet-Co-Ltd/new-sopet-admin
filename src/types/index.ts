@@ -963,6 +963,27 @@ export interface CustomersQueryParams {
   search?: string;
 }
 
+export interface AdminStoresQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  sort?: string;
+}
+
+export interface AdminVendorsQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  sort?: string;
+}
+
+export interface PromotionsQueryParams {
+  page?: number;
+  limit?: number;
+}
+
 export type StoreProductReviewReplyFilter = 'all' | 'unreplied' | 'replied';
 export type StoreProductReviewRatingFilter = 'all' | '1' | '2' | '3' | '4' | '5';
 
