@@ -669,6 +669,8 @@ export const PRODUCT_VARIANT_SYNC_IMPACT = gql`
         optionKey
         optionsJson
         reasons
+        disposition
+        openCartCount
       }
     }
   }

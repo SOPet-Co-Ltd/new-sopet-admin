@@ -238,12 +238,16 @@ export interface OrderItem {
 
 export type VariantRemovalBlockReason = 'HAS_ORDERS' | 'HAS_OPEN_CARTS';
 
+export type VariantRemovalDisposition = 'DELETE' | 'CLEAR_CART_AND_DELETE' | 'RETIRE';
+
 export interface ProductVariantSyncImpactRemoved {
   id: string;
   sku: string;
   optionKey: string;
   optionsJson?: string | null;
   reasons: VariantRemovalBlockReason[];
+  disposition: VariantRemovalDisposition;
+  openCartCount: number;
 }
 
 export interface ProductVariantSyncImpact {
