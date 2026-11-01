@@ -22,7 +22,17 @@ export const queryKeys = {
   orders: {
     all: ['orders'] as const,
     vendorRoot: () => ['orders', 'vendor'] as const,
-    vendor: (storeId: string) => ['orders', 'vendor', storeId] as const,
+    vendor: (params: {
+      storeId: string;
+      page?: number;
+      limit?: number;
+      queue?: string;
+      status?: string;
+      paymentMethod?: string;
+      search?: string;
+    }) => ['orders', 'vendor', params] as const,
+    vendorDetail: (storeId: string, orderId: string) =>
+      ['orders', 'vendor', 'detail', storeId, orderId] as const,
     auditLog: (orderId: string, storeId: string) =>
       ['orders', 'auditLog', orderId, storeId] as const,
   },
@@ -86,8 +96,11 @@ export const queryKeys = {
   },
   promotions: {
     all: ['promotions'] as const,
-    store: (storeId: string) => ['promotions', 'store', storeId] as const,
-    platform: () => ['promotions', 'platform'] as const,
+    store: (storeId: string, params?: { page?: number; limit?: number }) =>
+      ['promotions', 'store', storeId, params ?? {}] as const,
+    platform: (params?: { page?: number; limit?: number }) =>
+      ['promotions', 'platform', params ?? {}] as const,
+    detail: (id: string) => ['promotions', 'detail', id] as const,
   },
   saleCampaigns: {
     all: ['saleCampaigns'] as const,
@@ -109,13 +122,24 @@ export const queryKeys = {
   },
   adminStores: {
     all: ['adminStores'] as const,
-    list: () => ['adminStores', 'list'] as const,
+    list: (params?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+      sort?: string;
+    }) => ['adminStores', 'list', params ?? {}] as const,
     detail: (id: string) => ['adminStores', 'detail', id] as const,
   },
   adminVendors: {
     all: ['adminVendors'] as const,
-    list: (search?: string) =>
-      search ? (['adminVendors', 'list', search] as const) : (['adminVendors', 'list'] as const),
+    list: (params?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+      sort?: string;
+    }) => ['adminVendors', 'list', params ?? {}] as const,
     detail: (id: string) => ['adminVendors', 'detail', id] as const,
     detailInsights: (id: string) => ['adminVendors', 'detailInsights', id] as const,
   },
@@ -138,11 +162,17 @@ export const queryKeys = {
     store: (storeId: string, params?: StoreProductReviewsParams) =>
       ['reviews', 'store', storeId, params] as const,
     summary: (storeId: string) => ['reviews', 'summary', storeId] as const,
-    pendingImported: (page: number) => ['reviews', 'pendingImported', page] as const,
+    pendingImported: (page: number, limit?: number) =>
+      limit == null
+        ? (['reviews', 'pendingImported', page] as const)
+        : (['reviews', 'pendingImported', page, limit] as const),
   },
   bankTransfers: {
     all: ['bankTransfers'] as const,
-    pending: (page: number) => ['bankTransfers', 'pending', page] as const,
+    pending: (page: number, limit?: number) =>
+      limit == null
+        ? (['bankTransfers', 'pending', page] as const)
+        : (['bankTransfers', 'pending', page, limit] as const),
   },
   adminOrders: {
     all: ['adminOrders'] as const,
@@ -212,13 +242,20 @@ export const queryKeys = {
   payouts: {
     all: ['payouts'] as const,
     vendorSummary: () => ['payouts', 'vendorSummary'] as const,
-    vendorHistory: () => ['payouts', 'vendorHistory'] as const,
-    adminSummary: (storeId: string) => ['payouts', 'adminSummary', storeId] as const,
-    adminHistory: (storeId: string) => ['payouts', 'adminHistory', storeId] as const,
-    pendingManual: (page?: number) =>
+    vendorHistory: (page?: number) =>
       page == null
-        ? (['payouts', 'pendingManual'] as const)
-        : (['payouts', 'pendingManual', page] as const),
+        ? (['payouts', 'vendorHistory'] as const)
+        : (['payouts', 'vendorHistory', page] as const),
+    adminSummary: (storeId: string) => ['payouts', 'adminSummary', storeId] as const,
+    adminHistory: (storeId: string, page?: number) =>
+      page == null
+        ? (['payouts', 'adminHistory', storeId] as const)
+        : (['payouts', 'adminHistory', storeId, page] as const),
+    pendingManual: (page?: number, limit?: number) => {
+      if (page == null) return ['payouts', 'pendingManual'] as const;
+      if (limit == null) return ['payouts', 'pendingManual', page] as const;
+      return ['payouts', 'pendingManual', page, limit] as const;
+    },
   },
   emailCms: {
     all: ['emailCms'] as const,

@@ -82,16 +82,31 @@ export function getAdminStorePayoutSummary(storeId: string): Promise<PayoutSumma
   ).then((data) => mapPayoutSummary(data.adminStorePayoutSummary));
 }
 
-export function getStorePayouts(): Promise<Payout[]> {
-  return executeQuery<{ storePayouts: GqlPayout[] }>(STORE_PAYOUTS_QUERY).then((data) =>
-    data.storePayouts.map(mapPayout),
-  );
+export const PAYOUT_HISTORY_PAGE_SIZE = 20;
+
+export function getStorePayouts(
+  page = 1,
+  limit = PAYOUT_HISTORY_PAGE_SIZE,
+): Promise<Paginated<Payout>> {
+  return executeQuery<{
+    storePayouts: { items: GqlPayout[]; pagination: Paginated<Payout>['pagination'] };
+  }>(STORE_PAYOUTS_QUERY, { page, limit }).then((data) => ({
+    items: data.storePayouts.items.map(mapPayout),
+    pagination: data.storePayouts.pagination,
+  }));
 }
 
-export function getAdminStorePayouts(storeId: string): Promise<Payout[]> {
-  return executeQuery<{ adminStorePayouts: GqlPayout[] }>(ADMIN_STORE_PAYOUTS_QUERY, {
-    storeId,
-  }).then((data) => data.adminStorePayouts.map(mapPayout));
+export function getAdminStorePayouts(
+  storeId: string,
+  page = 1,
+  limit = PAYOUT_HISTORY_PAGE_SIZE,
+): Promise<Paginated<Payout>> {
+  return executeQuery<{
+    adminStorePayouts: { items: GqlPayout[]; pagination: Paginated<Payout>['pagination'] };
+  }>(ADMIN_STORE_PAYOUTS_QUERY, { storeId, page, limit }).then((data) => ({
+    items: data.adminStorePayouts.items.map(mapPayout),
+    pagination: data.adminStorePayouts.pagination,
+  }));
 }
 
 export type AdminManualPayout = Payout & {

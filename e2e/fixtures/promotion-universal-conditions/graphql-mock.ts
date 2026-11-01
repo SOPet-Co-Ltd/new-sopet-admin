@@ -151,16 +151,21 @@ export function resolvePromotionUcOperation(
     query.includes('platformPromotions') ||
     query.includes('storePromotions')
   ) {
-    // List queries return Promotion arrays (not connection wrappers).
     return {
-      platformPromotions: [sampleCreatedPromotion],
-      storePromotions: [
-        {
-          ...sampleCreatedPromotion,
-          scope: 'store',
-          storeId: options.vendorStoreId ?? PROMOTION_UC_VENDOR_STORE_ID,
-        },
-      ],
+      platformPromotions: {
+        items: [sampleCreatedPromotion],
+        pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      },
+      storePromotions: {
+        items: [
+          {
+            ...sampleCreatedPromotion,
+            scope: 'store',
+            storeId: options.vendorStoreId ?? PROMOTION_UC_VENDOR_STORE_ID,
+          },
+        ],
+        pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      },
     };
   }
 

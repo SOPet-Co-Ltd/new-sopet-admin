@@ -11,10 +11,13 @@ import {
 } from '@/lib/api/admin-reviews';
 import { queryKeys } from '@/lib/react-query/keys';
 
-export function usePendingImportedReviews(page = 1) {
+export function usePendingImportedReviews(page = 1, limit = ADMIN_IMPORTED_REVIEWS_PAGE_SIZE) {
   return useQuery({
-    queryKey: queryKeys.reviews.pendingImported(page),
-    queryFn: () => getPendingImportedReviews(page, ADMIN_IMPORTED_REVIEWS_PAGE_SIZE),
+    queryKey: queryKeys.reviews.pendingImported(
+      page,
+      limit === ADMIN_IMPORTED_REVIEWS_PAGE_SIZE ? undefined : limit,
+    ),
+    queryFn: () => getPendingImportedReviews(page, limit),
   });
 }
 

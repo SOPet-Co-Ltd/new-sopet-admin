@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { executeQuery } from '@/lib/graphql/client';
 import { PRODUCTS_QUERY } from '@/lib/graphql/documents';
 import { mapPagination, mapProduct } from '@/lib/graphql/mappers';
-import { getVendorProducts } from '@/lib/api/products';
+import { getVendorProducts, getVendorPublishedProductProbe } from '@/lib/api/products';
 import { queryKeys } from '@/lib/react-query/keys';
 import type { ProductsQueryParams, ProductsResult } from '@/types';
 
@@ -15,6 +15,14 @@ export function useVendorProducts(
   return useQuery({
     queryKey: queryKeys.products.list(params),
     queryFn: () => getVendorProducts(params),
+    enabled: options?.enabled ?? true,
+  });
+}
+
+export function useVendorPublishedProductProbe(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: [...queryKeys.products.all, 'published-probe'] as const,
+    queryFn: getVendorPublishedProductProbe,
     enabled: options?.enabled ?? true,
   });
 }

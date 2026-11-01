@@ -19,7 +19,10 @@ test.describe('admin nav prefetch', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           data: {
-            adminStores: [],
+            adminStores: {
+              items: [],
+              pagination: { page: 1, limit: 20, total: 0, totalPages: 1 },
+            },
           },
         }),
       });

@@ -315,12 +315,12 @@ export type PromotionFieldsFragment = {
   createdAt: string;
 };
 
-export type StorePromotionsQueryVariables = Exact<{
-  storeId: string;
+export type PromotionQueryVariables = Exact<{
+  id: string;
 }>;
 
-export type StorePromotionsQuery = {
-  storePromotions: Array<{
+export type PromotionQuery = {
+  promotion: {
     id: string;
     storeId: string | null;
     code: string;
@@ -341,7 +341,41 @@ export type StorePromotionsQuery = {
     startsAt: string | null;
     expiresAt: string | null;
     createdAt: string;
-  }>;
+  };
+};
+
+export type StorePromotionsQueryVariables = Exact<{
+  storeId: string;
+  page: number;
+  limit: number;
+}>;
+
+export type StorePromotionsQuery = {
+  storePromotions: {
+    items: Array<{
+      id: string;
+      storeId: string | null;
+      code: string;
+      name: string;
+      description: string | null;
+      type: string;
+      scope: string;
+      discountValue: number;
+      minPurchaseAmount: number | null;
+      maxDiscountAmount: number | null;
+      usageLimit: number | null;
+      usagePerCustomer: number;
+      usageCount: number;
+      isActive: boolean;
+      autoApply: boolean;
+      priority: number;
+      conditions: string | null;
+      startsAt: string | null;
+      expiresAt: string | null;
+      createdAt: string;
+    }>;
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  };
 };
 
 export type SaleCampaignFieldsFragment = {
@@ -2274,6 +2308,78 @@ export const OrderAuditLogDocument = {
     },
   ],
 } as unknown as DocumentNode<OrderAuditLogQuery, OrderAuditLogQueryVariables>;
+export const PromotionDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'Promotion' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'promotion' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'PromotionFields' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'PromotionFields' },
+      typeCondition: { kind: 'NamedType', name: { kind: 'Name', value: 'PromotionType' } },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'storeId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'code' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'type' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'scope' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'discountValue' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'minPurchaseAmount' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'maxDiscountAmount' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'usageLimit' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'usagePerCustomer' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'usageCount' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'isActive' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'autoApply' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'conditions' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'startsAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'expiresAt' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<PromotionQuery, PromotionQueryVariables>;
 export const StorePromotionsDocument = {
   kind: 'Document',
   definitions: [
@@ -2290,6 +2396,22 @@ export const StorePromotionsDocument = {
             type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
           },
         },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'page' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'limit' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
       ],
       selectionSet: {
         kind: 'SelectionSet',
@@ -2303,11 +2425,43 @@ export const StorePromotionsDocument = {
                 name: { kind: 'Name', value: 'storeId' },
                 value: { kind: 'Variable', name: { kind: 'Name', value: 'storeId' } },
               },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'page' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'page' } },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'limit' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'limit' } },
+              },
             ],
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                { kind: 'FragmentSpread', name: { kind: 'Name', value: 'PromotionFields' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'items' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'FragmentSpread', name: { kind: 'Name', value: 'PromotionFields' } },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'pagination' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'page' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'limit' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'totalPages' } },
+                    ],
+                  },
+                },
               ],
             },
           },

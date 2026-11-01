@@ -15,7 +15,7 @@ import { useCurrentUser } from '@/hooks/useAuth';
 import { useIsStoreManager, useIsStoreOwner } from '@/hooks/useMembershipRole';
 import { useMyStoreShippingOptions } from '@/hooks/useShipping';
 import { useMyStore } from '@/hooks/useStoreSettings';
-import { useVendorProducts } from '@/hooks/useVendorProducts';
+import { useVendorPublishedProductProbe } from '@/hooks/useVendorProducts';
 import { buildStoreReadinessChecklist } from '@/lib/stores/store-readiness';
 import {
   clearProductTourPersistedState,
@@ -75,19 +75,18 @@ export function ProductTourProvider({
 
   const { data: store } = useMyStore();
   const { data: shippingOptions = [] } = useMyStoreShippingOptions(hasStores && isOwner);
-  const { data: productsResult } = useVendorProducts(
-    { limit: 50 },
-    { enabled: hasStores && isOwner },
-  );
+  const { data: publishedProducts = [] } = useVendorPublishedProductProbe({
+    enabled: hasStores && isOwner,
+  });
 
   const readiness = useMemo(() => {
     if (!isOwner) return null;
     return buildStoreReadinessChecklist({
       shippingOptions,
-      products: productsResult?.items ?? [],
+      products: publishedProducts,
       omiseRecipientStatus: store?.omiseRecipientStatus,
     });
-  }, [isOwner, shippingOptions, productsResult?.items, store?.omiseRecipientStatus]);
+  }, [isOwner, shippingOptions, publishedProducts, store?.omiseRecipientStatus]);
 
   const startTour = useCallback(() => {
     if (!user?.id || steps.length === 0) return;

@@ -27,18 +27,15 @@ vi.mock('@/hooks/useTheme', () => ({
 }));
 
 vi.mock('@/hooks/useStoreRequests', () => ({
-  usePendingStoreRequests: vi.fn(),
+  usePendingStoreRequestIds: vi.fn(),
 }));
 
 vi.mock('@/hooks/useVendorInvitations', () => ({
-  usePendingVendorInvitations: vi.fn(),
+  usePendingVendorInvitationIds: vi.fn(),
 }));
 
 vi.mock('@/hooks/useTaxonomy', () => ({
-  usePendingCategories: vi.fn(),
-  usePendingTags: vi.fn(),
-  usePendingPetTypes: vi.fn(),
-  usePendingBrands: vi.fn(),
+  usePendingTaxonomyIds: vi.fn(),
 }));
 
 vi.mock('@/hooks/useNotifications', () => ({
@@ -79,25 +76,17 @@ vi.mock('@/lib/react-query/prefetch-dashboard-nav', () => ({
 
 import { useCurrentUser, useLogout } from '@/hooks/useAuth';
 import { useUnreadCount } from '@/hooks/useNotifications';
-import { usePendingStoreRequests } from '@/hooks/useStoreRequests';
-import {
-  usePendingBrands,
-  usePendingCategories,
-  usePendingPetTypes,
-  usePendingTags,
-} from '@/hooks/useTaxonomy';
+import { usePendingStoreRequestIds } from '@/hooks/useStoreRequests';
+import { usePendingTaxonomyIds } from '@/hooks/useTaxonomy';
 import { useTheme } from '@/hooks/useTheme';
-import { usePendingVendorInvitations } from '@/hooks/useVendorInvitations';
+import { usePendingVendorInvitationIds } from '@/hooks/useVendorInvitations';
 
 const mockedUseCurrentUser = vi.mocked(useCurrentUser);
 const mockedUseLogout = vi.mocked(useLogout);
 const mockedUseTheme = vi.mocked(useTheme);
-const mockedUsePendingStoreRequests = vi.mocked(usePendingStoreRequests);
-const mockedUsePendingVendorInvitations = vi.mocked(usePendingVendorInvitations);
-const mockedUsePendingCategories = vi.mocked(usePendingCategories);
-const mockedUsePendingTags = vi.mocked(usePendingTags);
-const mockedUsePendingPetTypes = vi.mocked(usePendingPetTypes);
-const mockedUsePendingBrands = vi.mocked(usePendingBrands);
+const mockedUsePendingStoreRequestIds = vi.mocked(usePendingStoreRequestIds);
+const mockedUsePendingVendorInvitationIds = vi.mocked(usePendingVendorInvitationIds);
+const mockedUsePendingTaxonomyIds = vi.mocked(usePendingTaxonomyIds);
 const mockedUseUnreadCount = vi.mocked(useUnreadCount);
 
 function setupMocks({
@@ -136,24 +125,20 @@ function setupMocks({
     },
     isAuthenticated: true,
   });
-  mockedUsePendingStoreRequests.mockReturnValue({
+  mockedUsePendingStoreRequestIds.mockReturnValue({
     data: storeRequests,
-  } as ReturnType<typeof usePendingStoreRequests>);
-  mockedUsePendingVendorInvitations.mockReturnValue({
+  } as ReturnType<typeof usePendingStoreRequestIds>);
+  mockedUsePendingVendorInvitationIds.mockReturnValue({
     data: invitations,
-  } as ReturnType<typeof usePendingVendorInvitations>);
-  mockedUsePendingCategories.mockReturnValue({
-    data: pendingCategories,
-  } as ReturnType<typeof usePendingCategories>);
-  mockedUsePendingTags.mockReturnValue({
-    data: pendingTags,
-  } as ReturnType<typeof usePendingTags>);
-  mockedUsePendingPetTypes.mockReturnValue({
-    data: pendingPetTypes,
-  } as ReturnType<typeof usePendingPetTypes>);
-  mockedUsePendingBrands.mockReturnValue({
-    data: pendingBrands,
-  } as ReturnType<typeof usePendingBrands>);
+  } as ReturnType<typeof usePendingVendorInvitationIds>);
+  mockedUsePendingTaxonomyIds.mockReturnValue({
+    data: {
+      pendingCategories,
+      pendingTags,
+      pendingPetTypes,
+      pendingBrands,
+    },
+  } as ReturnType<typeof usePendingTaxonomyIds>);
   mockedUseUnreadCount.mockReturnValue({
     data: unreadNotificationCount,
   } as ReturnType<typeof useUnreadCount>);
@@ -245,8 +230,9 @@ describe('AdminLayout sidebar badge', () => {
     );
 
     expect(screen.getByTestId('auth-blocked')).toBeInTheDocument();
-    expect(mockedUsePendingStoreRequests).not.toHaveBeenCalled();
-    expect(mockedUsePendingVendorInvitations).not.toHaveBeenCalled();
+    expect(mockedUsePendingStoreRequestIds).not.toHaveBeenCalled();
+    expect(mockedUsePendingVendorInvitationIds).not.toHaveBeenCalled();
+    expect(mockedUsePendingTaxonomyIds).not.toHaveBeenCalled();
     expect(mockedUseUnreadCount).not.toHaveBeenCalled();
   });
 

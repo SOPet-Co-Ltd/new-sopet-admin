@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
 import { PlatformPromotionListItem } from '@/components/admin/platform-promotion-list-item';
@@ -14,8 +15,16 @@ import {
 import type { Promotion } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
 
+const PLATFORM_PROMOTIONS_PAGE_SIZE = 20;
+
 export default function AdminPromotionsPage() {
-  const { data: promotions = [], isLoading, error } = usePlatformPromotions();
+  const [page, setPage] = useState(1);
+  const { data, isLoading, error } = usePlatformPromotions({
+    page,
+    limit: PLATFORM_PROMOTIONS_PAGE_SIZE,
+  });
+  const promotions = data?.items ?? [];
+  const pagination = data?.pagination;
   const deleteMutation = useDeletePromotion();
   const toggleMutation = useTogglePromotion();
 
@@ -80,6 +89,34 @@ export default function AdminPromotionsPage() {
             );
           })}
         </ul>
+      ) : null}
+
+      {pagination && pagination.totalPages > 1 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+          <span className="tabular-nums">
+            หน้า {pagination.page} จาก {pagination.totalPages}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((current) => current - 1)}
+            >
+              ก่อนหน้า
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= pagination.totalPages}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              ถัดไป
+            </Button>
+          </div>
+        </div>
       ) : null}
     </div>
   );
