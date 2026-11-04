@@ -7,7 +7,6 @@ import { useRequestPayout, useStorePayoutSummary } from '@/hooks/usePayouts';
 import { useMyStore } from '@/hooks/useStoreSettings';
 import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency } from '@/lib/utils';
-import { resolveBankVerificationStatus } from '@/lib/payouts/bank-verification';
 import type { PayoutSummary } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
 
@@ -44,8 +43,9 @@ export function VendorPayoutBalancePanel() {
   const { data: store } = useMyStore();
   const requestPayout = useRequestPayout();
 
-  const bankStatus = resolveBankVerificationStatus(store?.bankAccountVerificationStatus);
-  const bankVerified = bankStatus === 'verified';
+  const hasBankAccount = Boolean(
+    store?.bankName?.trim() && store?.bankAccountName?.trim() && store?.bankAccountNumber?.trim(),
+  );
   const minimum = summary?.minimumPayoutAmount ?? 0;
 
   if (isLoading) {
@@ -53,7 +53,7 @@ export function VendorPayoutBalancePanel() {
       <div className="space-y-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            ขั้นตอน 3
+            ขั้นตอน 2
           </p>
           <h2 className="mt-1 font-display text-lg font-medium text-ink">ขอรับเงิน</h2>
         </div>
@@ -78,10 +78,8 @@ export function VendorPayoutBalancePanel() {
     );
   }
 
-  const disabledReason = !bankVerified
-    ? bankStatus === 'rejected'
-      ? 'บัญชีไม่ผ่านการตรวจสอบ — แก้ไขบัญชีในขั้นตอน 1 ก่อน'
-      : 'บัญชียังไม่ผ่านการตรวจสอบ — รอทีม SOPET ตรวจสอบในขั้นตอน 2'
+  const disabledReason = !hasBankAccount
+    ? 'ยังไม่ได้บันทึกบัญชีธนาคาร — กรอกและบันทึกในขั้นตอน 1 ก่อน'
     : !summary.canRequestPayout && summary.pendingPayoutAmount > 0
       ? 'มีคำขอรับเงินที่รอแอดมินโอนและอนุมัติอยู่แล้ว'
       : !summary.canRequestPayout && summary.availableBalance <= 0
@@ -92,17 +90,17 @@ export function VendorPayoutBalancePanel() {
             ? 'กดแล้วคำขอจะไปที่แอดมินเพื่อโอนเงินเข้าบัญชีของร้าน'
             : null;
 
-  const canRequest = bankVerified && summary.canRequestPayout;
+  const canRequest = hasBankAccount && summary.canRequestPayout;
 
   return (
     <div className="space-y-4">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          ขั้นตอน 3
+          ขั้นตอน 2
         </p>
         <h2 className="mt-1 font-display text-lg font-medium text-ink">ขอรับเงิน</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          ส่งคำขอให้แอดมินโอนเงินเข้าบัญชีที่ผ่านการตรวจสอบแล้ว
+          ส่งคำขอให้แอดมินโอนเงินเข้าบัญชีที่บันทึกไว้
         </p>
       </div>
 

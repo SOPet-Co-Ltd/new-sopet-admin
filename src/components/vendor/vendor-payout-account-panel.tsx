@@ -135,8 +135,6 @@ export function VendorPayoutAccountPanel({
     message: string;
   } | null>(null);
 
-  const bankWasVerified = store?.bankAccountVerificationStatus === 'verified';
-
   useEffect(() => {
     if (!saveFeedback || saveFeedback.type !== 'success') return;
     const timer = window.setTimeout(() => setSaveFeedback(null), 4000);
@@ -165,9 +163,7 @@ export function VendorPayoutAccountPanel({
       setPendingValues(null);
       setSaveFeedback({
         type: 'success',
-        message: bankWasVerified
-          ? 'บันทึกบัญชีแล้ว — สถานะการตรวจสอบถูกรีเซ็ต รอทีม SOPET ตรวจสอบบัญชีใหม่ในขั้นตอน 2'
-          : 'บันทึกบัญชีธนาคารแล้ว — ส่งให้ทีม SOPET ตรวจสอบในขั้นตอน 2',
+        message: 'บันทึกบัญชีธนาคารแล้ว — ขอรับเงินได้เมื่อมียอดถึงขั้นต่ำในขั้นตอน 2',
       });
     } catch (err) {
       setSaveFeedback({
@@ -216,7 +212,7 @@ export function VendorPayoutAccountPanel({
           บัญชีธนาคารรับเงิน
         </h2>
         <p className="text-sm text-muted-foreground">
-          เมื่อบันทึกแล้ว ทีม SOPET จะตรวจสอบบัญชีก่อนเปิดให้ขอรับเงิน
+          บันทึกบัญชีที่ต้องการให้แอดมินโอนเงินเข้าเมื่อขอรับเงิน
         </p>
       </CardHeader>
       <CardBody>
@@ -411,9 +407,7 @@ export function VendorPayoutAccountPanel({
               <DialogTitle>ยืนยันการเปลี่ยนบัญชีรับเงิน</DialogTitle>
               <DialogDescription>
                 การเปลี่ยนบัญชีธนาคารจะบันทึกข้อมูลใหม่ใน SOPET
-                {bankWasVerified
-                  ? ' และรีเซ็ตสถานะการตรวจสอบของบัญชีเดิม — ต้องรอทีม SOPET ตรวจสอบบัญชีใหม่ก่อนขอรับเงินได้'
-                  : ' — ทีม SOPET จะตรวจสอบบัญชีใหม่อีกครั้ง'}
+                และใช้บัญชีนี้สำหรับคำขอรับเงินครั้งถัดไป
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

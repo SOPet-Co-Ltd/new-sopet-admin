@@ -100,7 +100,7 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
             Payout ร้านค้า
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            ร้านขอรับเงินหลังบัญชีผ่านการตรวจสอบ — แอดมินโอนเงินเข้าบัญชีร้านแล้วกดอนุมัติ
+            ร้านขอรับเงินหลังบันทึกบัญชีธนาคาร — แอดมินโอนเงินเข้าบัญชีร้านแล้วกดอนุมัติ
             (หรือปฏิเสธคำขอ)
           </p>
         </CardHeader>

@@ -55,7 +55,7 @@ export default function AdminManualPayoutsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Payout Manual"
-        description="คำขอรับเงินจากร้านค้า (ทุกช่องทางชำระเงิน) — โอนเข้าบัญชีร้านที่ผ่านการตรวจสอบแล้วกดอนุมัติ (หรือปฏิเสธ)"
+        description="คำขอรับเงินจากร้านค้า (ทุกช่องทางชำระเงิน) — โอนเข้าบัญชีร้านที่บันทึกไว้แล้วกดอนุมัติ (หรือปฏิเสธ)"
         action={<HelpDeepLink role="admin" slug="manual-payouts" />}
       />
 

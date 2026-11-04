@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form';
 import { Suspense, useEffect, useState } from 'react';
 import { HiOutlineCheckCircle } from 'react-icons/hi2';
 import { VendorShippingPanel } from '@/components/vendor/shipping-settings-panel';
-import { VendorBankVerificationPanel } from '@/components/vendor/vendor-bank-verification-panel';
 import { VendorPayoutAccountPanel } from '@/components/vendor/vendor-payout-account-panel';
 import { VendorPayoutBalancePanel } from '@/components/vendor/vendor-payout-balance-panel';
 import { VendorPayoutHistoryPanel } from '@/components/vendor/vendor-payout-history-panel';
@@ -528,7 +527,6 @@ function VendorSettingsPageContent() {
             saving={updatePayout.isPending}
             onSubmit={onPayoutSubmit}
           />
-          <VendorBankVerificationPanel store={store} loading={storeLoading} />
           <VendorPayoutBalancePanel />
           <VendorPayoutHistoryPanel />
         </div>

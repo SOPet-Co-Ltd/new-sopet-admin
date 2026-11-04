@@ -1,4 +1,4 @@
-import type { BankAccountVerificationStatus, Product, StoreShippingOption } from '@/types';
+import type { Product, StoreShippingOption } from '@/types';
 
 export type StoreReadinessItemKey = 'shipping' | 'publishedProduct' | 'payout';
 
@@ -14,15 +14,27 @@ export type StoreReadinessChecklist = {
   allComplete: boolean;
 };
 
-/** Bank account has been submitted (pending review) or approved by admin. */
-export function isPayoutSetupComplete(status?: BankAccountVerificationStatus | null): boolean {
-  return status === 'pending_review' || status === 'verified';
+export type PayoutSetupFields = {
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+};
+
+/** Bank account name, number, and bank name are all present. */
+export function isPayoutSetupComplete(fields?: PayoutSetupFields | null): boolean {
+  return Boolean(
+    fields?.bankName?.trim() &&
+    fields?.bankAccountName?.trim() &&
+    fields?.bankAccountNumber?.trim(),
+  );
 }
 
 export function buildStoreReadinessChecklist(input: {
   shippingOptions: StoreShippingOption[];
   products: Pick<Product, 'status'>[];
-  bankAccountVerificationStatus?: BankAccountVerificationStatus | null;
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
 }): StoreReadinessChecklist {
   const items: StoreReadinessItem[] = [
     {
@@ -37,7 +49,11 @@ export function buildStoreReadinessChecklist(input: {
     },
     {
       key: 'payout',
-      complete: isPayoutSetupComplete(input.bankAccountVerificationStatus),
+      complete: isPayoutSetupComplete({
+        bankName: input.bankName,
+        bankAccountName: input.bankAccountName,
+        bankAccountNumber: input.bankAccountNumber,
+      }),
       href: '/vendor/settings?tab=payout',
     },
   ];

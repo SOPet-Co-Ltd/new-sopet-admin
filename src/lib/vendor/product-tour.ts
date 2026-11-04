@@ -109,7 +109,7 @@ export const PRODUCT_TOUR_STEPS: ProductTourStep[] = [
     id: 'payout',
     targetId: 'nav-payout',
     title: 'รับเงิน',
-    body: 'ตั้งบัญชีธนาคาร รอทีม SOPET ตรวจสอบ แล้วขอรับเงินจากคำสั่งซื้อ — เฉพาะเจ้าของร้าน',
+    body: 'ตั้งบัญชีธนาคารแล้วขอรับเงินจากคำสั่งซื้อ — เฉพาะเจ้าของร้าน',
     roles: ['owner'],
   },
   {

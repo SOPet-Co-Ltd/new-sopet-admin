@@ -278,15 +278,7 @@ export const ACTION_GUIDE_TIPS: ActionGuideTip[] = [
     step: 2,
     targetId: 'action-payout-save',
     title: 'บันทึกบัญชี',
-    body: 'กดบันทึกบัญชีธนาคาร — ระบบจะส่งให้ทีม SOPET ตรวจสอบ',
-    primaryLabel: 'เข้าใจแล้ว',
-  },
-  {
-    guideId: 'setup-payout',
-    step: 3,
-    targetId: 'action-payout-verification',
-    title: 'รอตรวจสอบบัญชี',
-    body: 'ดูสถานะการตรวจสอบบัญชี — เมื่อผ่านแล้วจึงขอรับเงินได้',
+    body: 'กดบันทึกบัญชีธนาคาร — จากนั้นขอรับเงินได้เมื่อมียอดถึงขั้นต่ำ',
     primaryLabel: 'เสร็จสิ้น',
   },
 ];

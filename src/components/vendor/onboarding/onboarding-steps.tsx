@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form';
 import { HiArrowRight, HiBuildingStorefront, HiUserGroup } from 'react-icons/hi2';
 import { EmailVerificationNotice } from '@/components/vendor/email-verification-notice';
 import { StoreRequestForm } from '@/components/vendor/store-request-form';
-import { VendorBankVerificationPanel } from '@/components/vendor/vendor-bank-verification-panel';
 import { VendorPayoutAccountPanel } from '@/components/vendor/vendor-payout-account-panel';
 import { VendorShippingPanel } from '@/components/vendor/shipping-settings-panel';
 import { VendorStoreSettingsPanel } from '@/components/vendor/vendor-store-settings-panel';
@@ -460,12 +459,12 @@ export function OnboardingPayoutStep({
       <div>
         <h2 className="font-display text-lg font-medium text-ink">ตั้งบัญชีรับเงิน</h2>
         <p className="mt-1 text-sm text-muted">
-          บันทึกบัญชีธนาคารเพื่อให้ทีม SOPET ตรวจสอบและโอนเงินจากคำสั่งซื้อให้ร้าน
+          บันทึกบัญชีธนาคารเพื่อให้ทีม Admin โอนเงินจากคำสั่งซื้อให้ร้าน
         </p>
       </div>
       {complete ? (
         <p className="rounded-lg border border-success/25 bg-success-bg px-3 py-2 text-sm text-success">
-          ส่งบัญชีรับเงินแล้ว — กำลังไปขั้นถัดไป
+          บันทึกบัญชีรับเงินแล้ว — กำลังไปขั้นถัดไป
         </p>
       ) : null}
       <div className="space-y-6">
@@ -476,7 +475,6 @@ export function OnboardingPayoutStep({
           saving={updatePayout.isPending}
           onSubmit={onSubmit}
         />
-        <VendorBankVerificationPanel store={store} loading={isLoading} />
       </div>
       <Button type="button" variant="outline" onClick={onSkip}>
         ทำภายหลัง

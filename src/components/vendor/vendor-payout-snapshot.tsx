@@ -9,7 +9,6 @@ import { useIsStoreOwner } from '@/hooks/useMembershipRole';
 import { useRequestPayout, useStorePayoutSummary } from '@/hooks/usePayouts';
 import { useMyStore } from '@/hooks/useStoreSettings';
 import { commissionCopy } from '@/lib/i18n/th';
-import { resolveBankVerificationStatus } from '@/lib/payouts/bank-verification';
 import { formatCurrency } from '@/lib/utils';
 import type { PayoutSummary } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
@@ -42,10 +41,12 @@ export function VendorPayoutSnapshot() {
   if (!isOwner) return null;
 
   const isLoading = summaryLoading || storeLoading;
-  const bankStatus = resolveBankVerificationStatus(store?.bankAccountVerificationStatus);
-  const bankVerified = bankStatus === 'verified';
-  const needsBankSetup = !store?.bankAccountNumber;
-  const canRequest = Boolean(bankVerified && summary?.canRequestPayout);
+  const needsBankSetup = !(
+    store?.bankName?.trim() &&
+    store?.bankAccountName?.trim() &&
+    store?.bankAccountNumber?.trim()
+  );
+  const canRequest = Boolean(!needsBankSetup && summary?.canRequestPayout);
 
   return (
     <section aria-labelledby="vendor-payout-snapshot-heading" className="space-y-3">
@@ -77,13 +78,7 @@ export function VendorPayoutSnapshot() {
                     {formatCurrency(summary.availableBalance)}
                   </p>
                   <AvailableVendorSnapshotBreakdown rail={summary} />
-                  {!needsBankSetup && !bankVerified ? (
-                    <p className="mt-1 text-sm text-amber-800">
-                      {bankStatus === 'rejected'
-                        ? 'บัญชีไม่ผ่านการตรวจสอบ — แก้ไขที่หน้า รับเงิน'
-                        : 'บัญชีรอทีม SOPET ตรวจสอบ — ขอรับเงินได้เมื่อผ่านแล้ว'}
-                    </p>
-                  ) : summary.pendingPayoutAmount > 0 ? (
+                  {summary.pendingPayoutAmount > 0 ? (
                     <p className="mt-1 text-sm text-amber-800">
                       ส่งคำขอแล้ว — รอแอดมินโอนและอนุมัติ{' '}
                       {formatCurrency(summary.pendingPayoutAmount)}
