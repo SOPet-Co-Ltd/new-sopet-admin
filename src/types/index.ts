@@ -238,12 +238,16 @@ export interface OrderItem {
 
 export type VariantRemovalBlockReason = 'HAS_ORDERS' | 'HAS_OPEN_CARTS';
 
+export type VariantRemovalDisposition = 'DELETE' | 'CLEAR_CART_AND_DELETE' | 'RETIRE';
+
 export interface ProductVariantSyncImpactRemoved {
   id: string;
   sku: string;
   optionKey: string;
   optionsJson?: string | null;
   reasons: VariantRemovalBlockReason[];
+  disposition: VariantRemovalDisposition;
+  openCartCount: number;
 }
 
 export interface ProductVariantSyncImpact {
@@ -308,6 +312,18 @@ export interface RefreshResult {
 export interface UpdateOrderStatusInput {
   orderId: string;
   status: string;
+}
+
+export interface UpdateOrderShippingAddressAsAdminInput {
+  orderId: string;
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  tumbon?: string;
+  amphoe: string;
+  province: string;
+  postalCode: string;
 }
 
 export interface RejectStoreInput {
@@ -488,6 +504,33 @@ export interface PlatformAnalytics {
   totalStores: number;
   pendingStores: number;
   totalCustomers: number;
+}
+
+export interface StoreCustomerSummary {
+  year: number;
+  month: number;
+  lifetimeMonths: number | null;
+  repeatRate: number | null;
+  purchasesPerMonth: number | null;
+  averageOrderValue: number | null;
+  newCustomerCount: number;
+  oldCustomerCount: number;
+  oldCustomerPercent: number | null;
+  orderCount: number;
+  buyersInMonth: number;
+  totalCustomers: number;
+}
+
+export interface CustomerPurchaseSummary {
+  year: number;
+  month: number;
+  purchasesInMonth: number;
+  averageOrderValue: number | null;
+  cohortLabel: string;
+  cohortLabelTh: string;
+  lastOrderAt: string | null;
+  monthsSinceLastOrder: number | null;
+  daysSinceLastOrder: number | null;
 }
 
 export interface SalesTimePoint {
@@ -713,13 +756,13 @@ export interface CreateStoreAsAdminInput {
 export interface UpdateStoreAsAdminInput {
   name?: string;
   slug?: string;
-  description?: string;
+  description?: string | null;
   logoUrl?: string;
   bannerUrl?: string;
   status?: StoreStatus | string;
-  contactPhone?: string;
-  contactEmail?: string;
-  address?: string;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  address?: string | null;
   ownerId?: string | null;
   commissionRate?: number;
 }
@@ -829,10 +872,50 @@ export interface AdminCustomerDetail extends AdminCustomer {
 }
 
 export interface UpdateCustomerAsAdminInput {
-  fullName?: string;
-  email?: string;
+  fullName?: string | null;
+  email?: string | null;
   phone?: string;
-  dateOfBirth?: string;
+  dateOfBirth?: string | null;
+}
+
+export interface SavedAddress {
+  id: string;
+  label?: string | null;
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  tumbon?: string | null;
+  amphoe: string;
+  province: string;
+  postalCode: string;
+  isDefault: boolean;
+}
+
+export interface CreateCustomerAddressAsAdminInput {
+  label: string;
+  recipientName: string;
+  recipientPhone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  tumbon?: string;
+  amphoe: string;
+  province: string;
+  postalCode: string;
+  isDefault?: boolean;
+}
+
+export interface UpdateCustomerAddressAsAdminInput {
+  label?: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  addressLine1?: string;
+  addressLine2?: string | null;
+  tumbon?: string | null;
+  amphoe?: string;
+  province?: string;
+  postalCode?: string;
+  isDefault?: boolean;
 }
 
 export interface VendorCustomer {
@@ -878,6 +961,27 @@ export interface CustomersQueryParams {
   page?: number;
   limit?: number;
   search?: string;
+}
+
+export interface AdminStoresQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  sort?: string;
+}
+
+export interface AdminVendorsQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  sort?: string;
+}
+
+export interface PromotionsQueryParams {
+  page?: number;
+  limit?: number;
 }
 
 export type StoreProductReviewReplyFilter = 'all' | 'unreplied' | 'replied';

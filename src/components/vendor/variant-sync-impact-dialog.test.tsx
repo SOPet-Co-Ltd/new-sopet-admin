@@ -119,12 +119,48 @@ describe('VariantSyncImpactDialog', () => {
     expect(mutateAsync).not.toHaveBeenCalled();
   });
 
+  it('allows confirm when removals include order history (retire)', async () => {
+    mockImpact = {
+      kept: 1,
+      new: 0,
+      removed: 1,
+      blocked: false,
+      removedVariants: [
+        {
+          id: 'var-2',
+          sku: 'SKU-OLD',
+          optionKey: 'สี:น้ำเงิน',
+          reasons: ['HAS_ORDERS'],
+          disposition: 'RETIRE',
+          openCartCount: 0,
+        },
+      ],
+    };
+
+    renderWithQueryClient(
+      <VariantSyncImpactDialog
+        open
+        onOpenChange={onOpenChange}
+        productId="prod-1"
+        variants={variants}
+        onSyncSuccess={onSyncSuccess}
+      />,
+    );
+
+    expect(screen.getByRole('list', { name: 'SKU ที่จะนำออก' })).toHaveTextContent('SKU-OLD');
+    expect(screen.getByRole('list', { name: 'SKU ที่จะนำออก' })).toHaveTextContent(
+      'เก็บไว้สำหรับคำสั่งซื้อเดิม',
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'ยืนยันการบันทึก' }));
+    expect(mutateAsync).toHaveBeenCalled();
+  });
+
   it('keeps dialog open with alert when mutation fails after Confirm', async () => {
     mutateAsync.mockRejectedValueOnce(
       new ApiError({
-        code: 'VARIANT_REMOVAL_BLOCKED',
-        message: 'blocked',
-        status: 400,
+        code: 'NETWORK_ERROR',
+        message: 'failed',
+        status: 500,
       }),
     );
 
@@ -140,9 +176,7 @@ describe('VariantSyncImpactDialog', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'ยืนยันการบันทึก' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      /ไม่สามารถลบ SKU ได้ เพราะมีประวัติคำสั่งซื้อ/,
-    );
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'ยืนยันการบันทึกตัวเลือกสินค้า' }),
     ).toBeInTheDocument();

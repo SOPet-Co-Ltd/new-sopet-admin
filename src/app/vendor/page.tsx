@@ -17,7 +17,13 @@ import { getErrorMessage } from '@/lib/api/errors';
 export default function VendorDashboardPage() {
   const storeId = useVendorStoreId();
   const { data: operational, isLoading: operationalLoading, error } = useStoreAnalytics(storeId);
-  const { data: orders = [], isLoading: ordersLoading } = useVendorOrders(storeId);
+  const { data: ordersData, isLoading: ordersLoading } = useVendorOrders({
+    storeId,
+    queue: 'ACTION',
+    limit: 5,
+    page: 1,
+  });
+  const orders = ordersData?.items ?? [];
 
   const isLoading = operationalLoading || ordersLoading;
 
@@ -49,7 +55,11 @@ export default function VendorDashboardPage() {
 
           <VendorStoreReadinessChecklist />
 
-          <VendorActionQueue orders={orders} storeId={storeId} />
+          <VendorActionQueue
+            orders={orders}
+            storeId={storeId}
+            actionableCount={ordersData?.actionableCount}
+          />
 
           <VendorPayoutSnapshot />
 

@@ -82,9 +82,16 @@ const MOCK_STORE: AdminStore = {
   createdAt: '2025-12-01T10:00:00.000Z',
 };
 
+function storePage(items: AdminStore[]) {
+  return {
+    items,
+    pagination: { page: 1, limit: 20, total: items.length, totalPages: 1 },
+  };
+}
+
 function mockStores(overrides?: Partial<ReturnType<typeof useAdminStores>>) {
   mockedUseAdminStores.mockReturnValue({
-    data: [MOCK_STORE],
+    data: storePage([MOCK_STORE]),
     isLoading: false,
     isFetching: false,
     error: null,
@@ -114,7 +121,7 @@ describe('AdminStoresPage', () => {
 
   it('shows filter empty state with clear action', async () => {
     const user = userEvent.setup();
-    mockStores({ data: [] });
+    mockStores({ data: storePage([]) });
 
     render(<AdminStoresPage />);
 
@@ -148,19 +155,23 @@ describe('AdminStoresPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('โหลดร้านค้าไม่สำเร็จ');
   });
 
-  it('filters stores by status client-side and writes status to the URL', async () => {
+  it('requests the status filter from the server and writes it to the URL', async () => {
     const user = userEvent.setup();
-    mockStores({
-      data: [
-        MOCK_STORE,
-        {
-          ...MOCK_STORE,
-          id: 'store-2',
-          name: 'Pending Store',
-          slug: 'pending-store',
-          status: 'pending',
-        },
-      ],
+    const pendingStore: AdminStore = {
+      ...MOCK_STORE,
+      id: 'store-2',
+      name: 'Pending Store',
+      slug: 'pending-store',
+      status: 'pending',
+    };
+    mockedUseAdminStores.mockImplementation((params) => {
+      const items = params?.status === 'pending' ? [pendingStore] : [MOCK_STORE, pendingStore];
+      return {
+        data: storePage(items),
+        isLoading: false,
+        isFetching: false,
+        error: null,
+      } as ReturnType<typeof useAdminStores>;
     });
 
     render(<AdminStoresPage />);
@@ -172,7 +183,10 @@ describe('AdminStoresPage', () => {
     expect(nav.replaceMock).toHaveBeenCalledWith('/admin/stores?status=pending', {
       scroll: false,
     });
-    expect(screen.getByText('แสดง 1 จาก 2 รายการ')).toBeInTheDocument();
+    expect(mockedUseAdminStores).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'pending', page: 1, limit: 20 }),
+    );
+    expect(screen.getByText('พบ 1 รายการ')).toBeInTheDocument();
     expect(screen.getAllByText('Pending Store').length).toBeGreaterThan(0);
     expect(screen.queryByText('SOPet Demo Store')).not.toBeInTheDocument();
   });

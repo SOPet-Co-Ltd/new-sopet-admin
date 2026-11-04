@@ -16,6 +16,7 @@ import { ApiError } from '@/lib/api/errors-core';
 import { normalizeError } from '@/lib/api/errors';
 import { ERROR_MESSAGES } from '@/lib/api/error-messages';
 import { clearTokens, hasClientSession, notifyAuthFailure, refreshViaBff } from './tokens';
+import { buildWsConnectionParams } from './wsConnectionParams';
 
 let refreshPromise: Promise<boolean> | null = null;
 let apolloClient: ApolloClient | null = null;
@@ -44,8 +45,7 @@ function createWsLink(): GraphQLWsLink | null {
   return new GraphQLWsLink(
     createClient({
       url: getGraphqlWsUrl(),
-      // Auth-gated subscriptions are out of scope; paymentStatusUpdated is @Public.
-      connectionParams: () => ({}),
+      connectionParams: () => buildWsConnectionParams(),
       on: {
         connected: (_socket, _payload, wasReconnect) => {
           if (wasReconnect) {

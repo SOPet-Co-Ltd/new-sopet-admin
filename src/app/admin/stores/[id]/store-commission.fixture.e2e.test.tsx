@@ -54,6 +54,28 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: vi.fn() }),
 }));
 
+vi.mock('@/hooks/useCustomerSummaries', () => ({
+  useStoreCustomerSummary: () => ({
+    data: {
+      year: 2026,
+      month: 10,
+      lifetimeMonths: null,
+      repeatRate: null,
+      purchasesPerMonth: null,
+      averageOrderValue: null,
+      newCustomerCount: 0,
+      oldCustomerCount: 0,
+      oldCustomerPercent: null,
+      orderCount: 0,
+      buyersInMonth: 0,
+      totalCustomers: 0,
+    },
+    isLoading: false,
+    error: null,
+  }),
+  useCustomerPurchaseSummary: vi.fn(),
+}));
+
 vi.mock('@/hooks/useAdminStores', () => ({
   useAdminStore: () => ({
     data: storeState.current,
@@ -95,8 +117,30 @@ vi.mock('@/hooks/usePayouts', () => ({
     data: payoutsQueryState.summary,
     isLoading: payoutsQueryState.isLoading,
   }),
-  useAdminStorePayouts: () => ({ data: payoutsHistoryState.items, isLoading: false }),
-  useStorePayouts: () => ({ data: payoutsHistoryState.items, isLoading: false }),
+  useAdminStorePayouts: () => ({
+    data: {
+      items: payoutsHistoryState.items,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: payoutsHistoryState.items.length,
+        totalPages: 1,
+      },
+    },
+    isLoading: false,
+  }),
+  useStorePayouts: () => ({
+    data: {
+      items: payoutsHistoryState.items,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: payoutsHistoryState.items.length,
+        totalPages: 1,
+      },
+    },
+    isLoading: false,
+  }),
   useStorePayoutSummary: () => ({
     data: payoutsQueryState.summary,
     isLoading: payoutsQueryState.isLoading,

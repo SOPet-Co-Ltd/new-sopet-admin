@@ -18,6 +18,10 @@ vi.mock('@/hooks/useAuth', () => ({
   useLogout: vi.fn(),
 }));
 
+vi.mock('@/hooks/useDashboardActivity', () => ({
+  useDashboardActivity: vi.fn(),
+}));
+
 vi.mock('@/hooks/useTheme', () => ({
   useTheme: vi.fn(),
 }));
@@ -119,5 +123,53 @@ describe('DashboardShell sidebar footer', () => {
 
     expect(screen.queryByText('admin@sopet.org')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ออกจากระบบ' })).toBeInTheDocument();
+  });
+});
+
+describe('DashboardShell collapse toggle', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    mockedUseLogout.mockReturnValue(vi.fn());
+    mockedUseCurrentUser.mockReturnValue({
+      user: {
+        id: '1',
+        email: 'admin@sopet.org',
+        fullName: 'Admin User',
+        role: 'admin',
+      },
+      isAuthenticated: true,
+    });
+    mockedUseTheme.mockReturnValue({
+      theme: 'light',
+      mounted: true,
+      toggleTheme: vi.fn(),
+      isDark: false,
+      setTheme: vi.fn(),
+      systemTheme: 'light',
+      storedTheme: null,
+    });
+  });
+
+  it('collapses the desktop sidenav, updates aria state, and persists preference', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DashboardShell brandHref="/admin" brandLabel="Admin" navSections={navSections}>
+        <div>content</div>
+      </DashboardShell>,
+    );
+
+    const toggle = screen.getByRole('button', { name: 'ย่อเมนู' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(document.querySelector('aside[data-collapsed="false"]')).toBeInTheDocument();
+
+    await user.click(toggle);
+
+    expect(screen.getByRole('button', { name: 'ขยายเมนู' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(document.querySelector('aside[data-collapsed="true"]')).toBeInTheDocument();
+    expect(window.localStorage.getItem('sopet-admin-sidebar-collapsed')).toBe('1');
   });
 });

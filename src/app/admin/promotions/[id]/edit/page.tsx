@@ -2,13 +2,13 @@
 
 import { useParams } from 'next/navigation';
 import { PromotionEditForm } from '@/components/promotions/promotion-edit-form';
-import { usePlatformPromotion, useUpdatePromotion } from '@/hooks/usePromotions';
+import { usePromotion, useUpdatePromotion } from '@/hooks/usePromotions';
 import { getErrorMessage } from '@/lib/api/errors';
 
 export default function AdminPromotionEditPage() {
   const params = useParams<{ id: string }>();
   const id = typeof params.id === 'string' ? params.id : '';
-  const { data: promotion, isLoading, error, isNotFound } = usePlatformPromotion(id);
+  const { data: promotion, isLoading, error, isNotFound } = usePromotion(id);
   const updateMutation = useUpdatePromotion();
 
   if (isLoading) {

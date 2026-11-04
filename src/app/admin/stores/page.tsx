@@ -16,16 +16,20 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
-import { DataTable, SortableHeader } from '@/components/ui/data-table';
+import { DataTable, ServerSortHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
 import { useAdminStores } from '@/hooks/useAdminStores';
 import { getErrorMessage } from '@/lib/api/errors';
 import { labelStoreStatus } from '@/lib/i18n/th';
 import {
   parseEnumParam,
+  parsePageParam,
   parseSearchQuery,
+  parseSortParam,
   serializeEnumParam,
+  serializePageParam,
   serializeSearchQuery,
+  serializeSortParam,
 } from '@/lib/navigation/list-query-params';
 import { useDebouncedSearchDraft } from '@/lib/navigation/use-debounced-search-draft';
 import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
@@ -37,16 +41,32 @@ import { cn, formatDate } from '@/lib/utils';
 import type { AdminStore } from '@/types';
 
 const SEARCH_DEBOUNCE_MS = 300;
+const ADMIN_STORES_PAGE_SIZE = 20;
 const STORE_STATUS_VALUES = ['all', 'pending', 'approved', 'rejected', 'suspended'] as const;
+const STORE_SORTS = ['createdAt:desc', 'createdAt:asc', 'name:asc', 'name:desc'] as const;
+const DEFAULT_STORE_SORT = 'createdAt:desc';
 
 const adminStoresQuerySpec = {
+  page: { parse: parsePageParam, serialize: serializePageParam },
   q: { parse: parseSearchQuery, serialize: serializeSearchQuery },
   status: {
     parse: (raw: string | null) =>
       parseEnumParam(raw, STORE_STATUS_VALUES, 'all') as StoreStatusFilter,
     serialize: (value: StoreStatusFilter) => serializeEnumParam(value, 'all'),
   },
+  sort: {
+    parse: (raw: string | null) => parseSortParam(raw, STORE_SORTS, DEFAULT_STORE_SORT),
+    serialize: (value: string) => serializeSortParam(value, DEFAULT_STORE_SORT),
+  },
 } satisfies ListQuerySpec;
+
+function toggleListSort(current: string, field: string): string {
+  const [activeField, activeDir] = current.split(':');
+  if (activeField !== field) {
+    return field === 'createdAt' ? `${field}:desc` : `${field}:asc`;
+  }
+  return `${field}:${activeDir === 'asc' ? 'desc' : 'asc'}`;
+}
 
 function storeStatusBadge(store: AdminStore): { label: string; className: string } {
   const status = store.status;
@@ -69,7 +89,7 @@ export default function AdminStoresPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [params, setParams] = useListQueryState(adminStoresQuerySpec);
-  const { q: search, status: statusFilter } = params;
+  const { page, q: search, status: statusFilter, sort } = params;
   const commitSearch = useCallback((next: string) => setParams({ q: next }), [setParams]);
   const [searchInput, setSearchInput] = useDebouncedSearchDraft(
     search,
@@ -82,27 +102,35 @@ export default function AdminStoresPage() {
   const hasStatusFilter = statusFilter !== 'all';
   const hasFilters = hasSearch || hasStatusFilter;
 
-  const { data: stores = [], isLoading, isFetching, error } = useAdminStores();
+  const queryParams = useMemo(
+    () => ({
+      page,
+      limit: ADMIN_STORES_PAGE_SIZE,
+      search: trimmedSearch || undefined,
+      status: statusFilter === 'all' ? undefined : statusFilter,
+      sort: sort === DEFAULT_STORE_SORT ? undefined : sort,
+    }),
+    [page, trimmedSearch, statusFilter, sort],
+  );
 
-  const filteredStores = useMemo(() => {
-    const q = trimmedSearch.toLowerCase();
-    return stores.filter((store) => {
-      if (statusFilter !== 'all' && store.status !== statusFilter) return false;
-      if (!q) return true;
-      return (
-        store.name.toLowerCase().includes(q) ||
-        store.slug.toLowerCase().includes(q) ||
-        (store.ownerEmail?.toLowerCase().includes(q) ?? false) ||
-        (store.ownerFullName?.toLowerCase().includes(q) ?? false)
-      );
-    });
-  }, [stores, trimmedSearch, statusFilter]);
+  const { data, isLoading, isFetching, error } = useAdminStores(queryParams);
+  const stores = data?.items ?? [];
+  const pagination = data?.pagination;
 
   const columns = useMemo<ColumnDef<AdminStore>[]>(
     () => [
       {
         accessorKey: 'name',
-        header: ({ column }) => <SortableHeader column={column}>ร้านค้า</SortableHeader>,
+        header: () => (
+          <ServerSortHeader
+            label="ร้านค้า"
+            active={sort.startsWith('name:')}
+            direction={
+              sort.startsWith('name:') ? (sort.endsWith('asc') ? 'asc' : 'desc') : undefined
+            }
+            onToggle={() => setParams({ sort: toggleListSort(sort, 'name') })}
+          />
+        ),
         cell: ({ row }) => (
           <div className="min-w-0">
             <p className="truncate font-medium text-ink">{row.original.name}</p>
@@ -141,7 +169,16 @@ export default function AdminStoresPage() {
       },
       {
         accessorKey: 'createdAt',
-        header: ({ column }) => <SortableHeader column={column}>สร้างเมื่อ</SortableHeader>,
+        header: () => (
+          <ServerSortHeader
+            label="สร้างเมื่อ"
+            active={sort.startsWith('createdAt:')}
+            direction={
+              sort.startsWith('createdAt:') ? (sort.endsWith('asc') ? 'asc' : 'desc') : undefined
+            }
+            onToggle={() => setParams({ sort: toggleListSort(sort, 'createdAt') })}
+          />
+        ),
         cell: ({ row }) =>
           row.original.createdAt ? (
             <span className="text-sm text-muted-foreground">
@@ -175,27 +212,27 @@ export default function AdminStoresPage() {
         ),
       },
     ],
-    [queryClient],
+    [queryClient, setParams, sort],
   );
 
   const resultLabel = useMemo(() => {
-    const filteredCount = filteredStores.length;
-    const totalCount = stores.length;
-    const filteredLabel = filteredCount.toLocaleString('th-TH');
-    const totalLabel = totalCount.toLocaleString('th-TH');
-
+    if (!pagination) return null;
+    const totalLabel = pagination.total.toLocaleString('th-TH');
     if (hasFilters) {
-      return `แสดง ${filteredLabel} จาก ${totalLabel} รายการ`;
+      return `พบ ${totalLabel} รายการ`;
+    }
+    if (pagination.totalPages > 1) {
+      return `หน้า ${pagination.page} จาก ${pagination.totalPages} · ทั้งหมด ${totalLabel} รายการ`;
     }
     return `ร้านค้าทั้งหมด ${totalLabel} รายการ`;
-  }, [filteredStores.length, hasFilters, stores.length]);
+  }, [hasFilters, pagination]);
 
-  const showEmpty = !isLoading && !error && filteredStores.length === 0;
-  const showList = !isLoading && !error && filteredStores.length > 0;
+  const showEmpty = !isLoading && !error && stores.length === 0;
+  const showList = !isLoading && !error && stores.length > 0;
 
   function clearFilters() {
     setSearchInput('');
-    setParams({ q: '', status: 'all' });
+    setParams({ q: '', status: 'all', sort: DEFAULT_STORE_SORT, page: 1 });
   }
 
   function goToStore(store: AdminStore) {
@@ -277,7 +314,7 @@ export default function AdminStoresPage() {
             </p>
 
             <StoresMobileList
-              stores={filteredStores}
+              stores={stores}
               onStoreClick={goToStore}
               getStatusBadge={storeStatusBadge}
             />
@@ -285,11 +322,39 @@ export default function AdminStoresPage() {
             <div className="hidden md:block">
               <DataTable
                 columns={columns}
-                data={filteredStores}
+                data={stores}
                 emptyMessage="ไม่พบร้านค้า"
                 onRowClick={goToStore}
               />
             </div>
+
+            {pagination && pagination.totalPages > 1 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-sm text-muted-foreground">
+                <span className="tabular-nums">
+                  หน้า {pagination.page} จาก {pagination.totalPages}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 1 || isFetching}
+                    onClick={() => setParams((current) => ({ page: current.page - 1 }))}
+                  >
+                    ก่อนหน้า
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= pagination.totalPages || isFetching}
+                    onClick={() => setParams((current) => ({ page: current.page + 1 }))}
+                  >
+                    ถัดไป
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </>
         ) : null}
       </div>

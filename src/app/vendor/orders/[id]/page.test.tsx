@@ -15,7 +15,7 @@ vi.mock('next/link', () => ({
 }));
 
 vi.mock('@/hooks/useVendorOrders', () => ({
-  useVendorOrders: vi.fn(),
+  useVendorOrder: vi.fn(),
 }));
 
 vi.mock('@/hooks/useVendorStoreId', () => ({
@@ -28,10 +28,10 @@ vi.mock('@/components/vendor/vendor-order-detail', () => ({
   ),
 }));
 
-import { useVendorOrders } from '@/hooks/useVendorOrders';
+import { useVendorOrder } from '@/hooks/useVendorOrders';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 
-const mockedUseVendorOrders = vi.mocked(useVendorOrders);
+const mockedUseVendorOrder = vi.mocked(useVendorOrder);
 const mockedUseVendorStoreId = vi.mocked(useVendorStoreId);
 
 const MOCK_ORDER: Order = {
@@ -55,11 +55,11 @@ describe('VendorOrderDetailPage', () => {
 
   it('renders order detail with back link to orders list', () => {
     mockedUseVendorStoreId.mockReturnValue('store-1');
-    mockedUseVendorOrders.mockReturnValue({
-      data: [MOCK_ORDER],
+    mockedUseVendorOrder.mockReturnValue({
+      data: MOCK_ORDER,
       isLoading: false,
       error: null,
-    } as ReturnType<typeof useVendorOrders>);
+    } as ReturnType<typeof useVendorOrder>);
 
     render(<VendorOrderDetailPage />);
 
@@ -78,11 +78,11 @@ describe('VendorOrderDetailPage', () => {
 
   it('shows loading skeleton while orders fetch', () => {
     mockedUseVendorStoreId.mockReturnValue('store-1');
-    mockedUseVendorOrders.mockReturnValue({
+    mockedUseVendorOrder.mockReturnValue({
       data: undefined,
       isLoading: true,
       error: null,
-    } as ReturnType<typeof useVendorOrders>);
+    } as ReturnType<typeof useVendorOrder>);
 
     render(<VendorOrderDetailPage />);
 
@@ -91,11 +91,11 @@ describe('VendorOrderDetailPage', () => {
 
   it('shows not-found state when order is missing', () => {
     mockedUseVendorStoreId.mockReturnValue('store-1');
-    mockedUseVendorOrders.mockReturnValue({
-      data: [] as Order[],
+    mockedUseVendorOrder.mockReturnValue({
+      data: undefined,
       isLoading: false,
       error: null,
-    } as ReturnType<typeof useVendorOrders>);
+    } as ReturnType<typeof useVendorOrder>);
 
     render(<VendorOrderDetailPage />);
 
@@ -108,17 +108,17 @@ describe('VendorOrderDetailPage', () => {
 
   /**
    * Regression (QA-hunt): while auth/vendor Zustand stores are still hydrating, storeId is
-   * undefined and useVendorOrders is disabled - its own `isLoading` stays false, so without
+   * undefined and useVendorOrder is disabled - its own `isLoading` stays false, so without
    * accounting for a missing storeId the page briefly rendered "ไม่พบคำสั่งซื้อ" instead of
    * a loading skeleton.
    */
   it('shows loading skeleton (not not-found) while storeId has not resolved yet', () => {
     mockedUseVendorStoreId.mockReturnValue(undefined);
-    mockedUseVendorOrders.mockReturnValue({
-      data: [] as Order[],
+    mockedUseVendorOrder.mockReturnValue({
+      data: undefined,
       isLoading: false,
       error: null,
-    } as ReturnType<typeof useVendorOrders>);
+    } as ReturnType<typeof useVendorOrder>);
 
     render(<VendorOrderDetailPage />);
 

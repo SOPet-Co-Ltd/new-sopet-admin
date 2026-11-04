@@ -5,6 +5,7 @@ import {
   approveStoreRequest,
   getAdminStoreRequests,
   getMyStoreRequests,
+  getPendingStoreRequestIds,
   getPendingStoreRequests,
   rejectStoreRequest,
   submitStoreRequest,
@@ -23,6 +24,13 @@ export function usePendingStoreRequests() {
   return useQuery({
     queryKey: queryKeys.storeRequests.pending(),
     queryFn: getPendingStoreRequests,
+  });
+}
+
+export function usePendingStoreRequestIds() {
+  return useQuery({
+    queryKey: [...queryKeys.storeRequests.pending(), 'ids'] as const,
+    queryFn: getPendingStoreRequestIds,
   });
 }
 

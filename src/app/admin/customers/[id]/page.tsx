@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { AdminCustomerAddressesPanel } from '@/components/admin/admin-customer-addresses-panel';
+import { AdminCustomerOrderHistory } from '@/components/admin/admin-customer-order-history';
+import { AdminCustomerPhoneVerifyCard } from '@/components/admin/admin-customer-phone-verify-card';
+import { AdminCustomerPurchaseSummaryCard } from '@/components/admin/admin-customer-purchase-summary-card';
 import {
   BackToCustomersLink,
   CustomerDetailSkeleton,
@@ -12,7 +16,6 @@ import {
   formatCustomerOrderDate,
   InsightFact,
 } from '@/components/customers/customer-detail-primitives';
-import { AdminCustomerOrderHistory } from '@/components/admin/admin-customer-order-history';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
@@ -24,10 +27,15 @@ import {
   useSetCustomerActive,
   useUpdateCustomerAsAdmin,
 } from '@/hooks/useAdminCustomers';
+import { getErrorMessage } from '@/lib/api/errors';
 import { getMaxBirthday, MIN_BIRTHDAY } from '@/lib/datetime/calendarUtils';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
-import { adminCustomerFormSchema, type AdminCustomerFormValues } from '@/lib/validations';
-import { getErrorMessage } from '@/lib/api/errors';
+import {
+  adminCustomerFormSchema,
+  normalizeThaiPhoneInput,
+  optionalClearableText,
+  type AdminCustomerFormValues,
+} from '@/lib/validations';
 
 function CustomerStatusBadges({
   isActive,
@@ -73,10 +81,10 @@ export default function AdminCustomerEditPage() {
       await updateMutation.mutateAsync({
         id: params.id,
         input: {
-          fullName: values.fullName || undefined,
-          email: values.email || undefined,
-          phone: values.phone,
-          dateOfBirth: values.dateOfBirth || undefined,
+          fullName: optionalClearableText(values.fullName),
+          email: optionalClearableText(values.email),
+          phone: normalizeThaiPhoneInput(values.phone),
+          dateOfBirth: optionalClearableText(values.dateOfBirth),
         },
       });
       router.push('/admin/customers');
@@ -115,6 +123,12 @@ export default function AdminCustomerEditPage() {
         }
       />
 
+      <AdminCustomerPhoneVerifyCard
+        customerId={params.id}
+        phone={customer.phone}
+        isVerified={customer.isVerified}
+      />
+
       <section aria-labelledby="customer-platform-insights">
         <h2 id="customer-platform-insights" className="sr-only">
           สรุปการซื้อทั้งแพลตฟอร์ม
@@ -141,6 +155,11 @@ export default function AdminCustomerEditPage() {
           </CardBody>
         </Card>
       </section>
+
+      <AdminCustomerPurchaseSummaryCard
+        customerId={params.id}
+        accountCreatedAt={customer.createdAt}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <Card>
@@ -275,15 +294,14 @@ export default function AdminCustomerEditPage() {
             <DetailRow label="เข้าสู่ระบบล่าสุด">
               {customer.lastLoginAt ? formatDateTime(customer.lastLoginAt) : 'ยังไม่เคยเข้าสู่ระบบ'}
             </DetailRow>
-            <DetailRow label="ที่อยู่ที่บันทึก">
-              {insights.addressCount.toLocaleString('th-TH')} รายการ
-            </DetailRow>
             <DetailRow label="สินค้าที่ชอบ">
               {insights.favoriteCount.toLocaleString('th-TH')} รายการ
             </DetailRow>
           </CardBody>
         </Card>
       </div>
+
+      <AdminCustomerAddressesPanel customerId={params.id} />
 
       <AdminCustomerOrderHistory orders={insights.recentOrders} />
     </div>

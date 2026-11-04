@@ -21,8 +21,22 @@ fragment PromotionFields on PromotionType {
   createdAt
 }
 
-query StorePromotions($storeId: String!) {
-  storePromotions(storeId: $storeId) {
+query Promotion($id: String!) {
+  promotion(id: $id) {
     ...PromotionFields
+  }
+}
+
+query StorePromotions($storeId: String!, $page: Int!, $limit: Int!) {
+  storePromotions(storeId: $storeId, page: $page, limit: $limit) {
+    items {
+      ...PromotionFields
+    }
+    pagination {
+      page
+      limit
+      total
+      totalPages
+    }
   }
 }

@@ -4,13 +4,33 @@ import { z } from 'zod';
 // spaces/dashes (e.g. "081-234-5678"). Rejects clearly non-phone input (emails, etc.)
 // before it ever reaches the backend.
 const THAI_PHONE_REGEX = /^0\d{8,9}$/;
+
+/** Strip spaces/dashes so Thai local numbers match backend @IsPhoneNumber('TH'). */
+export function normalizeThaiPhoneInput(value: string): string {
+  return value.replace(/[\s-]/g, '');
+}
+
 const contactPhoneSchema = z
   .string()
   .optional()
   .refine(
-    (value) => !value || THAI_PHONE_REGEX.test(value.replace(/[\s-]/g, '')),
+    (value) => !value || THAI_PHONE_REGEX.test(normalizeThaiPhoneInput(value)),
     'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง',
   );
+
+const requiredThaiPhoneSchema = z
+  .string()
+  .min(1, 'กรุณากรอกเบอร์โทรศัพท์')
+  .refine(
+    (value) => THAI_PHONE_REGEX.test(normalizeThaiPhoneInput(value)),
+    'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง',
+  );
+
+/** Empty optional text → null so GraphQL clears the field; omit is handled by the caller. */
+export function optionalClearableText(value: string | undefined): string | null {
+  const trimmed = value?.trim() ?? '';
+  return trimmed ? trimmed : null;
+}
 
 export const loginSchema = z.object({
   email: z.email('กรุณากรอกอีเมลที่ถูกต้อง'),
@@ -214,11 +234,39 @@ export type AdminVendorFormValues = z.infer<typeof adminVendorFormSchema>;
 export const adminCustomerFormSchema = z.object({
   fullName: z.string().optional(),
   email: z.union([z.literal(''), z.email('กรุณากรอกอีเมลที่ถูกต้อง')]).optional(),
-  phone: z.string().min(1, 'กรุณากรอกเบอร์โทรศัพท์'),
+  phone: requiredThaiPhoneSchema,
   dateOfBirth: z.string().optional(),
 });
 
 export type AdminCustomerFormValues = z.infer<typeof adminCustomerFormSchema>;
+
+export const adminCustomerAddressFormSchema = z.object({
+  label: z.string().min(1, 'กรุณากรอกป้ายชื่อที่อยู่'),
+  recipientName: z.string().min(1, 'กรุณากรอกชื่อผู้รับ'),
+  recipientPhone: requiredThaiPhoneSchema,
+  addressLine1: z.string().min(1, 'กรุณากรอกที่อยู่'),
+  addressLine2: z.string().optional(),
+  tumbon: z.string().optional(),
+  amphoe: z.string().min(1, 'กรุณากรอกอำเภอ/เขต'),
+  province: z.string().min(1, 'กรุณากรอกจังหวัด'),
+  postalCode: z.string().min(5, 'กรุณากรอกรหัสไปรษณีย์').max(10, 'กรุณากรอกรหัสไปรษณีย์ให้ถูกต้อง'),
+  isDefault: z.boolean().optional(),
+});
+
+export type AdminCustomerAddressFormValues = z.infer<typeof adminCustomerAddressFormSchema>;
+
+export const adminOrderShippingFormSchema = z.object({
+  fullName: z.string().min(1, 'กรุณากรอกชื่อผู้รับ'),
+  phone: requiredThaiPhoneSchema,
+  addressLine1: z.string().min(1, 'กรุณากรอกที่อยู่'),
+  addressLine2: z.string().optional(),
+  tumbon: z.string().optional(),
+  amphoe: z.string().min(1, 'กรุณากรอกอำเภอ/เขต'),
+  province: z.string().min(1, 'กรุณากรอกจังหวัด'),
+  postalCode: z.string().min(5, 'กรุณากรอกรหัสไปรษณีย์').max(10, 'กรุณากรอกรหัสไปรษณีย์ให้ถูกต้อง'),
+});
+
+export type AdminOrderShippingFormValues = z.infer<typeof adminOrderShippingFormSchema>;
 
 export const shippingOptionSchema = z.object({
   name: z.string().min(1, 'กรุณากรอกชื่อ'),

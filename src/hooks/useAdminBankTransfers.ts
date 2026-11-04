@@ -8,10 +8,13 @@ import {
 } from '@/lib/api/admin-bank-transfers';
 import { queryKeys } from '@/lib/react-query/keys';
 
-export function usePendingBankTransferOrders(page = 1) {
+export function usePendingBankTransferOrders(page = 1, limit = ADMIN_BANK_TRANSFER_PAGE_SIZE) {
   return useQuery({
-    queryKey: queryKeys.bankTransfers.pending(page),
-    queryFn: () => getPendingBankTransferOrders(page, ADMIN_BANK_TRANSFER_PAGE_SIZE),
+    queryKey: queryKeys.bankTransfers.pending(
+      page,
+      limit === ADMIN_BANK_TRANSFER_PAGE_SIZE ? undefined : limit,
+    ),
+    queryFn: () => getPendingBankTransferOrders(page, limit),
   });
 }
 

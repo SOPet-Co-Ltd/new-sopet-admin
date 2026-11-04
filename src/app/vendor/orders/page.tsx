@@ -23,11 +23,12 @@ import { Input } from '@/components/ui/input';
 import { useVendorOrders } from '@/hooks/useVendorOrders';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { getErrorMessage } from '@/lib/api/errors';
+import { VENDOR_ORDERS_PAGE_SIZE } from '@/lib/api/orders';
 import { ORDER_STATUSES } from '@/lib/config';
 import { labelOrderStatus, labelPaymentMethod } from '@/lib/i18n/th';
+import { parsePageParam } from '@/lib/navigation/list-query-params';
 import { useDebouncedSearchDraft } from '@/lib/navigation/use-debounced-search-draft';
 import {
-  filterVendorActionableOrders,
   isVendorActionableOrder,
   labelVendorWorkflowAction,
 } from '@/lib/orders/vendor-action-queue';
@@ -52,6 +53,7 @@ function buildOrdersQuery(params: {
   status?: string;
   payment?: string;
   q?: string;
+  page?: number;
 }) {
   const search = new URLSearchParams();
   if (params.queue === 'action') {
@@ -68,6 +70,9 @@ function buildOrdersQuery(params: {
   const trimmedQ = params.q?.trim();
   if (trimmedQ) {
     search.set('q', trimmedQ);
+  }
+  if (params.page && params.page > 1) {
+    search.set('page', String(params.page));
   }
   const query = search.toString();
   return query ? `/vendor/orders?${query}` : '/vendor/orders';
@@ -178,17 +183,36 @@ export default function VendorOrdersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const storeId = useVendorStoreId();
-  const { data: orders = [], isLoading: ordersLoading, error } = useVendorOrders(storeId);
-  // `useVendorOrders` is disabled until `storeId` resolves (auth/vendor store hydration),
-  // so its own `isLoading` stays false during that window - without this, the page would
-  // briefly render the "no orders" empty state before the real fetch even starts.
-  const isLoading = ordersLoading || !storeId;
   const queueParam = searchParams.get('queue');
   const queue: OrderQueueView = queueParam === 'all' ? 'all' : 'action';
   const queueFilter = queue === 'action';
   const statusFilter = parseStatusFilter(searchParams.get('status'));
   const paymentFilter = parsePaymentFilter(searchParams.get('payment'));
   const search = searchParams.get('q')?.trim() ?? '';
+  const page = parsePageParam(searchParams.get('page'));
+
+  const {
+    data,
+    isLoading: ordersLoading,
+    isFetching,
+    error,
+  } = useVendorOrders({
+    storeId,
+    page,
+    limit: VENDOR_ORDERS_PAGE_SIZE,
+    queue: queueFilter ? 'ACTION' : 'ALL',
+    status: statusFilter !== ALL ? statusFilter : undefined,
+    paymentMethod: paymentFilter !== ALL ? paymentFilter : undefined,
+    search: search || undefined,
+  });
+
+  const orders = data?.items ?? [];
+  const pagination = data?.pagination;
+  const actionableCount = data?.actionableCount ?? 0;
+  // `useVendorOrders` is disabled until `storeId` resolves (auth/vendor store hydration),
+  // so its own `isLoading` stays false during that window - without this, the page would
+  // briefly render the "no orders" empty state before the real fetch even starts.
+  const isLoading = ordersLoading || !storeId;
   const [trackingDialogOrderNumber, setTrackingDialogOrderNumber] = useState<string | null>(null);
   const [workflowOrder, setWorkflowOrder] = useState<Order | null>(null);
   const menuTriggerRef = useRef<HTMLElement | null>(null);
@@ -202,34 +226,12 @@ export default function VendorOrdersPage() {
     }
   }, [queueParam, router, search, searchParams]);
 
-  const actionableCount = useMemo(
-    () => filterVendorActionableOrders(orders, storeId).length,
-    [orders, storeId],
-  );
-
-  const filteredOrders = useMemo(() => {
-    let result = orders;
-    if (queueFilter) {
-      result = filterVendorActionableOrders(result, storeId);
-    }
-    if (statusFilter !== ALL) {
-      result = result.filter((order) => order.status === statusFilter);
-    }
-    if (paymentFilter !== ALL) {
-      result = result.filter((order) => order.paymentMethod === paymentFilter);
-    }
-    if (search) {
-      const needle = search.toLowerCase();
-      result = result.filter((order) => order.orderNumber.toLowerCase().includes(needle));
-    }
-    return result;
-  }, [orders, queueFilter, statusFilter, paymentFilter, search, storeId]);
-
   function replaceFilters(next: {
     queue: OrderQueueView;
     status: OrderStatusFilter;
     payment: OrderPaymentFilter;
     q?: string;
+    page?: number;
   }) {
     router.replace(
       buildOrdersQuery({
@@ -237,6 +239,7 @@ export default function VendorOrdersPage() {
         status: next.status !== ALL ? next.status : undefined,
         payment: next.payment !== ALL ? next.payment : undefined,
         q: next.q,
+        page: next.page,
       }),
       { scroll: false },
     );
@@ -249,6 +252,7 @@ export default function VendorOrdersPage() {
         status: statusFilter,
         payment: paymentFilter,
         q: next,
+        page: 1,
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- replaceFilters closes over latest filters
@@ -262,7 +266,7 @@ export default function VendorOrdersPage() {
 
   function clearExtraFilters() {
     setSearchInput('');
-    replaceFilters({ queue, status: ALL, payment: ALL, q: '' });
+    replaceFilters({ queue, status: ALL, payment: ALL, q: '', page: 1 });
   }
 
   const hasExtraFilters = Boolean(search) || statusFilter !== ALL || paymentFilter !== ALL;
@@ -356,12 +360,16 @@ export default function VendorOrdersPage() {
   );
 
   const resultLabel = useMemo(() => {
-    const count = filteredOrders.length.toLocaleString('th-TH');
-    if (queueFilter) {
-      return `${count} รายการที่ต้องดำเนินการ`;
+    if (!pagination) return null;
+    const totalLabel = pagination.total.toLocaleString('th-TH');
+    if (pagination.totalPages > 1) {
+      return `หน้า ${pagination.page} จาก ${pagination.totalPages} · ทั้งหมด ${totalLabel} รายการ`;
     }
-    return `${count} รายการ`;
-  }, [filteredOrders.length, queueFilter]);
+    if (queueFilter) {
+      return `${totalLabel} รายการที่ต้องดำเนินการ`;
+    }
+    return `${totalLabel} รายการ`;
+  }, [pagination, queueFilter]);
 
   return (
     <div className="space-y-6">
@@ -396,13 +404,26 @@ export default function VendorOrdersPage() {
             status: statusFilter,
             payment: paymentFilter,
             q: search,
+            page: 1,
           })
         }
         onStatusChange={(nextStatus) =>
-          replaceFilters({ queue, status: nextStatus, payment: paymentFilter, q: search })
+          replaceFilters({
+            queue,
+            status: nextStatus,
+            payment: paymentFilter,
+            q: search,
+            page: 1,
+          })
         }
         onPaymentMethodChange={(nextPayment) =>
-          replaceFilters({ queue, status: statusFilter, payment: nextPayment, q: search })
+          replaceFilters({
+            queue,
+            status: statusFilter,
+            payment: nextPayment,
+            q: search,
+            page: 1,
+          })
         }
         onClearAll={clearExtraFilters}
       />
@@ -421,7 +442,7 @@ export default function VendorOrdersPage() {
       >
         {isLoading ? <OrdersTableSkeleton /> : null}
 
-        {!isLoading && filteredOrders.length === 0 ? (
+        {!isLoading && orders.length === 0 ? (
           <OrdersEmptyState
             queueFilter={queueFilter}
             hasExtraFilters={hasExtraFilters}
@@ -429,17 +450,63 @@ export default function VendorOrdersPage() {
           />
         ) : null}
 
-        {!isLoading && filteredOrders.length > 0 ? (
+        {!isLoading && orders.length > 0 ? (
           <>
-            <p className="text-sm text-muted-foreground" aria-live="polite">
-              {resultLabel}
-            </p>
+            {resultLabel ? (
+              <p className="text-sm text-muted-foreground" aria-live="polite">
+                {resultLabel}
+              </p>
+            ) : null}
             <DataTable
               columns={columns}
-              data={filteredOrders}
+              data={orders}
               emptyMessage={queueFilter ? 'ไม่มีออเดอร์ที่ต้องดำเนินการ' : 'ไม่พบคำสั่งซื้อ'}
               onRowClick={(order) => router.push(`/vendor/orders/${order.id}`)}
             />
+
+            {pagination && pagination.totalPages > 1 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-sm text-muted-foreground">
+                <span className="tabular-nums">
+                  หน้า {pagination.page} จาก {pagination.totalPages}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 1 || isFetching}
+                    onClick={() =>
+                      replaceFilters({
+                        queue,
+                        status: statusFilter,
+                        payment: paymentFilter,
+                        q: search,
+                        page: page - 1,
+                      })
+                    }
+                  >
+                    ก่อนหน้า
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= pagination.totalPages || isFetching}
+                    onClick={() =>
+                      replaceFilters({
+                        queue,
+                        status: statusFilter,
+                        payment: paymentFilter,
+                        q: search,
+                        page: page + 1,
+                      })
+                    }
+                  >
+                    ถัดไป
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </>
         ) : null}
       </div>

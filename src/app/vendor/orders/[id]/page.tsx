@@ -2,12 +2,11 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useMemo } from 'react';
 import { HiArrowLeft } from 'react-icons/hi2';
 import { VendorOrderDetail } from '@/components/vendor/vendor-order-detail';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/card';
-import { useVendorOrders } from '@/hooks/useVendorOrders';
+import { useVendorOrder } from '@/hooks/useVendorOrders';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { labelOrderStatus, labelPaymentMethod } from '@/lib/i18n/th';
 import { formatDateTime } from '@/lib/utils';
@@ -35,16 +34,11 @@ export default function VendorOrderDetailPage() {
   const params = useParams<{ id: string }>();
   const orderId = params.id;
   const storeId = useVendorStoreId();
-  const { data: orders = [], isLoading: ordersLoading, error } = useVendorOrders(storeId);
-  // `useVendorOrders` is disabled until `storeId` resolves (auth/vendor store hydration),
+  const { data: order, isLoading: orderLoading, error } = useVendorOrder(storeId, orderId);
+  // `useVendorOrder` is disabled until `storeId` resolves (auth/vendor store hydration),
   // so its own `isLoading` stays false during that window - without this, the page would
   // briefly render "ไม่พบคำสั่งซื้อ" before the real fetch even starts.
-  const isLoading = ordersLoading || !storeId;
-
-  const order = useMemo(
-    () => orders.find((item) => item.id === orderId) ?? null,
-    [orders, orderId],
-  );
+  const isLoading = orderLoading || !storeId;
 
   if (isLoading) {
     return <OrderDetailSkeleton />;

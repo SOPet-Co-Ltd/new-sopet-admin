@@ -51,7 +51,7 @@ export function ActiveStoreDisplay() {
 
   if (stores.length === 1) {
     return (
-      <div data-tour-id="active-store">
+      <div className="min-w-0" data-tour-id="active-store">
         <p className="truncate text-sm font-medium text-ink">{active.store.name}</p>
         <p className="text-xs text-muted">{labelMembershipRole(active.membershipRole)}</p>
         {active.store.status === 'suspended' ? (
@@ -72,7 +72,7 @@ export function ActiveStoreDisplay() {
   }
 
   return (
-    <div className="space-y-2" data-tour-id="active-store">
+    <div className="min-w-0 space-y-2" data-tour-id="active-store">
       <label htmlFor="active-store-switcher" className="text-xs font-medium text-muted">
         ร้านที่ใช้งาน
       </label>

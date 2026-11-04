@@ -19,13 +19,13 @@ describe('prefetchDashboardNav', () => {
     prefetchDashboardNav(queryClient, '/admin/stores');
 
     expect(prefetchSpy).toHaveBeenCalledWith({
-      queryKey: queryKeys.adminStores.list(),
-      queryFn: getAdminStores,
+      queryKey: queryKeys.adminStores.list({ page: 1, limit: 20 }),
+      queryFn: expect.any(Function),
     });
 
     await queryClient.fetchQuery({
-      queryKey: queryKeys.adminStores.list(),
-      queryFn: getAdminStores,
+      queryKey: queryKeys.adminStores.list({ page: 1, limit: 20 }),
+      queryFn: () => getAdminStores({ page: 1, limit: 20 }),
     });
 
     prefetchSpy.mockClear();

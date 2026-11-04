@@ -21,12 +21,14 @@ import {
   startCreateProductGuide,
 } from '@/lib/vendor/create-product-guide';
 import {
+  applyOptionRename,
   buildCombinationsFromGroups,
   extractOptionGroups,
   variantItemsFromProduct,
   variantOptionKey,
   type VariantItem,
   type VariantOptionGroup,
+  type VariantOptionRename,
 } from '@/lib/variants';
 
 const WIZARD_STEP_NUMBER = PRODUCT_WIZARD_STEPS.length;
@@ -118,6 +120,13 @@ export default function ProductVariantsPage() {
     return false;
   }, [items, pendingCombinations]);
 
+  function handleGroupsChange(nextGroups: VariantOptionGroup[], rename?: VariantOptionRename) {
+    setGroups(nextGroups);
+    if (rename) {
+      setItems((current) => applyOptionRename(current, rename));
+    }
+  }
+
   function handleApplyGroups() {
     setItems(pendingCombinations);
   }
@@ -198,8 +207,8 @@ export default function ProductVariantsPage() {
             <CardBody className="space-y-4">
               <VariantOptionGroupsEditor
                 groups={groups}
-                onChange={setGroups}
-                helperText="เช่น สี → แดง, น้ำเงิน, เขียว · ไซส์ → xs, s, m, l, xl · แก้ชื่อหรือค่าที่มีอยู่ได้โดยตรง"
+                onChange={handleGroupsChange}
+                helperText="เช่น สี → แดง, น้ำเงิน, เขียว · ไซส์ → xs, s, m, l, xl · แตะชิปเพื่อแก้ชื่อ — SKU เดิมจะถูกเก็บไว้"
               />
 
               {outOfSync ? (

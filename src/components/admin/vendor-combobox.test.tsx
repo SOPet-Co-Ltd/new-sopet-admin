@@ -23,7 +23,10 @@ describe('VendorCombobox', () => {
 
   it('shows the selected vendor label when closed', () => {
     mockedUseAdminVendors.mockReturnValue({
-      data: vendors,
+      data: {
+        items: vendors,
+        pagination: { page: 1, limit: 20, total: vendors.length, totalPages: 1 },
+      },
       isLoading: false,
       isFetching: false,
       error: null,
@@ -43,7 +46,10 @@ describe('VendorCombobox', () => {
 
   it('clears the selected owner when the clear button is clicked', async () => {
     mockedUseAdminVendors.mockReturnValue({
-      data: vendors,
+      data: {
+        items: vendors,
+        pagination: { page: 1, limit: 20, total: vendors.length, totalPages: 1 },
+      },
       isLoading: false,
       isFetching: false,
       error: null,
@@ -72,7 +78,10 @@ describe('VendorCombobox', () => {
 
   it('clears selectedLabel when value becomes empty even if initialLabel stays stale', () => {
     mockedUseAdminVendors.mockReturnValue({
-      data: vendors,
+      data: {
+        items: vendors,
+        pagination: { page: 1, limit: 20, total: vendors.length, totalPages: 1 },
+      },
       isLoading: false,
       isFetching: false,
       error: null,
@@ -95,7 +104,10 @@ describe('VendorCombobox', () => {
 
   it('selects a different owner from the dropdown', async () => {
     mockedUseAdminVendors.mockReturnValue({
-      data: vendors,
+      data: {
+        items: vendors,
+        pagination: { page: 1, limit: 20, total: vendors.length, totalPages: 1 },
+      },
       isLoading: false,
       isFetching: false,
       error: null,
@@ -118,7 +130,10 @@ describe('VendorCombobox', () => {
 
   it('lists all vendors on focus without using the display label as search', async () => {
     mockedUseAdminVendors.mockReturnValue({
-      data: vendors,
+      data: {
+        items: vendors,
+        pagination: { page: 1, limit: 20, total: vendors.length, totalPages: 1 },
+      },
       isLoading: false,
       isFetching: false,
       error: null,
@@ -134,13 +149,19 @@ describe('VendorCombobox', () => {
 
     await userEvent.click(screen.getByRole('combobox'));
 
-    expect(mockedUseAdminVendors).toHaveBeenCalledWith(undefined, { enabled: true });
+    expect(mockedUseAdminVendors).toHaveBeenCalledWith(
+      { search: undefined, page: 1, limit: 20 },
+      { enabled: true },
+    );
     expect(screen.getByRole('option', { name: 'Bob — bob@example.com' })).toBeInTheDocument();
   });
 
   it('searches vendors after the user edits the input', async () => {
     mockedUseAdminVendors.mockReturnValue({
-      data: [vendors[1]],
+      data: {
+        items: [vendors[1]],
+        pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      },
       isLoading: false,
       isFetching: false,
       error: null,
@@ -153,7 +174,10 @@ describe('VendorCombobox', () => {
     await userEvent.type(input, 'bob');
 
     await waitFor(() => {
-      expect(mockedUseAdminVendors).toHaveBeenCalledWith('bob', { enabled: true });
+      expect(mockedUseAdminVendors).toHaveBeenCalledWith(
+        { search: 'bob', page: 1, limit: 20 },
+        { enabled: true },
+      );
     });
   });
 
@@ -175,7 +199,10 @@ describe('VendorCombobox', () => {
 
   it('clears the owner when the search input is emptied', async () => {
     mockedUseAdminVendors.mockReturnValue({
-      data: vendors,
+      data: {
+        items: vendors,
+        pagination: { page: 1, limit: 20, total: vendors.length, totalPages: 1 },
+      },
       isLoading: false,
       isFetching: false,
       error: null,
@@ -202,7 +229,10 @@ describe('VendorCombobox', () => {
 
   it('shows validation error styling and message when error is provided', () => {
     mockedUseAdminVendors.mockReturnValue({
-      data: vendors,
+      data: {
+        items: vendors,
+        pagination: { page: 1, limit: 20, total: vendors.length, totalPages: 1 },
+      },
       isLoading: false,
       isFetching: false,
       error: null,

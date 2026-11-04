@@ -8,7 +8,13 @@ import {
   VERIFY_STORE_BANK_ACCOUNT,
 } from '@/lib/graphql/documents';
 import { mapAdminStore } from '@/lib/graphql/mappers';
-import type { AdminStore, CreateStoreAsAdminInput, UpdateStoreAsAdminInput } from '@/types';
+import type {
+  AdminStore,
+  AdminStoresQueryParams,
+  CreateStoreAsAdminInput,
+  Paginated,
+  UpdateStoreAsAdminInput,
+} from '@/types';
 import type { AdminStoreEditFormValues, AdminStoreFormValues } from '@/lib/validations';
 
 type GqlAdminStore = Parameters<typeof mapAdminStore>[0];
@@ -30,14 +36,15 @@ export function buildUpdateStoreAsAdminInput(
   values: AdminStoreFormValues | AdminStoreEditFormValues,
   options?: { commissionRateDirty?: boolean },
 ): UpdateStoreAsAdminInput {
+  const contactPhone = values.contactPhone?.replace(/[\s-]/g, '').trim() || null;
   const input: UpdateStoreAsAdminInput = {
     name: values.name,
-    slug: values.slug || undefined,
-    description: values.description || undefined,
+    slug: values.slug?.trim() || undefined,
+    description: values.description?.trim() ? values.description.trim() : null,
     status: values.status,
-    contactPhone: values.contactPhone || undefined,
-    contactEmail: values.contactEmail || undefined,
-    address: values.address || undefined,
+    contactPhone,
+    contactEmail: values.contactEmail?.trim() ? values.contactEmail.trim() : null,
+    address: values.address?.trim() ? values.address.trim() : null,
     ownerId: values.ownerId ? values.ownerId : null,
   };
 
@@ -48,10 +55,21 @@ export function buildUpdateStoreAsAdminInput(
   return input;
 }
 
-export function getAdminStores(): Promise<AdminStore[]> {
-  return executeQuery<{ adminStores: GqlAdminStore[] }>(ADMIN_STORES_QUERY).then((data) =>
-    data.adminStores.map(mapAdminStore),
-  );
+export function getAdminStores(
+  params: AdminStoresQueryParams = {},
+): Promise<Paginated<AdminStore>> {
+  return executeQuery<{
+    adminStores: { items: GqlAdminStore[]; pagination: Paginated<AdminStore>['pagination'] };
+  }>(ADMIN_STORES_QUERY, {
+    page: params.page ?? 1,
+    limit: params.limit ?? 20,
+    search: params.search || undefined,
+    status: params.status || undefined,
+    sort: params.sort || undefined,
+  }).then((data) => ({
+    items: data.adminStores.items.map(mapAdminStore),
+    pagination: data.adminStores.pagination,
+  }));
 }
 
 export function getAdminStore(id: string): Promise<AdminStore> {

@@ -80,8 +80,13 @@ const MOCK_ORDER: Order = {
 function mockVendorOrdersPage() {
   mockedUseVendorStoreId.mockReturnValue('store-1');
   mockedUseVendorOrders.mockReturnValue({
-    data: [MOCK_ORDER],
+    data: {
+      items: [MOCK_ORDER],
+      pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      actionableCount: 1,
+    },
     isLoading: false,
+    isFetching: false,
     error: null,
   } as ReturnType<typeof useVendorOrders>);
 }
@@ -196,8 +201,9 @@ describe('VendorOrdersPage', () => {
   it('shows loading skeleton (not an empty state) while storeId has not resolved yet', () => {
     mockedUseVendorStoreId.mockReturnValue(undefined);
     mockedUseVendorOrders.mockReturnValue({
-      data: [] as Order[],
+      data: undefined,
       isLoading: false,
+      isFetching: false,
       error: null,
     } as ReturnType<typeof useVendorOrders>);
 

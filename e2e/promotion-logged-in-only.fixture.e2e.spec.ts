@@ -90,8 +90,14 @@ async function installListChipOrderMocks(page: Page) {
       query.includes('storePromotions')
     ) {
       await fulfillGraphQL(route, {
-        platformPromotions: [CHIP_ORDER_LIST_PROMO],
-        storePromotions: [{ ...CHIP_ORDER_LIST_PROMO, scope: 'store' }],
+        platformPromotions: {
+          items: [CHIP_ORDER_LIST_PROMO],
+          pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+        },
+        storePromotions: {
+          items: [{ ...CHIP_ORDER_LIST_PROMO, scope: 'store' }],
+          pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+        },
       });
       return;
     }

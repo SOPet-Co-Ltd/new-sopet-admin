@@ -59,4 +59,28 @@ describe('buildUpdateStoreAsAdminInput', () => {
 
     expect(input.commissionRate).toBe(0);
   });
+
+  it('sends null for cleared optional contact fields', () => {
+    const input = buildUpdateStoreAsAdminInput({
+      ...baseValues,
+      description: '',
+      contactPhone: '',
+      contactEmail: '',
+      address: '  ',
+    });
+
+    expect(input.description).toBeNull();
+    expect(input.contactPhone).toBeNull();
+    expect(input.contactEmail).toBeNull();
+    expect(input.address).toBeNull();
+  });
+
+  it('normalizes spaced contact phone before send', () => {
+    const input = buildUpdateStoreAsAdminInput({
+      ...baseValues,
+      contactPhone: '081-234-5678',
+    });
+
+    expect(input.contactPhone).toBe('0812345678');
+  });
 });

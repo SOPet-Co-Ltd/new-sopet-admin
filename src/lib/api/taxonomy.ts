@@ -81,6 +81,7 @@ import {
   type UpdateTagMutation,
   type UpdateBrandMutation,
 } from '@/lib/graphql/generated/graphql';
+import { PENDING_TAXONOMY_IDS_QUERY } from '@/lib/graphql/documents';
 import type {
   CategoryDeleteImpact,
   CreateCategoryInput,
@@ -336,6 +337,17 @@ export function getPendingBrands(): Promise<TaxonomyItem[]> {
   return executeQuery<PendingBrandsQuery>(PendingBrandsDocument).then((data) =>
     data.pendingBrands.map(mapTaxonomyItem),
   );
+}
+
+export type PendingTaxonomyIds = {
+  pendingCategories: Array<{ id: string }>;
+  pendingTags: Array<{ id: string }>;
+  pendingPetTypes: Array<{ id: string }>;
+  pendingBrands: Array<{ id: string }>;
+};
+
+export function getPendingTaxonomyIds(): Promise<PendingTaxonomyIds> {
+  return executeQuery<PendingTaxonomyIds>(PENDING_TAXONOMY_IDS_QUERY);
 }
 
 export function createPetType(input: CreatePetTypeInput): Promise<TaxonomyItem> {

@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { useStorePayouts } from '@/hooks/usePayouts';
 import { commissionCopy } from '@/lib/i18n/th';
@@ -53,7 +55,10 @@ function HistorySkeleton() {
 }
 
 export function VendorPayoutHistoryPanel() {
-  const { data: payouts = [], isLoading } = useStorePayouts();
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useStorePayouts(page);
+  const payouts = data?.items ?? [];
+  const pagination = data?.pagination;
 
   return (
     <Card className="h-full">
@@ -64,8 +69,10 @@ export function VendorPayoutHistoryPanel() {
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">รายการคำขอโอนล่าสุด</p>
         </div>
-        {!isLoading && payouts.length > 0 ? (
-          <span className="text-xs text-muted-foreground">{payouts.length} รายการ</span>
+        {!isLoading && (pagination?.total ?? 0) > 0 ? (
+          <span className="text-xs text-muted-foreground">
+            {(pagination?.total ?? payouts.length).toLocaleString('th-TH')} รายการ
+          </span>
         ) : null}
       </CardHeader>
       <CardBody>
@@ -105,6 +112,33 @@ export function VendorPayoutHistoryPanel() {
             ))}
           </ul>
         )}
+        {pagination && pagination.totalPages > 1 ? (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+            <span className="tabular-nums">
+              หน้า {pagination.page} จาก {pagination.totalPages}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                ก่อนหน้า
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={page >= pagination.totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                ถัดไป
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </CardBody>
     </Card>
   );

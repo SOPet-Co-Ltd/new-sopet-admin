@@ -133,8 +133,60 @@ export const REJECT_STORE = gql`
 `;
 
 export const VENDOR_ORDERS_QUERY = gql`
-  query VendorOrders($storeId: String!) {
-    vendorOrders(storeId: $storeId) {
+  query VendorOrders(
+    $storeId: String!
+    $page: Int
+    $limit: Int
+    $queue: VendorOrderQueueFilter
+    $status: String
+    $paymentMethod: String
+    $search: String
+  ) {
+    vendorOrders(
+      storeId: $storeId
+      page: $page
+      limit: $limit
+      queue: $queue
+      status: $status
+      paymentMethod: $paymentMethod
+      search: $search
+    ) {
+      items {
+        id
+        orderNumber
+        status
+        createdAt
+        subtotal
+        shippingFee
+        discountAmount
+        total
+        paymentMethod
+        guestPhone
+        guestName
+        guestEmail
+        items {
+          id
+          storeId
+          fulfillmentStatus
+          trackingNumber
+          fulfillmentProvider
+          trackingUrl
+        }
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+      actionableCount
+    }
+  }
+`;
+
+export const VENDOR_ORDER_QUERY = gql`
+  query VendorOrder($storeId: String!, $id: String!) {
+    vendorOrder(storeId: $storeId, id: $id) {
       id
       orderNumber
       status
@@ -179,12 +231,135 @@ export const VENDOR_ORDERS_QUERY = gql`
   }
 `;
 
+const ADMIN_ORDER_FIELDS = `
+  order {
+    id
+    orderNumber
+    status
+    createdAt
+    subtotal
+    shippingFee
+    discountAmount
+    total
+    paymentMethod
+    guestPhone
+    guestName
+    guestEmail
+    items {
+      id
+      storeId
+      productName
+      unitPrice
+      quantity
+      subtotal
+      fulfillmentStatus
+      trackingNumber
+      fulfillmentProvider
+      trackingUrl
+      variantOptions
+    }
+    storeShippings {
+      storeId
+      optionName
+      shippingFee
+    }
+    shippingAddress {
+      fullName
+      phone
+      addressLine1
+      addressLine2
+      tumbon
+      amphoe
+      province
+      postalCode
+    }
+  }
+  stores {
+    id
+    name
+  }
+  customer {
+    id
+    fullName
+    phone
+    email
+  }
+`;
+
+const ADMIN_ORDER_LIST_FIELDS = `
+  order {
+    id
+    orderNumber
+    status
+    createdAt
+    total
+    paymentMethod
+    guestPhone
+    guestName
+    shippingAddress {
+      phone
+    }
+  }
+  stores {
+    id
+    name
+  }
+  customer {
+    id
+    fullName
+    phone
+  }
+`;
+
+export const ADMIN_ORDERS_QUERY = gql`
+  query AdminOrders($page: Int, $limit: Int, $search: String, $status: String) {
+    adminOrders(page: $page, limit: $limit, search: $search, status: $status) {
+      items {
+        ${ADMIN_ORDER_LIST_FIELDS}
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
+    }
+  }
+`;
+
+export const ADMIN_ORDER_QUERY = gql`
+  query AdminOrder($id: String!) {
+    adminOrder(id: $id) {
+      ${ADMIN_ORDER_FIELDS}
+    }
+  }
+`;
+
 export const UPDATE_ORDER_STATUS = gql`
   mutation UpdateOrderStatus($input: UpdateOrderStatusInput!) {
     updateOrderStatus(input: $input) {
       id
       orderNumber
       status
+    }
+  }
+`;
+
+export const UPDATE_ORDER_SHIPPING_ADDRESS_AS_ADMIN = gql`
+  mutation UpdateOrderShippingAddressAsAdmin($input: UpdateOrderShippingAddressAsAdminInput!) {
+    updateOrderShippingAddressAsAdmin(input: $input) {
+      id
+      orderNumber
+      shippingAddress {
+        fullName
+        phone
+        addressLine1
+        addressLine2
+        tumbon
+        amphoe
+        province
+        postalCode
+      }
     }
   }
 `;
@@ -312,7 +487,7 @@ const PRODUCT_IMAGE_FIELDS = `
   isThumbnail
 `;
 
-const PRODUCT_LIST_FIELDS = `
+const PRODUCT_DETAIL_FIELDS = `
   id
   storeId
   name
@@ -339,6 +514,30 @@ const PRODUCT_LIST_FIELDS = `
     compareAtPrice
     stockQuantity
     optionsJson
+  }
+`;
+
+const PRODUCT_LIST_FIELDS = `
+  id
+  storeId
+  name
+  slug
+  basePrice
+  thumbnailUrl
+  status
+  category
+  categoryId
+  petTypeId
+  brandId
+  tags
+  tagIds
+  images {
+    imageUrl
+    isThumbnail
+  }
+  variants {
+    price
+    stockQuantity
   }
 `;
 
@@ -423,7 +622,7 @@ export const DELETE_PRODUCT = gql`
 export const PRODUCT_QUERY = gql`
   query Product($id: String!) {
     vendorProduct(id: $id) {
-      ${PRODUCT_LIST_FIELDS}
+      ${PRODUCT_DETAIL_FIELDS}
       averageRating
       reviewCount
       soldCount
@@ -507,6 +706,17 @@ export const VENDOR_PRODUCTS_QUERY = gql`
   }
 `;
 
+export const VENDOR_PRODUCT_STATUS_PROBE_QUERY = gql`
+  query VendorProductStatusProbe($status: String, $page: Int, $limit: Int) {
+    vendorProducts(status: $status, page: $page, limit: $limit) {
+      items {
+        id
+        status
+      }
+    }
+  }
+`;
+
 export const VENDOR_PUBLISHABLE_PRODUCTS_QUERY = gql`
   query VendorPublishableProducts($search: String, $page: Int, $limit: Int) {
     vendorPublishableProducts(search: $search, page: $page, limit: $limit) {
@@ -571,6 +781,8 @@ export const PRODUCT_VARIANT_SYNC_IMPACT = gql`
         optionKey
         optionsJson
         reasons
+        disposition
+        openCartCount
       }
     }
   }
@@ -635,6 +847,41 @@ export const PLATFORM_ANALYTICS_QUERY = gql`
       totalStores
       pendingStores
       totalCustomers
+    }
+  }
+`;
+
+export const STORE_CUSTOMER_SUMMARY_QUERY = gql`
+  query StoreCustomerSummary($storeId: String!, $year: Int!, $month: Int!) {
+    storeCustomerSummary(storeId: $storeId, year: $year, month: $month) {
+      year
+      month
+      lifetimeMonths
+      repeatRate
+      purchasesPerMonth
+      averageOrderValue
+      newCustomerCount
+      oldCustomerCount
+      oldCustomerPercent
+      orderCount
+      buyersInMonth
+      totalCustomers
+    }
+  }
+`;
+
+export const CUSTOMER_PURCHASE_SUMMARY_QUERY = gql`
+  query CustomerPurchaseSummary($customerId: String!, $year: Int!, $month: Int!) {
+    customerPurchaseSummary(customerId: $customerId, year: $year, month: $month) {
+      year
+      month
+      purchasesInMonth
+      averageOrderValue
+      cohortLabel
+      cohortLabelTh
+      lastOrderAt
+      monthsSinceLastOrder
+      daysSinceLastOrder
     }
   }
 `;
@@ -939,9 +1186,29 @@ const PROMOTION_FIELDS = `
   createdAt
 `;
 
+const LIST_PAGINATION_FIELDS = `
+  page
+  limit
+  total
+  totalPages
+`;
+
 export const PLATFORM_PROMOTIONS_QUERY = gql`
-  query PlatformPromotions {
-    platformPromotions {
+  query PlatformPromotions($page: Int!, $limit: Int!) {
+    platformPromotions(page: $page, limit: $limit) {
+      items {
+        ${PROMOTION_FIELDS}
+      }
+      pagination {
+        ${LIST_PAGINATION_FIELDS}
+      }
+    }
+  }
+`;
+
+export const PROMOTION_QUERY = gql`
+  query Promotion($id: String!) {
+    promotion(id: $id) {
       ${PROMOTION_FIELDS}
     }
   }
@@ -1023,6 +1290,14 @@ export const PENDING_STORE_REQUESTS_QUERY = gql`
   query PendingStoreRequests {
     pendingStoreRequests {
       ${STORE_REQUEST_FIELDS}
+    }
+  }
+`;
+
+export const PENDING_STORE_REQUEST_IDS_QUERY = gql`
+  query PendingStoreRequestIds {
+    pendingStoreRequests {
+      id
     }
   }
 `;
@@ -1145,9 +1420,14 @@ const ADMIN_STORE_FIELDS = `
 `;
 
 export const ADMIN_STORES_QUERY = gql`
-  query AdminStores {
-    adminStores {
-      ${ADMIN_STORE_FIELDS}
+  query AdminStores($page: Int!, $limit: Int!, $search: String, $status: String, $sort: String) {
+    adminStores(page: $page, limit: $limit, search: $search, status: $status, sort: $sort) {
+      items {
+        ${ADMIN_STORE_FIELDS}
+      }
+      pagination {
+        ${LIST_PAGINATION_FIELDS}
+      }
     }
   }
 `;
@@ -1208,6 +1488,17 @@ const ADMIN_VENDOR_FIELDS = `
   }
 `;
 
+const ADMIN_VENDOR_LIST_FIELDS = `
+  id
+  email
+  fullName
+  role
+  isActive
+  lastLoginAt
+  createdAt
+  storeCount
+`;
+
 const ADMIN_VENDOR_INSIGHTS_FIELDS = `
   storeCount
   membershipCount
@@ -1247,9 +1538,14 @@ const ADMIN_VENDOR_INSIGHTS_FIELDS = `
 `;
 
 export const ADMIN_VENDORS_QUERY = gql`
-  query AdminVendors($search: String) {
-    adminVendors(search: $search) {
-      ${ADMIN_VENDOR_FIELDS}
+  query AdminVendors($page: Int!, $limit: Int!, $search: String, $status: String, $sort: String) {
+    adminVendors(page: $page, limit: $limit, search: $search, status: $status, sort: $sort) {
+      items {
+        ${ADMIN_VENDOR_LIST_FIELDS}
+      }
+      pagination {
+        ${LIST_PAGINATION_FIELDS}
+      }
     }
   }
 `;
@@ -1342,6 +1638,31 @@ export const PENDING_VENDOR_INVITATIONS_QUERY = gql`
       status
       token
       expiresAt
+    }
+  }
+`;
+
+export const PENDING_VENDOR_INVITATION_IDS_QUERY = gql`
+  query PendingVendorInvitationIds {
+    pendingVendorInvitations {
+      id
+    }
+  }
+`;
+
+export const PENDING_TAXONOMY_IDS_QUERY = gql`
+  query PendingTaxonomyIds {
+    pendingCategories {
+      id
+    }
+    pendingTags {
+      id
+    }
+    pendingPetTypes {
+      id
+    }
+    pendingBrands {
+      id
     }
   }
 `;
@@ -2112,6 +2433,70 @@ export const SET_CUSTOMER_ACTIVE = gql`
   }
 `;
 
+export const VERIFY_CUSTOMER_PHONE_AS_ADMIN = gql`
+  mutation VerifyCustomerPhoneAsAdmin($id: String!) {
+    verifyCustomerPhoneAsAdmin(id: $id) {
+      ${ADMIN_CUSTOMER_FIELDS}
+    }
+  }
+`;
+
+export const ADMIN_CUSTOMER_ADDRESS_FIELDS = `
+  id
+  label
+  fullName
+  phone
+  addressLine1
+  addressLine2
+  tumbon
+  amphoe
+  province
+  postalCode
+  isDefault
+`;
+
+export const ADMIN_CUSTOMER_ADDRESSES_QUERY = gql`
+  query AdminCustomerAddresses($customerId: String!) {
+    adminCustomerAddresses(customerId: $customerId) {
+      ${ADMIN_CUSTOMER_ADDRESS_FIELDS}
+    }
+  }
+`;
+
+export const CREATE_CUSTOMER_ADDRESS_AS_ADMIN = gql`
+  mutation CreateCustomerAddressAsAdmin($customerId: String!, $input: CreateAddressInput!) {
+    createCustomerAddressAsAdmin(customerId: $customerId, input: $input) {
+      ${ADMIN_CUSTOMER_ADDRESS_FIELDS}
+    }
+  }
+`;
+
+export const UPDATE_CUSTOMER_ADDRESS_AS_ADMIN = gql`
+  mutation UpdateCustomerAddressAsAdmin(
+    $customerId: String!
+    $id: String!
+    $input: UpdateAddressInput!
+  ) {
+    updateCustomerAddressAsAdmin(customerId: $customerId, id: $id, input: $input) {
+      ${ADMIN_CUSTOMER_ADDRESS_FIELDS}
+    }
+  }
+`;
+
+export const DELETE_CUSTOMER_ADDRESS_AS_ADMIN = gql`
+  mutation DeleteCustomerAddressAsAdmin($customerId: String!, $id: String!) {
+    deleteCustomerAddressAsAdmin(customerId: $customerId, id: $id)
+  }
+`;
+
+export const SET_CUSTOMER_DEFAULT_ADDRESS_AS_ADMIN = gql`
+  mutation SetCustomerDefaultAddressAsAdmin($customerId: String!, $id: String!) {
+    setCustomerDefaultAddressAsAdmin(customerId: $customerId, id: $id) {
+      ${ADMIN_CUSTOMER_ADDRESS_FIELDS}
+    }
+  }
+`;
+
 export const VENDOR_CUSTOMERS_QUERY = gql`
   query VendorCustomers($page: Int!, $limit: Int!, $search: String) {
     vendorCustomers(page: $page, limit: $limit, search: $search) {
@@ -2396,17 +2781,33 @@ export const ADMIN_STORE_PAYOUT_SUMMARY_QUERY = gql`
 `;
 
 export const STORE_PAYOUTS_QUERY = gql`
-  query StorePayouts {
-    storePayouts {
-      ${PAYOUT_FIELDS}
+  query StorePayouts($page: Int!, $limit: Int!) {
+    storePayouts(page: $page, limit: $limit) {
+      items {
+        ${PAYOUT_FIELDS}
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
     }
   }
 `;
 
 export const ADMIN_STORE_PAYOUTS_QUERY = gql`
-  query AdminStorePayouts($storeId: String!) {
-    adminStorePayouts(storeId: $storeId) {
-      ${PAYOUT_FIELDS}
+  query AdminStorePayouts($storeId: String!, $page: Int!, $limit: Int!) {
+    adminStorePayouts(storeId: $storeId, page: $page, limit: $limit) {
+      items {
+        ${PAYOUT_FIELDS}
+      }
+      pagination {
+        page
+        limit
+        total
+        totalPages
+      }
     }
   }
 `;

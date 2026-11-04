@@ -17,6 +17,7 @@ type NavPrefetchTarget = {
 };
 
 const DEFAULT_CUSTOMER_LIST_PARAMS = { page: 1, limit: 20 };
+const DEFAULT_ADMIN_LIST_PARAMS = { page: 1, limit: 20 };
 const DEFAULT_VENDOR_PRODUCT_PARAMS = { page: 1, limit: 10 };
 
 const NAV_PREFETCH_TARGETS: Record<string, NavPrefetchTarget> = {
@@ -25,12 +26,12 @@ const NAV_PREFETCH_TARGETS: Record<string, NavPrefetchTarget> = {
     queryFn: () => getPlatformAnalytics(),
   },
   '/admin/stores': {
-    queryKey: queryKeys.adminStores.list(),
-    queryFn: getAdminStores,
+    queryKey: queryKeys.adminStores.list(DEFAULT_ADMIN_LIST_PARAMS),
+    queryFn: () => getAdminStores(DEFAULT_ADMIN_LIST_PARAMS),
   },
   '/admin/vendors': {
-    queryKey: queryKeys.adminVendors.list(),
-    queryFn: () => getAdminVendors(),
+    queryKey: queryKeys.adminVendors.list(DEFAULT_ADMIN_LIST_PARAMS),
+    queryFn: () => getAdminVendors(DEFAULT_ADMIN_LIST_PARAMS),
   },
   '/admin/customers': {
     queryKey: queryKeys.adminCustomers.list(DEFAULT_CUSTOMER_LIST_PARAMS),
@@ -41,8 +42,8 @@ const NAV_PREFETCH_TARGETS: Record<string, NavPrefetchTarget> = {
     queryFn: getPendingCategories,
   },
   '/admin/promotions': {
-    queryKey: queryKeys.promotions.platform(),
-    queryFn: getPlatformPromotions,
+    queryKey: queryKeys.promotions.platform(DEFAULT_ADMIN_LIST_PARAMS),
+    queryFn: () => getPlatformPromotions(DEFAULT_ADMIN_LIST_PARAMS),
   },
   '/admin/team': {
     queryKey: queryKeys.adminTeam.members(),

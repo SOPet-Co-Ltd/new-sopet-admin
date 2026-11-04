@@ -48,6 +48,8 @@ let mockImpact: ProductVariantSyncImpact = {
       sku: 'SHAMPOO-BLUE',
       optionKey: 'สี:น้ำเงิน',
       reasons: [],
+      disposition: 'DELETE',
+      openCartCount: 0,
     },
   ],
 };
@@ -116,6 +118,8 @@ describe('ProductVariantsPage', () => {
           sku: 'SHAMPOO-BLUE',
           optionKey: 'สี:น้ำเงิน',
           reasons: [],
+          disposition: 'DELETE',
+          openCartCount: 0,
         },
       ],
     };
@@ -126,7 +130,8 @@ describe('ProductVariantsPage', () => {
 
     expect(screen.queryByText(/แก้ไขที่นี่ไม่ได้/)).not.toBeInTheDocument();
     expect(screen.getByLabelText('ชื่อตัวเลือกที่ 1')).toHaveValue('สี');
-    expect(screen.getByLabelText('ค่าตัวเลือกที่ 1')).toHaveValue('แดง, น้ำเงิน');
+    expect(screen.getByLabelText('ค่าตัวเลือกที่ 1')).toHaveTextContent('แดง');
+    expect(screen.getByLabelText('ค่าตัวเลือกที่ 1')).toHaveTextContent('น้ำเงิน');
   });
 
   it('shows existing SKUs in the items table with helpful framing copy', () => {
@@ -189,8 +194,9 @@ describe('ProductVariantsPage', () => {
 
     expect(screen.getByText('รายการ SKU ด้านล่างตรงกับตัวเลือกปัจจุบันแล้ว')).toBeInTheDocument();
 
-    const valuesInput = screen.getByLabelText('ค่าตัวเลือกที่ 1');
-    await userEvent.type(valuesInput, ', เขียว');
+    const addValueInput = screen.getByLabelText('เพิ่มค่าตัวเลือกที่ 1');
+    await userEvent.type(addValueInput, 'เขียว');
+    await userEvent.click(screen.getByRole('button', { name: 'เพิ่ม' }));
 
     expect(screen.getByText(/ตัวเลือกมีการเปลี่ยนแปลง/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'บันทึก SKU/สต็อก/ราคา' })).toBeDisabled();
@@ -212,9 +218,7 @@ describe('ProductVariantsPage', () => {
   it('Save opens impact dialog; Confirm syncs when unblocked', async () => {
     renderWithQueryClient(<ProductVariantsPage />);
 
-    const valuesInput = screen.getByLabelText('ค่าตัวเลือกที่ 1');
-    await userEvent.clear(valuesInput);
-    await userEvent.type(valuesInput, 'แดง');
+    await userEvent.click(screen.getByRole('button', { name: 'ลบค่า น้ำเงิน' }));
     await userEvent.click(screen.getByRole('button', { name: /อัปเดตรายการตัวเลือก/ }));
 
     expect(screen.getByRole('heading', { name: 'รายการ SKU (1)' })).toBeInTheDocument();
@@ -242,18 +246,20 @@ describe('ProductVariantsPage', () => {
     });
   });
 
-  it('never syncs when impact is blocked (Cancel only)', async () => {
+  it('allows sync when removals have order history (retire disposition)', async () => {
     mockImpact = {
       kept: 1,
       new: 0,
       removed: 1,
-      blocked: true,
+      blocked: false,
       removedVariants: [
         {
           id: 'var-2',
           sku: 'SHAMPOO-BLUE',
           optionKey: 'สี:น้ำเงิน',
           reasons: ['HAS_ORDERS'],
+          disposition: 'RETIRE',
+          openCartCount: 0,
         },
       ],
     };
@@ -263,17 +269,16 @@ describe('ProductVariantsPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'บันทึก SKU/สต็อก/ราคา' }));
 
     expect(
-      screen.getByRole('heading', { name: 'ไม่สามารถบันทึกได้ — มี SKU ที่ถูกใช้งาน' }),
+      screen.getByRole('heading', { name: 'ยืนยันการบันทึกตัวเลือกสินค้า' }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'ยืนยันการบันทึก' })).not.toBeInTheDocument();
-    expect(screen.getByRole('list', { name: 'SKU ที่ถูกบล็อก' })).toHaveTextContent('SHAMPOO-BLUE');
-    expect(screen.getByRole('list', { name: 'SKU ที่ถูกบล็อก' })).toHaveTextContent(
-      'มีประวัติคำสั่งซื้อ',
+    expect(screen.getByRole('list', { name: 'SKU ที่จะนำออก' })).toHaveTextContent('SHAMPOO-BLUE');
+    expect(screen.getByRole('list', { name: 'SKU ที่จะนำออก' })).toHaveTextContent(
+      'เก็บไว้สำหรับคำสั่งซื้อเดิม',
     );
 
-    await userEvent.click(screen.getByRole('button', { name: 'ยกเลิก' }));
+    await userEvent.click(screen.getByRole('button', { name: 'ยืนยันการบันทึก' }));
 
-    expect(mutateAsync).not.toHaveBeenCalled();
+    expect(mutateAsync).toHaveBeenCalled();
   });
 
   it('deleting a row directly from the SKU table removes it without touching the option groups', async () => {
@@ -284,6 +289,7 @@ describe('ProductVariantsPage', () => {
 
     expect(screen.getByRole('heading', { name: 'รายการ SKU (1)' })).toBeInTheDocument();
     expect(screen.queryByDisplayValue('SHAMPOO-RED')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('ค่าตัวเลือกที่ 1')).toHaveValue('แดง, น้ำเงิน');
+    expect(screen.getByLabelText('ค่าตัวเลือกที่ 1')).toHaveTextContent('แดง');
+    expect(screen.getByLabelText('ค่าตัวเลือกที่ 1')).toHaveTextContent('น้ำเงิน');
   });
 });

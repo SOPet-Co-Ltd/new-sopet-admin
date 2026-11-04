@@ -3,6 +3,7 @@ import {
   CREATE_PROMOTION,
   DELETE_PROMOTION,
   PLATFORM_PROMOTIONS_QUERY,
+  PROMOTION_QUERY,
   TOGGLE_PROMOTION,
   UPDATE_PROMOTION,
 } from '@/lib/graphql/documents';
@@ -11,7 +12,13 @@ import {
   type StorePromotionsQuery,
 } from '@/lib/graphql/generated/graphql';
 import { mapPromotion } from '@/lib/graphql/mappers';
-import type { CreatePromotionInput, Promotion, UpdatePromotionInput } from '@/types';
+import type {
+  CreatePromotionInput,
+  Paginated,
+  Promotion,
+  PromotionsQueryParams,
+  UpdatePromotionInput,
+} from '@/types';
 
 type GqlPromotion = Parameters<typeof mapPromotion>[0];
 
@@ -24,16 +31,38 @@ function toCreatePromotionVariables(
   return rest;
 }
 
-export function getStorePromotions(storeId: string): Promise<Promotion[]> {
-  return executeQuery<StorePromotionsQuery>(StorePromotionsDocument, { storeId }).then((data) =>
-    data.storePromotions.map(mapPromotion),
+export function getPromotion(id: string): Promise<Promotion> {
+  return executeQuery<{ promotion: GqlPromotion }>(PROMOTION_QUERY, { id }).then((data) =>
+    mapPromotion(data.promotion),
   );
 }
 
-export function getPlatformPromotions(): Promise<Promotion[]> {
-  return executeQuery<{ platformPromotions: GqlPromotion[] }>(PLATFORM_PROMOTIONS_QUERY).then(
-    (data) => data.platformPromotions.map(mapPromotion),
-  );
+export function getStorePromotions(
+  storeId: string,
+  params: PromotionsQueryParams = {},
+): Promise<Paginated<Promotion>> {
+  return executeQuery<StorePromotionsQuery>(StorePromotionsDocument, {
+    storeId,
+    page: params.page ?? 1,
+    limit: params.limit ?? 20,
+  }).then((data) => ({
+    items: data.storePromotions.items.map(mapPromotion),
+    pagination: data.storePromotions.pagination,
+  }));
+}
+
+export function getPlatformPromotions(
+  params: PromotionsQueryParams = {},
+): Promise<Paginated<Promotion>> {
+  return executeQuery<{
+    platformPromotions: { items: GqlPromotion[]; pagination: Paginated<Promotion>['pagination'] };
+  }>(PLATFORM_PROMOTIONS_QUERY, {
+    page: params.page ?? 1,
+    limit: params.limit ?? 20,
+  }).then((data) => ({
+    items: data.platformPromotions.items.map(mapPromotion),
+    pagination: data.platformPromotions.pagination,
+  }));
 }
 
 export function createPromotion(input: CreatePromotionInput): Promise<Promotion> {
