@@ -55,7 +55,7 @@ export default function AdminManualPayoutsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Payout Manual"
-        description="คำขอรับเงินจากยอดโอนเข้าบัญชี SOPET — โอนให้ร้านนอกระบบแล้วกดอนุมัติ (หรือปฏิเสธ)"
+        description="คำขอรับเงินจากร้านค้า (ทุกช่องทางชำระเงิน) — โอนเข้าบัญชีร้านที่บันทึกไว้แล้วกดอนุมัติ (หรือปฏิเสธ)"
         action={<HelpDeepLink role="admin" slug="manual-payouts" />}
       />
 
@@ -76,7 +76,7 @@ export default function AdminManualPayoutsPage() {
           ) : isError ? (
             <p className="text-sm text-destructive">โหลดรายการไม่สำเร็จ</p>
           ) : items.length === 0 ? (
-            <p className="text-sm text-muted">ไม่มีคำขอ Manual payout รอดำเนินการ</p>
+            <p className="text-sm text-muted">ไม่มีคำขอ payout รอดำเนินการ</p>
           ) : (
             <ul className="divide-y divide-border">
               {items.map((payout) => {

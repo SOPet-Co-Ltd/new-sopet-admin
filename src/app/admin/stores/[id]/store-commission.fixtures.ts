@@ -16,7 +16,7 @@
  * Mock target hooks (page-test boundary):
  *   `@/hooks/useAdminStores` — useAdminStore / useUpdateStoreAsAdmin
  *   `@/hooks/usePayouts` — useAdminStorePayoutSummary / useAdminStorePayouts /
- *     useTriggerPayout / useSettleManualPayout / useRejectManualPayout /
+ *     useSettleManualPayout / useRejectManualPayout /
  *     useStorePayoutSummary / useStorePayouts / usePendingManualPayouts
  *
  * @real-dependency: formatCurrency (th-TH / THB — do not mock in later tests)
@@ -25,7 +25,7 @@
  * yet. Do not import not-yet-existing UI modules.
  */
 
-import type { AdminStore, Paginated, Payout, PayoutRailSummary, PayoutSummary } from '@/types';
+import type { AdminStore, Paginated, Payout, PayoutSummary } from '@/types';
 
 /** Skeleton Arrange fours — FE-INT-1 / FIX-1. Do not invent replacements. */
 export const MIXED_CUTOFF_FOURS = {
@@ -58,22 +58,7 @@ export type AdminManualPayoutCommissionFixture = PayoutCommissionFixture & {
   bankAccountNumber: string | null;
 };
 
-/** Planned additive rail money threes + rate metadata (never a money row). */
-export type PayoutRailCommissionFixture = PayoutRailSummary & {
-  productSold: number | null;
-  shippingFees: number | null;
-  commissionAmount: number | null;
-  commissionRate: number | null;
-};
-
-export type PayoutSummaryCommissionFixture = Omit<PayoutSummary, 'omise' | 'manual'> & {
-  productSold: number | null;
-  shippingFees: number | null;
-  commissionAmount: number | null;
-  commissionRate: number | null;
-  omise: PayoutRailCommissionFixture;
-  manual: PayoutRailCommissionFixture;
-};
+export type PayoutSummaryCommissionFixture = PayoutSummary;
 
 const BASE_ADMIN_STORE = {
   id: 'store-1',
@@ -101,24 +86,6 @@ function createAdminStoreFixture(
   };
 }
 
-function createRailFixture(
-  rate: number | null,
-  overrides?: Partial<PayoutRailCommissionFixture>,
-): PayoutRailCommissionFixture {
-  return {
-    grossRevenue: MIXED_CUTOFF_FOURS.productSold,
-    totalPaidOut: 0,
-    availableBalance: MIXED_CUTOFF_FOURS.net,
-    pendingPayoutAmount: 0,
-    canRequestPayout: true,
-    productSold: MIXED_CUTOFF_FOURS.productSold,
-    shippingFees: MIXED_CUTOFF_FOURS.shippingFees,
-    commissionAmount: MIXED_CUTOFF_FOURS.commissionAmount,
-    commissionRate: rate,
-    ...overrides,
-  };
-}
-
 function createPayoutFixture(
   id: string,
   rate: number | null,
@@ -130,7 +97,7 @@ function createPayoutFixture(
     amount: MIXED_CUTOFF_FOURS.net,
     netAmount: MIXED_CUTOFF_FOURS.net,
     status: 'completed',
-    settlementRail: 'omise',
+    settlementRail: 'manual',
     createdAt: '2026-01-15T00:00:00.000Z',
     productSold: MIXED_CUTOFF_FOURS.productSold,
     shippingFees: MIXED_CUTOFF_FOURS.shippingFees,
@@ -170,8 +137,6 @@ export const mixedCutoffAvailableSummary: PayoutSummaryCommissionFixture = {
   shippingFees: MIXED_CUTOFF_FOURS.shippingFees,
   commissionAmount: MIXED_CUTOFF_FOURS.commissionAmount,
   commissionRate: null,
-  omise: createRailFixture(null),
-  manual: createRailFixture(null, { canRequestPayout: false, availableBalance: 0 }),
 };
 
 /** FIX-1 — unpaid mixed-cutoff fours plus a pending manual queue amount. */
@@ -179,20 +144,12 @@ export const mixedCutoffAvailableWithPendingSummary: PayoutSummaryCommissionFixt
   ...mixedCutoffAvailableSummary,
   pendingPayoutAmount: MIXED_CUTOFF_FOURS.net,
   canRequestPayout: false,
-  omise: createRailFixture(null, { canRequestPayout: false, availableBalance: 0 }),
-  manual: createRailFixture(null, {
-    availableBalance: MIXED_CUTOFF_FOURS.net,
-    pendingPayoutAmount: MIXED_CUTOFF_FOURS.net,
-    canRequestPayout: false,
-  }),
 };
 
 /** Live 10% available-balance (rate metadata only — fours stay server-provided). */
 export const liveTenPercentAvailableSummary: PayoutSummaryCommissionFixture = {
   ...mixedCutoffAvailableSummary,
   commissionRate: 10,
-  omise: createRailFixture(10),
-  manual: createRailFixture(10, { canRequestPayout: false, availableBalance: 0 }),
 };
 
 /** FIX-1 — pending manual snapshot with mixed-cutoff fours. */

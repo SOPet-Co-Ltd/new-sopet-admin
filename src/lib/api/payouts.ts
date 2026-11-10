@@ -4,32 +4,16 @@ import {
   ADMIN_STORE_PAYOUT_SUMMARY_QUERY,
   PENDING_MANUAL_PAYOUTS_QUERY,
   REJECT_MANUAL_PAYOUT_MUTATION,
-  REQUEST_MANUAL_PAYOUT_MUTATION,
   REQUEST_PAYOUT_MUTATION,
   SETTLE_MANUAL_PAYOUT_MUTATION,
   STORE_PAYOUTS_QUERY,
   STORE_PAYOUT_SUMMARY_QUERY,
-  TRIGGER_PAYOUT_MUTATION,
 } from '@/lib/graphql/documents';
 import { mapPagination } from '@/lib/graphql/mappers';
-import type { Paginated, Payout, PayoutRailSummary, PayoutSummary } from '@/types';
+import type { Paginated, Payout, PayoutSummary } from '@/types';
 
 type GqlPayoutSummary = PayoutSummary;
 type GqlPayout = Payout;
-
-function mapRail(rail: PayoutRailSummary): PayoutRailSummary {
-  return {
-    grossRevenue: Number(rail.grossRevenue),
-    totalPaidOut: Number(rail.totalPaidOut),
-    availableBalance: Number(rail.availableBalance),
-    pendingPayoutAmount: Number(rail.pendingPayoutAmount),
-    canRequestPayout: rail.canRequestPayout,
-    productSold: Number(rail.productSold),
-    shippingFees: Number(rail.shippingFees),
-    commissionAmount: Number(rail.commissionAmount),
-    commissionRate: rail.commissionRate == null ? null : Number(rail.commissionRate),
-  };
-}
 
 function mapPayoutSummary(summary: GqlPayoutSummary): PayoutSummary {
   return {
@@ -44,8 +28,6 @@ function mapPayoutSummary(summary: GqlPayoutSummary): PayoutSummary {
     shippingFees: Number(summary.shippingFees),
     commissionAmount: Number(summary.commissionAmount),
     commissionRate: summary.commissionRate == null ? null : Number(summary.commissionRate),
-    omise: mapRail(summary.omise),
-    manual: mapRail(summary.manual),
   };
 }
 
@@ -152,18 +134,6 @@ export function getPendingManualPayouts(
 export function requestPayout(): Promise<Payout> {
   return executeMutation<{ requestPayout: GqlPayout }>(REQUEST_PAYOUT_MUTATION).then((data) =>
     mapPayout(data.requestPayout),
-  );
-}
-
-export function requestManualPayout(): Promise<Payout> {
-  return executeMutation<{ requestManualPayout: GqlPayout }>(REQUEST_MANUAL_PAYOUT_MUTATION).then(
-    (data) => mapPayout(data.requestManualPayout),
-  );
-}
-
-export function triggerPayout(input: { storeId: string; amount?: number }): Promise<Payout> {
-  return executeMutation<{ triggerPayout: GqlPayout }>(TRIGGER_PAYOUT_MUTATION, { input }).then(
-    (data) => mapPayout(data.triggerPayout),
   );
 }
 

@@ -8,10 +8,8 @@ import {
   getStorePayoutSummary,
   getStorePayouts,
   rejectManualPayout,
-  requestManualPayout,
   requestPayout,
   settleManualPayout,
-  triggerPayout,
   ADMIN_MANUAL_PAYOUT_PAGE_SIZE,
   PAYOUT_HISTORY_PAGE_SIZE,
 } from '@/lib/api/payouts';
@@ -46,16 +44,6 @@ export function useRequestPayout() {
   });
 }
 
-export function useRequestManualPayout() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: requestManualPayout,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
-    },
-  });
-}
-
 export function useAdminStorePayoutSummary(storeId: string) {
   return useQuery({
     queryKey: queryKeys.payouts.adminSummary(storeId),
@@ -69,17 +57,6 @@ export function useAdminStorePayouts(storeId: string, page = 1) {
     queryKey: queryKeys.payouts.adminHistory(storeId, page),
     queryFn: () => getAdminStorePayouts(storeId, page, PAYOUT_HISTORY_PAGE_SIZE),
     enabled: !!storeId,
-  });
-}
-
-export function useTriggerPayout(storeId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (amount?: number) => triggerPayout({ storeId, amount }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.adminSummary(storeId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.adminHistory(storeId) });
-    },
   });
 }
 
