@@ -84,9 +84,18 @@ export function ProductTourProvider({
     return buildStoreReadinessChecklist({
       shippingOptions,
       products: publishedProducts,
-      omiseRecipientStatus: store?.omiseRecipientStatus,
+      bankName: store?.bankName,
+      bankAccountName: store?.bankAccountName,
+      bankAccountNumber: store?.bankAccountNumber,
     });
-  }, [isOwner, shippingOptions, publishedProducts, store?.omiseRecipientStatus]);
+  }, [
+    isOwner,
+    shippingOptions,
+    publishedProducts,
+    store?.bankName,
+    store?.bankAccountName,
+    store?.bankAccountNumber,
+  ]);
 
   const startTour = useCallback(() => {
     if (!user?.id || steps.length === 0) return;

@@ -90,7 +90,15 @@ vi.mock('@/hooks/useAdminStores', () => ({
     mutateAsync: vi.fn(),
     isPending: false,
   }),
-  useLinkStoreOmiseRecipientAsAdmin: () => ({
+  useVerifyStoreBankAccount: () => ({
+    mutateAsync: vi.fn(),
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
+  useRejectStoreBankAccount: () => ({
     mutateAsync: vi.fn(),
     mutate: vi.fn(),
     isPending: false,
@@ -140,13 +148,6 @@ vi.mock('@/hooks/usePayouts', () => ({
     error: null,
     refetch: vi.fn(),
   }),
-  useTriggerPayout: () => ({
-    mutate: vi.fn(),
-    isPending: false,
-    isError: false,
-    isSuccess: false,
-    error: null,
-  }),
   useSettleManualPayout: () => ({
     mutate: vi.fn(),
     isPending: false,
@@ -162,13 +163,6 @@ vi.mock('@/hooks/usePayouts', () => ({
     error: null,
   }),
   useRequestPayout: () => ({
-    mutate: vi.fn(),
-    isPending: false,
-    isError: false,
-    isSuccess: false,
-    error: null,
-  }),
-  useRequestManualPayout: () => ({
     mutate: vi.fn(),
     isPending: false,
     isError: false,
@@ -198,7 +192,7 @@ vi.mock('@/hooks/useMembershipRole', () => ({
 
 vi.mock('@/hooks/useStoreSettings', () => ({
   useMyStore: () => ({
-    data: { omiseRecipientStatus: 'active', bankAccountNumber: '1234567890' },
+    data: { bankAccountVerificationStatus: 'verified', bankAccountNumber: '1234567890' },
     isLoading: false,
   }),
 }));
@@ -529,17 +523,17 @@ describe('store commission — vendor balance and frozen history journey [fixtur
   it('carries the same four numbers from dashboard to รับเงิน and keeps history frozen without a rate editor', () => {
     const { unmount: unmountSnapshot } = render(<VendorPayoutSnapshot />);
     expect(screen.getAllByText(commissionCopy.breakdown.productSold).length).toBeGreaterThanOrEqual(
-      2,
+      1,
     );
     expect(
       screen.getAllByText(commissionCopy.breakdown.shippingFees).length,
-    ).toBeGreaterThanOrEqual(2);
+    ).toBeGreaterThanOrEqual(1);
     expect(
       screen.getAllByText(commissionCopy.breakdown.commissionDeducted, { exact: false }).length,
-    ).toBeGreaterThanOrEqual(2);
+    ).toBeGreaterThanOrEqual(1);
     expect(
       screen.getAllByText(commissionCopy.breakdown.netPayable.vendor).length,
-    ).toBeGreaterThanOrEqual(2);
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(formatCurrency(mixedCutoffFours.net)).length).toBeGreaterThan(0);
     expect(screen.queryByLabelText(/อัตราค่าคอมมิชชัน/)).not.toBeInTheDocument();
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();

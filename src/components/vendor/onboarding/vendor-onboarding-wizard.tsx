@@ -87,9 +87,17 @@ export function VendorOnboardingWizard() {
       buildStoreReadinessChecklist({
         shippingOptions,
         products: productsResult?.items ?? [],
-        omiseRecipientStatus: store?.omiseRecipientStatus,
+        bankName: store?.bankName,
+        bankAccountName: store?.bankAccountName,
+        bankAccountNumber: store?.bankAccountNumber,
       }),
-    [shippingOptions, productsResult?.items, store?.omiseRecipientStatus],
+    [
+      shippingOptions,
+      productsResult?.items,
+      store?.bankName,
+      store?.bankAccountName,
+      store?.bankAccountNumber,
+    ],
   );
 
   const readiness = useMemo(

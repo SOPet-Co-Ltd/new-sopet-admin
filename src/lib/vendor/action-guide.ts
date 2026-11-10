@@ -278,15 +278,7 @@ export const ACTION_GUIDE_TIPS: ActionGuideTip[] = [
     step: 2,
     targetId: 'action-payout-save',
     title: 'บันทึกบัญชี',
-    body: 'กดบันทึกบัญชีธนาคาร — ยังไม่ส่งไป Omise จนกว่าจะยืนยันในขั้นถัดไป',
-    primaryLabel: 'เข้าใจแล้ว',
-  },
-  {
-    guideId: 'setup-payout',
-    step: 3,
-    targetId: 'action-payout-omise',
-    title: 'เชื่อม Omise',
-    body: 'ยืนยันบัญชีกับ Omise เพื่อรับเงินผ่าน PromptPay / บัตร ตามที่ร้านเปิดใช้',
+    body: 'กดบันทึกบัญชีธนาคาร — จากนั้นขอรับเงินได้เมื่อมียอดถึงขั้นต่ำ',
     primaryLabel: 'เสร็จสิ้น',
   },
 ];

@@ -5,8 +5,9 @@ import {
   createStoreAsAdmin,
   getAdminStore,
   getAdminStores,
-  linkStoreOmiseRecipientAsAdmin,
+  rejectStoreBankAccount,
   updateStoreAsAdmin,
+  verifyStoreBankAccount,
 } from '@/lib/api/admin-stores';
 import { queryKeys } from '@/lib/react-query/keys';
 import type {
@@ -54,14 +55,28 @@ export function useUpdateStoreAsAdmin() {
   });
 }
 
-export function useLinkStoreOmiseRecipientAsAdmin() {
+function invalidateStoreBankQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  storeId: string,
+) {
+  queryClient.invalidateQueries({ queryKey: queryKeys.adminStores.all });
+  queryClient.invalidateQueries({ queryKey: queryKeys.adminStores.detail(storeId) });
+  queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
+}
+
+export function useVerifyStoreBankAccount() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (storeId: string) => linkStoreOmiseRecipientAsAdmin(storeId),
-    onSuccess: (_data, storeId) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminStores.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminStores.detail(storeId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
-    },
+    mutationFn: (storeId: string) => verifyStoreBankAccount(storeId),
+    onSuccess: (_data, storeId) => invalidateStoreBankQueries(queryClient, storeId),
+  });
+}
+
+export function useRejectStoreBankAccount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ storeId, reason }: { storeId: string; reason: string }) =>
+      rejectStoreBankAccount(storeId, reason),
+    onSuccess: (_data, variables) => invalidateStoreBankQueries(queryClient, variables.storeId),
   });
 }

@@ -88,7 +88,9 @@ describe('action-guide', () => {
     expect(getActionGuideTip('create-campaign', 4)?.primaryLabel).toBe('เสร็จสิ้น');
     expect(getActionGuideTip('invite-team', 3)?.targetId).toBe('action-team-submit');
     expect(getActionGuideTip('request-store', 1)?.targetId).toBe('action-store-name');
-    expect(getActionGuideTip('setup-payout', 3)?.targetId).toBe('action-payout-omise');
+    expect(getActionGuideTip('setup-payout', 2)?.targetId).toBe('action-payout-save');
+    expect(getActionGuideTip('setup-payout', 2)?.primaryLabel).toBe('เสร็จสิ้น');
+    expect(getActionGuideTip('setup-payout', 3)).toBeUndefined();
   });
 
   it('defaults step to 1 for legacy storage without step', () => {

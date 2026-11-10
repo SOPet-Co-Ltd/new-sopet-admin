@@ -38,7 +38,15 @@ vi.mock('@/hooks/useAdminStores', () => ({
     isError: false,
     error: null,
   }),
-  useLinkStoreOmiseRecipientAsAdmin: () => ({
+  useVerifyStoreBankAccount: () => ({
+    mutateAsync: vi.fn(),
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
+  useRejectStoreBankAccount: () => ({
     mutateAsync: vi.fn(),
     mutate: vi.fn(),
     isPending: false,
@@ -57,13 +65,6 @@ vi.mock('@/hooks/usePayouts', () => ({
   useAdminStorePayouts: () => ({
     data: { items: [], pagination: { page: 1, limit: 20, total: 0, totalPages: 1 } },
     isLoading: false,
-  }),
-  useTriggerPayout: () => ({
-    mutate: vi.fn(),
-    isPending: false,
-    isError: false,
-    isSuccess: false,
-    error: null,
   }),
   useSettleManualPayout: () => ({
     mutate: vi.fn(),

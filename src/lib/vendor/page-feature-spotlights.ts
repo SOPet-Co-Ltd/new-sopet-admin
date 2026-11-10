@@ -78,10 +78,10 @@ export const PAGE_FEATURE_SPOTLIGHTS: Record<
     id: 'payout-setup',
     targetId: 'payout-setup-panel',
     title: 'ตั้งบัญชีรับเงิน',
-    body: 'บันทึกบัญชีธนาคารและเชื่อม Omise เพื่อรับเงินจากคำสั่งซื้อ — เฉพาะเจ้าของร้าน',
+    body: 'บันทึกบัญชีธนาคารแล้วขอรับเงินจากคำสั่งซื้อ — เฉพาะเจ้าของร้าน',
     primaryLabel: 'เข้าใจแล้ว',
     catalogTitle: 'ตั้งค่ารับเงิน',
-    catalogDescription: 'แนะนำแผงบัญชีรับเงินและ Omise ในตั้งค่าร้าน',
+    catalogDescription: 'แนะนำแผงบัญชีรับเงินและการตรวจสอบบัญชีในตั้งค่าร้าน',
     // Hub replay starts the setup-payout action guide (not page intro).
     catalogHref: actionGuideHref('/vendor/settings?tab=payout', 'setup-payout'),
   },

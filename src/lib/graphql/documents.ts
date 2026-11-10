@@ -1113,24 +1113,8 @@ export const UPDATE_STORE_PAYOUT = gql`
       bankAccountNumber
       bankName
       bankCode
-      omiseRecipientId
-      omiseRecipientStatus
-      omiseRecipientFailureMessage
-    }
-  }
-`;
-
-export const LINK_STORE_OMISE_RECIPIENT = gql`
-  mutation LinkStoreOmiseRecipient {
-    linkStoreOmiseRecipient {
-      id
-      bankAccountName
-      bankAccountNumber
-      bankName
-      bankCode
-      omiseRecipientId
-      omiseRecipientStatus
-      omiseRecipientFailureMessage
+      bankAccountVerificationStatus
+      bankAccountRejectionReason
     }
   }
 `;
@@ -1152,9 +1136,8 @@ export const MY_STORE_QUERY = gql`
       bankAccountNumber
       bankName
       bankCode
-      omiseRecipientId
-      omiseRecipientStatus
-      omiseRecipientFailureMessage
+      bankAccountVerificationStatus
+      bankAccountRejectionReason
     }
   }
 `;
@@ -1432,9 +1415,8 @@ const ADMIN_STORE_FIELDS = `
   bankAccountNumber
   bankName
   bankCode
-  omiseRecipientId
-  omiseRecipientStatus
-  omiseRecipientFailureMessage
+  bankAccountVerificationStatus
+  bankAccountRejectionReason
 `;
 
 export const ADMIN_STORES_QUERY = gql`
@@ -1474,9 +1456,17 @@ export const UPDATE_STORE_AS_ADMIN = gql`
   }
 `;
 
-export const LINK_STORE_OMISE_RECIPIENT_AS_ADMIN = gql`
-  mutation LinkStoreOmiseRecipientAsAdmin($storeId: String!) {
-    linkStoreOmiseRecipientAsAdmin(storeId: $storeId) {
+export const VERIFY_STORE_BANK_ACCOUNT = gql`
+  mutation VerifyStoreBankAccount($storeId: String!) {
+    verifyStoreBankAccount(storeId: $storeId) {
+      ${ADMIN_STORE_FIELDS}
+    }
+  }
+`;
+
+export const REJECT_STORE_BANK_ACCOUNT = gql`
+  mutation RejectStoreBankAccount($storeId: String!, $reason: String!) {
+    rejectStoreBankAccount(storeId: $storeId, reason: $reason) {
       ${ADMIN_STORE_FIELDS}
     }
   }
@@ -2758,28 +2748,6 @@ const PAYOUT_SUMMARY_FIELDS = `
   shippingFees
   commissionAmount
   commissionRate
-  omise {
-    grossRevenue
-    totalPaidOut
-    availableBalance
-    pendingPayoutAmount
-    canRequestPayout
-    productSold
-    shippingFees
-    commissionAmount
-    commissionRate
-  }
-  manual {
-    grossRevenue
-    totalPaidOut
-    availableBalance
-    pendingPayoutAmount
-    canRequestPayout
-    productSold
-    shippingFees
-    commissionAmount
-    commissionRate
-  }
 `;
 
 const PAYOUT_FIELDS = `
@@ -2868,22 +2836,6 @@ export const PENDING_MANUAL_PAYOUTS_QUERY = gql`
 export const REQUEST_PAYOUT_MUTATION = gql`
   mutation RequestPayout {
     requestPayout {
-      ${PAYOUT_FIELDS}
-    }
-  }
-`;
-
-export const REQUEST_MANUAL_PAYOUT_MUTATION = gql`
-  mutation RequestManualPayout {
-    requestManualPayout {
-      ${PAYOUT_FIELDS}
-    }
-  }
-`;
-
-export const TRIGGER_PAYOUT_MUTATION = gql`
-  mutation TriggerPayout($input: TriggerPayoutInput!) {
-    triggerPayout(input: $input) {
       ${PAYOUT_FIELDS}
     }
   }
