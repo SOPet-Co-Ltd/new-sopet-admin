@@ -337,7 +337,6 @@ function assertSnapshotFours(netLabel: string) {
   expect(screen.getAllByText(commissionCopy.breakdown.hint.frozen).length).toBeGreaterThan(0);
   expect(screen.queryByText(/ก่อนเปิดใช้/)).not.toBeInTheDocument();
   expect(screen.queryByText(/หลังเปิดใช้/)).not.toBeInTheDocument();
-  expect(document.querySelector('details')).toBeNull();
   expect(screen.queryByText('netAmount')).not.toBeInTheDocument();
 }
 
@@ -512,7 +511,7 @@ describe('store commission — four-number breakdown [integration]', () => {
     resetPayoutsQueryState();
   });
 
-  it('shows the same combined fours on admin and vendor and binds only the already-net transfer', () => {
+  it('shows the same combined fours on admin and vendor and binds only the already-net transfer', async () => {
     const { unmount: unmountAdmin } = render(<AdminStorePayoutPanel storeId="store-1" />);
     assertSnapshotFours(commissionCopy.breakdown.netPayable.admin);
     expect(screen.queryByRole('button', { name: /Trigger Omise/ })).not.toBeInTheDocument();
@@ -520,13 +519,15 @@ describe('store commission — four-number breakdown [integration]', () => {
     unmountAdmin();
 
     const { unmount: unmountQueue } = render(<AdminManualPayoutsPage />);
-    assertSnapshotFours(commissionCopy.breakdown.netPayable.admin);
     expect(screen.getByText(commissionCopy.transfer.caption)).toBeInTheDocument();
+    expect(screen.getByText('โอนเข้าบัญชีนี้')).toBeInTheDocument();
     expect(screen.getAllByText(formatCurrency(1410)).length).toBeGreaterThan(0);
     expect(screen.queryByText(formatCurrency(1400))).toBeTruthy();
     expect(
       screen.queryByRole('button', { name: /อนุมัติหลังโอนแล้ว.*฿1,400/ }),
     ).not.toBeInTheDocument();
+    await userEvent.click(screen.getByText('ดูการคำนวณ'));
+    assertSnapshotFours(commissionCopy.breakdown.netPayable.admin);
     unmountQueue();
 
     const { unmount: unmountBalance } = render(<VendorPayoutBalancePanel />);

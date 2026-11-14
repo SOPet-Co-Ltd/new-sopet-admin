@@ -56,6 +56,7 @@ export type AdminManualPayoutCommissionFixture = PayoutCommissionFixture & {
   bankCode: string | null;
   bankAccountName: string | null;
   bankAccountNumber: string | null;
+  bankAccountVerificationStatus: string | null;
 };
 
 export type PayoutSummaryCommissionFixture = PayoutSummary;
@@ -164,6 +165,7 @@ export const pendingManualSnapshotPayout: AdminManualPayoutCommissionFixture = {
   bankCode: '004',
   bankAccountName: 'SOPet Pet Shop',
   bankAccountNumber: '1234567890',
+  bankAccountVerificationStatus: 'verified',
 };
 
 /** FE-INT-3 / FIX-2 — snapshotted 7% fours (same mixed-cutoff literals). */

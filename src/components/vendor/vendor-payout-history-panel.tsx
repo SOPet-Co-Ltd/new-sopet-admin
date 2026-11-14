@@ -54,6 +54,26 @@ function HistorySkeleton() {
   );
 }
 
+function PayoutOutcomeCopy({ payout }: { payout: Payout }) {
+  if (payout.status === 'completed') {
+    return (
+      <div className="space-y-1 text-xs text-muted-foreground">
+        <p>
+          โอนแล้ว
+          {payout.processedAt ? ` · ${formatDateTime(payout.processedAt)}` : ''}
+        </p>
+        {payout.notes ? <p>หมายเหตุ: {payout.notes}</p> : null}
+      </div>
+    );
+  }
+
+  if (payout.status === 'failed' && payout.failureReason) {
+    return <p className="text-xs text-danger">เหตุผล: {payout.failureReason}</p>;
+  }
+
+  return null;
+}
+
 export function VendorPayoutHistoryPanel() {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useStorePayouts(page);
@@ -108,6 +128,7 @@ export function VendorPayoutHistoryPanel() {
                   </Badge>
                 </div>
                 <SnapshotHistoryBreakdown payout={payout} />
+                <PayoutOutcomeCopy payout={payout} />
               </li>
             ))}
           </ul>

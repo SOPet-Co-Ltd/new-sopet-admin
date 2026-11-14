@@ -12,6 +12,7 @@ import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency } from '@/lib/utils';
 import type { PayoutSummary } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
+import { ERROR_MESSAGES } from '@/lib/api/error-messages';
 
 function AvailableVendorSnapshotBreakdown({ rail }: { rail: PayoutSummary }) {
   return (
@@ -46,7 +47,8 @@ export function VendorPayoutSnapshot() {
     store?.bankAccountName?.trim() &&
     store?.bankAccountNumber?.trim()
   );
-  const canRequest = Boolean(!needsBankSetup && summary?.canRequestPayout);
+  const bankNotVerified = !needsBankSetup && store?.bankAccountVerificationStatus !== 'verified';
+  const canRequest = Boolean(!needsBankSetup && !bankNotVerified && summary?.canRequestPayout);
 
   return (
     <section aria-labelledby="vendor-payout-snapshot-heading" className="space-y-3">
@@ -100,6 +102,10 @@ export function VendorPayoutSnapshot() {
                 <p className="text-sm text-amber-900">
                   ยังไม่ได้ตั้งบัญชีรับเงิน — บันทึกบัญชีธนาคารเพื่อเริ่มรับเงินจากยอดขาย
                 </p>
+              ) : null}
+
+              {bankNotVerified ? (
+                <p className="text-sm text-amber-900">{ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED}</p>
               ) : null}
 
               {requestPayout.isError ? (

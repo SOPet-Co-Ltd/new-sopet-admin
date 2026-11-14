@@ -199,13 +199,17 @@ export type AdminManualPayoutType = {
   amount: Scalars['Float']['output'];
   bankAccountName?: Maybe<Scalars['String']['output']>;
   bankAccountNumber?: Maybe<Scalars['String']['output']>;
+  bankAccountVerificationStatus?: Maybe<Scalars['String']['output']>;
   bankCode?: Maybe<Scalars['String']['output']>;
   bankName?: Maybe<Scalars['String']['output']>;
   commissionAmount?: Maybe<Scalars['Float']['output']>;
   commissionRate?: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  failureReason?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   netAmount: Scalars['Float']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
+  processedAt?: Maybe<Scalars['DateTime']['output']>;
   productSold?: Maybe<Scalars['Float']['output']>;
   settlementRail: Scalars['String']['output'];
   shippingFees?: Maybe<Scalars['Float']['output']>;
@@ -547,6 +551,7 @@ export type CreatePaymentInput = {
   orderId: Scalars['String']['input'];
   paymentMethod: Scalars['String']['input'];
   platformType?: InputMaybe<Scalars['String']['input']>;
+  saveCard?: InputMaybe<SaveCardOnPaymentInput>;
   savedPaymentMethodId?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -2014,6 +2019,7 @@ export type PaymentType = {
   authorizeUri?: Maybe<Scalars['String']['output']>;
   currency: Scalars['String']['output'];
   expiresAt?: Maybe<Scalars['DateTime']['output']>;
+  failureCode?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   orderId: Scalars['String']['output'];
   orderNumber?: Maybe<Scalars['String']['output']>;
@@ -2050,8 +2056,11 @@ export type PayoutType = {
   commissionAmount?: Maybe<Scalars['Float']['output']>;
   commissionRate?: Maybe<Scalars['Int']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  failureReason?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   netAmount: Scalars['Float']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
+  processedAt?: Maybe<Scalars['DateTime']['output']>;
   productSold?: Maybe<Scalars['Float']['output']>;
   settlementRail: Scalars['String']['output'];
   shippingFees?: Maybe<Scalars['Float']['output']>;
@@ -2383,6 +2392,7 @@ export type Query = {
   platformTopProducts: Array<TopProductType>;
   platformTopStores: Array<TopStoreType>;
   product: ProductType;
+  productByPath: ProductType;
   productBySlug: ProductType;
   productPublishChecklist: ProductPublishChecklistType;
   productReviews: Array<ReviewType>;
@@ -2682,6 +2692,10 @@ export type QueryPlatformTopStoresArgs = {
 
 export type QueryProductArgs = {
   id: Scalars['String']['input'];
+};
+
+export type QueryProductByPathArgs = {
+  path: Scalars['String']['input'];
 };
 
 export type QueryProductBySlugArgs = {
@@ -3052,6 +3066,15 @@ export type SalesTimePointType = {
   revenue: Scalars['Float']['output'];
 };
 
+export type SaveCardOnPaymentInput = {
+  brand: Scalars['String']['input'];
+  cardToken: Scalars['String']['input'];
+  expiryMonth: Scalars['Int']['input'];
+  expiryYear: Scalars['Int']['input'];
+  isDefault?: InputMaybe<Scalars['Boolean']['input']>;
+  lastFour: Scalars['String']['input'];
+};
+
 export type SavedAddressType = {
   __typename?: 'SavedAddressType';
   addressLine1: Scalars['String']['output'];
@@ -3075,6 +3098,7 @@ export type SavedPaymentMethodType = {
   id: Scalars['String']['output'];
   isDefault: Scalars['Boolean']['output'];
   lastFour: Scalars['String']['output'];
+  psp?: Maybe<Scalars['String']['output']>;
   type: Scalars['String']['output'];
 };
 
@@ -3104,6 +3128,7 @@ export type SearchProductSuggestionType = {
   id: Scalars['String']['output'];
   name: Scalars['String']['output'];
   slug: Scalars['String']['output'];
+  storeSlug: Scalars['String']['output'];
   thumbnailUrl?: Maybe<Scalars['String']['output']>;
 };
 

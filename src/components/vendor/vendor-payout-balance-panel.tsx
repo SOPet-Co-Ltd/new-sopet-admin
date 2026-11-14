@@ -9,6 +9,7 @@ import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency } from '@/lib/utils';
 import type { PayoutSummary } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
+import { ERROR_MESSAGES } from '@/lib/api/error-messages';
 
 function AvailableVendorBreakdown({ rail }: { rail: PayoutSummary }) {
   return (
@@ -46,6 +47,7 @@ export function VendorPayoutBalancePanel() {
   const hasBankAccount = Boolean(
     store?.bankName?.trim() && store?.bankAccountName?.trim() && store?.bankAccountNumber?.trim(),
   );
+  const bankNotVerified = hasBankAccount && store?.bankAccountVerificationStatus !== 'verified';
   const minimum = summary?.minimumPayoutAmount ?? 0;
 
   if (isLoading) {
@@ -80,17 +82,19 @@ export function VendorPayoutBalancePanel() {
 
   const disabledReason = !hasBankAccount
     ? 'ยังไม่ได้บันทึกบัญชีธนาคาร — กรอกและบันทึกในขั้นตอน 1 ก่อน'
-    : !summary.canRequestPayout && summary.pendingPayoutAmount > 0
-      ? 'มีคำขอรับเงินที่รอแอดมินโอนและอนุมัติอยู่แล้ว'
-      : !summary.canRequestPayout && summary.availableBalance <= 0
-        ? 'ยังไม่มียอดที่ขอรับเงินได้'
-        : !summary.canRequestPayout && summary.availableBalance < minimum
-          ? `ยอดต้องอย่างน้อย ${formatCurrency(minimum)}`
-          : summary.canRequestPayout
-            ? 'กดแล้วคำขอจะไปที่แอดมินเพื่อโอนเงินเข้าบัญชีของร้าน'
-            : null;
+    : bankNotVerified
+      ? ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED
+      : !summary.canRequestPayout && summary.pendingPayoutAmount > 0
+        ? 'มีคำขอรับเงินที่รอแอดมินโอนและอนุมัติอยู่แล้ว'
+        : !summary.canRequestPayout && summary.availableBalance <= 0
+          ? 'ยังไม่มียอดที่ขอรับเงินได้'
+          : !summary.canRequestPayout && summary.availableBalance < minimum
+            ? `ยอดต้องอย่างน้อย ${formatCurrency(minimum)}`
+            : summary.canRequestPayout
+              ? 'กดแล้วคำขอจะไปที่แอดมินเพื่อโอนเงินเข้าบัญชีของร้าน'
+              : null;
 
-  const canRequest = hasBankAccount && summary.canRequestPayout;
+  const canRequest = hasBankAccount && !bankNotVerified && summary.canRequestPayout;
 
   return (
     <div className="space-y-4">
