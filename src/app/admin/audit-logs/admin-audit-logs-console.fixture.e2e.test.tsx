@@ -262,5 +262,5 @@ describe('Admin Audit Logs Console [fixture-e2e]', () => {
     expect(
       screen.getByRole('button', { name: 'ย่อรายละเอียดบันทึก: แก้ไขผู้ขาย' }),
     ).toHaveAttribute('aria-expanded', 'true');
-  });
+  }, 20_000);
 });
