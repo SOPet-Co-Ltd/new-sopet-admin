@@ -10,7 +10,7 @@ import {
   STORE_PAYOUT_SUMMARY_QUERY,
 } from '@/lib/graphql/documents';
 import { mapPagination } from '@/lib/graphql/mappers';
-import type { Paginated, Payout, PayoutSummary } from '@/types';
+import type { BankAccountVerificationStatus, Paginated, Payout, PayoutSummary } from '@/types';
 
 type GqlPayoutSummary = PayoutSummary;
 type GqlPayout = Payout;
@@ -43,6 +43,9 @@ function mapPayout(payout: GqlPayout): Payout {
     netAmount: Number(payout.netAmount),
     status: payout.status,
     settlementRail: payout.settlementRail,
+    notes: payout.notes ?? null,
+    failureReason: payout.failureReason ?? null,
+    processedAt: payout.processedAt ?? null,
     createdAt: payout.createdAt,
     productSold: mapNullableMoney(payout.productSold),
     shippingFees: mapNullableMoney(payout.shippingFees),
@@ -97,6 +100,7 @@ export type AdminManualPayout = Payout & {
   bankCode: string | null;
   bankAccountName: string | null;
   bankAccountNumber: string | null;
+  bankAccountVerificationStatus: BankAccountVerificationStatus | null;
 };
 
 export const ADMIN_MANUAL_PAYOUT_PAGE_SIZE = 20;
@@ -114,6 +118,7 @@ export function getPendingManualPayouts(
           bankCode: string | null;
           bankAccountName: string | null;
           bankAccountNumber: string | null;
+          bankAccountVerificationStatus: BankAccountVerificationStatus | null;
         }
       >;
       pagination: Parameters<typeof mapPagination>[0];
@@ -126,6 +131,7 @@ export function getPendingManualPayouts(
       bankCode: payout.bankCode,
       bankAccountName: payout.bankAccountName,
       bankAccountNumber: payout.bankAccountNumber,
+      bankAccountVerificationStatus: payout.bankAccountVerificationStatus ?? null,
     })),
     pagination: mapPagination(data.pendingManualPayouts.pagination),
   }));
