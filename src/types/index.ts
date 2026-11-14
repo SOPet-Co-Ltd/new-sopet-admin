@@ -1278,6 +1278,9 @@ export interface Payout {
   netAmount: number;
   status: string;
   settlementRail: string;
+  notes?: string | null;
+  failureReason?: string | null;
+  processedAt?: string | null;
   createdAt: string;
   productSold: number | null;
   shippingFees: number | null;

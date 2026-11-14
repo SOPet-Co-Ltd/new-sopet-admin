@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { StatCard } from '@/components/vendor/stat-card';
 import {
   useAdminStorePayoutSummary,
@@ -78,6 +80,8 @@ function SnapshotPayoutBreakdown({ payout }: { payout: Payout }) {
 
 export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
   const [historyPage, setHistoryPage] = useState(1);
+  const [note, setNote] = useState('');
+  const [rejectError, setRejectError] = useState<string | null>(null);
   const { data: summary, isLoading: summaryLoading } = useAdminStorePayoutSummary(storeId);
   const { data: payoutPage, isLoading: historyLoading } = useAdminStorePayouts(
     storeId,
@@ -121,6 +125,28 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                 </div>
                 <AvailableRailBreakdown rail={summary} />
                 {pendingManual ? <SnapshotPayoutBreakdown payout={pendingManual} /> : null}
+                {hasPendingManual ? (
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`store-payout-note-${storeId}`}>
+                      หมายเหตุถึงร้าน (บังคับเมื่อปฏิเสธ)
+                    </Label>
+                    <Input
+                      id={`store-payout-note-${storeId}`}
+                      value={note}
+                      onChange={(event) => {
+                        setNote(event.target.value);
+                        if (rejectError) setRejectError(null);
+                      }}
+                      placeholder="เช่น โอนแล้วอ้างอิง XXX / เลขบัญชีไม่ตรงชื่อ"
+                      maxLength={500}
+                    />
+                    {rejectError ? (
+                      <p className="text-xs text-danger" role="alert">
+                        {rejectError}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
                 <div className="flex flex-wrap items-center gap-3">
                   <Button
                     type="button"
@@ -128,7 +154,7 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                     onClick={() =>
                       settleManualMutation.mutate({
                         payoutId: pendingManual?.id,
-                        notes: 'Admin transferred and approved',
+                        notes: note.trim() || undefined,
                       })
                     }
                     disabled={settleManualMutation.isPending || !hasPendingManual}
@@ -143,12 +169,18 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                   <Button
                     type="button"
                     variant="ghost"
-                    onClick={() =>
+                    onClick={() => {
+                      const reason = note.trim();
+                      if (!reason) {
+                        setRejectError('กรุณาระบุเหตุผลก่อนปฏิเสธ');
+                        return;
+                      }
+                      setRejectError(null);
                       rejectManualMutation.mutate({
                         payoutId: pendingManual?.id,
-                        notes: 'Admin rejected manual payout request',
-                      })
-                    }
+                        notes: reason,
+                      });
+                    }}
                     disabled={rejectManualMutation.isPending || !hasPendingManual}
                     aria-busy={rejectManualMutation.isPending}
                   >
@@ -220,6 +252,16 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                             <div className="mt-3">
                               <SnapshotPayoutBreakdown payout={payout} />
                             </div>
+                            {payout.status === 'completed' && payout.notes ? (
+                              <p className="mt-2 text-xs text-muted-foreground">
+                                หมายเหตุ: {payout.notes}
+                              </p>
+                            ) : null}
+                            {payout.status === 'failed' && payout.failureReason ? (
+                              <p className="mt-2 text-xs text-danger">
+                                เหตุผล: {payout.failureReason}
+                              </p>
+                            ) : null}
                           </td>
                           <td className="px-4 py-2.5">
                             {PAYOUT_STATUS_LABELS[payout.status] ?? payout.status}

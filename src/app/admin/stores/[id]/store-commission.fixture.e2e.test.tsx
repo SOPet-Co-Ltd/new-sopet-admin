@@ -36,6 +36,8 @@ const INVALID_ERROR = 'กรุณากรอกตัวเลขเปอร
 const storeState = { current: nullRateStore };
 const mutateAsync = vi.fn();
 const mockPush = vi.fn();
+const settleQueueMutate = vi.fn();
+const rejectQueueMutate = vi.fn();
 const ownerState = { isOwner: true };
 const payoutsQueryState: {
   summary: PayoutSummaryCommissionFixture | null;
@@ -171,14 +173,14 @@ vi.mock('@/hooks/usePayouts', () => ({
   }),
   usePendingManualPayouts: () => createPendingManualPayoutsMockResult(pendingManualState.items),
   useSettleManualPayoutForQueue: () => ({
-    mutate: vi.fn(),
+    mutate: settleQueueMutate,
     isPending: false,
     isError: false,
     error: null,
     variables: undefined,
   }),
   useRejectManualPayoutForQueue: () => ({
-    mutate: vi.fn(),
+    mutate: rejectQueueMutate,
     isPending: false,
     isError: false,
     error: null,
@@ -465,7 +467,7 @@ describe('store commission — admin already-net settlement journey [fixture-e2e
     pendingManualState.items = [];
   });
 
-  it('shows combined fours and a single already-net transfer on the store panel and the manual queue', () => {
+  it('shows combined fours and a single already-net transfer on the store panel and the manual queue', async () => {
     const { unmount: unmountPanel } = render(<AdminStorePayoutPanel storeId="store-1" />);
 
     expect(screen.getAllByText(commissionCopy.breakdown.productSold).length).toBeGreaterThan(0);
@@ -491,19 +493,30 @@ describe('store commission — admin already-net settlement journey [fixture-e2e
     render(<AdminManualPayoutsPage />);
     expect(screen.getAllByText(formatCurrency(mixedCutoffFours.net)).length).toBeGreaterThan(0);
     expect(screen.getByText(commissionCopy.transfer.caption)).toBeInTheDocument();
+    expect(screen.getByText('โอนเข้าบัญชีนี้')).toBeInTheDocument();
+    expect(screen.getByText('123-4-56789-0')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'คัดลอกเลขบัญชี' })).toBeInTheDocument();
+    expect(screen.queryByText('ตรวจแล้ว')).not.toBeInTheDocument();
+    expect(screen.queryByText('รอตรวจ')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /อนุมัติหลังโอนแล้ว.*฿1,400/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/ก่อนเปิดใช้/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/หลังเปิดใช้/)).not.toBeInTheDocument();
+    expect(screen.queryByText('netAmount')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByText('ดูการคำนวณ'));
     expect(screen.getByText(commissionCopy.breakdown.productSold)).toBeInTheDocument();
     expect(
       screen.getByText(commissionCopy.breakdown.commissionDeducted, { exact: false }),
     ).toBeInTheDocument();
     expect(screen.getByText(commissionCopy.breakdown.netPayable.admin)).toBeInTheDocument();
     expect(screen.getByText(commissionCopy.breakdown.hint.frozen)).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /อนุมัติหลังโอนแล้ว.*฿1,400/ }),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText(/ก่อนเปิดใช้/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/หลังเปิดใช้/)).not.toBeInTheDocument();
-    expect(document.querySelector('details')).toBeNull();
-    expect(screen.queryByText('netAmount')).not.toBeInTheDocument();
+
+    rejectQueueMutate.mockClear();
+    await userEvent.click(screen.getByRole('button', { name: 'ปฏิเสธคำขอ' }));
+    expect(screen.getByText('กรุณาระบุเหตุผลก่อนปฏิเสธ')).toBeInTheDocument();
+    expect(rejectQueueMutate).not.toHaveBeenCalled();
   });
 });
 
@@ -518,6 +531,31 @@ describe('store commission — vendor balance and frozen history journey [fixtur
     cleanup();
     payoutsQueryState.summary = null;
     payoutsHistoryState.items = [];
+  });
+
+  it('shows admin notes on completed payouts and rejection reasons on failed ones', () => {
+    payoutsHistoryState.items = [
+      {
+        ...liveTenPercentVsSnapshotSeven.snapshotPayout,
+        id: 'payout-completed-note',
+        status: 'completed',
+        notes: 'โอนผ่าน SCB แล้ว',
+        processedAt: '2026-02-02T00:00:00.000Z',
+      },
+      {
+        ...liveTenPercentVsSnapshotSeven.snapshotPayout,
+        id: 'payout-failed-reason',
+        status: 'failed',
+        failureReason: 'เลขบัญชีไม่ตรงชื่อ',
+        notes: 'เลขบัญชีไม่ตรงชื่อ',
+        processedAt: '2026-02-03T00:00:00.000Z',
+      },
+    ];
+
+    render(<VendorPayoutHistoryPanel />);
+    expect(screen.getByText('โอนแล้ว', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(/หมายเหตุ: โอนผ่าน SCB แล้ว/)).toBeInTheDocument();
+    expect(screen.getByText(/เหตุผล: เลขบัญชีไม่ตรงชื่อ/)).toBeInTheDocument();
   });
 
   it('carries the same four numbers from dashboard to รับเงิน and keeps history frozen without a rate editor', () => {

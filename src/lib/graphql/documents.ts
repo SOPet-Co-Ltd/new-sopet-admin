@@ -2757,6 +2757,9 @@ const PAYOUT_FIELDS = `
   netAmount
   status
   settlementRail
+  notes
+  failureReason
+  processedAt
   createdAt
   productSold
   shippingFees
@@ -2822,6 +2825,7 @@ export const PENDING_MANUAL_PAYOUTS_QUERY = gql`
         bankCode
         bankAccountName
         bankAccountNumber
+        bankAccountVerificationStatus
       }
       pagination {
         page
