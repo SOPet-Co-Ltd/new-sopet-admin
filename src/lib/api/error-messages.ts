@@ -142,6 +142,8 @@ export const ERROR_MESSAGES = {
   ORDER_NOT_FULLY_SHIPPED: 'คำสั่งซื้อยังจัดส่งไม่ครบ',
   ORDER_NOT_PAYABLE: 'คำสั่งซื้อนี้ไม่สามารถชำระเงินได้',
   ORDER_NOT_REVIEWABLE: 'คำสั่งซื้อนี้ยังไม่สามารถรีวิวได้',
+  ORDER_REVIEWED_CANNOT_CANCEL:
+    'ไม่สามารถยกเลิกหรือคืนเงินได้ เนื่องจากคำสั่งซื้อนี้มีการรีวิวแล้ว',
   OWNER_REQUIRED: 'ต้องระบุเจ้าของร้าน',
   PAYLOAD_TOO_LARGE: 'ไฟล์หรือข้อมูลมีขนาดใหญ่เกินไป',
   PAYMENT_HELD_PORTION_BLOCKED: 'ไม่สามารถชำระส่วนที่ถูกระงับได้',
@@ -707,6 +709,11 @@ export const ERROR_CATALOG_DOCS: Partial<Record<ErrorMessageCode, ErrorCatalogDo
     possibleIssue: 'พยายามยกเลิกออเดอร์/ส่วนที่ถูก hold',
     howToFix: 'ใช้ขั้นตอนกู้คืน/จัดการ hold ที่กำหนด ไม่ยกเลิกตรงๆ',
   },
+  ORDER_REVIEWED_CANNOT_CANCEL: {
+    why: 'คำสั่งซื้อที่มีรีวิวแล้วถือว่าส่งสำเร็จและรับสินค้าแล้ว จึงยกเลิกหรือคืนเงินไม่ได้',
+    possibleIssue: 'พยายามยกเลิกหรือคืนเงินหลังจากลูกค้าเขียนรีวิวแล้ว',
+    howToFix: 'คงสถานะคำสั่งซื้อไว้ รีวิวจะยังแสดงตามปกติ',
+  },
   HOLD_RESTORE_SNAPSHOT_MISSING: {
     why: 'ไม่มีข้อมูล snapshot สำหรับกู้คืนคำสั่งซื้อที่ถูก hold',
     possibleIssue: 'ข้อมูลกู้คืนหายหรือไม่ถูกบันทึกตอนระงับ',
@@ -1004,6 +1011,11 @@ const ERROR_CATALOG_BASE: Array<{ code: ErrorMessageCode; message: string; group
   {
     code: 'ORDER_NOT_REVIEWABLE',
     message: ERROR_MESSAGES.ORDER_NOT_REVIEWABLE,
+    group: 'คำสั่งซื้อ / การชำระเงิน / โอนเงิน',
+  },
+  {
+    code: 'ORDER_REVIEWED_CANNOT_CANCEL',
+    message: ERROR_MESSAGES.ORDER_REVIEWED_CANNOT_CANCEL,
     group: 'คำสั่งซื้อ / การชำระเงิน / โอนเงิน',
   },
   {
