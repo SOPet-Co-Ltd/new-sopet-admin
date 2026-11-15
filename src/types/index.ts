@@ -1029,7 +1029,9 @@ export interface ProductReview {
   comment?: string;
   status: string;
   createdAt?: string;
+  customerId?: string | null;
   customerName?: string;
+  customerProfilePhotoUrl?: string | null;
   images?: ReviewImage[];
   reply?: ReviewReply | null;
 }

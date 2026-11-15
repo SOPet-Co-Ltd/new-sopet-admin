@@ -3311,6 +3311,7 @@ export type StoreProductReviewType = {
   __typename?: 'StoreProductReviewType';
   comment?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  customerId?: Maybe<Scalars['String']['output']>;
   customerName: Scalars['String']['output'];
   customerProfilePhotoUrl?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];

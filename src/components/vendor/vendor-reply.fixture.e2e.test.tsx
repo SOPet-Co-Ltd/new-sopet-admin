@@ -55,7 +55,7 @@ describe('Vendor reply fixture-e2e', () => {
       />,
     );
 
-    expect(screen.getByTestId('product-thumbnail-image')).toBeInTheDocument();
+    expect(screen.getByTestId('customer-avatar-fallback')).toBeInTheDocument();
     expect(screen.getByText('Great product')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /ลบ/i })).not.toBeInTheDocument();
     expect(screen.queryByText('ตอบกลับรีวิว')).not.toBeInTheDocument();
