@@ -721,7 +721,9 @@ type GqlProductReview = {
   comment?: string | null;
   status: string;
   createdAt?: string | null;
+  customerId?: string | null;
   customerName?: string | null;
+  customerProfilePhotoUrl?: string | null;
   images?: GqlReviewImage[] | null;
   reply?: GqlReviewReply | null;
 };
@@ -746,7 +748,9 @@ export function mapProductReview(review: GqlProductReview): ProductReview {
     comment: review.comment ?? undefined,
     status: review.status,
     createdAt: review.createdAt ?? undefined,
+    customerId: review.customerId ?? null,
     customerName: review.customerName ?? undefined,
+    customerProfilePhotoUrl: review.customerProfilePhotoUrl ?? null,
     images: (review.images ?? []).map((image) => ({ id: image.id, url: image.url })),
     reply: review.reply ? mapReviewReply(review.reply) : null,
   };

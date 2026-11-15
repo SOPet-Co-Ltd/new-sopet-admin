@@ -15,7 +15,7 @@ export function VendorReviewListSkeleton() {
           key={index}
           className="flex gap-4 rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]"
         >
-          <SkeletonBar className="h-16 w-16 shrink-0 rounded-lg" />
+          <SkeletonBar className="h-16 w-16 shrink-0 rounded-full" />
           <div className="min-w-0 flex-1 space-y-3">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="space-y-2">

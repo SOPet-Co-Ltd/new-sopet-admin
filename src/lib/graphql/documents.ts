@@ -1709,7 +1709,9 @@ export const STORE_PRODUCT_REVIEWS_QUERY = gql`
         rating
         comment
         createdAt
+        customerId
         customerName
+        customerProfilePhotoUrl
         reply {
           id
           body
