@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     // Monaco AMD assets copied from node_modules (scripts/copy-monaco.mjs)
     'public/monaco/**',
     'coverage/**',
+    // Standalone MCP package (own yarn workspace / lint)
+    'mcp/**',
   ]),
 ]);
 
