@@ -2336,6 +2336,7 @@ const ADMIN_CUSTOMER_FIELDS = `
   dateOfBirth
   isVerified
   isActive
+  isGuest
   lastLoginAt
   createdAt
   updatedAt

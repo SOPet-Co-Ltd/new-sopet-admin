@@ -39,6 +39,7 @@ describe('AdminStoreCustomerSummaryCard', () => {
     expect(screen.getByText('Customer Lifetime (เดือน)')).toBeInTheDocument();
     expect(screen.getByText('Purchases per Month')).toBeInTheDocument();
     expect(screen.getByText('AOV (ยอดต่อออเดอร์)')).toBeInTheDocument();
+    expect(screen.getByText('หลังหักคูปองและโปรโมชันสินค้า')).toBeInTheDocument();
     expect(screen.getByText('New Customer (ลูกค้าใหม่)')).toBeInTheDocument();
     expect(screen.getByText('Old Customer (ลูกค้าเก่า)')).toBeInTheDocument();
     expect(screen.getByText('20 เดือน')).toBeInTheDocument();

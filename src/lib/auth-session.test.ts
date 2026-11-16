@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useVendorStore } from '@/stores/vendor.store';
 import {
   clearAuthSession,
+  clearStaleClientSession,
   markEmailVerified,
   refreshAuthUser,
   resetSessionCaches,
@@ -61,6 +62,26 @@ describe('auth-session', () => {
       expect(clearSpy).toHaveBeenCalledOnce();
       expect(clearStore).toHaveBeenCalledOnce();
       expect(queryClient.getQueryData(['stores', 'myStores'])).toBeUndefined();
+    });
+  });
+
+  describe('clearStaleClientSession', () => {
+    it('drops persisted auth without calling logout when no session cookie exists', () => {
+      vi.mocked(hasClientSession).mockReturnValue(false);
+
+      clearStaleClientSession(queryClient);
+
+      expect(clearTokens).not.toHaveBeenCalled();
+      expect(useAuthStore.getState().user).toBeNull();
+      expect(useVendorStore.getState().activeStoreId).toBeNull();
+    });
+
+    it('leaves an existing session alone', () => {
+      clearStaleClientSession(queryClient);
+
+      expect(clearTokens).not.toHaveBeenCalled();
+      expect(useAuthStore.getState().user?.email).toBe('a@test.com');
+      expect(useVendorStore.getState().activeStoreId).toBe('store-a');
     });
   });
 

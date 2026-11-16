@@ -33,6 +33,22 @@ describe('vendor-action-queue', () => {
     expect(isVendorActionableOrder(order, 'store-1')).toBe(true);
   });
 
+  it('excludes admin-shipped orders that still have pending fulfillment', () => {
+    const order = createOrder({
+      status: 'shipped',
+      paymentMethod: 'bank_transfer',
+      items: [
+        {
+          id: 'item-1',
+          storeId: 'store-1',
+          fulfillmentStatus: 'pending',
+        } as Order['items'][number],
+      ],
+    });
+
+    expect(isVendorActionableOrder(order, 'store-1')).toBe(false);
+  });
+
   it('excludes delivered orders', () => {
     const order = createOrder({
       status: 'delivered',

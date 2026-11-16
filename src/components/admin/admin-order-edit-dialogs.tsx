@@ -26,7 +26,8 @@ import {
   useUpdateAdminOrderStatus,
 } from '@/hooks/useAdminOrders';
 import { getErrorMessage } from '@/lib/api/errors';
-import { labelOrderStatus, orderStatusLabels } from '@/lib/i18n/th';
+import { ORDER_STATUSES } from '@/lib/config';
+import { labelOrderStatus } from '@/lib/i18n/th';
 import {
   adminOrderShippingFormSchema,
   normalizeThaiPhoneInput,
@@ -34,7 +35,12 @@ import {
 } from '@/lib/validations';
 import type { Order } from '@/types';
 
-const ORDER_STATUS_OPTIONS = Object.keys(orderStatusLabels);
+function orderStatusOptions(currentStatus: string): readonly string[] {
+  if ((ORDER_STATUSES as readonly string[]).includes(currentStatus)) {
+    return ORDER_STATUSES;
+  }
+  return [currentStatus, ...ORDER_STATUSES];
+}
 
 type AdminOrderStatusEditDialogProps = {
   open: boolean;
@@ -82,7 +88,7 @@ function AdminOrderStatusEditForm({
               <SelectValue placeholder="เลือกสถานะ" />
             </SelectTrigger>
             <SelectContent position="popper">
-              {ORDER_STATUS_OPTIONS.map((value) => (
+              {orderStatusOptions(currentStatus).map((value) => (
                 <SelectItem key={value} value={value}>
                   {labelOrderStatus(value)}
                 </SelectItem>

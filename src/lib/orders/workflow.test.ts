@@ -78,6 +78,16 @@ describe('getVendorOrderWorkflowAction hold exclusion (AC-034)', () => {
     expect(getVendorOrderWorkflowAction(paid, 'store-1')).toBe('acknowledge');
   });
 
+  it('follows an admin shipped status when item fulfillment is still pending', () => {
+    const shipped = order({
+      status: 'shipped',
+      paymentMethod: 'bank_transfer',
+      items: [item({ id: 'i1', storeId: 'store-1', fulfillmentStatus: 'pending' })],
+    });
+
+    expect(getVendorOrderWorkflowAction(shipped, 'store-1')).toBe('awaiting_customer');
+  });
+
   it('hides mark_paid for bank_transfer pending_payment orders', () => {
     const unpaid = order({
       status: 'pending_payment',

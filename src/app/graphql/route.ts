@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   let accessToken = await getAccessTokenFromRequest();
   let { response: upstream, json } = await forwardGraphql(body, accessToken, request);
 
-  if (isUnauthenticatedPayload(json, upstream.status)) {
+  if (isUnauthenticatedPayload(json, upstream.status) && !harvestAuthTokens(json.data)) {
     const refreshToken = await getRefreshTokenFromRequest();
     if (refreshToken) {
       const tokens = await refreshTokensUpstream(refreshToken, request);

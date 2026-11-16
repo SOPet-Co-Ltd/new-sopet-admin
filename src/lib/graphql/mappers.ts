@@ -813,6 +813,7 @@ type GqlAdminCustomer = {
   dateOfBirth?: string | null;
   isVerified: boolean;
   isActive: boolean;
+  isGuest?: boolean;
   lastLoginAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -827,6 +828,7 @@ export function mapAdminCustomer(customer: GqlAdminCustomer): import('@/types').
     dateOfBirth: customer.dateOfBirth,
     isVerified: customer.isVerified,
     isActive: customer.isActive,
+    isGuest: customer.isGuest ?? false,
     lastLoginAt: customer.lastLoginAt ?? undefined,
     createdAt: customer.createdAt,
     updatedAt: customer.updatedAt,

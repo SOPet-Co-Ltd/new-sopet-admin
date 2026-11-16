@@ -7,6 +7,38 @@ let onAuthFailure: AuthFailureHandler = () => {
   void clearTokens();
 };
 
+/**
+ * Logout responses clear cookies when they arrive. A slow logout that was
+ * started before login, or one fired while login is in flight, must not run
+ * after the new session cookies are set.
+ */
+let authEpoch = 0;
+let authChain: Promise<unknown> = Promise.resolve();
+
+function enqueueAuthTask<T>(task: () => Promise<T>): Promise<T> {
+  const run = authChain.then(task, task);
+  authChain = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
+/** Runs `task` so any logout requested before it finishes is dropped. */
+export function runExclusiveAuth<T>(task: () => Promise<T>): Promise<T> {
+  authEpoch += 1;
+  const ticket = authEpoch;
+  return enqueueAuthTask(async () => {
+    try {
+      return await task();
+    } finally {
+      if (authEpoch === ticket) {
+        authEpoch += 1;
+      }
+    }
+  });
+}
+
 /** HttpOnly — not readable from JS. Prefer hasClientSession(). */
 export function getAccessToken(): string | undefined {
   return undefined;
@@ -31,13 +63,19 @@ function clearCompanionCookie(): void {
   document.cookie = `__Host-${AUTH_COMPANION_COOKIE}=; max-age=0; path=/; Secure; SameSite=Lax`;
 }
 
-export async function clearTokens(): Promise<void> {
-  clearCompanionCookie();
-  try {
-    await logoutViaBff();
-  } catch {
-    // Best-effort
-  }
+export function clearTokens(): Promise<void> {
+  const ticket = authEpoch;
+  return enqueueAuthTask(async () => {
+    if (ticket !== authEpoch) {
+      return;
+    }
+    clearCompanionCookie();
+    try {
+      await logoutViaBff();
+    } catch {
+      // Best-effort
+    }
+  });
 }
 
 export function hasClientSession(): boolean {
@@ -49,8 +87,7 @@ export function setOnAuthFailure(handler: AuthFailureHandler): void {
 }
 
 export function notifyAuthFailure(message?: string): void {
-  clearCompanionCookie();
-  void logoutViaBff();
+  void clearTokens();
   if (typeof window !== 'undefined') {
     onAuthFailure(message);
   }

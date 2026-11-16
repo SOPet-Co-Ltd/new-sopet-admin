@@ -21,9 +21,11 @@ vi.mock('@/lib/api/client', () => ({
   hasClientSession: () => false,
 }));
 
+const clearStaleClientSession = vi.fn();
+
 vi.mock('@/lib/auth-session', () => ({
   AUTH_SESSION_MESSAGE_KEY: 'sopet-admin-auth-message',
-  clearAuthSession: vi.fn(),
+  clearStaleClientSession: (...args: unknown[]) => clearStaleClientSession(...args),
 }));
 
 const useCurrentUser = vi.fn();
@@ -44,6 +46,21 @@ vi.mock('@/hooks/usePasswordReset', () => ({
 function openForgotPasswordForm() {
   fireEvent.click(screen.getByRole('button', { name: 'ลืมรหัสผ่าน?' }));
 }
+
+describe('LoginPage session', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useCurrentUser.mockReturnValue({ user: null, isAuthenticated: false });
+  });
+
+  it('clears stale local auth without calling logout when the form opens', async () => {
+    render(<LoginPage />);
+
+    await waitFor(() => {
+      expect(clearStaleClientSession).toHaveBeenCalled();
+    });
+  });
+});
 
 describe('LoginPage forgot-password message styling (row 30 regression)', () => {
   beforeEach(() => {
