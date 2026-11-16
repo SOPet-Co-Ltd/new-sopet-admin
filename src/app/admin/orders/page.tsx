@@ -143,22 +143,26 @@ export default function AdminOrdersPage() {
         header: 'ร้านค้า',
         cell: ({ row }) => (
           <div
-            className="flex max-w-[16rem] flex-wrap gap-x-2 gap-y-1"
+            className="flex min-w-0 max-w-[16rem] flex-wrap gap-x-2 gap-y-1"
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}
           >
             {row.original.stores.length === 0 ? (
               <span className="text-sm text-muted-foreground">—</span>
             ) : (
-              row.original.stores.map((store) => (
-                <Link
-                  key={store.id}
-                  href={`/admin/stores/${store.id}`}
-                  className="text-sm text-brand underline-offset-2 hover:underline"
-                >
-                  {store.name || store.id}
-                </Link>
-              ))
+              row.original.stores.map((store) => {
+                const name = store.name || store.id;
+                return (
+                  <Link
+                    key={store.id}
+                    href={`/admin/stores/${store.id}`}
+                    title={name}
+                    className="block max-w-full min-w-0 truncate text-sm text-brand underline-offset-2 hover:underline"
+                  >
+                    {name}
+                  </Link>
+                );
+              })
             )}
           </div>
         ),

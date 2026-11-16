@@ -90,10 +90,9 @@ describe('AdminOrdersPage', () => {
       'href',
       '/admin/customers/cust-1',
     );
-    expect(screen.getByRole('link', { name: 'Pet Shop A' })).toHaveAttribute(
-      'href',
-      '/admin/stores/store-1',
-    );
+    const storeLink = screen.getByRole('link', { name: 'Pet Shop A' });
+    expect(storeLink).toHaveAttribute('href', '/admin/stores/store-1');
+    expect(storeLink).toHaveClass('truncate');
     expect(screen.getByRole('link', { name: 'Pet Shop B' })).toHaveAttribute(
       'href',
       '/admin/stores/store-2',
