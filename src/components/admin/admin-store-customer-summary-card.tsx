@@ -108,7 +108,7 @@ export function AdminStoreCustomerSummaryCard({
                   })} ครั้ง/เดือน`
                 : '—'}
             </InsightFact>
-            <InsightFact label="AOV (ยอดต่อออเดอร์)">
+            <InsightFact label="AOV (ยอดต่อออเดอร์)" hint="หลังหักคูปองและโปรโมชันสินค้า">
               {data.averageOrderValue != null ? formatCurrency(data.averageOrderValue) : '—'}
             </InsightFact>
             <InsightFact label="New Customer (ลูกค้าใหม่)">
