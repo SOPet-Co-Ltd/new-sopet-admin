@@ -118,14 +118,13 @@ export const adminMoreTools: SopetToolDefinition[] = [
     query: `
       query Notifications($page: Int, $limit: Int) {
         notifications(page: $page, limit: $limit) {
-          items { id title body isRead createdAt }
-          pagination { page limit total totalPages }
+          id title message type isRead createdAt metadata
         }
       }
     `,
     variables: (args) => ({
-      page: (args.page as number) ?? 1,
-      limit: (args.limit as number) ?? 20,
+      page: args.page ?? 1,
+      limit: args.limit ?? 20,
     }),
     pick: 'notifications',
   }),
@@ -136,7 +135,7 @@ export const adminMoreTools: SopetToolDefinition[] = [
     inputSchema: {},
     query: `
       query {
-        emailContentTemplates { id key name subject updatedAt }
+        emailContentTemplates { id key name subjectTemplate updatedAt enabled }
       }
     `,
     pick: 'emailContentTemplates',
@@ -148,7 +147,7 @@ export const adminMoreTools: SopetToolDefinition[] = [
     inputSchema: {},
     query: `
       query {
-        adminTeamMembers { id email fullName role isActive }
+        adminTeamMembers { id email fullName isActive createdAt }
       }
     `,
     pick: 'adminTeamMembers',
