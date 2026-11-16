@@ -14,6 +14,20 @@ export function resetSessionCaches(queryClient: QueryClient): void {
   void getApolloClient().clearStore();
 }
 
+/**
+ * Drops a persisted portal user when the browser has no session cookie.
+ * Does not call logout — an in-flight logout response can wipe a login that
+ * finishes first and bounce a correct sign-in back to this page.
+ */
+export function clearStaleClientSession(queryClient: QueryClient): void {
+  if (hasClientSession()) {
+    return;
+  }
+  useAuthStore.getState().clearAuth();
+  useVendorStore.getState().clearVendor();
+  resetSessionCaches(queryClient);
+}
+
 /** Clears tokens, persisted auth/vendor state, and all client-side data caches. */
 export function clearAuthSession(queryClient: QueryClient): void {
   void clearTokens();
