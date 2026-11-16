@@ -80,6 +80,7 @@ describe('AdminOrder edit dialogs', () => {
     );
 
     await user.click(screen.getByRole('combobox', { name: 'สถานะ' }));
+    expect(screen.queryByRole('option', { name: 'พักการดำเนินการ' })).not.toBeInTheDocument();
     await user.click(await screen.findByRole('option', { name: 'จัดส่งแล้ว' }));
     await user.click(screen.getByRole('button', { name: 'บันทึก' }));
 
