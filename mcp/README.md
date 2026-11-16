@@ -77,6 +77,12 @@ yarn mcp:http   # 127.0.0.1:3101 — prefer backend /mcp for shared/online use
 
 Shopper cart / checkout / payment capture are out of scope.
 
+## Product import
+
+Importer sequence, working/broken tool table, and KKC policy checklist:
+
+→ **[sopet-backend/src/modules/mcp/IMPORT.md](../../sopet-backend/src/modules/mcp/IMPORT.md)** (online UAT MCP is the source of truth; keep this package’s tool selections in sync).
+
 ## Security
 
 - Passwords only via env at process start — never tool arguments
