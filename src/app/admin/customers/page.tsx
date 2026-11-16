@@ -99,11 +99,14 @@ export default function AdminCustomersPage() {
       {
         id: 'status',
         header: 'สถานะ',
-        cell: ({ row }) => (
-          <Badge status={row.original.isActive ? 'published' : 'draft'}>
-            {row.original.isActive ? 'ใช้งานอยู่' : 'ระงับ'}
-          </Badge>
-        ),
+        cell: ({ row }) =>
+          row.original.isGuest ? (
+            <Badge status="draft">ผู้เยี่ยมชม</Badge>
+          ) : (
+            <Badge status={row.original.isActive ? 'published' : 'draft'}>
+              {row.original.isActive ? 'ใช้งานอยู่' : 'ระงับ'}
+            </Badge>
+          ),
       },
       {
         accessorKey: 'createdAt',
@@ -127,14 +130,16 @@ export default function AdminCustomersPage() {
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}
           >
-            <Button size="sm" variant="outline" asChild className="h-8">
-              <Link
-                href={`/admin/customers/${row.original.id}`}
-                {...getDetailPrefetchHandlers(row.original.id)}
-              >
-                แก้ไข
-              </Link>
-            </Button>
+            {row.original.isGuest ? null : (
+              <Button size="sm" variant="outline" asChild className="h-8">
+                <Link
+                  href={`/admin/customers/${row.original.id}`}
+                  {...getDetailPrefetchHandlers(row.original.id)}
+                >
+                  แก้ไข
+                </Link>
+              </Button>
+            )}
           </div>
         ),
       },
@@ -165,12 +170,16 @@ export default function AdminCustomersPage() {
   }
 
   function goToCustomer(customer: AdminCustomer) {
+    if (customer.isGuest) return;
     router.push(`/admin/customers/${customer.id}`);
   }
 
   return (
     <div>
-      <PageHeader title="ลูกค้า" description="จัดการบัญชีลูกค้าทั้งหมดในแพลตฟอร์ม" />
+      <PageHeader
+        title="ลูกค้า"
+        description="จัดการบัญชีลูกค้าทั้งหมดในแพลตฟอร์ม รวมผู้สั่งซื้อแบบ guest ที่ยังไม่มีบัญชี"
+      />
 
       <div className="mb-6 flex max-w-md items-center gap-2">
         <CustomersSearchField

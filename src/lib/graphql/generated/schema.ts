@@ -110,6 +110,7 @@ export type AdminCustomerDetailType = {
   id: Scalars['String']['output'];
   insights: AdminCustomerInsightsType;
   isActive: Scalars['Boolean']['output'];
+  isGuest: Scalars['Boolean']['output'];
   isVerified: Scalars['Boolean']['output'];
   lastLoginAt?: Maybe<Scalars['DateTime']['output']>;
   phone: Scalars['String']['output'];
@@ -153,6 +154,7 @@ export type AdminCustomerType = {
   fullName?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   isActive: Scalars['Boolean']['output'];
+  isGuest: Scalars['Boolean']['output'];
   isVerified: Scalars['Boolean']['output'];
   lastLoginAt?: Maybe<Scalars['DateTime']['output']>;
   phone: Scalars['String']['output'];

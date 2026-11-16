@@ -59,7 +59,8 @@ export function AdminStoreCustomerSummaryCard({
           <p className="mt-1 text-sm text-muted-foreground text-pretty">
             สรุปลูกค้าของร้าน ·{' '}
             {formatSummaryMonthLabel(effectiveSelected.year, effectiveSelected.month)} ·
-            เลือกได้ตั้งแต่เดือนที่สร้างร้าน · ไม่รวมยกเลิก คืนเงิน หรือรอชำระ
+            เลือกได้ตั้งแต่เดือนที่สร้างร้าน · รวมลูกค้าที่สั่งแบบ guest · ไม่รวมยกเลิก คืนเงิน
+            หรือรอชำระ
           </p>
         </div>
         <CustomerSummaryMonthPicker

@@ -836,6 +836,7 @@ export interface AdminCustomer {
   dateOfBirth?: string | null;
   isVerified: boolean;
   isActive: boolean;
+  isGuest?: boolean;
   lastLoginAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
