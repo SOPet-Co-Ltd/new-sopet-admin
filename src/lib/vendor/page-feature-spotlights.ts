@@ -81,7 +81,7 @@ export const PAGE_FEATURE_SPOTLIGHTS: Record<
     body: 'บันทึกบัญชีธนาคารแล้วขอรับเงินจากคำสั่งซื้อ — เฉพาะเจ้าของร้าน',
     primaryLabel: 'เข้าใจแล้ว',
     catalogTitle: 'ตั้งค่ารับเงิน',
-    catalogDescription: 'แนะนำแผงบัญชีรับเงินและการตรวจสอบบัญชีในตั้งค่าร้าน',
+    catalogDescription: 'แนะนำแผงบัญชีรับเงินและการขอรับเงินในตั้งค่าร้าน',
     // Hub replay starts the setup-payout action guide (not page intro).
     catalogHref: actionGuideHref('/vendor/settings?tab=payout', 'setup-payout'),
   },

@@ -1,6 +1,5 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ERROR_MESSAGES } from '@/lib/api/error-messages';
 import type { BankAccountVerificationStatus, PayoutSummary } from '@/types';
 import { VendorPayoutBalancePanel } from './vendor-payout-balance-panel';
 import { VendorPayoutSnapshot } from './vendor-payout-snapshot';
@@ -50,6 +49,13 @@ vi.mock('@/hooks/usePayouts', () => ({
     isSuccess: false,
     error: null,
   }),
+  useCancelPayoutRequest: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
 }));
 
 vi.mock('@/hooks/useMembershipRole', () => ({
@@ -69,12 +75,12 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-describe('vendor payout request — bank verification gate', () => {
+describe('vendor payout request — saved bank account is enough', () => {
   beforeEach(() => {
     storeState.bankName = 'ธนาคารกสิกรไทย';
     storeState.bankAccountName = 'Test Account';
     storeState.bankAccountNumber = '1234567890';
-    storeState.bankAccountVerificationStatus = 'verified';
+    storeState.bankAccountVerificationStatus = 'unverified';
     summaryState.summary = {
       ...eligibleSummary,
       canRequestPayout: true,
@@ -85,68 +91,72 @@ describe('vendor payout request — bank verification gate', () => {
     cleanup();
   });
 
-  it.each(['unverified', 'pending_review', 'rejected'] as BankAccountVerificationStatus[])(
-    'disables request and shows not-verified message when status is %s (balance panel)',
+  it.each([
+    'unverified',
+    'pending_review',
+    'rejected',
+    'verified',
+  ] as BankAccountVerificationStatus[])(
+    'enables request on the balance panel when the account is saved and status is %s',
     (status) => {
       storeState.bankAccountVerificationStatus = status;
-      summaryState.summary = {
-        ...eligibleSummary,
-        canRequestPayout: false,
-      };
 
       render(<VendorPayoutBalancePanel />);
 
-      const button = screen.getByRole('button', { name: 'ขอรับเงิน' });
-      expect(button).toBeDisabled();
-      expect(screen.getByText(ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'ขอรับเงิน' })).toBeEnabled();
+      expect(screen.queryByText('บัญชีธนาคารยังไม่ผ่านการตรวจสอบ')).not.toBeInTheDocument();
     },
   );
 
-  it('disables request and shows not-verified message for pending_review on snapshot', () => {
-    storeState.bankAccountVerificationStatus = 'pending_review';
+  it.each([
+    'unverified',
+    'pending_review',
+    'rejected',
+    'verified',
+  ] as BankAccountVerificationStatus[])(
+    'enables request on the snapshot when the account is saved and status is %s',
+    (status) => {
+      storeState.bankAccountVerificationStatus = status;
+
+      render(<VendorPayoutSnapshot />);
+
+      expect(screen.getByRole('button', { name: 'ขอรับเงิน' })).toBeEnabled();
+      expect(screen.queryByText('บัญชีธนาคารยังไม่ผ่านการตรวจสอบ')).not.toBeInTheDocument();
+    },
+  );
+
+  it('keeps request disabled until a bank account is saved', () => {
+    storeState.bankName = '';
+    storeState.bankAccountName = '';
+    storeState.bankAccountNumber = '';
     summaryState.summary = {
       ...eligibleSummary,
       canRequestPayout: false,
     };
 
-    render(<VendorPayoutSnapshot />);
+    const { unmount } = render(<VendorPayoutBalancePanel />);
+    expect(screen.getByRole('button', { name: 'ขอรับเงิน' })).toBeDisabled();
+    expect(screen.getByText(/ยังไม่ได้บันทึกบัญชีธนาคาร/)).toBeInTheDocument();
+    unmount();
 
-    const button = screen.getByRole('button', { name: 'ขอรับเงิน' });
-    expect(button).toBeDisabled();
-    expect(screen.getByText(ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED)).toBeInTheDocument();
+    render(<VendorPayoutSnapshot />);
+    expect(screen.getByRole('button', { name: 'ขอรับเงิน' })).toBeDisabled();
+    expect(screen.getByText(/ยังไม่ได้ตั้งบัญชีรับเงิน/)).toBeInTheDocument();
   });
 
-  it.each(['unverified', 'rejected'] as BankAccountVerificationStatus[])(
-    'disables request and shows not-verified message when status is %s (snapshot)',
-    (status) => {
-      storeState.bankAccountVerificationStatus = status;
-      summaryState.summary = {
-        ...eligibleSummary,
-        canRequestPayout: false,
-      };
-
-      render(<VendorPayoutSnapshot />);
-
-      const button = screen.getByRole('button', { name: 'ขอรับเงิน' });
-      expect(button).toBeDisabled();
-      expect(screen.getByText(ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED)).toBeInTheDocument();
-    },
-  );
-
-  it('keeps request enabled and hides not-verified message when verified', () => {
-    storeState.bankAccountVerificationStatus = 'verified';
+  it('offers cancel while a payout request is waiting for admin', () => {
     summaryState.summary = {
       ...eligibleSummary,
-      canRequestPayout: true,
+      availableBalance: 0,
+      pendingPayoutAmount: 2927.16,
+      canRequestPayout: false,
     };
 
-    const { unmount: unmountBalance } = render(<VendorPayoutBalancePanel />);
-    expect(screen.getByRole('button', { name: 'ขอรับเงิน' })).toBeEnabled();
-    expect(screen.queryByText(ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED)).not.toBeInTheDocument();
-    unmountBalance();
+    render(<VendorPayoutBalancePanel />);
 
-    render(<VendorPayoutSnapshot />);
-    expect(screen.getByRole('button', { name: 'ขอรับเงิน' })).toBeEnabled();
-    expect(screen.queryByText(ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED)).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('รอแอดมินโอนและอนุมัติ');
+    expect(screen.getByRole('status')).toHaveTextContent('฿2,927.16');
+    expect(screen.getByRole('button', { name: 'ยกเลิกคำขอ' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'ขอรับเงิน' })).toBeDisabled();
   });
 });

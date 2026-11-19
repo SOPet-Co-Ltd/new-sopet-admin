@@ -2848,6 +2848,14 @@ export const REQUEST_PAYOUT_MUTATION = gql`
   }
 `;
 
+export const CANCEL_PAYOUT_REQUEST_MUTATION = gql`
+  mutation CancelPayoutRequest {
+    cancelPayoutRequest {
+      ${PAYOUT_FIELDS}
+    }
+  }
+`;
+
 export const SETTLE_MANUAL_PAYOUT_MUTATION = gql`
   mutation SettleManualPayout($input: SettleManualPayoutInput!) {
     settleManualPayout(input: $input) {

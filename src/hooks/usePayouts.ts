@@ -5,6 +5,7 @@ import {
   getAdminStorePayoutSummary,
   getAdminStorePayouts,
   getPendingManualPayouts,
+  cancelPayoutRequest,
   getStorePayoutSummary,
   getStorePayouts,
   rejectManualPayout,
@@ -38,6 +39,16 @@ export function useRequestPayout() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: requestPayout,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
+    },
+  });
+}
+
+export function useCancelPayoutRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: cancelPayoutRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
     },
