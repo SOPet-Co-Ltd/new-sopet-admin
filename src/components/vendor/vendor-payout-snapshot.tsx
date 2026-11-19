@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { HiArrowRight } from 'react-icons/hi2';
 import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
+import { VendorCancelPayoutButton } from '@/components/vendor/vendor-cancel-payout-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody } from '@/components/ui/card';
 import { useIsStoreOwner } from '@/hooks/useMembershipRole';
@@ -12,7 +13,6 @@ import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency } from '@/lib/utils';
 import type { PayoutSummary } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
-import { ERROR_MESSAGES } from '@/lib/api/error-messages';
 
 function AvailableVendorSnapshotBreakdown({ rail }: { rail: PayoutSummary }) {
   return (
@@ -47,8 +47,7 @@ export function VendorPayoutSnapshot() {
     store?.bankAccountName?.trim() &&
     store?.bankAccountNumber?.trim()
   );
-  const bankNotVerified = !needsBankSetup && store?.bankAccountVerificationStatus !== 'verified';
-  const canRequest = Boolean(!needsBankSetup && !bankNotVerified && summary?.canRequestPayout);
+  const canRequest = Boolean(!needsBankSetup && summary?.canRequestPayout);
 
   return (
     <section aria-labelledby="vendor-payout-snapshot-heading" className="space-y-3">
@@ -81,10 +80,13 @@ export function VendorPayoutSnapshot() {
                   </p>
                   <AvailableVendorSnapshotBreakdown rail={summary} />
                   {summary.pendingPayoutAmount > 0 ? (
-                    <p className="mt-1 text-sm text-amber-800">
-                      ส่งคำขอแล้ว — รอแอดมินโอนและอนุมัติ{' '}
-                      {formatCurrency(summary.pendingPayoutAmount)}
-                    </p>
+                    <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-sm text-amber-800">
+                        ส่งคำขอแล้ว — รอแอดมินโอนและอนุมัติ{' '}
+                        {formatCurrency(summary.pendingPayoutAmount)}
+                      </p>
+                      <VendorCancelPayoutButton amount={summary.pendingPayoutAmount} />
+                    </div>
                   ) : null}
                 </div>
                 <Button
@@ -102,10 +104,6 @@ export function VendorPayoutSnapshot() {
                 <p className="text-sm text-amber-900">
                   ยังไม่ได้ตั้งบัญชีรับเงิน — บันทึกบัญชีธนาคารเพื่อเริ่มรับเงินจากยอดขาย
                 </p>
-              ) : null}
-
-              {bankNotVerified ? (
-                <p className="text-sm text-amber-900">{ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED}</p>
               ) : null}
 
               {requestPayout.isError ? (

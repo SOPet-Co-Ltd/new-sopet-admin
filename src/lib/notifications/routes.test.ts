@@ -44,6 +44,18 @@ describe('getNotificationHref', () => {
     expect(href).toBe('/admin/manual-payouts');
   });
 
+  it('routes a vendor payout cancellation to the store page', () => {
+    const href = getNotificationHref(
+      notification({
+        type: 'manual_payout_cancelled',
+        metadata: { payoutId: 'payout-1', storeId: 'store-1' },
+      }),
+      'admin',
+    );
+
+    expect(href).toBe('/admin/stores/store-1');
+  });
+
   it('routes vendor enter-hold and resume notifications to order detail', () => {
     expect(
       getNotificationHref(

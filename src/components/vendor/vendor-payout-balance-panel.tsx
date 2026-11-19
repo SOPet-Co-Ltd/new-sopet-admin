@@ -1,6 +1,7 @@
 'use client';
 
 import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
+import { VendorCancelPayoutButton } from '@/components/vendor/vendor-cancel-payout-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { useRequestPayout, useStorePayoutSummary } from '@/hooks/usePayouts';
@@ -9,7 +10,6 @@ import { commissionCopy } from '@/lib/i18n/th';
 import { formatCurrency } from '@/lib/utils';
 import type { PayoutSummary } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
-import { ERROR_MESSAGES } from '@/lib/api/error-messages';
 
 function AvailableVendorBreakdown({ rail }: { rail: PayoutSummary }) {
   return (
@@ -47,7 +47,6 @@ export function VendorPayoutBalancePanel() {
   const hasBankAccount = Boolean(
     store?.bankName?.trim() && store?.bankAccountName?.trim() && store?.bankAccountNumber?.trim(),
   );
-  const bankNotVerified = hasBankAccount && store?.bankAccountVerificationStatus !== 'verified';
   const minimum = summary?.minimumPayoutAmount ?? 0;
 
   if (isLoading) {
@@ -82,19 +81,17 @@ export function VendorPayoutBalancePanel() {
 
   const disabledReason = !hasBankAccount
     ? 'ยังไม่ได้บันทึกบัญชีธนาคาร — กรอกและบันทึกในขั้นตอน 1 ก่อน'
-    : bankNotVerified
-      ? ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED
-      : !summary.canRequestPayout && summary.pendingPayoutAmount > 0
-        ? 'มีคำขอรับเงินที่รอแอดมินโอนและอนุมัติอยู่แล้ว'
-        : !summary.canRequestPayout && summary.availableBalance <= 0
-          ? 'ยังไม่มียอดที่ขอรับเงินได้'
-          : !summary.canRequestPayout && summary.availableBalance < minimum
-            ? `ยอดต้องอย่างน้อย ${formatCurrency(minimum)}`
-            : summary.canRequestPayout
-              ? 'กดแล้วคำขอจะไปที่แอดมินเพื่อโอนเงินเข้าบัญชีของร้าน'
-              : null;
+    : !summary.canRequestPayout && summary.pendingPayoutAmount > 0
+      ? 'มีคำขอรับเงินที่รอแอดมินโอนและอนุมัติอยู่แล้ว'
+      : !summary.canRequestPayout && summary.availableBalance <= 0
+        ? 'ยังไม่มียอดที่ขอรับเงินได้'
+        : !summary.canRequestPayout && summary.availableBalance < minimum
+          ? `ยอดต้องอย่างน้อย ${formatCurrency(minimum)}`
+          : summary.canRequestPayout
+            ? 'กดแล้วคำขอจะไปที่แอดมินเพื่อโอนเงินเข้าบัญชีของร้าน'
+            : null;
 
-  const canRequest = hasBankAccount && !bankNotVerified && summary.canRequestPayout;
+  const canRequest = hasBankAccount && summary.canRequestPayout;
 
   return (
     <div className="space-y-4">
@@ -130,10 +127,11 @@ export function VendorPayoutBalancePanel() {
 
           {summary.pendingPayoutAmount > 0 ? (
             <div
-              className="rounded-lg bg-warning-bg px-3 py-2.5 text-sm text-warning-text"
+              className="flex flex-col gap-3 rounded-lg bg-warning-bg px-3 py-2.5 text-sm text-warning-text sm:flex-row sm:items-center sm:justify-between"
               role="status"
             >
-              รอแอดมินโอนและอนุมัติ {formatCurrency(summary.pendingPayoutAmount)}
+              <p>รอแอดมินโอนและอนุมัติ {formatCurrency(summary.pendingPayoutAmount)}</p>
+              <VendorCancelPayoutButton amount={summary.pendingPayoutAmount} />
             </div>
           ) : null}
 

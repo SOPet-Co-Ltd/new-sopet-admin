@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { useStorePayouts } from '@/hooks/usePayouts';
 import { commissionCopy } from '@/lib/i18n/th';
-import { PAYOUT_STATUS_LABELS } from '@/lib/payouts/status-labels';
+import { payoutStatusLabel, VENDOR_CANCELLED_PAYOUT_REASON } from '@/lib/payouts/status-labels';
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Payout } from '@/types';
 
@@ -67,6 +67,10 @@ function PayoutOutcomeCopy({ payout }: { payout: Payout }) {
     );
   }
 
+  if (payout.status === 'failed' && payout.failureReason === VENDOR_CANCELLED_PAYOUT_REASON) {
+    return <p className="text-xs text-muted-foreground">ยกเลิกคำขอแล้ว</p>;
+  }
+
   if (payout.status === 'failed' && payout.failureReason) {
     return <p className="text-xs text-danger">เหตุผล: {payout.failureReason}</p>;
   }
@@ -124,7 +128,7 @@ export function VendorPayoutHistoryPanel() {
                     status={PAYOUT_BADGE_STATUS[payout.status]}
                     className={cn(payout.status === 'pending' && 'bg-warning-bg text-warning-text')}
                   >
-                    {PAYOUT_STATUS_LABELS[payout.status] ?? payout.status}
+                    {payoutStatusLabel(payout.status, payout.failureReason)}
                   </Badge>
                 </div>
                 <SnapshotHistoryBreakdown payout={payout} />

@@ -222,6 +222,7 @@ const notificationTypeLabels: Record<string, string> = {
   request_status_changed: 'อัปเดตคำขอ',
   new_store_request: 'คำขอเปิดร้าน',
   manual_payout_request: 'คำขอ Payout Manual',
+  manual_payout_cancelled: 'ร้านยกเลิกคำขอรับเงิน',
   order_confirmation: 'ยืนยันคำสั่งซื้อ',
   order_shipped: 'จัดส่งแล้ว',
   order_delivered: 'ส่งถึงแล้ว',

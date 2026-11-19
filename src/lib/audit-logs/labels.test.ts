@@ -124,6 +124,7 @@ describe('audit log labels', () => {
     expect(getAuditActionLabel('auth.email_verified')).not.toBe('auth.email_verified');
     expect(getAuditActionLabel('payout.manual_settled')).not.toBe('payout.manual_settled');
     expect(getAuditActionLabel('payout.manual_rejected')).not.toBe('payout.manual_rejected');
+    expect(getAuditActionLabel('payout.request_cancelled')).toBe('ร้านยกเลิกคำขอรับเงิน');
     expect(getAuditActionLabel('admin.invited')).not.toBe('admin.invited');
     expect(getAuditActionLabel('admin.invitation_revoked')).not.toBe('admin.invitation_revoked');
     expect(getAuditActionLabel('admin.invitation_accepted')).not.toBe('admin.invitation_accepted');

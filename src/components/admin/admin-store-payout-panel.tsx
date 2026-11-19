@@ -14,7 +14,7 @@ import {
   useSettleManualPayout,
 } from '@/hooks/usePayouts';
 import { commissionCopy } from '@/lib/i18n/th';
-import { PAYOUT_STATUS_LABELS } from '@/lib/payouts/status-labels';
+import { payoutStatusLabel } from '@/lib/payouts/status-labels';
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Payout, PayoutSummary } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
@@ -264,7 +264,7 @@ export function AdminStorePayoutPanel({ storeId }: AdminStorePayoutPanelProps) {
                             ) : null}
                           </td>
                           <td className="px-4 py-2.5">
-                            {PAYOUT_STATUS_LABELS[payout.status] ?? payout.status}
+                            {payoutStatusLabel(payout.status, payout.failureReason)}
                           </td>
                         </tr>
                       ))}
