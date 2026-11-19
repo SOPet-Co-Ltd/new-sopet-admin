@@ -940,6 +940,7 @@ export type Mutation = {
   approveStoreReactivationRequest: StoreReactivationRequestType;
   approveStoreRequest: StoreRequestType;
   approveTag: TagType;
+  cancelPayoutRequest: PayoutType;
   cancelVendorOrder: OrderType;
   changeCustomerPhone: CustomerAuthPayload;
   changePassword: MessagePayload;
@@ -1112,6 +1113,7 @@ export type MutationAcceptVendorInvitationArgs = {
 
 export type MutationAcknowledgeVendorOrderArgs = {
   orderId: Scalars['String']['input'];
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationAddFavoriteArgs = {
@@ -1199,6 +1201,7 @@ export type MutationApproveTagArgs = {
 
 export type MutationCancelVendorOrderArgs = {
   orderId: Scalars['String']['input'];
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationChangeCustomerPhoneArgs = {
@@ -1273,6 +1276,7 @@ export type MutationCreatePlatformSponsorArgs = {
 
 export type MutationCreateProductArgs = {
   input: CreateProductInput;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationCreateProductVariantArgs = {
@@ -1302,6 +1306,7 @@ export type MutationCreateSearchSynonymArgs = {
 
 export type MutationCreateShippingOptionArgs = {
   input: CreateShippingOptionInput;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationCreateShippingProviderArgs = {
@@ -1388,6 +1393,7 @@ export type MutationDeleteSearchSynonymArgs = {
 
 export type MutationDeleteShippingOptionArgs = {
   id: Scalars['String']['input'];
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationDeleteShippingProviderArgs = {
@@ -1404,6 +1410,7 @@ export type MutationInviteAdminArgs = {
 
 export type MutationInviteStoreMemberArgs = {
   input: InviteStoreMemberInput;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationInviteVendorArgs = {
@@ -1416,6 +1423,7 @@ export type MutationMarkNotificationReadArgs = {
 
 export type MutationMarkVendorOrderPaidArgs = {
   orderId: Scalars['String']['input'];
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationMergeCartArgs = {
@@ -1501,6 +1509,7 @@ export type MutationRemoveFavoriteArgs = {
 
 export type MutationRemoveStoreMemberArgs = {
   memberId: Scalars['String']['input'];
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationReorderPlatformBannersArgs = {
@@ -1535,6 +1544,7 @@ export type MutationRevokeStoreApiKeyArgs = {
 
 export type MutationRevokeStoreInvitationArgs = {
   invitationId: Scalars['String']['input'];
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationSendCustomerOtpArgs = {
@@ -1591,6 +1601,7 @@ export type MutationSettleManualPayoutArgs = {
 
 export type MutationShipVendorOrderArgs = {
   input: ShipVendorOrderInput;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationSubmitStoreReactivationRequestArgs = {
@@ -1738,6 +1749,7 @@ export type MutationUpdateSearchSynonymArgs = {
 export type MutationUpdateShippingOptionArgs = {
   id: Scalars['String']['input'];
   input: UpdateShippingOptionInput;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationUpdateShippingProviderArgs = {
@@ -1747,6 +1759,7 @@ export type MutationUpdateShippingProviderArgs = {
 
 export type MutationUpdateStoreArgs = {
   input: UpdateStoreSettingsInput;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationUpdateStoreAsAdminArgs = {
@@ -1755,10 +1768,12 @@ export type MutationUpdateStoreAsAdminArgs = {
 
 export type MutationUpdateStoreMemberRoleArgs = {
   input: UpdateStoreMemberRoleInput;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationUpdateStorePayoutArgs = {
   input: UpdateStorePayoutInput;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type MutationUpdateStorefrontMaintenanceArgs = {
@@ -2604,6 +2619,14 @@ export type QueryMyReviewsArgs = {
   offset?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type QueryMyStoreArgs = {
+  storeId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type QueryMyStoreShippingOptionsArgs = {
+  storeId?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type QueryNotificationsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
@@ -2813,6 +2836,14 @@ export type QueryStoreCustomerSummaryArgs = {
   year: Scalars['Int']['input'];
 };
 
+export type QueryStoreInvitationsArgs = {
+  storeId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type QueryStoreMembersArgs = {
+  storeId?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type QueryStorePayoutsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
@@ -2873,16 +2904,19 @@ export type QueryValidatePromotionsArgs = {
 
 export type QueryVendorCustomerArgs = {
   id: Scalars['String']['input'];
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QueryVendorCustomerDetailArgs = {
   id: Scalars['String']['input'];
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QueryVendorCustomersArgs = {
   limit?: Scalars['Int']['input'];
   page?: Scalars['Int']['input'];
   search?: InputMaybe<Scalars['String']['input']>;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QueryVendorOrderArgs = {
@@ -2914,17 +2948,20 @@ export type QueryVendorProductsArgs = {
   petTypeIds?: InputMaybe<Array<Scalars['String']['input']>>;
   search?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
+  storeId?: InputMaybe<Scalars['String']['input']>;
   tag?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QueryVendorPublishableProductIdsArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QueryVendorPublishableProductsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+  storeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type ReactivateAccountInput = {

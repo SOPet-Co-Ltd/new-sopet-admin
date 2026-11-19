@@ -48,6 +48,10 @@ export function getNotificationHref(
       case 'manual_payout_request': {
         return '/admin/manual-payouts';
       }
+      case 'manual_payout_cancelled': {
+        const storeId = asString(parsedMetadata?.storeId);
+        return storeId ? `/admin/stores/${encodeURIComponent(storeId)}` : '/admin/manual-payouts';
+      }
       default:
         return null;
     }

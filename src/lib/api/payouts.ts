@@ -3,6 +3,7 @@ import {
   ADMIN_STORE_PAYOUTS_QUERY,
   ADMIN_STORE_PAYOUT_SUMMARY_QUERY,
   PENDING_MANUAL_PAYOUTS_QUERY,
+  CANCEL_PAYOUT_REQUEST_MUTATION,
   REJECT_MANUAL_PAYOUT_MUTATION,
   REQUEST_PAYOUT_MUTATION,
   SETTLE_MANUAL_PAYOUT_MUTATION,
@@ -140,6 +141,12 @@ export function getPendingManualPayouts(
 export function requestPayout(): Promise<Payout> {
   return executeMutation<{ requestPayout: GqlPayout }>(REQUEST_PAYOUT_MUTATION).then((data) =>
     mapPayout(data.requestPayout),
+  );
+}
+
+export function cancelPayoutRequest(): Promise<Payout> {
+  return executeMutation<{ cancelPayoutRequest: GqlPayout }>(CANCEL_PAYOUT_REQUEST_MUTATION).then(
+    (data) => mapPayout(data.cancelPayoutRequest),
   );
 }
 

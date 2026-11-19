@@ -20,6 +20,7 @@ const ACTION_LABELS: Record<string, string> = {
   'payout.triggered': 'สั่งจ่ายเงิน',
   'payout.manual_settled': 'ชำระเงินด้วยตนเอง',
   'payout.manual_rejected': 'ปฏิเสธการจ่ายเงินด้วยตนเอง',
+  'payout.request_cancelled': 'ร้านยกเลิกคำขอรับเงิน',
   'admin.invited': 'เชิญผู้ดูแล',
   'admin.invitation_revoked': 'เพิกถอนคำเชิญผู้ดูแล',
   'admin.invitation_accepted': 'ยอมรับคำเชิญผู้ดูแล',
