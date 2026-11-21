@@ -713,6 +713,15 @@ export type CustomerAuthPayload = {
   tokens?: Maybe<AuthTokens>;
 };
 
+export type CustomerExistsByPhoneInput = {
+  phone: Scalars['String']['input'];
+};
+
+export type CustomerExistsByPhonePayload = {
+  __typename?: 'CustomerExistsByPhonePayload';
+  exists: Scalars['Boolean']['output'];
+};
+
 export enum CustomerOrderListFilter {
   All = 'ALL',
   Cancelled = 'CANCELLED',
@@ -2348,6 +2357,7 @@ export type Query = {
   brandDeleteImpact: TaxonomyDeleteImpactType;
   cart: CartType;
   categoryDeleteImpact: TaxonomyDeleteImpactType;
+  customerExistsByPhone: CustomerExistsByPhonePayload;
   customerPurchaseSummary: CustomerPurchaseSummaryType;
   customerReviewableItems: Array<CustomerReviewableItemType>;
   emailContainer?: Maybe<EmailContainerType>;
@@ -2568,6 +2578,10 @@ export type QueryCartArgs = {
 
 export type QueryCategoryDeleteImpactArgs = {
   categoryId: Scalars['String']['input'];
+};
+
+export type QueryCustomerExistsByPhoneArgs = {
+  input: CustomerExistsByPhoneInput;
 };
 
 export type QueryCustomerPurchaseSummaryArgs = {
