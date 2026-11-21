@@ -115,6 +115,7 @@ export function AdminOrderDetail({ record }: AdminOrderDetailProps) {
         onOpenChange={setStatusDialogOpen}
         orderId={order.id}
         currentStatus={order.status}
+        paymentMethod={order.paymentMethod}
       />
       <AdminOrderShippingEditDialog
         open={shippingDialogOpen}

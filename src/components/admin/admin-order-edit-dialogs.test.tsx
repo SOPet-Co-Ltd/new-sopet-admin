@@ -90,6 +90,60 @@ describe('AdminOrder edit dialogs', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
+  it('asks to refund TrueMoney manually before saving a cancellation', async () => {
+    const user = userEvent.setup();
+    wrap(
+      <AdminOrderStatusEditDialog
+        open
+        onOpenChange={vi.fn()}
+        orderId="order-1"
+        currentStatus="paid"
+        paymentMethod="truemoney"
+      />,
+    );
+
+    await user.click(screen.getByRole('combobox', { name: 'สถานะ' }));
+    await user.click(await screen.findByRole('option', { name: 'ยกเลิก' }));
+    await user.click(screen.getByRole('button', { name: 'บันทึก' }));
+
+    expect(await screen.findByRole('heading', { name: 'คืนเงินเอง' })).toBeInTheDocument();
+    expect(screen.getByText(/Beam ไม่รองรับการคืนเงินของ TrueMoney/)).toBeInTheDocument();
+    expect(mutateStatus).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'กลับไปแก้ไข' }));
+    expect(mutateStatus).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'บันทึก' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'บันทึก' }));
+    await user.click(await screen.findByRole('button', { name: 'ยืนยันและบันทึก' }));
+
+    await waitFor(() => {
+      expect(mutateStatus).toHaveBeenCalledWith({ orderId: 'order-1', status: 'cancelled' });
+    });
+  });
+
+  it('saves a PromptPay cancellation without a manual refund warning', async () => {
+    const user = userEvent.setup();
+    wrap(
+      <AdminOrderStatusEditDialog
+        open
+        onOpenChange={vi.fn()}
+        orderId="order-1"
+        currentStatus="paid"
+        paymentMethod="promptpay"
+      />,
+    );
+
+    await user.click(screen.getByRole('combobox', { name: 'สถานะ' }));
+    await user.click(await screen.findByRole('option', { name: 'ยกเลิก' }));
+    await user.click(screen.getByRole('button', { name: 'บันทึก' }));
+
+    await waitFor(() => {
+      expect(mutateStatus).toHaveBeenCalledWith({ orderId: 'order-1', status: 'cancelled' });
+    });
+    expect(screen.queryByRole('heading', { name: 'คืนเงินเอง' })).not.toBeInTheDocument();
+  });
+
   it('saves shipping address edits', async () => {
     const user = userEvent.setup();
     const onOpenChange = vi.fn();

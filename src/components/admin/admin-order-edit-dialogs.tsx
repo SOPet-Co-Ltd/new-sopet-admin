@@ -27,7 +27,7 @@ import {
 } from '@/hooks/useAdminOrders';
 import { getErrorMessage } from '@/lib/api/errors';
 import { ORDER_STATUSES } from '@/lib/config';
-import { labelOrderStatus } from '@/lib/i18n/th';
+import { labelOrderStatus, labelPaymentMethod } from '@/lib/i18n/th';
 import {
   adminOrderShippingFormSchema,
   normalizeThaiPhoneInput,
@@ -42,34 +42,87 @@ function orderStatusOptions(currentStatus: string): readonly string[] {
   return [currentStatus, ...ORDER_STATUSES];
 }
 
+const MANUAL_BEAM_REFUND_METHODS = new Set(['truemoney', 'shopeepay']);
+
+function needsManualBeamRefundConfirm(
+  currentStatus: string,
+  nextStatus: string,
+  paymentMethod: string,
+): boolean {
+  if (nextStatus === currentStatus) return false;
+  if (nextStatus !== 'cancelled' && nextStatus !== 'refunded') return false;
+  if (currentStatus === 'pending_payment') return false;
+  return MANUAL_BEAM_REFUND_METHODS.has(paymentMethod);
+}
+
 type AdminOrderStatusEditDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   orderId: string;
   currentStatus: string;
+  paymentMethod?: string;
 };
 
 function AdminOrderStatusEditForm({
   orderId,
   currentStatus,
+  paymentMethod = '',
   onClose,
   onSelectOpenChange,
 }: {
   orderId: string;
   currentStatus: string;
+  paymentMethod?: string;
   onClose: () => void;
   onSelectOpenChange: (open: boolean) => void;
 }) {
   const updateMutation = useUpdateAdminOrderStatus();
   const [status, setStatus] = useState(currentStatus);
+  const [confirmManualRefund, setConfirmManualRefund] = useState(false);
 
-  async function handleSave() {
+  async function saveStatus() {
     try {
       await updateMutation.mutateAsync({ orderId, status });
       onClose();
     } catch {
-      // surfaced via mutation state
+      setConfirmManualRefund(false);
     }
+  }
+
+  function handleSave() {
+    if (needsManualBeamRefundConfirm(currentStatus, status, paymentMethod)) {
+      setConfirmManualRefund(true);
+      return;
+    }
+    void saveStatus();
+  }
+
+  if (confirmManualRefund) {
+    const methodLabel = labelPaymentMethod(paymentMethod);
+    return (
+      <>
+        <DialogHeader>
+          <DialogTitle>คืนเงินเอง</DialogTitle>
+          <DialogDescription>
+            Beam ไม่รองรับการคืนเงินของ {methodLabel} ระบบจะเปลี่ยนสถานะคำสั่งซื้อให้
+            แต่ต้องโอนเงินคืนลูกค้าเอง
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => setConfirmManualRefund(false)}>
+            กลับไปแก้ไข
+          </Button>
+          <Button
+            type="button"
+            disabled={updateMutation.isPending}
+            aria-busy={updateMutation.isPending}
+            onClick={() => void saveStatus()}
+          >
+            {updateMutation.isPending ? 'กำลังบันทึก...' : 'ยืนยันและบันทึก'}
+          </Button>
+        </DialogFooter>
+      </>
+    );
   }
 
   return (
@@ -124,6 +177,7 @@ export function AdminOrderStatusEditDialog({
   onOpenChange,
   orderId,
   currentStatus,
+  paymentMethod,
 }: AdminOrderStatusEditDialogProps) {
   const [selectOpen, setSelectOpen] = useState(false);
 
@@ -151,6 +205,7 @@ export function AdminOrderStatusEditDialog({
             key={`${orderId}-${currentStatus}`}
             orderId={orderId}
             currentStatus={currentStatus}
+            paymentMethod={paymentMethod}
             onClose={() => onOpenChange(false)}
             onSelectOpenChange={setSelectOpen}
           />
