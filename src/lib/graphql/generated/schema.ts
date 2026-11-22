@@ -42,12 +42,8 @@ export type ActiveSaleCampaignItemType = {
 };
 
 export type AddPaymentMethodInput = {
-  brand: Scalars['String']['input'];
-  cardToken: Scalars['String']['input'];
-  expiryMonth: Scalars['Int']['input'];
-  expiryYear: Scalars['Int']['input'];
+  cardCipher: Scalars['String']['input'];
   isDefault?: InputMaybe<Scalars['Boolean']['input']>;
-  lastFour: Scalars['String']['input'];
 };
 
 export type AddProductImageInput = {
@@ -546,7 +542,7 @@ export type CreateOrderInput = {
 
 export type CreatePaymentInput = {
   amount?: InputMaybe<Scalars['Float']['input']>;
-  cardSecurityCode?: InputMaybe<Scalars['String']['input']>;
+  cardSecurityCodeCipher?: InputMaybe<Scalars['String']['input']>;
   cardToken?: InputMaybe<Scalars['String']['input']>;
   currency?: Scalars['String']['input'];
   guestPayToken?: InputMaybe<Scalars['String']['input']>;
@@ -711,6 +707,15 @@ export type CustomerAuthPayload = {
   pendingDeletion?: Maybe<Scalars['Boolean']['output']>;
   reactivationToken?: Maybe<Scalars['String']['output']>;
   tokens?: Maybe<AuthTokens>;
+};
+
+export type CustomerExistsByPhoneInput = {
+  phone: Scalars['String']['input'];
+};
+
+export type CustomerExistsByPhonePayload = {
+  __typename?: 'CustomerExistsByPhonePayload';
+  exists: Scalars['Boolean']['output'];
 };
 
 export enum CustomerOrderListFilter {
@@ -2346,8 +2351,10 @@ export type Query = {
   bankTransferDetails?: Maybe<BankTransferDetailsType>;
   bankTransferSettings: BankTransferSettingsType;
   brandDeleteImpact: TaxonomyDeleteImpactType;
+  cardTransportPublicKey: Scalars['String']['output'];
   cart: CartType;
   categoryDeleteImpact: TaxonomyDeleteImpactType;
+  customerExistsByPhone: CustomerExistsByPhonePayload;
   customerPurchaseSummary: CustomerPurchaseSummaryType;
   customerReviewableItems: Array<CustomerReviewableItemType>;
   emailContainer?: Maybe<EmailContainerType>;
@@ -2568,6 +2575,10 @@ export type QueryCartArgs = {
 
 export type QueryCategoryDeleteImpactArgs = {
   categoryId: Scalars['String']['input'];
+};
+
+export type QueryCustomerExistsByPhoneArgs = {
+  input: CustomerExistsByPhoneInput;
 };
 
 export type QueryCustomerPurchaseSummaryArgs = {
@@ -3106,12 +3117,8 @@ export type SalesTimePointType = {
 };
 
 export type SaveCardOnPaymentInput = {
-  brand: Scalars['String']['input'];
-  cardToken: Scalars['String']['input'];
-  expiryMonth: Scalars['Int']['input'];
-  expiryYear: Scalars['Int']['input'];
+  cardCipher: Scalars['String']['input'];
   isDefault?: InputMaybe<Scalars['Boolean']['input']>;
-  lastFour: Scalars['String']['input'];
 };
 
 export type SavedAddressType = {
