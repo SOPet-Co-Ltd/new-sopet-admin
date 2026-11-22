@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ import {
   useUpdateAdminOrderShippingAddress,
   useUpdateAdminOrderStatus,
 } from '@/hooks/useAdminOrders';
-import { getErrorMessage } from '@/lib/api/errors';
+import { getErrorMessage, isApiError } from '@/lib/api/errors';
 import { ORDER_STATUSES } from '@/lib/config';
 import { labelOrderStatus, labelPaymentMethod } from '@/lib/i18n/th';
 import {
@@ -43,6 +44,20 @@ function orderStatusOptions(currentStatus: string): readonly string[] {
 }
 
 const MANUAL_BEAM_REFUND_METHODS = new Set(['truemoney', 'shopeepay']);
+
+const BANK_TRANSFER_CONFIRM_HREF = '/admin/bank-transfers';
+
+function needsBankTransferConfirm(
+  currentStatus: string,
+  nextStatus: string,
+  paymentMethod: string,
+) {
+  return (
+    paymentMethod === 'bank_transfer' &&
+    currentStatus === 'pending_payment' &&
+    nextStatus === 'paid'
+  );
+}
 
 function needsManualBeamRefundConfirm(
   currentStatus: string,
@@ -79,6 +94,12 @@ function AdminOrderStatusEditForm({
   const updateMutation = useUpdateAdminOrderStatus();
   const [status, setStatus] = useState(currentStatus);
   const [confirmManualRefund, setConfirmManualRefund] = useState(false);
+  const [bankTransferNotice, setBankTransferNotice] = useState(false);
+  const showBankTransferLink =
+    bankTransferNotice ||
+    (updateMutation.isError &&
+      isApiError(updateMutation.error) &&
+      updateMutation.error.code === 'USE_CONFIRM_BANK_TRANSFER');
 
   async function saveStatus() {
     try {
@@ -90,6 +111,10 @@ function AdminOrderStatusEditForm({
   }
 
   function handleSave() {
+    if (needsBankTransferConfirm(currentStatus, status, paymentMethod)) {
+      setBankTransferNotice(true);
+      return;
+    }
     if (needsManualBeamRefundConfirm(currentStatus, status, paymentMethod)) {
       setConfirmManualRefund(true);
       return;
@@ -149,7 +174,14 @@ function AdminOrderStatusEditForm({
             </SelectContent>
           </Select>
         </div>
-        {updateMutation.isError ? (
+        {showBankTransferLink ? (
+          <p className="text-sm text-danger" role="alert">
+            กรุณายืนยันการโอนเงินผ่านขั้นตอนที่กำหนด{' '}
+            <Link href={BANK_TRANSFER_CONFIRM_HREF} className="font-medium underline">
+              ไปหน้าโอนเงินเข้าบัญชี
+            </Link>
+          </p>
+        ) : updateMutation.isError ? (
           <p className="text-sm text-danger" role="alert">
             {getErrorMessage(updateMutation.error, 'เปลี่ยนสถานะไม่สำเร็จ')}
           </p>

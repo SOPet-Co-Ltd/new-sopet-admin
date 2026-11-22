@@ -122,6 +122,31 @@ describe('AdminOrder edit dialogs', () => {
     });
   });
 
+  it('links to bank transfer confirmation instead of marking a transfer paid', async () => {
+    const user = userEvent.setup();
+    wrap(
+      <AdminOrderStatusEditDialog
+        open
+        onOpenChange={vi.fn()}
+        orderId="order-1"
+        currentStatus="pending_payment"
+        paymentMethod="bank_transfer"
+      />,
+    );
+
+    await user.click(screen.getByRole('combobox', { name: 'สถานะ' }));
+    await user.click(await screen.findByRole('option', { name: 'ชำระแล้ว' }));
+    await user.click(screen.getByRole('button', { name: 'บันทึก' }));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('กรุณายืนยันการโอนเงินผ่านขั้นตอนที่กำหนด');
+    expect(screen.getByRole('link', { name: 'ไปหน้าโอนเงินเข้าบัญชี' })).toHaveAttribute(
+      'href',
+      '/admin/bank-transfers',
+    );
+    expect(mutateStatus).not.toHaveBeenCalled();
+  });
+
   it('saves a PromptPay cancellation without a manual refund warning', async () => {
     const user = userEvent.setup();
     wrap(
