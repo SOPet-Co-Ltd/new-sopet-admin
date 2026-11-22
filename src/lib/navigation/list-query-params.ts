@@ -9,6 +9,19 @@ export function serializePageParam(page: number): string | null {
   return page > 1 ? String(page) : null;
 }
 
+export function parseSortParam(
+  value: string | null | undefined,
+  allowed: readonly string[],
+  fallback: string,
+): string {
+  if (!value) return fallback;
+  return allowed.includes(value) ? value : fallback;
+}
+
+export function serializeSortParam(value: string, omitWhen: string): string | null {
+  return value === omitWhen ? null : value;
+}
+
 export function parseSearchQuery(value: string | null | undefined): string {
   return value?.trim() ?? '';
 }

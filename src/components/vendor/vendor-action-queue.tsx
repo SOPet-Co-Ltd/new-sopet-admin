@@ -18,13 +18,23 @@ import type { Order } from '@/types';
 
 const PREVIEW_LIMIT = 5;
 
-export function VendorActionQueue({ orders, storeId }: { orders: Order[]; storeId: string }) {
+export function VendorActionQueue({
+  orders,
+  storeId,
+  actionableCount,
+}: {
+  orders: Order[];
+  storeId: string;
+  /** Server total when `orders` is only a preview page. */
+  actionableCount?: number;
+}) {
   const [workflowOrder, setWorkflowOrder] = useState<Order | null>(null);
   const actionable = filterVendorActionableOrders(orders, storeId);
   const preview = actionable.slice(0, PREVIEW_LIMIT);
-  const remaining = actionable.length - preview.length;
+  const totalActionable = actionableCount ?? actionable.length;
+  const remaining = Math.max(0, totalActionable - preview.length);
 
-  if (actionable.length === 0) {
+  if (totalActionable === 0) {
     return (
       <Card className="border-success/20 bg-success-bg/30 shadow-none">
         <CardBody className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -61,7 +71,7 @@ export function VendorActionQueue({ orders, storeId }: { orders: Order[]; storeI
             ออเดอร์ที่ต้องทำ
           </h2>
           <p className="text-sm text-muted-foreground">
-            {actionable.length.toLocaleString('th-TH')} รายการรอดำเนินการ — เรียงจากใหม่ที่สุด
+            {totalActionable.toLocaleString('th-TH')} รายการรอดำเนินการ — เรียงจากใหม่ที่สุด
           </p>
         </div>
         <Button size="sm" asChild className="rounded-full shadow-none">

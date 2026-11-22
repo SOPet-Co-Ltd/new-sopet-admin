@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { HiArrowRight, HiBuildingStorefront, HiPlus } from 'react-icons/hi2';
 import { Badge } from '@/components/ui/badge';
@@ -10,16 +10,25 @@ import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { StoreRequestSection } from '@/components/vendor/store-request-section';
 import { TaxonomyProposalsSection } from '@/components/vendor/taxonomy-proposals-section';
+import { PageFeatureSpotlight } from '@/components/vendor/product-tour/page-feature-spotlight';
+import { useCurrentUser } from '@/hooks/useAuth';
 import { useMyStores } from '@/hooks/useMyStores';
 import { useSwitchStore } from '@/hooks/useSwitchStore';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
 import { getErrorMessage } from '@/lib/api/errors';
 import { labelMembershipRole, labelStoreStatus } from '@/lib/i18n/th';
+import { startActionGuide } from '@/lib/vendor/action-guide';
+import { useBootstrapActionGuide } from '@/lib/vendor/use-bootstrap-action-guide';
 import { vendorHasStores } from '@/lib/vendor/vendor-store-access';
 import { cn } from '@/lib/utils';
 import type { VendorStore } from '@/types';
 
 type StoreFilter = 'all' | 'owned' | 'joined';
+
+function RequestStoreGuideBootstrap({ onOpenDialog }: { onOpenDialog: (open: boolean) => void }) {
+  useBootstrapActionGuide('request-store', () => onOpenDialog(true));
+  return null;
+}
 
 function StoreAvatar({ name, logoUrl }: { name: string; logoUrl?: string }) {
   const initial = name.trim().charAt(0).toUpperCase() || 'ร';
@@ -241,6 +250,7 @@ function ActiveStoreSpotlight({
 
 export default function VendorStoresPage() {
   const router = useRouter();
+  const { user } = useCurrentUser();
   const activeStoreId = useVendorStoreId();
   const { data: myStores = [], isLoading, error } = useMyStores();
   const switchMutation = useSwitchStore();
@@ -286,13 +296,31 @@ export default function VendorStoresPage() {
     setRequestOpen(true);
   }
 
+  function handleStartRequestStoreGuide() {
+    startActionGuide('request-store', { userId: user?.id });
+    setRequestOpen(true);
+  }
+
   return (
     <div>
+      <Suspense fallback={null}>
+        <RequestStoreGuideBootstrap onOpenDialog={setRequestOpen} />
+      </Suspense>
+      <PageFeatureSpotlight
+        featureId="stores-request"
+        eligible={!isLoading && myStores.length === 0}
+        onCompleted={handleStartRequestStoreGuide}
+      />
       <PageHeader
         title="ร้านค้าของฉัน"
         description="เลือกร้านเพื่อจัดการ หรือขอเปิดร้านใหม่บนแพลตฟอร์ม"
         action={
-          <Button type="button" className="min-h-9 gap-2" onClick={handleOpenStoreRequest}>
+          <Button
+            type="button"
+            className="min-h-9 gap-2"
+            data-tour-id="stores-request-cta"
+            onClick={handleOpenStoreRequest}
+          >
             <HiPlus className="size-4" aria-hidden="true" />
             ขอเปิดร้านใหม่
           </Button>

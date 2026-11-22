@@ -133,6 +133,37 @@ describe('AdminCustomersPage', () => {
     expect(screen.getByRole('button', { name: 'แก้ไข Mai' })).toBeInTheDocument();
   });
 
+  it('lists a guest buyer without an account editor', async () => {
+    const user = userEvent.setup();
+    mockCustomers({
+      data: {
+        items: [
+          {
+            id: 'guest:0899999999',
+            phone: '0899999999',
+            fullName: 'Guest Buyer',
+            email: null,
+            isVerified: false,
+            isActive: true,
+            isGuest: true,
+            createdAt: '2026-02-01T00:00:00.000Z',
+          },
+        ],
+        pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      },
+    });
+
+    render(<AdminCustomersPage />);
+
+    expect(screen.getAllByText('Guest Buyer').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('ผู้เยี่ยมชม').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', { name: 'แก้ไข Guest Buyer' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'แก้ไข' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('row', { name: 'ดูรายละเอียด' }));
+    expect(nav.pushMock).not.toHaveBeenCalled();
+  });
+
   it('shows search empty state with clear action', async () => {
     const user = userEvent.setup();
     mockCustomers({

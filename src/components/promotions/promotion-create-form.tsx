@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,14 @@ import { PromotionFormFields } from '@/components/promotions/promotion-form-fiel
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
+import { ActionGuideSpotlight } from '@/components/vendor/product-tour/action-guide-spotlight';
+import {
+  ACTION_GUIDE_CHANGE_EVENT,
+  advanceActionGuide,
+  isActionGuideActive,
+  readActionGuideState,
+} from '@/lib/vendor/action-guide';
+import { useBootstrapActionGuide } from '@/lib/vendor/use-bootstrap-action-guide';
 import {
   buildPromotionConditions,
   getPromotionFormDefaults,
@@ -19,6 +27,24 @@ import {
 import { getPromotionTypeMeta, type PromotionTypeSlug } from '@/lib/promotions/metadata';
 import type { CreatePromotionInput } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
+
+function CreatePromotionGuideBootstrap() {
+  useBootstrapActionGuide('create-promotion');
+
+  useEffect(() => {
+    function ensureFormStep() {
+      // Type picker is step 1; on the create form, surface basics (step 2+).
+      if (isActionGuideActive('create-promotion') && readActionGuideState().step === 1) {
+        advanceActionGuide();
+      }
+    }
+    ensureFormStep();
+    window.addEventListener(ACTION_GUIDE_CHANGE_EVENT, ensureFormStep);
+    return () => window.removeEventListener(ACTION_GUIDE_CHANGE_EVENT, ensureFormStep);
+  }, []);
+
+  return <ActionGuideSpotlight guideId="create-promotion" />;
+}
 
 export function PromotionCreateForm({
   type,
@@ -80,6 +106,9 @@ export function PromotionCreateForm({
 
   return (
     <div className="mx-auto max-w-2xl">
+      <Suspense fallback={null}>
+        <CreatePromotionGuideBootstrap />
+      </Suspense>
       <PageHeader
         title={title}
         description={meta.description}
@@ -133,7 +162,12 @@ export function PromotionCreateForm({
               <Button type="button" variant="outline" asChild disabled={isPending}>
                 <Link href={listHref}>ยกเลิก</Link>
               </Button>
-              <Button type="submit" disabled={isPending} aria-busy={isPending}>
+              <Button
+                type="submit"
+                disabled={isPending}
+                aria-busy={isPending}
+                data-tour-id="action-promo-submit"
+              >
                 {isPending ? 'กำลังบันทึก...' : 'สร้างโปรโมชัน'}
               </Button>
             </div>

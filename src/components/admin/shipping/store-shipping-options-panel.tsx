@@ -64,7 +64,8 @@ function StoreOptionsSkeleton() {
 }
 
 export function StoreShippingOptionsPanel() {
-  const { data: stores = [], isLoading: loadingStores } = useAdminStores();
+  const { data: storePage, isLoading: loadingStores } = useAdminStores({ page: 1, limit: 100 });
+  const stores = storePage?.items ?? [];
   const { data: providers = [] } = useShippingProviders(true);
   const activeProviders = providers.filter((p) => p.isActive);
 

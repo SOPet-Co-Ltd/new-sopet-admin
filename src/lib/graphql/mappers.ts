@@ -1,7 +1,7 @@
 import type {
   AdminStore,
   AdminVendor,
-  OmiseRecipientStatus,
+  BankAccountVerificationStatus,
   Order,
   PlatformAnalytics,
   Product,
@@ -42,10 +42,10 @@ type GqlStore = {
 type GqlOrderItem = {
   id: string;
   storeId: string;
-  productName: string;
-  unitPrice: number;
-  quantity: number;
-  subtotal: number;
+  productName?: string | null;
+  unitPrice?: number | null;
+  quantity?: number | null;
+  subtotal?: number | null;
   fulfillmentStatus: string;
   trackingNumber?: string | null;
   fulfillmentProvider?: string | null;
@@ -85,7 +85,7 @@ type GqlOrder = {
   guestEmail?: string | null;
   shippingAddress?: GqlOrderShippingAddress | null;
   storeShippings?: GqlOrderStoreShipping[];
-  items: GqlOrderItem[];
+  items?: GqlOrderItem[];
 };
 
 export function mapUser(user: GqlUser, storeId?: string): User {
@@ -144,15 +144,15 @@ export function mapOrder(order: GqlOrder): Order {
         optionName: shipping.optionName,
         shippingFee: shipping.shippingFee,
       })) ?? [],
-    items: order.items.map((item) => {
+    items: (order.items ?? []).map((item) => {
       const parsedOptions = parseOrderVariantOptions(item.variantOptions);
       return {
         id: item.id,
         storeId: item.storeId,
-        productName: item.productName,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-        subtotal: item.subtotal,
+        productName: item.productName ?? '',
+        unitPrice: item.unitPrice ?? 0,
+        quantity: item.quantity ?? 0,
+        subtotal: item.subtotal ?? 0,
         fulfillmentStatus: item.fulfillmentStatus,
         trackingNumber: item.trackingNumber ?? undefined,
         fulfillmentProvider: item.fulfillmentProvider ?? undefined,
@@ -542,9 +542,8 @@ type GqlAdminStore = GqlStore & {
   bankAccountNumber?: string | null;
   bankName?: string | null;
   bankCode?: string | null;
-  omiseRecipientId?: string | null;
-  omiseRecipientStatus?: string | null;
-  omiseRecipientFailureMessage?: string | null;
+  bankAccountVerificationStatus?: string | null;
+  bankAccountRejectionReason?: string | null;
 };
 
 export function mapAdminStore(store: GqlAdminStore): AdminStore {
@@ -562,9 +561,9 @@ export function mapAdminStore(store: GqlAdminStore): AdminStore {
     bankAccountNumber: store.bankAccountNumber ?? undefined,
     bankName: store.bankName ?? undefined,
     bankCode: store.bankCode ?? undefined,
-    omiseRecipientId: store.omiseRecipientId ?? undefined,
-    omiseRecipientStatus: (store.omiseRecipientStatus as OmiseRecipientStatus | null) ?? undefined,
-    omiseRecipientFailureMessage: store.omiseRecipientFailureMessage ?? undefined,
+    bankAccountVerificationStatus:
+      (store.bankAccountVerificationStatus as BankAccountVerificationStatus | null) ?? undefined,
+    bankAccountRejectionReason: store.bankAccountRejectionReason ?? undefined,
   };
 }
 
@@ -576,6 +575,7 @@ type GqlAdminVendor = {
   isActive: boolean;
   lastLoginAt?: string | null;
   createdAt?: string | null;
+  storeCount?: number | null;
   stores?: Array<{ id: string; name: string; slug: string; status: string }>;
 };
 
@@ -588,7 +588,7 @@ export function mapAdminVendor(vendor: GqlAdminVendor): AdminVendor {
     isActive: vendor.isActive,
     lastLoginAt: vendor.lastLoginAt ?? undefined,
     createdAt: vendor.createdAt ?? undefined,
-    storeCount: vendor.stores?.length,
+    storeCount: vendor.storeCount ?? vendor.stores?.length,
     stores: vendor.stores?.map((store) => ({
       id: store.id,
       name: store.name,
@@ -721,7 +721,9 @@ type GqlProductReview = {
   comment?: string | null;
   status: string;
   createdAt?: string | null;
+  customerId?: string | null;
   customerName?: string | null;
+  customerProfilePhotoUrl?: string | null;
   images?: GqlReviewImage[] | null;
   reply?: GqlReviewReply | null;
 };
@@ -746,7 +748,9 @@ export function mapProductReview(review: GqlProductReview): ProductReview {
     comment: review.comment ?? undefined,
     status: review.status,
     createdAt: review.createdAt ?? undefined,
+    customerId: review.customerId ?? null,
     customerName: review.customerName ?? undefined,
+    customerProfilePhotoUrl: review.customerProfilePhotoUrl ?? null,
     images: (review.images ?? []).map((image) => ({ id: image.id, url: image.url })),
     reply: review.reply ? mapReviewReply(review.reply) : null,
   };
@@ -809,6 +813,7 @@ type GqlAdminCustomer = {
   dateOfBirth?: string | null;
   isVerified: boolean;
   isActive: boolean;
+  isGuest?: boolean;
   lastLoginAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -823,6 +828,7 @@ export function mapAdminCustomer(customer: GqlAdminCustomer): import('@/types').
     dateOfBirth: customer.dateOfBirth,
     isVerified: customer.isVerified,
     isActive: customer.isActive,
+    isGuest: customer.isGuest ?? false,
     lastLoginAt: customer.lastLoginAt ?? undefined,
     createdAt: customer.createdAt,
     updatedAt: customer.updatedAt,

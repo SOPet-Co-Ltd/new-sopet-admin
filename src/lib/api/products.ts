@@ -10,6 +10,7 @@ import {
   SYNC_PRODUCT_VARIANTS,
   UPDATE_PRODUCT,
   UPDATE_PRODUCT_VARIANT,
+  VENDOR_PRODUCT_STATUS_PROBE_QUERY,
   VENDOR_PRODUCTS_QUERY,
   VENDOR_PUBLISHABLE_PRODUCTS_QUERY,
   VENDOR_PUBLISHABLE_PRODUCT_IDS_QUERY,
@@ -30,27 +31,32 @@ import type {
 } from '@/types';
 
 /** Shared GraphQL variables for impact preview and sync — keep payloads identical. */
-export function toSyncVariantGraphqlVariables(
-  variants: SyncVariantInput[] | VariantItem[],
-  productBasePrice = 0,
-): Array<{
+export function toSyncVariantGraphqlVariables(variants: SyncVariantInput[] | VariantItem[]): Array<{
   id?: string;
   sku: string;
   stockQuantity: number;
+  price?: number;
   priceModifier?: number;
   compareAtPrice?: number | null;
   attributes: string;
 }> {
-  const payload =
-    variants.length > 0 && 'options' in variants[0]
-      ? variantItemsToSyncInput(variants as VariantItem[], productBasePrice)
-      : (variants as SyncVariantInput[]);
+  if (variants.length > 0 && 'options' in variants[0]) {
+    return variantItemsToSyncInput(variants as VariantItem[]).map((variant) => ({
+      id: variant.id,
+      sku: variant.sku,
+      stockQuantity: variant.stockQuantity,
+      price: variant.price,
+      compareAtPrice: variant.compareAtPrice ?? null,
+      attributes: JSON.stringify(variant.attributes),
+    }));
+  }
 
-  return payload.map((variant) => ({
+  return (variants as SyncVariantInput[]).map((variant) => ({
     id: variant.id,
     sku: variant.sku,
     stockQuantity: variant.stockQuantity,
-    priceModifier: variant.priceModifier,
+    ...(variant.price !== undefined ? { price: variant.price } : {}),
+    ...(variant.priceModifier !== undefined ? { priceModifier: variant.priceModifier } : {}),
     compareAtPrice: variant.compareAtPrice ?? null,
     attributes: JSON.stringify(variant.attributes),
   }));
@@ -92,6 +98,14 @@ export function getVendorProducts(
     items: data.vendorProducts.items.map(mapProduct),
     pagination: mapPagination(data.vendorProducts.pagination),
   }));
+}
+
+export function getVendorPublishedProductProbe(): Promise<Array<{ id: string; status: string }>> {
+  return executeQuery<{
+    vendorProducts: { items: Array<{ id: string; status: string }> };
+  }>(VENDOR_PRODUCT_STATUS_PROBE_QUERY, { page: 1, limit: 1, status: 'published' }).then(
+    (data) => data.vendorProducts.items,
+  );
 }
 
 export function getVendorPublishableProducts(
@@ -206,13 +220,12 @@ export function deleteProduct(id: string): Promise<boolean> {
 export function getProductVariantSyncImpact(
   productId: string,
   variants: SyncVariantInput[] | VariantItem[],
-  productBasePrice = 0,
 ): Promise<ProductVariantSyncImpact> {
   return executeQuery<{ productVariantSyncImpact: ProductVariantSyncImpact }>(
     PRODUCT_VARIANT_SYNC_IMPACT,
     {
       productId,
-      variants: toSyncVariantGraphqlVariables(variants, productBasePrice),
+      variants: toSyncVariantGraphqlVariables(variants),
     },
   ).then((data) => data.productVariantSyncImpact);
 }
@@ -220,7 +233,6 @@ export function getProductVariantSyncImpact(
 export function syncProductVariants(
   productId: string,
   variants: SyncVariantInput[] | VariantItem[],
-  productBasePrice = 0,
 ): Promise<NonNullable<Product['variants']>> {
   return executeMutation<{
     syncProductVariants: Array<{
@@ -233,7 +245,7 @@ export function syncProductVariants(
     }>;
   }>(SYNC_PRODUCT_VARIANTS, {
     productId,
-    variants: toSyncVariantGraphqlVariables(variants, productBasePrice),
+    variants: toSyncVariantGraphqlVariables(variants),
   }).then((data) =>
     data.syncProductVariants.map((variant) => ({
       id: variant.id,

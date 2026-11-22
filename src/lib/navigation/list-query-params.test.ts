@@ -6,12 +6,14 @@ import {
   parseOptionalNumber,
   parsePageParam,
   parseSearchQuery,
+  parseSortParam,
   serializeDateParam,
   serializeEnumParam,
   serializeIdParam,
   serializeOptionalNumber,
   serializePageParam,
   serializeSearchQuery,
+  serializeSortParam,
 } from './list-query-params';
 
 describe('parsePageParam', () => {
@@ -34,6 +36,21 @@ describe('serializePageParam', () => {
   it('omits page 1 and serializes higher pages', () => {
     expect(serializePageParam(1)).toBeNull();
     expect(serializePageParam(2)).toBe('2');
+  });
+});
+
+describe('parseSortParam / serializeSortParam', () => {
+  const allowed = ['createdAt:desc', 'name:asc'] as const;
+
+  it('falls back when the value is missing or not allowed', () => {
+    expect(parseSortParam(null, allowed, 'createdAt:desc')).toBe('createdAt:desc');
+    expect(parseSortParam('nope', allowed, 'createdAt:desc')).toBe('createdAt:desc');
+  });
+
+  it('keeps an allowed sort and omits the default when serializing', () => {
+    expect(parseSortParam('name:asc', allowed, 'createdAt:desc')).toBe('name:asc');
+    expect(serializeSortParam('createdAt:desc', 'createdAt:desc')).toBeNull();
+    expect(serializeSortParam('name:asc', 'createdAt:desc')).toBe('name:asc');
   });
 });
 

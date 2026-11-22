@@ -36,6 +36,8 @@ const INVALID_ERROR = 'กรุณากรอกตัวเลขเปอร
 const storeState = { current: nullRateStore };
 const mutateAsync = vi.fn();
 const mockPush = vi.fn();
+const settleQueueMutate = vi.fn();
+const rejectQueueMutate = vi.fn();
 const ownerState = { isOwner: true };
 const payoutsQueryState: {
   summary: PayoutSummaryCommissionFixture | null;
@@ -54,6 +56,28 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush, replace: vi.fn() }),
 }));
 
+vi.mock('@/hooks/useCustomerSummaries', () => ({
+  useStoreCustomerSummary: () => ({
+    data: {
+      year: 2026,
+      month: 10,
+      lifetimeMonths: null,
+      repeatRate: null,
+      purchasesPerMonth: null,
+      averageOrderValue: null,
+      newCustomerCount: 0,
+      oldCustomerCount: 0,
+      oldCustomerPercent: null,
+      orderCount: 0,
+      buyersInMonth: 0,
+      totalCustomers: 0,
+    },
+    isLoading: false,
+    error: null,
+  }),
+  useCustomerPurchaseSummary: vi.fn(),
+}));
+
 vi.mock('@/hooks/useAdminStores', () => ({
   useAdminStore: () => ({
     data: storeState.current,
@@ -68,7 +92,15 @@ vi.mock('@/hooks/useAdminStores', () => ({
     mutateAsync: vi.fn(),
     isPending: false,
   }),
-  useLinkStoreOmiseRecipientAsAdmin: () => ({
+  useVerifyStoreBankAccount: () => ({
+    mutateAsync: vi.fn(),
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+    error: null,
+  }),
+  useRejectStoreBankAccount: () => ({
     mutateAsync: vi.fn(),
     mutate: vi.fn(),
     isPending: false,
@@ -87,21 +119,36 @@ vi.mock('@/hooks/usePayouts', () => ({
     data: payoutsQueryState.summary,
     isLoading: payoutsQueryState.isLoading,
   }),
-  useAdminStorePayouts: () => ({ data: payoutsHistoryState.items, isLoading: false }),
-  useStorePayouts: () => ({ data: payoutsHistoryState.items, isLoading: false }),
+  useAdminStorePayouts: () => ({
+    data: {
+      items: payoutsHistoryState.items,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: payoutsHistoryState.items.length,
+        totalPages: 1,
+      },
+    },
+    isLoading: false,
+  }),
+  useStorePayouts: () => ({
+    data: {
+      items: payoutsHistoryState.items,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: payoutsHistoryState.items.length,
+        totalPages: 1,
+      },
+    },
+    isLoading: false,
+  }),
   useStorePayoutSummary: () => ({
     data: payoutsQueryState.summary,
     isLoading: payoutsQueryState.isLoading,
     isError: false,
     error: null,
     refetch: vi.fn(),
-  }),
-  useTriggerPayout: () => ({
-    mutate: vi.fn(),
-    isPending: false,
-    isError: false,
-    isSuccess: false,
-    error: null,
   }),
   useSettleManualPayout: () => ({
     mutate: vi.fn(),
@@ -124,23 +171,16 @@ vi.mock('@/hooks/usePayouts', () => ({
     isSuccess: false,
     error: null,
   }),
-  useRequestManualPayout: () => ({
-    mutate: vi.fn(),
-    isPending: false,
-    isError: false,
-    isSuccess: false,
-    error: null,
-  }),
   usePendingManualPayouts: () => createPendingManualPayoutsMockResult(pendingManualState.items),
   useSettleManualPayoutForQueue: () => ({
-    mutate: vi.fn(),
+    mutate: settleQueueMutate,
     isPending: false,
     isError: false,
     error: null,
     variables: undefined,
   }),
   useRejectManualPayoutForQueue: () => ({
-    mutate: vi.fn(),
+    mutate: rejectQueueMutate,
     isPending: false,
     isError: false,
     error: null,
@@ -154,7 +194,7 @@ vi.mock('@/hooks/useMembershipRole', () => ({
 
 vi.mock('@/hooks/useStoreSettings', () => ({
   useMyStore: () => ({
-    data: { omiseRecipientStatus: 'active', bankAccountNumber: '1234567890' },
+    data: { bankAccountVerificationStatus: 'verified', bankAccountNumber: '1234567890' },
     isLoading: false,
   }),
 }));
@@ -427,7 +467,7 @@ describe('store commission — admin already-net settlement journey [fixture-e2e
     pendingManualState.items = [];
   });
 
-  it('shows combined fours and a single already-net transfer on the store panel and the manual queue', () => {
+  it('shows combined fours and a single already-net transfer on the store panel and the manual queue', async () => {
     const { unmount: unmountPanel } = render(<AdminStorePayoutPanel storeId="store-1" />);
 
     expect(screen.getAllByText(commissionCopy.breakdown.productSold).length).toBeGreaterThan(0);
@@ -453,19 +493,30 @@ describe('store commission — admin already-net settlement journey [fixture-e2e
     render(<AdminManualPayoutsPage />);
     expect(screen.getAllByText(formatCurrency(mixedCutoffFours.net)).length).toBeGreaterThan(0);
     expect(screen.getByText(commissionCopy.transfer.caption)).toBeInTheDocument();
+    expect(screen.getByText('โอนเข้าบัญชีนี้')).toBeInTheDocument();
+    expect(screen.getByText('123-4-56789-0')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'คัดลอกเลขบัญชี' })).toBeInTheDocument();
+    expect(screen.queryByText('ตรวจแล้ว')).not.toBeInTheDocument();
+    expect(screen.queryByText('รอตรวจ')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /อนุมัติหลังโอนแล้ว.*฿1,400/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/ก่อนเปิดใช้/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/หลังเปิดใช้/)).not.toBeInTheDocument();
+    expect(screen.queryByText('netAmount')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByText('ดูการคำนวณ'));
     expect(screen.getByText(commissionCopy.breakdown.productSold)).toBeInTheDocument();
     expect(
       screen.getByText(commissionCopy.breakdown.commissionDeducted, { exact: false }),
     ).toBeInTheDocument();
     expect(screen.getByText(commissionCopy.breakdown.netPayable.admin)).toBeInTheDocument();
     expect(screen.getByText(commissionCopy.breakdown.hint.frozen)).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /อนุมัติหลังโอนแล้ว.*฿1,400/ }),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByText(/ก่อนเปิดใช้/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/หลังเปิดใช้/)).not.toBeInTheDocument();
-    expect(document.querySelector('details')).toBeNull();
-    expect(screen.queryByText('netAmount')).not.toBeInTheDocument();
+
+    rejectQueueMutate.mockClear();
+    await userEvent.click(screen.getByRole('button', { name: 'ปฏิเสธคำขอ' }));
+    expect(screen.getByText('กรุณาระบุเหตุผลก่อนปฏิเสธ')).toBeInTheDocument();
+    expect(rejectQueueMutate).not.toHaveBeenCalled();
   });
 });
 
@@ -482,20 +533,45 @@ describe('store commission — vendor balance and frozen history journey [fixtur
     payoutsHistoryState.items = [];
   });
 
+  it('shows admin notes on completed payouts and rejection reasons on failed ones', () => {
+    payoutsHistoryState.items = [
+      {
+        ...liveTenPercentVsSnapshotSeven.snapshotPayout,
+        id: 'payout-completed-note',
+        status: 'completed',
+        notes: 'โอนผ่าน SCB แล้ว',
+        processedAt: '2026-02-02T00:00:00.000Z',
+      },
+      {
+        ...liveTenPercentVsSnapshotSeven.snapshotPayout,
+        id: 'payout-failed-reason',
+        status: 'failed',
+        failureReason: 'เลขบัญชีไม่ตรงชื่อ',
+        notes: 'เลขบัญชีไม่ตรงชื่อ',
+        processedAt: '2026-02-03T00:00:00.000Z',
+      },
+    ];
+
+    render(<VendorPayoutHistoryPanel />);
+    expect(screen.getByText('โอนแล้ว', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(/หมายเหตุ: โอนผ่าน SCB แล้ว/)).toBeInTheDocument();
+    expect(screen.getByText(/เหตุผล: เลขบัญชีไม่ตรงชื่อ/)).toBeInTheDocument();
+  });
+
   it('carries the same four numbers from dashboard to รับเงิน and keeps history frozen without a rate editor', () => {
     const { unmount: unmountSnapshot } = render(<VendorPayoutSnapshot />);
     expect(screen.getAllByText(commissionCopy.breakdown.productSold).length).toBeGreaterThanOrEqual(
-      2,
+      1,
     );
     expect(
       screen.getAllByText(commissionCopy.breakdown.shippingFees).length,
-    ).toBeGreaterThanOrEqual(2);
+    ).toBeGreaterThanOrEqual(1);
     expect(
       screen.getAllByText(commissionCopy.breakdown.commissionDeducted, { exact: false }).length,
-    ).toBeGreaterThanOrEqual(2);
+    ).toBeGreaterThanOrEqual(1);
     expect(
       screen.getAllByText(commissionCopy.breakdown.netPayable.vendor).length,
-    ).toBeGreaterThanOrEqual(2);
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(formatCurrency(mixedCutoffFours.net)).length).toBeGreaterThan(0);
     expect(screen.queryByLabelText(/อัตราค่าคอมมิชชัน/)).not.toBeInTheDocument();
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();

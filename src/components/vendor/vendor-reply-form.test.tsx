@@ -34,7 +34,9 @@ describe('mapProductReview', () => {
       comment: 'Great',
       status: 'approved',
       createdAt: '2026-01-01T00:00:00.000Z',
+      customerId: 'customer-1',
       customerName: 'สมชาย ใ.',
+      customerProfilePhotoUrl: 'https://cdn.example.com/somchai.jpg',
       reply: {
         id: 'reply-1',
         body: 'Thank you',
@@ -45,6 +47,8 @@ describe('mapProductReview', () => {
 
     expect(mapped.productSlug).toBe('dog-food');
     expect(mapped.productImageUrl).toBe('https://cdn.example.com/dog.jpg');
+    expect(mapped.customerId).toBe('customer-1');
+    expect(mapped.customerProfilePhotoUrl).toBe('https://cdn.example.com/somchai.jpg');
     expect(mapped.reply?.body).toBe('Thank you');
   });
 });
@@ -68,7 +72,8 @@ describe('VendorReviewListItem', () => {
       />,
     );
 
-    expect(screen.getByTestId('product-thumbnail-fallback')).toHaveTextContent('ไม่มีรูป');
+    expect(screen.getByTestId('customer-avatar-fallback')).toHaveTextContent('ล');
+    expect(screen.getByTestId('review-customer-name')).toHaveTextContent('ลูกค้า');
     expect(screen.getByText('ไม่มีความคิดเห็น')).toBeInTheDocument();
     expect(screen.queryByText('undefined')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ตอบกลับ' })).toBeInTheDocument();
@@ -93,6 +98,31 @@ describe('VendorReviewListItem', () => {
     expect(screen.queryByText('approved')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /ลบ/i })).not.toBeInTheDocument();
     expect(screen.getByText('ยังไม่ตอบ')).toBeInTheDocument();
+  });
+
+  it('links the buyer profile photo and full name', () => {
+    render(
+      <VendorReviewListItem
+        storeId="store-1"
+        review={{
+          id: 'review-1',
+          productId: 'prod-1',
+          productName: 'Dog Food',
+          rating: 5,
+          status: 'approved',
+          customerId: 'customer-1',
+          customerName: 'สมชาย ใจดี',
+          customerProfilePhotoUrl: 'https://cdn.example.com/somchai.jpg',
+        }}
+      />,
+    );
+
+    const photo = screen.getByTestId('customer-avatar-image');
+    expect(photo).toHaveAttribute('src', 'https://cdn.example.com/somchai.jpg');
+    expect(photo).toHaveAttribute('alt', 'สมชาย ใจดี');
+    expect(screen.getByTestId('review-customer-name')).toHaveTextContent('สมชาย ใจดี');
+    expect(screen.getAllByRole('link', { name: /สมชาย ใจดี/ })).toHaveLength(2);
+    expect(screen.getAllByRole('link')[0]).toHaveAttribute('href', '/vendor/customers/customer-1');
   });
 
   it('shows reply preview when reply exists', async () => {

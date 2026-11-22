@@ -147,6 +147,17 @@ vi.mock('@/lib/react-query/prefetch-dashboard-nav', () => ({
   prefetchVendorProductDetail: (...args: unknown[]) => nav.prefetchMock(...args),
 }));
 
+vi.mock('@/hooks/useAuth', () => ({
+  useCurrentUser: () => ({
+    user: { id: 'vendor-1', email: 'vendor@sopet.org', fullName: 'Vendor', role: 'vendor' },
+    isAuthenticated: true,
+  }),
+}));
+
+vi.mock('@/components/vendor/product-tour/product-tour-provider', () => ({
+  useProductTour: () => ({ startTour: vi.fn(), isActive: false }),
+}));
+
 describe('VendorProductsPage', () => {
   beforeEach(() => {
     nav.pushMock.mockReset();
@@ -154,6 +165,41 @@ describe('VendorProductsPage', () => {
     nav.prefetchMock.mockReset();
     nav.resetSearchParams();
     mockUseVendorProducts.mockClear();
+    window.localStorage.clear();
+    mockUseVendorProducts.mockImplementation((params: unknown) => {
+      void params;
+      return {
+        data: { items: products, pagination: { page: 1, limit: 10, total: 1, totalPages: 1 } },
+        isLoading: false,
+        error: null,
+        isFetching: false,
+        refetch: vi.fn(),
+      };
+    });
+  });
+
+  it('shows add-product spotlight once when catalog is empty', async () => {
+    const user = userEvent.setup();
+    mockUseVendorProducts.mockImplementation((params: unknown) => {
+      void params;
+      return {
+        data: { items: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } },
+        isLoading: false,
+        error: null,
+        isFetching: false,
+        refetch: vi.fn(),
+      };
+    });
+
+    render(<VendorProductsPage />);
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('เพิ่มสินค้าชิ้นแรก')).toBeInTheDocument();
+    expect(document.querySelector('[data-tour-id="products-add-cta"]')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: 'ไปสร้างสินค้า' }));
+    expect(nav.pushMock).toHaveBeenCalledWith('/vendor/products/new?guide=create-product');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('navigates to product detail on row click, not edit', async () => {

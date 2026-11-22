@@ -3,33 +3,18 @@ import {
   ADMIN_STORE_PAYOUTS_QUERY,
   ADMIN_STORE_PAYOUT_SUMMARY_QUERY,
   PENDING_MANUAL_PAYOUTS_QUERY,
+  CANCEL_PAYOUT_REQUEST_MUTATION,
   REJECT_MANUAL_PAYOUT_MUTATION,
-  REQUEST_MANUAL_PAYOUT_MUTATION,
   REQUEST_PAYOUT_MUTATION,
   SETTLE_MANUAL_PAYOUT_MUTATION,
   STORE_PAYOUTS_QUERY,
   STORE_PAYOUT_SUMMARY_QUERY,
-  TRIGGER_PAYOUT_MUTATION,
 } from '@/lib/graphql/documents';
 import { mapPagination } from '@/lib/graphql/mappers';
-import type { Paginated, Payout, PayoutRailSummary, PayoutSummary } from '@/types';
+import type { BankAccountVerificationStatus, Paginated, Payout, PayoutSummary } from '@/types';
 
 type GqlPayoutSummary = PayoutSummary;
 type GqlPayout = Payout;
-
-function mapRail(rail: PayoutRailSummary): PayoutRailSummary {
-  return {
-    grossRevenue: Number(rail.grossRevenue),
-    totalPaidOut: Number(rail.totalPaidOut),
-    availableBalance: Number(rail.availableBalance),
-    pendingPayoutAmount: Number(rail.pendingPayoutAmount),
-    canRequestPayout: rail.canRequestPayout,
-    productSold: Number(rail.productSold),
-    shippingFees: Number(rail.shippingFees),
-    commissionAmount: Number(rail.commissionAmount),
-    commissionRate: rail.commissionRate == null ? null : Number(rail.commissionRate),
-  };
-}
 
 function mapPayoutSummary(summary: GqlPayoutSummary): PayoutSummary {
   return {
@@ -44,8 +29,6 @@ function mapPayoutSummary(summary: GqlPayoutSummary): PayoutSummary {
     shippingFees: Number(summary.shippingFees),
     commissionAmount: Number(summary.commissionAmount),
     commissionRate: summary.commissionRate == null ? null : Number(summary.commissionRate),
-    omise: mapRail(summary.omise),
-    manual: mapRail(summary.manual),
   };
 }
 
@@ -61,6 +44,9 @@ function mapPayout(payout: GqlPayout): Payout {
     netAmount: Number(payout.netAmount),
     status: payout.status,
     settlementRail: payout.settlementRail,
+    notes: payout.notes ?? null,
+    failureReason: payout.failureReason ?? null,
+    processedAt: payout.processedAt ?? null,
     createdAt: payout.createdAt,
     productSold: mapNullableMoney(payout.productSold),
     shippingFees: mapNullableMoney(payout.shippingFees),
@@ -82,16 +68,31 @@ export function getAdminStorePayoutSummary(storeId: string): Promise<PayoutSumma
   ).then((data) => mapPayoutSummary(data.adminStorePayoutSummary));
 }
 
-export function getStorePayouts(): Promise<Payout[]> {
-  return executeQuery<{ storePayouts: GqlPayout[] }>(STORE_PAYOUTS_QUERY).then((data) =>
-    data.storePayouts.map(mapPayout),
-  );
+export const PAYOUT_HISTORY_PAGE_SIZE = 20;
+
+export function getStorePayouts(
+  page = 1,
+  limit = PAYOUT_HISTORY_PAGE_SIZE,
+): Promise<Paginated<Payout>> {
+  return executeQuery<{
+    storePayouts: { items: GqlPayout[]; pagination: Paginated<Payout>['pagination'] };
+  }>(STORE_PAYOUTS_QUERY, { page, limit }).then((data) => ({
+    items: data.storePayouts.items.map(mapPayout),
+    pagination: data.storePayouts.pagination,
+  }));
 }
 
-export function getAdminStorePayouts(storeId: string): Promise<Payout[]> {
-  return executeQuery<{ adminStorePayouts: GqlPayout[] }>(ADMIN_STORE_PAYOUTS_QUERY, {
-    storeId,
-  }).then((data) => data.adminStorePayouts.map(mapPayout));
+export function getAdminStorePayouts(
+  storeId: string,
+  page = 1,
+  limit = PAYOUT_HISTORY_PAGE_SIZE,
+): Promise<Paginated<Payout>> {
+  return executeQuery<{
+    adminStorePayouts: { items: GqlPayout[]; pagination: Paginated<Payout>['pagination'] };
+  }>(ADMIN_STORE_PAYOUTS_QUERY, { storeId, page, limit }).then((data) => ({
+    items: data.adminStorePayouts.items.map(mapPayout),
+    pagination: data.adminStorePayouts.pagination,
+  }));
 }
 
 export type AdminManualPayout = Payout & {
@@ -100,6 +101,7 @@ export type AdminManualPayout = Payout & {
   bankCode: string | null;
   bankAccountName: string | null;
   bankAccountNumber: string | null;
+  bankAccountVerificationStatus: BankAccountVerificationStatus | null;
 };
 
 export const ADMIN_MANUAL_PAYOUT_PAGE_SIZE = 20;
@@ -117,6 +119,7 @@ export function getPendingManualPayouts(
           bankCode: string | null;
           bankAccountName: string | null;
           bankAccountNumber: string | null;
+          bankAccountVerificationStatus: BankAccountVerificationStatus | null;
         }
       >;
       pagination: Parameters<typeof mapPagination>[0];
@@ -129,6 +132,7 @@ export function getPendingManualPayouts(
       bankCode: payout.bankCode,
       bankAccountName: payout.bankAccountName,
       bankAccountNumber: payout.bankAccountNumber,
+      bankAccountVerificationStatus: payout.bankAccountVerificationStatus ?? null,
     })),
     pagination: mapPagination(data.pendingManualPayouts.pagination),
   }));
@@ -140,15 +144,9 @@ export function requestPayout(): Promise<Payout> {
   );
 }
 
-export function requestManualPayout(): Promise<Payout> {
-  return executeMutation<{ requestManualPayout: GqlPayout }>(REQUEST_MANUAL_PAYOUT_MUTATION).then(
-    (data) => mapPayout(data.requestManualPayout),
-  );
-}
-
-export function triggerPayout(input: { storeId: string; amount?: number }): Promise<Payout> {
-  return executeMutation<{ triggerPayout: GqlPayout }>(TRIGGER_PAYOUT_MUTATION, { input }).then(
-    (data) => mapPayout(data.triggerPayout),
+export function cancelPayoutRequest(): Promise<Payout> {
+  return executeMutation<{ cancelPayoutRequest: GqlPayout }>(CANCEL_PAYOUT_REQUEST_MUTATION).then(
+    (data) => mapPayout(data.cancelPayoutRequest),
   );
 }
 

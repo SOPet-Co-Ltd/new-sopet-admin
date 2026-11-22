@@ -1,0 +1,422 @@
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  useUpdateAdminOrderShippingAddress,
+  useUpdateAdminOrderStatus,
+} from '@/hooks/useAdminOrders';
+import { getErrorMessage, isApiError } from '@/lib/api/errors';
+import { ORDER_STATUSES } from '@/lib/config';
+import { labelOrderStatus, labelPaymentMethod } from '@/lib/i18n/th';
+import {
+  adminOrderShippingFormSchema,
+  normalizeThaiPhoneInput,
+  type AdminOrderShippingFormValues,
+} from '@/lib/validations';
+import type { Order } from '@/types';
+
+function orderStatusOptions(currentStatus: string): readonly string[] {
+  if ((ORDER_STATUSES as readonly string[]).includes(currentStatus)) {
+    return ORDER_STATUSES;
+  }
+  return [currentStatus, ...ORDER_STATUSES];
+}
+
+const MANUAL_BEAM_REFUND_METHODS = new Set(['truemoney', 'shopeepay']);
+
+const BANK_TRANSFER_CONFIRM_HREF = '/admin/bank-transfers';
+
+function needsBankTransferConfirm(
+  currentStatus: string,
+  nextStatus: string,
+  paymentMethod: string,
+) {
+  return (
+    paymentMethod === 'bank_transfer' &&
+    currentStatus === 'pending_payment' &&
+    nextStatus === 'paid'
+  );
+}
+
+function needsManualBeamRefundConfirm(
+  currentStatus: string,
+  nextStatus: string,
+  paymentMethod: string,
+): boolean {
+  if (nextStatus === currentStatus) return false;
+  if (nextStatus !== 'cancelled' && nextStatus !== 'refunded') return false;
+  if (currentStatus === 'pending_payment') return false;
+  return MANUAL_BEAM_REFUND_METHODS.has(paymentMethod);
+}
+
+type AdminOrderStatusEditDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  orderId: string;
+  currentStatus: string;
+  paymentMethod?: string;
+};
+
+function AdminOrderStatusEditForm({
+  orderId,
+  currentStatus,
+  paymentMethod = '',
+  onClose,
+  onSelectOpenChange,
+}: {
+  orderId: string;
+  currentStatus: string;
+  paymentMethod?: string;
+  onClose: () => void;
+  onSelectOpenChange: (open: boolean) => void;
+}) {
+  const updateMutation = useUpdateAdminOrderStatus();
+  const [status, setStatus] = useState(currentStatus);
+  const [confirmManualRefund, setConfirmManualRefund] = useState(false);
+  const [bankTransferNotice, setBankTransferNotice] = useState(false);
+  const showBankTransferLink =
+    bankTransferNotice ||
+    (updateMutation.isError &&
+      isApiError(updateMutation.error) &&
+      updateMutation.error.code === 'USE_CONFIRM_BANK_TRANSFER');
+
+  async function saveStatus() {
+    try {
+      await updateMutation.mutateAsync({ orderId, status });
+      onClose();
+    } catch {
+      setConfirmManualRefund(false);
+    }
+  }
+
+  function handleSave() {
+    if (needsBankTransferConfirm(currentStatus, status, paymentMethod)) {
+      setBankTransferNotice(true);
+      return;
+    }
+    if (needsManualBeamRefundConfirm(currentStatus, status, paymentMethod)) {
+      setConfirmManualRefund(true);
+      return;
+    }
+    void saveStatus();
+  }
+
+  if (confirmManualRefund) {
+    const methodLabel = labelPaymentMethod(paymentMethod);
+    return (
+      <>
+        <DialogHeader>
+          <DialogTitle>คืนเงินเอง</DialogTitle>
+          <DialogDescription>
+            Beam ไม่รองรับการคืนเงินของ {methodLabel} ระบบจะเปลี่ยนสถานะคำสั่งซื้อให้
+            แต่ต้องโอนเงินคืนลูกค้าเอง
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => setConfirmManualRefund(false)}>
+            กลับไปแก้ไข
+          </Button>
+          <Button
+            type="button"
+            disabled={updateMutation.isPending}
+            aria-busy={updateMutation.isPending}
+            onClick={() => void saveStatus()}
+          >
+            {updateMutation.isPending ? 'กำลังบันทึก...' : 'ยืนยันและบันทึก'}
+          </Button>
+        </DialogFooter>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>แก้ไขสถานะคำสั่งซื้อ</DialogTitle>
+        <DialogDescription>
+          เปลี่ยนสถานะออเดอร์สำหรับการซัพพอร์ต — การเปลี่ยนบางสถานะมีผลต่อสต็อกและการแจ้งเตือน
+        </DialogDescription>
+      </DialogHeader>
+      <div className="space-y-3">
+        <div>
+          <Label htmlFor="order-status">สถานะ</Label>
+          <Select value={status} onValueChange={setStatus} onOpenChange={onSelectOpenChange}>
+            <SelectTrigger id="order-status" className="mt-1.5" aria-label="สถานะ">
+              <SelectValue placeholder="เลือกสถานะ" />
+            </SelectTrigger>
+            <SelectContent position="popper">
+              {orderStatusOptions(currentStatus).map((value) => (
+                <SelectItem key={value} value={value}>
+                  {labelOrderStatus(value)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {showBankTransferLink ? (
+          <p className="text-sm text-danger" role="alert">
+            กรุณายืนยันการโอนเงินผ่านขั้นตอนที่กำหนด{' '}
+            <Link href={BANK_TRANSFER_CONFIRM_HREF} className="font-medium underline">
+              ไปหน้าโอนเงินเข้าบัญชี
+            </Link>
+          </p>
+        ) : updateMutation.isError ? (
+          <p className="text-sm text-danger" role="alert">
+            {getErrorMessage(updateMutation.error, 'เปลี่ยนสถานะไม่สำเร็จ')}
+          </p>
+        ) : null}
+      </div>
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onClose}>
+          ยกเลิก
+        </Button>
+        <Button
+          type="button"
+          disabled={updateMutation.isPending || status === currentStatus}
+          aria-busy={updateMutation.isPending}
+          onClick={() => void handleSave()}
+        >
+          {updateMutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+        </Button>
+      </DialogFooter>
+    </>
+  );
+}
+
+export function AdminOrderStatusEditDialog({
+  open,
+  onOpenChange,
+  orderId,
+  currentStatus,
+  paymentMethod,
+}: AdminOrderStatusEditDialogProps) {
+  const [selectOpen, setSelectOpen] = useState(false);
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) setSelectOpen(false);
+        onOpenChange(next);
+      }}
+    >
+      <DialogContent
+        onPointerDownOutside={(event) => {
+          if (selectOpen) event.preventDefault();
+        }}
+        onInteractOutside={(event) => {
+          if (selectOpen) event.preventDefault();
+        }}
+        onFocusOutside={(event) => {
+          if (selectOpen) event.preventDefault();
+        }}
+      >
+        {open ? (
+          <AdminOrderStatusEditForm
+            key={`${orderId}-${currentStatus}`}
+            orderId={orderId}
+            currentStatus={currentStatus}
+            paymentMethod={paymentMethod}
+            onClose={() => onOpenChange(false)}
+            onSelectOpenChange={setSelectOpen}
+          />
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type AdminOrderShippingEditDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  order: Order;
+};
+
+function AdminOrderShippingEditForm({ order, onClose }: { order: Order; onClose: () => void }) {
+  const updateMutation = useUpdateAdminOrderShippingAddress();
+  const address = order.shippingAddress;
+
+  const form = useForm<AdminOrderShippingFormValues>({
+    resolver: zodResolver(adminOrderShippingFormSchema),
+    defaultValues: {
+      fullName: address?.fullName ?? '',
+      phone: address?.phone ?? '',
+      addressLine1: address?.addressLine1 ?? '',
+      addressLine2: address?.addressLine2 ?? '',
+      tumbon: address?.tumbon ?? '',
+      amphoe: address?.amphoe ?? '',
+      province: address?.province ?? '',
+      postalCode: address?.postalCode ?? '',
+    },
+  });
+
+  async function onSubmit(values: AdminOrderShippingFormValues) {
+    try {
+      await updateMutation.mutateAsync({
+        orderId: order.id,
+        fullName: values.fullName.trim(),
+        phone: normalizeThaiPhoneInput(values.phone),
+        addressLine1: values.addressLine1.trim(),
+        addressLine2: values.addressLine2?.trim() || undefined,
+        tumbon: values.tumbon?.trim() || undefined,
+        amphoe: values.amphoe.trim(),
+        province: values.province.trim(),
+        postalCode: values.postalCode.trim(),
+      });
+      onClose();
+    } catch {
+      // surfaced via mutation state
+    }
+  }
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>แก้ไขที่อยู่จัดส่ง</DialogTitle>
+        <DialogDescription>
+          แก้ไขที่อยู่บนคำสั่งซื้อนี้เท่านั้น ไม่เปลี่ยนที่อยู่ในบัญชีลูกค้า
+        </DialogDescription>
+      </DialogHeader>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3" noValidate>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="ship-fullName" required>
+              ชื่อผู้รับ
+            </Label>
+            <Input id="ship-fullName" className="mt-1.5" {...form.register('fullName')} />
+            {form.formState.errors.fullName ? (
+              <p className="mt-1 text-xs text-danger" role="alert">
+                {form.formState.errors.fullName.message}
+              </p>
+            ) : null}
+          </div>
+          <div>
+            <Label htmlFor="ship-phone" required>
+              เบอร์โทร
+            </Label>
+            <Input id="ship-phone" className="mt-1.5" {...form.register('phone')} />
+            {form.formState.errors.phone ? (
+              <p className="mt-1 text-xs text-danger" role="alert">
+                {form.formState.errors.phone.message}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="ship-line1" required>
+            ที่อยู่บรรทัด 1
+          </Label>
+          <Input id="ship-line1" className="mt-1.5" {...form.register('addressLine1')} />
+          {form.formState.errors.addressLine1 ? (
+            <p className="mt-1 text-xs text-danger" role="alert">
+              {form.formState.errors.addressLine1.message}
+            </p>
+          ) : null}
+        </div>
+        <div>
+          <Label htmlFor="ship-line2">ที่อยู่บรรทัด 2</Label>
+          <Input id="ship-line2" className="mt-1.5" {...form.register('addressLine2')} />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="ship-tumbon">ตำบล/แขวง</Label>
+            <Input id="ship-tumbon" className="mt-1.5" {...form.register('tumbon')} />
+          </div>
+          <div>
+            <Label htmlFor="ship-amphoe" required>
+              อำเภอ/เขต
+            </Label>
+            <Input id="ship-amphoe" className="mt-1.5" {...form.register('amphoe')} />
+            {form.formState.errors.amphoe ? (
+              <p className="mt-1 text-xs text-danger" role="alert">
+                {form.formState.errors.amphoe.message}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="ship-province" required>
+              จังหวัด
+            </Label>
+            <Input id="ship-province" className="mt-1.5" {...form.register('province')} />
+            {form.formState.errors.province ? (
+              <p className="mt-1 text-xs text-danger" role="alert">
+                {form.formState.errors.province.message}
+              </p>
+            ) : null}
+          </div>
+          <div>
+            <Label htmlFor="ship-postal" required>
+              รหัสไปรษณีย์
+            </Label>
+            <Input id="ship-postal" className="mt-1.5" {...form.register('postalCode')} />
+            {form.formState.errors.postalCode ? (
+              <p className="mt-1 text-xs text-danger" role="alert">
+                {form.formState.errors.postalCode.message}
+              </p>
+            ) : null}
+          </div>
+        </div>
+        {updateMutation.isError ? (
+          <p className="text-sm text-danger" role="alert">
+            {getErrorMessage(updateMutation.error, 'บันทึกที่อยู่ไม่สำเร็จ')}
+          </p>
+        ) : null}
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            ยกเลิก
+          </Button>
+          <Button
+            type="submit"
+            disabled={updateMutation.isPending}
+            aria-busy={updateMutation.isPending}
+          >
+            {updateMutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+          </Button>
+        </DialogFooter>
+      </form>
+    </>
+  );
+}
+
+export function AdminOrderShippingEditDialog({
+  open,
+  onOpenChange,
+  order,
+}: AdminOrderShippingEditDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        {open ? (
+          <AdminOrderShippingEditForm
+            key={order.id}
+            order={order}
+            onClose={() => onOpenChange(false)}
+          />
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { HiArrowLeft, HiArrowPath } from 'react-icons/hi2';
 import { VariantItemsSpreadsheet } from '@/components/vendor/variant-items-spreadsheet';
 import { VariantOptionGroupsEditor } from '@/components/vendor/variant-option-groups-editor';
@@ -10,17 +10,25 @@ import { VariantSyncImpactDialog } from '@/components/vendor/variant-sync-impact
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import { Stepper } from '@/components/ui/stepper';
+import { CreateProductGuideSpotlight } from '@/components/vendor/product-tour/create-product-guide-spotlight';
 import { useProduct } from '@/hooks/useProduct';
 import { PRODUCT_WIZARD_STEPS } from '@/lib/product-wizard';
 import { cn, formatCurrency } from '@/lib/utils';
 import { getErrorMessage } from '@/lib/api/errors';
 import {
+  CREATE_PRODUCT_GUIDE_QUERY,
+  CREATE_PRODUCT_GUIDE_QUERY_VALUE,
+  startCreateProductGuide,
+} from '@/lib/vendor/create-product-guide';
+import {
+  applyOptionRename,
   buildCombinationsFromGroups,
   extractOptionGroups,
   variantItemsFromProduct,
   variantOptionKey,
   type VariantItem,
   type VariantOptionGroup,
+  type VariantOptionRename,
 } from '@/lib/variants';
 
 const WIZARD_STEP_NUMBER = PRODUCT_WIZARD_STEPS.length;
@@ -77,6 +85,12 @@ export default function ProductVariantsPage() {
   const isFromWizard = searchParams.get('fromWizard') === '1';
   const { data: product, isLoading, error } = useProduct(productId);
 
+  useEffect(() => {
+    if (searchParams.get(CREATE_PRODUCT_GUIDE_QUERY) === CREATE_PRODUCT_GUIDE_QUERY_VALUE) {
+      startCreateProductGuide();
+    }
+  }, [searchParams]);
+
   const [items, setItems] = useState<VariantItem[]>([]);
   const [groups, setGroups] = useState<VariantOptionGroup[]>([]);
   const [loadedProductId, setLoadedProductId] = useState<string | null>(null);
@@ -105,6 +119,13 @@ export default function ProductVariantsPage() {
     }
     return false;
   }, [items, pendingCombinations]);
+
+  function handleGroupsChange(nextGroups: VariantOptionGroup[], rename?: VariantOptionRename) {
+    setGroups(nextGroups);
+    if (rename) {
+      setItems((current) => applyOptionRename(current, rename));
+    }
+  }
 
   function handleApplyGroups() {
     setItems(pendingCombinations);
@@ -145,6 +166,7 @@ export default function ProductVariantsPage() {
 
   return (
     <div>
+      {isFromWizard ? <CreateProductGuideSpotlight step={4} /> : null}
       <PageHeader
         title={product.name}
         description={
@@ -167,7 +189,10 @@ export default function ProductVariantsPage() {
         <Stepper steps={PRODUCT_WIZARD_STEPS} currentStep={WIZARD_STEP_NUMBER} className="mb-8" />
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+      <div
+        className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start"
+        data-tour-id="create-product-variants"
+      >
         <div className="space-y-6 lg:order-1">
           <Card>
             <CardHeader>
@@ -182,8 +207,8 @@ export default function ProductVariantsPage() {
             <CardBody className="space-y-4">
               <VariantOptionGroupsEditor
                 groups={groups}
-                onChange={setGroups}
-                helperText="เช่น สี → แดง, น้ำเงิน, เขียว · ไซส์ → xs, s, m, l, xl · แก้ชื่อหรือค่าที่มีอยู่ได้โดยตรง"
+                onChange={handleGroupsChange}
+                helperText="เช่น สี → แดง, น้ำเงิน, เขียว · ไซส์ → xs, s, m, l, xl · แตะชิปเพื่อแก้ชื่อ — SKU เดิมจะถูกเก็บไว้"
               />
 
               {outOfSync ? (
@@ -311,7 +336,6 @@ export default function ProductVariantsPage() {
         onOpenChange={setImpactOpen}
         productId={product.id}
         variants={items}
-        productBasePrice={product.basePrice}
         onSyncSuccess={handleSyncSuccess}
       />
     </div>

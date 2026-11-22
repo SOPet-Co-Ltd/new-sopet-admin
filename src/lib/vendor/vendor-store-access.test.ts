@@ -22,6 +22,7 @@ describe('isVendorRouteAllowedWithoutStores', () => {
   });
 
   it('allows nested paths under storeless prefixes', () => {
+    expect(isVendorRouteAllowedWithoutStores('/vendor/onboarding')).toBe(true);
     expect(isVendorRouteAllowedWithoutStores('/vendor/stores')).toBe(true);
     expect(isVendorRouteAllowedWithoutStores('/vendor/invitations/accept')).toBe(true);
     expect(isVendorRouteAllowedWithoutStores('/vendor/requests')).toBe(true);

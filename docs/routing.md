@@ -28,35 +28,37 @@ flowchart TD
 
 ## Admin routes (`src/app/admin/`)
 
-| Route                                  | Purpose                                    |
-| -------------------------------------- | ------------------------------------------ |
-| `/admin`                               | Redirect to `/admin/analytics`             |
-| `/admin/analytics`                     | Platform analytics                         |
-| `/admin/stores`                        | Store approval and management              |
-| `/admin/stores/new`                    | Create store (admin-created)               |
-| `/admin/stores/[id]`                   | Store detail                               |
-| `/admin/vendors`                       | Vendor management                          |
-| `/admin/vendors/[id]`                  | Vendor detail                              |
-| `/admin/customers`                     | Customer management                        |
-| `/admin/customers/[id]`                | Customer detail                            |
-| `/admin/taxonomy`                      | Pet types, categories, tags, brands        |
-| `/admin/taxonomy/categories/[id]/edit` | Edit category                              |
-| `/admin/taxonomy/pet-types/[id]/edit`  | Edit pet type                              |
-| `/admin/search/tuning`                 | Search ranking weights                     |
-| `/admin/search/synonyms`               | Search synonym management                  |
-| `/admin/search/analytics`              | Search analytics                           |
-| `/admin/promotions`                    | Platform promotions                        |
-| `/admin/promotions/new`                | New promotion — type picker                |
-| `/admin/promotions/new/[type]`         | New promotion — type-specific form         |
-| `/admin/promotions/[id]/edit`          | Edit promotion                             |
-| `/admin/shipping`                      | Platform shipping settings                 |
-| `/admin/settings`                      | Platform settings (banners, sponsors, ads) |
-| `/admin/team`                          | Admin team                                 |
-| `/admin/audit-logs`                    | Admin audit log                            |
-| `/admin/notifications`                 | Admin notifications                        |
-| `/admin/profile`                       | Admin profile                              |
-| `/admin/requests`                      | Store + vendor invite request center       |
-| `/admin/reactivation-requests`         | Suspended-store reactivation requests      |
+| Route                                  | Purpose                                      |
+| -------------------------------------- | -------------------------------------------- |
+| `/admin`                               | Redirect to `/admin/analytics`               |
+| `/admin/analytics`                     | Platform analytics                           |
+| `/admin/stores`                        | Store approval and management                |
+| `/admin/stores/new`                    | Create store (admin-created)                 |
+| `/admin/stores/[id]`                   | Store detail                                 |
+| `/admin/vendors`                       | Vendor management                            |
+| `/admin/vendors/[id]`                  | Vendor detail                                |
+| `/admin/customers`                     | Customer management                          |
+| `/admin/customers/[id]`                | Customer detail                              |
+| `/admin/taxonomy`                      | Pet types, categories, tags, brands          |
+| `/admin/taxonomy/categories/[id]/edit` | Edit category                                |
+| `/admin/taxonomy/pet-types/[id]/edit`  | Edit pet type                                |
+| `/admin/search/tuning`                 | Search ranking weights                       |
+| `/admin/search/synonyms`               | Search synonym management                    |
+| `/admin/search/analytics`              | Search analytics                             |
+| `/admin/promotions`                    | Platform promotions                          |
+| `/admin/promotions/new`                | New promotion — type picker                  |
+| `/admin/promotions/new/[type]`         | New promotion — type-specific form           |
+| `/admin/promotions/[id]/edit`          | Edit promotion                               |
+| `/admin/shipping`                      | Platform shipping settings                   |
+| `/admin/settings`                      | Platform settings (banners, sponsors, ads)   |
+| `/admin/team`                          | Admin team                                   |
+| `/admin/audit-logs`                    | Admin audit log                              |
+| `/admin/notifications`                 | Admin notifications                          |
+| `/admin/profile`                       | Admin profile                                |
+| `/admin/help`                          | Redirect → `/guide/admin` (public guidebook) |
+| `/admin/help/[slug]`                   | Redirect → `/guide/admin/[slug]`             |
+| `/admin/requests`                      | Store + vendor invite request center         |
+| `/admin/reactivation-requests`         | Suspended-store reactivation requests        |
 
 Nav: `src/components/admin/admin-layout.tsx`.
 
@@ -85,6 +87,8 @@ Post-login / unauthorized-vendor-away dashboard for admins is `/admin/stores` (`
 | `/vendor/api/docs`               | External vendor REST API documentation                                     |
 | `/vendor/settings`               | Store settings                                                             |
 | `/vendor/notifications`          | Notifications                                                              |
+| `/vendor/help`                   | Redirect → `/guide/vendor` (public guidebook)                              |
+| `/vendor/help/[slug]`            | Redirect → `/guide/vendor/[slug]`                                          |
 | `/vendor/reactivation`           | Reactivation request for a suspended store                                 |
 | `/vendor/invitations/accept`     | Legacy invite link — redirects to `/invite/store?token=…`                  |
 | `/vendor/requests`               | Legacy route — redirects to `/vendor/stores`                               |
@@ -93,15 +97,20 @@ Nav: `src/components/vendor/vendor-layout.tsx`. Role-gated items via `useIsStore
 
 ## Shared / auth routes (`src/app/`)
 
-| Route              | Purpose                                             |
-| ------------------ | --------------------------------------------------- |
-| `/`                | Client redirect to role dashboard or `/login`       |
-| `/login`           | Email + password login (admin and vendor)           |
-| `/register`        | Vendor self-registration (new store request)        |
-| `/register/invite` | Accept a store team-member invitation               |
-| `/reset-password`  | Password reset flow                                 |
-| `/verify-email`    | Vendor email verification link landing page         |
-| `/invite/store`    | Accept a store team-member invitation (token-based) |
+| Route                  | Purpose                                             |
+| ---------------------- | --------------------------------------------------- |
+| `/`                    | Client redirect to role dashboard or `/login`       |
+| `/login`               | Email + password login (admin and vendor)           |
+| `/register`            | Vendor self-registration (new store request)        |
+| `/register/invite`     | Accept a store team-member invitation               |
+| `/reset-password`      | Password reset flow                                 |
+| `/verify-email`        | Vendor email verification link landing page         |
+| `/invite/store`        | Accept a store team-member invitation (token-based) |
+| `/guide`               | Public official guidebook hub (no auth)             |
+| `/guide/admin`         | Public admin guidebook index                        |
+| `/guide/admin/[slug]`  | Public admin guidebook article                      |
+| `/guide/vendor`        | Public vendor guidebook index                       |
+| `/guide/vendor/[slug]` | Public vendor guidebook article                     |
 
 ## Auth protection
 

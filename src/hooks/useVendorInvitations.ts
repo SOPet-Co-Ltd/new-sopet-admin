@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   acceptVendorInvitation,
+  getPendingVendorInvitationIds,
   getPendingVendorInvitations,
   inviteVendor,
 } from '@/lib/api/vendor-invitations';
@@ -14,6 +15,13 @@ export function usePendingVendorInvitations() {
   return useQuery({
     queryKey: queryKeys.vendorInvitations.pending(),
     queryFn: getPendingVendorInvitations,
+  });
+}
+
+export function usePendingVendorInvitationIds() {
+  return useQuery({
+    queryKey: [...queryKeys.vendorInvitations.pending(), 'ids'] as const,
+    queryFn: getPendingVendorInvitationIds,
   });
 }
 

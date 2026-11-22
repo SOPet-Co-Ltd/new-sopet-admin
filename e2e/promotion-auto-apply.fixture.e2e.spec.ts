@@ -90,8 +90,14 @@ async function installAutoApplyListMocks(page: Page) {
       query.includes('storePromotions')
     ) {
       await fulfillGraphQL(route, {
-        platformPromotions: [AUTO_APPLY_LIST_PROMO],
-        storePromotions: [{ ...AUTO_APPLY_LIST_PROMO, scope: 'store' }],
+        platformPromotions: {
+          items: [AUTO_APPLY_LIST_PROMO],
+          pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+        },
+        storePromotions: {
+          items: [{ ...AUTO_APPLY_LIST_PROMO, scope: 'store' }],
+          pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
+        },
       });
       return;
     }

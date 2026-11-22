@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +32,16 @@ import {
   membershipRoleDescriptions,
 } from '@/lib/i18n/th';
 import { inviteMemberSchema, type InviteMemberFormValues } from '@/lib/validations';
+import { ActionGuideSpotlight } from '@/components/vendor/product-tour/action-guide-spotlight';
+import { PageFeatureSpotlight } from '@/components/vendor/product-tour/page-feature-spotlight';
+import { useCurrentUser } from '@/hooks/useAuth';
+import { startActionGuide } from '@/lib/vendor/action-guide';
+import { useBootstrapActionGuide } from '@/lib/vendor/use-bootstrap-action-guide';
+
+function InviteTeamGuideBootstrap() {
+  useBootstrapActionGuide('invite-team');
+  return <ActionGuideSpotlight guideId="invite-team" />;
+}
 
 function TeamPageSkeleton() {
   return (
@@ -87,6 +98,7 @@ function formatInviteExpiry(value: string): string {
 }
 
 export default function VendorTeamPage() {
+  const { user } = useCurrentUser();
   const { isOwner, isLoading: ownerLoading } = useIsStoreOwner();
   const { data: members = [], isLoading: membersLoading } = useStoreMembers();
   const { data: invitations = [], isLoading: invitationsLoading } = useStoreInvitations(isOwner);
@@ -136,12 +148,22 @@ export default function VendorTeamPage() {
 
   return (
     <div className="space-y-6">
+      <Suspense fallback={null}>
+        <InviteTeamGuideBootstrap />
+      </Suspense>
+      <PageFeatureSpotlight
+        featureId="team-invite"
+        eligible={!membersLoading && members.length <= 1}
+        onCompleted={() => {
+          startActionGuide('invite-team', { userId: user?.id });
+        }}
+      />
       <PageHeader
         title="ทีมร้านค้า"
         description="เชิญสมาชิก กำหนดบทบาท และเพิกถอนสิทธิ์เมื่อไม่ต้องการแล้ว"
       />
 
-      <Card>
+      <Card data-tour-id="team-invite-form">
         <CardHeader className="space-y-1">
           <h2 className="font-display font-medium text-balance text-ink">เชิญสมาชิกใหม่</h2>
           <p className="text-sm text-pretty text-muted-foreground">
@@ -154,7 +176,7 @@ export default function VendorTeamPage() {
             className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_11rem_auto] sm:items-start"
             noValidate
           >
-            <div>
+            <div data-tour-id="action-team-email">
               <Label htmlFor="invite-email" required>
                 อีเมล
               </Label>
@@ -176,7 +198,7 @@ export default function VendorTeamPage() {
               ) : null}
             </div>
 
-            <div>
+            <div data-tour-id="action-team-role">
               <Label htmlFor="invite-role" required>
                 บทบาท
               </Label>
@@ -219,6 +241,7 @@ export default function VendorTeamPage() {
                 className="w-full sm:w-auto"
                 disabled={invitePending}
                 aria-busy={invitePending}
+                data-tour-id="action-team-submit"
               >
                 {invitePending ? 'กำลังส่ง...' : 'ส่งคำเชิญ'}
               </Button>

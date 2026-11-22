@@ -18,6 +18,10 @@ vi.mock('@/hooks/useAuth', () => ({
   useLogout: vi.fn(),
 }));
 
+vi.mock('@/hooks/useDashboardActivity', () => ({
+  useDashboardActivity: vi.fn(),
+}));
+
 vi.mock('@/hooks/useMyStores', () => ({
   useMyStores: vi.fn(),
 }));
@@ -45,6 +49,19 @@ vi.mock('@/hooks/useStoreRequests', () => ({
 
 vi.mock('@/hooks/useTheme', () => ({
   useTheme: vi.fn(),
+}));
+
+vi.mock('@/hooks/useStoreSettings', () => ({
+  useMyStore: vi.fn(() => ({ data: undefined })),
+}));
+
+vi.mock('@/hooks/useShipping', () => ({
+  useMyStoreShippingOptions: vi.fn(() => ({ data: [] })),
+}));
+
+vi.mock('@/hooks/useVendorProducts', () => ({
+  useVendorProducts: vi.fn(() => ({ data: { items: [] } })),
+  useVendorPublishedProductProbe: vi.fn(() => ({ data: [] })),
 }));
 
 const authGuardState = vi.hoisted(() => ({ renderChildren: true }));
@@ -158,12 +175,13 @@ function setupMocks({
 }
 
 describe('buildVendorNavSections', () => {
-  it('returns ร้านค้าของฉัน, คำเชิญ / คำขอ, การแจ้งเตือน, and ตั้งค่า when vendor has no stores', () => {
+  it('returns เริ่มต้นตั้งค่าร้าน, ร้านค้าของฉัน, คำเชิญ / คำขอ, การแจ้งเตือน, and ตั้งค่า when vendor has no stores', () => {
     const sections = buildVendorNavSections({ hasStores: false, isOwner: false, isManager: false });
 
     expect(sections).toHaveLength(2);
     expect(sections[0].title).toBe('ร้านค้า');
     expect(sections[0].items).toEqual([
+      expect.objectContaining({ href: '/vendor/onboarding', label: 'เริ่มต้นตั้งค่าร้าน' }),
       expect.objectContaining({ href: '/vendor/stores', label: 'ร้านค้าของฉัน' }),
       expect.objectContaining({ href: '/vendor/requests', label: 'คำเชิญ / คำขอ' }),
     ]);
@@ -171,6 +189,7 @@ describe('buildVendorNavSections', () => {
     expect(sections[1].items).toEqual([
       expect.objectContaining({ href: '/vendor/notifications', label: 'การแจ้งเตือน' }),
       expect.objectContaining({ href: '/vendor/settings', label: 'ตั้งค่า' }),
+      expect.objectContaining({ href: '/guide/vendor', label: 'คู่มือการใช้งาน' }),
     ]);
   });
 
@@ -219,6 +238,22 @@ describe('buildVendorNavSections', () => {
     expect(labels).toContain('API');
     expect(labels).toContain('การแจ้งเตือน');
     expect(labels).toContain('ตั้งค่า');
+    expect(labels).toContain('คู่มือการใช้งาน');
+  });
+
+  it('includes ทัวร์แนะนำ link to tours hub when showToursLink is provided', () => {
+    const sections = buildVendorNavSections({
+      hasStores: true,
+      isOwner: false,
+      isManager: false,
+      showToursLink: true,
+    });
+
+    const tours = sections
+      .flatMap((section) => section.items)
+      .find((item) => item.label === 'ทัวร์แนะนำ');
+    expect(tours?.href).toBe('/vendor/tours');
+    expect(tours?.onClick).toBeUndefined();
   });
 
   it('hides operational nav when active store is suspended', () => {
@@ -231,7 +266,14 @@ describe('buildVendorNavSections', () => {
     });
 
     const labels = sections.flatMap((section) => section.items.map((item) => item.label));
-    expect(labels).toEqual(['ร้านค้าของฉัน', 'คำเชิญ / คำขอ', 'การแจ้งเตือน', 'ตั้งค่า']);
+    expect(labels).toEqual([
+      'เริ่มต้นตั้งค่าร้าน',
+      'ร้านค้าของฉัน',
+      'คำเชิญ / คำขอ',
+      'การแจ้งเตือน',
+      'ตั้งค่า',
+      'คู่มือการใช้งาน',
+    ]);
     expect(sections[0].items.find((item) => item.href === '/vendor/requests')?.badge).toBe(2);
   });
 
@@ -289,6 +331,7 @@ describe('VendorLayout sidebar nav', () => {
       </VendorLayout>,
     );
 
+    expect(screen.getByRole('link', { name: 'เริ่มต้นตั้งค่าร้าน' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'ร้านค้าของฉัน' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'คำเชิญ / คำขอ' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'การแจ้งเตือน' })).toBeInTheDocument();

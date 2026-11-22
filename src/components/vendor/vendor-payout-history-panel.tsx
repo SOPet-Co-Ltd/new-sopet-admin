@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader } from '@/components/ui/card';
 import { useStorePayouts } from '@/hooks/usePayouts';
 import { commissionCopy } from '@/lib/i18n/th';
-import { PAYOUT_STATUS_LABELS } from '@/lib/payouts/status-labels';
+import { payoutStatusLabel, VENDOR_CANCELLED_PAYOUT_REASON } from '@/lib/payouts/status-labels';
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
 import type { Payout } from '@/types';
 
@@ -52,8 +54,35 @@ function HistorySkeleton() {
   );
 }
 
+function PayoutOutcomeCopy({ payout }: { payout: Payout }) {
+  if (payout.status === 'completed') {
+    return (
+      <div className="space-y-1 text-xs text-muted-foreground">
+        <p>
+          โอนแล้ว
+          {payout.processedAt ? ` · ${formatDateTime(payout.processedAt)}` : ''}
+        </p>
+        {payout.notes ? <p>หมายเหตุ: {payout.notes}</p> : null}
+      </div>
+    );
+  }
+
+  if (payout.status === 'failed' && payout.failureReason === VENDOR_CANCELLED_PAYOUT_REASON) {
+    return <p className="text-xs text-muted-foreground">ยกเลิกคำขอแล้ว</p>;
+  }
+
+  if (payout.status === 'failed' && payout.failureReason) {
+    return <p className="text-xs text-danger">เหตุผล: {payout.failureReason}</p>;
+  }
+
+  return null;
+}
+
 export function VendorPayoutHistoryPanel() {
-  const { data: payouts = [], isLoading } = useStorePayouts();
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useStorePayouts(page);
+  const payouts = data?.items ?? [];
+  const pagination = data?.pagination;
 
   return (
     <Card className="h-full">
@@ -64,8 +93,10 @@ export function VendorPayoutHistoryPanel() {
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">รายการคำขอโอนล่าสุด</p>
         </div>
-        {!isLoading && payouts.length > 0 ? (
-          <span className="text-xs text-muted-foreground">{payouts.length} รายการ</span>
+        {!isLoading && (pagination?.total ?? 0) > 0 ? (
+          <span className="text-xs text-muted-foreground">
+            {(pagination?.total ?? payouts.length).toLocaleString('th-TH')} รายการ
+          </span>
         ) : null}
       </CardHeader>
       <CardBody>
@@ -90,21 +121,49 @@ export function VendorPayoutHistoryPanel() {
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {formatDateTime(payout.createdAt)}
                       {' · '}
-                      {payout.settlementRail === 'manual' ? 'โอนเงินเข้าบัญชี' : 'Omise'}
+                      โอนเงินเข้าบัญชี
                     </p>
                   </div>
                   <Badge
                     status={PAYOUT_BADGE_STATUS[payout.status]}
                     className={cn(payout.status === 'pending' && 'bg-warning-bg text-warning-text')}
                   >
-                    {PAYOUT_STATUS_LABELS[payout.status] ?? payout.status}
+                    {payoutStatusLabel(payout.status, payout.failureReason)}
                   </Badge>
                 </div>
                 <SnapshotHistoryBreakdown payout={payout} />
+                <PayoutOutcomeCopy payout={payout} />
               </li>
             ))}
           </ul>
         )}
+        {pagination && pagination.totalPages > 1 ? (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+            <span className="tabular-nums">
+              หน้า {pagination.page} จาก {pagination.totalPages}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                ก่อนหน้า
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={page >= pagination.totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                ถัดไป
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </CardBody>
     </Card>
   );

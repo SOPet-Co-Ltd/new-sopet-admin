@@ -15,12 +15,15 @@ import {
   getResendEmailVerificationButtonLabel,
 } from '@/lib/email-verification/resend';
 import { queryKeys } from '@/lib/react-query/keys';
-import type { UpdateVendorAsAdminInput } from '@/types';
+import type { AdminVendorsQueryParams, UpdateVendorAsAdminInput } from '@/types';
 
-export function useAdminVendors(search?: string, options?: { enabled?: boolean }) {
+export function useAdminVendors(
+  params: AdminVendorsQueryParams = {},
+  options?: { enabled?: boolean },
+) {
   return useQuery({
-    queryKey: queryKeys.adminVendors.list(search),
-    queryFn: () => getAdminVendors(search),
+    queryKey: queryKeys.adminVendors.list(params),
+    queryFn: () => getAdminVendors(params),
     enabled: options?.enabled ?? true,
   });
 }

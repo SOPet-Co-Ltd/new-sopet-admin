@@ -1,16 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { HiOutlinePlus } from 'react-icons/hi2';
+import { HelpDeepLink } from '@/components/help/help-deep-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/card';
 import { DataTable, SortableHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
+import { FeatureSpotlight } from '@/components/vendor/product-tour/feature-spotlight';
 import { ProductThumbnail } from '@/components/vendor/product-thumbnail';
 import { VendorBatchPublishDialog } from '@/components/vendor/vendor-batch-publish-dialog';
 import {
@@ -54,6 +56,7 @@ import {
   createDetailPrefetchHandlers,
   prefetchVendorProductDetail,
 } from '@/lib/react-query/prefetch-dashboard-nav';
+import { createProductGuideHref, startCreateProductGuide } from '@/lib/vendor/create-product-guide';
 import type { Product } from '@/types';
 
 const ALL = 'all';
@@ -96,6 +99,7 @@ const vendorProductsQuerySpec = {
 
 export default function VendorProductsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [batchPublishOpen, setBatchPublishOpen] = useState(false);
   const [params, setParams] = useListQueryState(vendorProductsQuerySpec);
@@ -330,6 +334,8 @@ export default function VendorProductsPage() {
   const pagination = data?.pagination;
   const products = data?.items ?? [];
   const isEmpty = !isLoading && products.length === 0;
+  const showEmptyProductsSpotlight = isEmpty && !hasActiveFilters && !error && !isLoading;
+  const forceProductsSpotlight = searchParams.get('spotlight') === 'products-empty-add';
 
   const emptyState = (
     <VendorProductsEmptyState
@@ -340,16 +346,40 @@ export default function VendorProductsPage() {
 
   return (
     <div>
+      {showEmptyProductsSpotlight || forceProductsSpotlight ? (
+        <FeatureSpotlight
+          featureId="products-empty-add"
+          eligible={showEmptyProductsSpotlight || forceProductsSpotlight}
+          force={forceProductsSpotlight}
+          targetId="products-add-cta"
+          title="เพิ่มสินค้าชิ้นแรก"
+          body="กดปุ่มนี้เพื่อสร้างสินค้าใหม่ — หรือกด “ไปสร้างสินค้า” เพื่อเริ่มทัวร์แนะนำทีละขั้นจนถึงการตั้งราคาและสต็อก"
+          primaryLabel="ไปสร้างสินค้า"
+          onForcedDismiss={() => {
+            const next = new URLSearchParams(searchParams.toString());
+            next.delete('spotlight');
+            const query = next.toString();
+            router.replace(query ? `/vendor/products?${query}` : '/vendor/products', {
+              scroll: false,
+            });
+          }}
+          onCompleted={() => {
+            startCreateProductGuide();
+            router.push(createProductGuideHref());
+          }}
+        />
+      ) : null}
       <PageHeader
         title="สินค้า"
         description="ดูและจัดการสินค้าในร้าน — สถานะ ราคา และสต็อกที่สแกนได้ทันที"
         action={
           <div className="flex flex-wrap items-center gap-2">
+            <HelpDeepLink role="vendor" slug="products" />
             <Button type="button" variant="outline" onClick={() => setBatchPublishOpen(true)}>
               เผยแพร่หลายรายการ
             </Button>
             <Button asChild>
-              <Link href="/vendor/products/new">
+              <Link href="/vendor/products/new" data-tour-id="products-add-cta">
                 <HiOutlinePlus className="size-4" aria-hidden="true" />
                 เพิ่มสินค้า
               </Link>

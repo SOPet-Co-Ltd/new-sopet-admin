@@ -61,6 +61,8 @@ export function VariantItemsSpreadsheet({
   const [bulkStock, setBulkStock] = useState('');
   const [bulkPrice, setBulkPrice] = useState('');
   const [focusedCell, setFocusedCell] = useState<string | null>(null);
+  /** String draft while a number cell is focused — avoids mid-keystroke Number coerce. */
+  const [numberDrafts, setNumberDrafts] = useState<Record<string, string>>({});
 
   const registerInput = useCallback(
     (row: number, col: number) => (el: HTMLInputElement | null) => {
@@ -100,6 +102,31 @@ export function VariantItemsSpreadsheet({
       return;
     }
     updateItem(row, { [column.key]: value } as Partial<VariantItem>);
+  }
+
+  function displayNumberValue(row: number, col: number, stored: number | null | undefined): string {
+    const key = cellKey(row, col);
+    if (focusedCell === key && numberDrafts[key] !== undefined) {
+      return numberDrafts[key];
+    }
+    return stored == null ? '' : String(stored);
+  }
+
+  function handleNumberChange(row: number, col: number, raw: string) {
+    const key = cellKey(row, col);
+    setNumberDrafts((prev) => ({ ...prev, [key]: raw }));
+  }
+
+  function commitNumberCell(row: number, col: number) {
+    const key = cellKey(row, col);
+    const draft = numberDrafts[key];
+    if (draft === undefined) return;
+    setCellValue(row, col, draft);
+    setNumberDrafts((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   }
 
   function applyBulkValues() {
@@ -310,12 +337,22 @@ export function VariantItemsSpreadsheet({
                       type="number"
                       inputMode="decimal"
                       min={0}
-                      value={item.stockQuantity}
-                      onChange={(e) =>
-                        updateItem(rowIndex, {
-                          stockQuantity: coerce(COLUMNS[1], e.target.value) as number,
-                        })
-                      }
+                      value={displayNumberValue(rowIndex, 1, item.stockQuantity)}
+                      onFocus={() => {
+                        const key = cellKey(rowIndex, 1);
+                        setFocusedCell(key);
+                        setNumberDrafts((prev) => ({
+                          ...prev,
+                          [key]: String(item.stockQuantity ?? ''),
+                        }));
+                      }}
+                      onChange={(e) => handleNumberChange(rowIndex, 1, e.target.value)}
+                      onBlur={() => {
+                        commitNumberCell(rowIndex, 1);
+                        setFocusedCell((current) =>
+                          current === cellKey(rowIndex, 1) ? null : current,
+                        );
+                      }}
                       className={cn('mt-1', isOutOfStock && 'text-danger')}
                     />
                   </div>
@@ -332,12 +369,22 @@ export function VariantItemsSpreadsheet({
                       inputMode="decimal"
                       min={0}
                       step="0.01"
-                      value={item.price}
-                      onChange={(e) =>
-                        updateItem(rowIndex, {
-                          price: coerce(COLUMNS[2], e.target.value) as number,
-                        })
-                      }
+                      value={displayNumberValue(rowIndex, 2, item.price)}
+                      onFocus={() => {
+                        const key = cellKey(rowIndex, 2);
+                        setFocusedCell(key);
+                        setNumberDrafts((prev) => ({
+                          ...prev,
+                          [key]: String(item.price ?? ''),
+                        }));
+                      }}
+                      onChange={(e) => handleNumberChange(rowIndex, 2, e.target.value)}
+                      onBlur={() => {
+                        commitNumberCell(rowIndex, 2);
+                        setFocusedCell((current) =>
+                          current === cellKey(rowIndex, 2) ? null : current,
+                        );
+                      }}
                       className="mt-1"
                     />
                   </div>
@@ -390,26 +437,51 @@ export function VariantItemsSpreadsheet({
                     {COLUMNS.map((column, colIndex) => {
                       const key = cellKey(rowIndex, colIndex);
                       const isStock = column.key === 'stockQuantity';
+                      const isNumber = column.type === 'number';
+                      const storedValue = item[column.key];
                       return (
                         <td key={column.key} className="border-l border-border p-0">
                           <input
                             ref={registerInput(rowIndex, colIndex)}
                             type={column.type}
-                            inputMode={column.type === 'number' ? 'decimal' : undefined}
-                            min={column.type === 'number' ? 0 : undefined}
+                            inputMode={isNumber ? 'decimal' : undefined}
+                            min={isNumber ? 0 : undefined}
                             step={column.step}
-                            value={item[column.key] ?? ''}
+                            value={
+                              isNumber
+                                ? displayNumberValue(
+                                    rowIndex,
+                                    colIndex,
+                                    storedValue as number | null | undefined,
+                                  )
+                                : (storedValue ?? '')
+                            }
                             aria-label={`${column.label} — ${label}`}
-                            onChange={(e) => setCellValue(rowIndex, colIndex, e.target.value)}
+                            onChange={(e) => {
+                              if (isNumber) {
+                                handleNumberChange(rowIndex, colIndex, e.target.value);
+                              } else {
+                                setCellValue(rowIndex, colIndex, e.target.value);
+                              }
+                            }}
                             onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
                             onPaste={(e) => handlePaste(e, rowIndex, colIndex)}
                             onFocus={(e) => {
                               setFocusedCell(key);
+                              if (isNumber) {
+                                setNumberDrafts((prev) => ({
+                                  ...prev,
+                                  [key]: String(storedValue ?? ''),
+                                }));
+                              }
                               e.currentTarget.select();
                             }}
-                            onBlur={() =>
-                              setFocusedCell((current) => (current === key ? null : current))
-                            }
+                            onBlur={() => {
+                              if (isNumber) {
+                                commitNumberCell(rowIndex, colIndex);
+                              }
+                              setFocusedCell((current) => (current === key ? null : current));
+                            }}
                             className={cn(
                               'h-10 w-full bg-transparent px-4 py-2 text-sm text-ink outline-none transition-colors duration-150',
                               'focus:bg-brand-tint/50 focus:ring-2 focus:ring-inset focus:ring-brand/35',

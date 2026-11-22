@@ -5,12 +5,15 @@ import { HiOutlineMegaphone } from 'react-icons/hi2';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { SaleCampaignListItem } from '@/components/vendor/sale-campaign-list-item';
+import { PageFeatureSpotlight } from '@/components/vendor/product-tour/page-feature-spotlight';
 import {
   useDeleteSaleCampaign,
   useStoreSaleCampaigns,
   useToggleSaleCampaign,
 } from '@/hooks/useSaleCampaigns';
+import { useCurrentUser } from '@/hooks/useAuth';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
+import { startActionGuide } from '@/lib/vendor/action-guide';
 import type { SaleCampaign } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
 
@@ -68,6 +71,7 @@ function CampaignsEmptyState() {
 }
 
 export default function VendorSaleCampaignsPage() {
+  const { user } = useCurrentUser();
   const storeId = useVendorStoreId();
   const { data: campaigns = [], isLoading, error } = useStoreSaleCampaigns(storeId);
   const deleteMutation = useDeleteSaleCampaign();
@@ -83,13 +87,22 @@ export default function VendorSaleCampaignsPage() {
 
   return (
     <div className="space-y-6">
+      <PageFeatureSpotlight
+        featureId="campaigns-empty-add"
+        eligible={Boolean(storeId) && !isLoading && !error && campaigns.length === 0}
+        onCompleted={() => {
+          startActionGuide('create-campaign', { userId: user?.id });
+        }}
+      />
       <PageHeader
         title="แคมเปญ"
         description="ลดราคาจริงตาม % บนสินค้าที่เลือก — ราคาหลังลดคือราคาที่ลูกค้าชำระ (โปรโมชันตอนเช็คเอาต์ยังใช้ต่อท้ายได้)"
         action={
           storeId ? (
             <Button asChild>
-              <Link href="/vendor/campaigns/new">สร้างแคมเปญ</Link>
+              <Link href="/vendor/campaigns/new" data-tour-id="campaigns-add-cta">
+                สร้างแคมเปญ
+              </Link>
             </Button>
           ) : undefined
         }

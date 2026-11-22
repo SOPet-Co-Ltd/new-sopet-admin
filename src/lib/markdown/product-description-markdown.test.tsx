@@ -35,4 +35,19 @@ describe('ProductDescriptionMarkdown', () => {
     expect(screen.getByText('Safe')).toBeInTheDocument();
     expect(screen.queryByText('alert(1)')).not.toBeInTheDocument();
   });
+
+  it('renders images, quotes, and dividers from markdown', () => {
+    render(
+      <ProductDescriptionMarkdown
+        description={'> Soft chew\n\n---\n\n![Chew toy](https://cdn.example.com/products/toy.webp)'}
+      />,
+    );
+
+    expect(screen.getByText('Soft chew')).toBeInTheDocument();
+    expect(screen.getByRole('separator')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Chew toy' })).toHaveAttribute(
+      'src',
+      'https://cdn.example.com/products/toy.webp',
+    );
+  });
 });

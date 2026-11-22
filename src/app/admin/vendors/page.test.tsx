@@ -71,9 +71,16 @@ const MOCK_VENDOR: AdminVendor = {
   createdAt: '2025-12-01T10:00:00.000Z',
 };
 
+function vendorPage(items: AdminVendor[]) {
+  return {
+    items,
+    pagination: { page: 1, limit: 20, total: items.length, totalPages: 1 },
+  };
+}
+
 function mockVendors(overrides?: Partial<ReturnType<typeof useAdminVendors>>) {
   mockedUseAdminVendors.mockReturnValue({
-    data: [MOCK_VENDOR],
+    data: vendorPage([MOCK_VENDOR]),
     isLoading: false,
     isFetching: false,
     error: null,
@@ -101,7 +108,7 @@ describe('AdminVendorsPage', () => {
 
   it('shows filter empty state with clear action', async () => {
     const user = userEvent.setup();
-    mockVendors({ data: [] });
+    mockVendors({ data: vendorPage([]) });
 
     render(<AdminVendorsPage />);
 
@@ -135,19 +142,24 @@ describe('AdminVendorsPage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('โหลดรายการผู้ขายไม่สำเร็จ');
   });
 
-  it('filters inactive vendors client-side and writes status to the URL', async () => {
+  it('requests the status filter from the server and writes it to the URL', async () => {
     const user = userEvent.setup();
-    mockVendors({
-      data: [
-        MOCK_VENDOR,
-        {
-          ...MOCK_VENDOR,
-          id: 'vendor-2',
-          fullName: 'Suspended Vendor',
-          email: 'suspended@example.com',
-          isActive: false,
-        },
-      ],
+    const suspendedVendor: AdminVendor = {
+      ...MOCK_VENDOR,
+      id: 'vendor-2',
+      fullName: 'Suspended Vendor',
+      email: 'suspended@example.com',
+      isActive: false,
+    };
+    mockedUseAdminVendors.mockImplementation((params) => {
+      const items =
+        params?.status === 'inactive' ? [suspendedVendor] : [MOCK_VENDOR, suspendedVendor];
+      return {
+        data: vendorPage(items),
+        isLoading: false,
+        isFetching: false,
+        error: null,
+      } as ReturnType<typeof useAdminVendors>;
     });
 
     render(<AdminVendorsPage />);
@@ -159,7 +171,10 @@ describe('AdminVendorsPage', () => {
     expect(nav.replaceMock).toHaveBeenCalledWith('/admin/vendors?status=inactive', {
       scroll: false,
     });
-    expect(screen.getByText('แสดง 1 จาก 2 รายการ')).toBeInTheDocument();
+    expect(mockedUseAdminVendors).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'inactive', page: 1, limit: 20 }),
+    );
+    expect(screen.getByText('พบ 1 รายการ')).toBeInTheDocument();
     expect(screen.getAllByText('Suspended Vendor').length).toBeGreaterThan(0);
     expect(screen.queryByText('Vendor SOPet')).not.toBeInTheDocument();
   });

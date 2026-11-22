@@ -5,14 +5,14 @@ import {
   getAdminStorePayoutSummary,
   getAdminStorePayouts,
   getPendingManualPayouts,
+  cancelPayoutRequest,
   getStorePayoutSummary,
   getStorePayouts,
   rejectManualPayout,
-  requestManualPayout,
   requestPayout,
   settleManualPayout,
-  triggerPayout,
   ADMIN_MANUAL_PAYOUT_PAGE_SIZE,
+  PAYOUT_HISTORY_PAGE_SIZE,
 } from '@/lib/api/payouts';
 import { useIsStoreOwner } from '@/hooks/useMembershipRole';
 import { queryKeys } from '@/lib/react-query/keys';
@@ -26,11 +26,11 @@ export function useStorePayoutSummary(enabled = true) {
   });
 }
 
-export function useStorePayouts(enabled = true) {
+export function useStorePayouts(page = 1, enabled = true) {
   const { isOwner } = useIsStoreOwner();
   return useQuery({
-    queryKey: queryKeys.payouts.vendorHistory(),
-    queryFn: getStorePayouts,
+    queryKey: queryKeys.payouts.vendorHistory(page),
+    queryFn: () => getStorePayouts(page, PAYOUT_HISTORY_PAGE_SIZE),
     enabled: enabled && isOwner,
   });
 }
@@ -45,10 +45,10 @@ export function useRequestPayout() {
   });
 }
 
-export function useRequestManualPayout() {
+export function useCancelPayoutRequest() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: requestManualPayout,
+    mutationFn: cancelPayoutRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
     },
@@ -63,22 +63,11 @@ export function useAdminStorePayoutSummary(storeId: string) {
   });
 }
 
-export function useAdminStorePayouts(storeId: string) {
+export function useAdminStorePayouts(storeId: string, page = 1) {
   return useQuery({
-    queryKey: queryKeys.payouts.adminHistory(storeId),
-    queryFn: () => getAdminStorePayouts(storeId),
+    queryKey: queryKeys.payouts.adminHistory(storeId, page),
+    queryFn: () => getAdminStorePayouts(storeId, page, PAYOUT_HISTORY_PAGE_SIZE),
     enabled: !!storeId,
-  });
-}
-
-export function useTriggerPayout(storeId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (amount?: number) => triggerPayout({ storeId, amount }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.adminSummary(storeId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.payouts.adminHistory(storeId) });
-    },
   });
 }
 
@@ -108,10 +97,13 @@ export function useRejectManualPayout(storeId: string) {
   });
 }
 
-export function usePendingManualPayouts(page = 1) {
+export function usePendingManualPayouts(page = 1, limit = ADMIN_MANUAL_PAYOUT_PAGE_SIZE) {
   return useQuery({
-    queryKey: queryKeys.payouts.pendingManual(page),
-    queryFn: () => getPendingManualPayouts(page, ADMIN_MANUAL_PAYOUT_PAGE_SIZE),
+    queryKey: queryKeys.payouts.pendingManual(
+      page,
+      limit === ADMIN_MANUAL_PAYOUT_PAGE_SIZE ? undefined : limit,
+    ),
+    queryFn: () => getPendingManualPayouts(page, limit),
   });
 }
 

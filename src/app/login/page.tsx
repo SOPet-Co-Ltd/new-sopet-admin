@@ -14,7 +14,7 @@ import { getDashboardPath, useCurrentUser, useLogin } from '@/hooks/useAuth';
 import { useRequestPasswordReset } from '@/hooks/usePasswordReset';
 import { hasClientSession } from '@/lib/api/client';
 import { getErrorMessage } from '@/lib/api/errors';
-import { AUTH_SESSION_MESSAGE_KEY, clearAuthSession } from '@/lib/auth-session';
+import { AUTH_SESSION_MESSAGE_KEY, clearStaleClientSession } from '@/lib/auth-session';
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -50,9 +50,7 @@ function LoginPageContent() {
   });
 
   useEffect(() => {
-    if (!hasClientSession()) {
-      clearAuthSession(queryClient);
-    }
+    clearStaleClientSession(queryClient);
   }, [queryClient]);
 
   const form = useForm<LoginFormValues>({
@@ -264,6 +262,11 @@ function LoginPageContent() {
                   ยังไม่มีบัญชี?{' '}
                   <Link href="/register" className="font-medium text-brand hover:underline">
                     สมัครเป็นผู้ขาย
+                  </Link>
+                </p>
+                <p className="text-center text-sm text-muted">
+                  <Link href="/guide" className="font-medium text-brand hover:underline">
+                    อ่านคู่มืออย่างเป็นทางการ
                   </Link>
                 </p>
               </form>

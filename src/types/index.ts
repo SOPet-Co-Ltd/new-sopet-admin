@@ -31,7 +31,8 @@ export interface Store {
   status: StoreStatus | string;
 }
 
-export type OmiseRecipientStatus = 'not_connected' | 'pending' | 'active' | 'failed';
+export type BankAccountVerificationStatus =
+  'unverified' | 'pending_review' | 'verified' | 'rejected';
 
 export interface StoreDetail extends Store {
   contactPhone?: string;
@@ -41,9 +42,8 @@ export interface StoreDetail extends Store {
   bankAccountNumber?: string;
   bankName?: string;
   bankCode?: string;
-  omiseRecipientId?: string;
-  omiseRecipientStatus?: OmiseRecipientStatus;
-  omiseRecipientFailureMessage?: string;
+  bankAccountVerificationStatus?: BankAccountVerificationStatus;
+  bankAccountRejectionReason?: string;
 }
 
 export type TaxonomyStatus = 'pending' | 'approved' | 'rejected';
@@ -238,12 +238,16 @@ export interface OrderItem {
 
 export type VariantRemovalBlockReason = 'HAS_ORDERS' | 'HAS_OPEN_CARTS';
 
+export type VariantRemovalDisposition = 'DELETE' | 'CLEAR_CART_AND_DELETE' | 'RETIRE';
+
 export interface ProductVariantSyncImpactRemoved {
   id: string;
   sku: string;
   optionKey: string;
   optionsJson?: string | null;
   reasons: VariantRemovalBlockReason[];
+  disposition: VariantRemovalDisposition;
+  openCartCount: number;
 }
 
 export interface ProductVariantSyncImpact {
@@ -308,6 +312,18 @@ export interface RefreshResult {
 export interface UpdateOrderStatusInput {
   orderId: string;
   status: string;
+}
+
+export interface UpdateOrderShippingAddressAsAdminInput {
+  orderId: string;
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  tumbon?: string;
+  amphoe: string;
+  province: string;
+  postalCode: string;
 }
 
 export interface RejectStoreInput {
@@ -466,6 +482,8 @@ export interface SyncVariantInput {
   id?: string;
   sku: string;
   stockQuantity: number;
+  /** Absolute THB sell price (preferred for sync). */
+  price?: number;
   priceModifier?: number;
   compareAtPrice?: number | null;
   attributes: Record<string, string>;
@@ -486,6 +504,33 @@ export interface PlatformAnalytics {
   totalStores: number;
   pendingStores: number;
   totalCustomers: number;
+}
+
+export interface StoreCustomerSummary {
+  year: number;
+  month: number;
+  lifetimeMonths: number | null;
+  repeatRate: number | null;
+  purchasesPerMonth: number | null;
+  averageOrderValue: number | null;
+  newCustomerCount: number;
+  oldCustomerCount: number;
+  oldCustomerPercent: number | null;
+  orderCount: number;
+  buyersInMonth: number;
+  totalCustomers: number;
+}
+
+export interface CustomerPurchaseSummary {
+  year: number;
+  month: number;
+  purchasesInMonth: number;
+  averageOrderValue: number | null;
+  cohortLabel: string;
+  cohortLabelTh: string;
+  lastOrderAt: string | null;
+  monthsSinceLastOrder: number | null;
+  daysSinceLastOrder: number | null;
 }
 
 export interface SalesTimePoint {
@@ -711,13 +756,13 @@ export interface CreateStoreAsAdminInput {
 export interface UpdateStoreAsAdminInput {
   name?: string;
   slug?: string;
-  description?: string;
+  description?: string | null;
   logoUrl?: string;
   bannerUrl?: string;
   status?: StoreStatus | string;
-  contactPhone?: string;
-  contactEmail?: string;
-  address?: string;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  address?: string | null;
   ownerId?: string | null;
   commissionRate?: number;
 }
@@ -791,6 +836,7 @@ export interface AdminCustomer {
   dateOfBirth?: string | null;
   isVerified: boolean;
   isActive: boolean;
+  isGuest?: boolean;
   lastLoginAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -827,10 +873,50 @@ export interface AdminCustomerDetail extends AdminCustomer {
 }
 
 export interface UpdateCustomerAsAdminInput {
-  fullName?: string;
-  email?: string;
+  fullName?: string | null;
+  email?: string | null;
   phone?: string;
-  dateOfBirth?: string;
+  dateOfBirth?: string | null;
+}
+
+export interface SavedAddress {
+  id: string;
+  label?: string | null;
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  tumbon?: string | null;
+  amphoe: string;
+  province: string;
+  postalCode: string;
+  isDefault: boolean;
+}
+
+export interface CreateCustomerAddressAsAdminInput {
+  label: string;
+  recipientName: string;
+  recipientPhone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  tumbon?: string;
+  amphoe: string;
+  province: string;
+  postalCode: string;
+  isDefault?: boolean;
+}
+
+export interface UpdateCustomerAddressAsAdminInput {
+  label?: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  addressLine1?: string;
+  addressLine2?: string | null;
+  tumbon?: string | null;
+  amphoe?: string;
+  province?: string;
+  postalCode?: string;
+  isDefault?: boolean;
 }
 
 export interface VendorCustomer {
@@ -878,6 +964,27 @@ export interface CustomersQueryParams {
   search?: string;
 }
 
+export interface AdminStoresQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  sort?: string;
+}
+
+export interface AdminVendorsQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  sort?: string;
+}
+
+export interface PromotionsQueryParams {
+  page?: number;
+  limit?: number;
+}
+
 export type StoreProductReviewReplyFilter = 'all' | 'unreplied' | 'replied';
 export type StoreProductReviewRatingFilter = 'all' | '1' | '2' | '3' | '4' | '5';
 
@@ -923,7 +1030,9 @@ export interface ProductReview {
   comment?: string;
   status: string;
   createdAt?: string;
+  customerId?: string | null;
   customerName?: string;
+  customerProfilePhotoUrl?: string | null;
   images?: ReviewImage[];
   reply?: ReviewReply | null;
 }
@@ -1151,18 +1260,6 @@ export interface InviteAdminInput {
   email: string;
 }
 
-export interface PayoutRailSummary {
-  grossRevenue: number;
-  totalPaidOut: number;
-  availableBalance: number;
-  pendingPayoutAmount: number;
-  canRequestPayout: boolean;
-  productSold: number;
-  shippingFees: number;
-  commissionAmount: number;
-  commissionRate: number | null;
-}
-
 export interface PayoutSummary {
   storeId: string;
   grossRevenue: number;
@@ -1175,8 +1272,6 @@ export interface PayoutSummary {
   shippingFees: number;
   commissionAmount: number;
   commissionRate: number | null;
-  omise: PayoutRailSummary;
-  manual: PayoutRailSummary;
 }
 
 export interface Payout {
@@ -1185,7 +1280,10 @@ export interface Payout {
   amount: number;
   netAmount: number;
   status: string;
-  settlementRail: 'omise' | 'manual' | string;
+  settlementRail: string;
+  notes?: string | null;
+  failureReason?: string | null;
+  processedAt?: string | null;
   createdAt: string;
   productSold: number | null;
   shippingFees: number | null;

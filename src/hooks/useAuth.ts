@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { login } from '@/lib/api/auth';
 import { clearTokens } from '@/lib/api/client';
 import { applyAuthenticatedSession } from '@/lib/auth/apply-session';
+import { runExclusiveAuth } from '@/lib/graphql/tokens';
 import { clearAuthSession, resetSessionCaches } from '@/lib/auth-session';
 import { useAuthStore } from '@/stores/auth.store';
 import { useVendorStore } from '@/stores/vendor.store';
@@ -20,14 +21,16 @@ export function useLogin() {
       await clearTokens();
       useAuthStore.getState().clearAuth();
       useVendorStore.getState().clearVendor();
-      const result = await login(input);
-      if (!PORTAL_ROLES.has(result.user.role)) {
-        throw new Error('พอร์ทัลนี้สำหรับผู้ดูแลระบบและผู้ขายเท่านั้น');
-      }
-      return result;
+      return runExclusiveAuth(async () => {
+        const result = await login(input);
+        if (!PORTAL_ROLES.has(result.user.role)) {
+          throw new Error('พอร์ทัลนี้สำหรับผู้ดูแลระบบและผู้ขายเท่านั้น');
+        }
+        await applyAuthenticatedSession(result.user);
+        return result;
+      });
     },
-    onSuccess: async (result) => {
-      await applyAuthenticatedSession(result.user);
+    onSuccess: () => {
       resetSessionCaches(queryClient);
     },
   });

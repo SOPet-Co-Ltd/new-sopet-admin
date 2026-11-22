@@ -65,10 +65,6 @@ vi.mock('@/components/vendor/shipping-settings-panel', () => ({
   VendorShippingPanel: () => <div data-testid="shipping-panel" />,
 }));
 
-vi.mock('@/components/vendor/vendor-omise-link-panel', () => ({
-  VendorOmiseLinkPanel: () => null,
-}));
-
 vi.mock('@/components/vendor/vendor-payout-account-panel', () => ({
   VendorPayoutAccountPanel: () => null,
 }));

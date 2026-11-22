@@ -8,6 +8,7 @@ import { StatCard } from '@/components/vendor/stat-card';
 import { VendorActionQueue } from '@/components/vendor/vendor-action-queue';
 import { VendorAnalyticsReport } from '@/components/vendor/vendor-analytics-report';
 import { VendorDashboardSkeleton } from '@/components/vendor/vendor-dashboard-skeleton';
+import { VendorOnboardingResumeBanner } from '@/components/vendor/onboarding/vendor-onboarding-resume-banner';
 import { VendorPayoutSnapshot } from '@/components/vendor/vendor-payout-snapshot';
 import { VendorStoreReadinessChecklist } from '@/components/vendor/vendor-store-readiness-checklist';
 import { Card, CardBody } from '@/components/ui/card';
@@ -16,7 +17,13 @@ import { getErrorMessage } from '@/lib/api/errors';
 export default function VendorDashboardPage() {
   const storeId = useVendorStoreId();
   const { data: operational, isLoading: operationalLoading, error } = useStoreAnalytics(storeId);
-  const { data: orders = [], isLoading: ordersLoading } = useVendorOrders(storeId);
+  const { data: ordersData, isLoading: ordersLoading } = useVendorOrders({
+    storeId,
+    queue: 'ACTION',
+    limit: 5,
+    page: 1,
+  });
+  const orders = ordersData?.items ?? [];
 
   const isLoading = operationalLoading || ordersLoading;
 
@@ -44,9 +51,15 @@ export default function VendorDashboardPage() {
 
       {storeId && !isLoading ? (
         <>
+          <VendorOnboardingResumeBanner />
+
           <VendorStoreReadinessChecklist />
 
-          <VendorActionQueue orders={orders} storeId={storeId} />
+          <VendorActionQueue
+            orders={orders}
+            storeId={storeId}
+            actionableCount={ordersData?.actionableCount}
+          />
 
           <VendorPayoutSnapshot />
 

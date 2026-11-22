@@ -1,4 +1,4 @@
-import type { OmiseRecipientStatus, Product, StoreShippingOption } from '@/types';
+import type { Product, StoreShippingOption } from '@/types';
 
 export type StoreReadinessItemKey = 'shipping' | 'publishedProduct' | 'payout';
 
@@ -14,14 +14,27 @@ export type StoreReadinessChecklist = {
   allComplete: boolean;
 };
 
-export function isPayoutSetupComplete(status?: OmiseRecipientStatus | null): boolean {
-  return status !== 'not_connected' && status !== 'failed' && status != null;
+export type PayoutSetupFields = {
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
+};
+
+/** Bank account name, number, and bank name are all present. */
+export function isPayoutSetupComplete(fields?: PayoutSetupFields | null): boolean {
+  return Boolean(
+    fields?.bankName?.trim() &&
+    fields?.bankAccountName?.trim() &&
+    fields?.bankAccountNumber?.trim(),
+  );
 }
 
 export function buildStoreReadinessChecklist(input: {
   shippingOptions: StoreShippingOption[];
   products: Pick<Product, 'status'>[];
-  omiseRecipientStatus?: OmiseRecipientStatus | null;
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  bankAccountNumber?: string | null;
 }): StoreReadinessChecklist {
   const items: StoreReadinessItem[] = [
     {
@@ -36,7 +49,11 @@ export function buildStoreReadinessChecklist(input: {
     },
     {
       key: 'payout',
-      complete: isPayoutSetupComplete(input.omiseRecipientStatus),
+      complete: isPayoutSetupComplete({
+        bankName: input.bankName,
+        bankAccountName: input.bankAccountName,
+        bankAccountNumber: input.bankAccountNumber,
+      }),
       href: '/vendor/settings?tab=payout',
     },
   ];

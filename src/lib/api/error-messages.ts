@@ -142,6 +142,8 @@ export const ERROR_MESSAGES = {
   ORDER_NOT_FULLY_SHIPPED: 'คำสั่งซื้อยังจัดส่งไม่ครบ',
   ORDER_NOT_PAYABLE: 'คำสั่งซื้อนี้ไม่สามารถชำระเงินได้',
   ORDER_NOT_REVIEWABLE: 'คำสั่งซื้อนี้ยังไม่สามารถรีวิวได้',
+  ORDER_REVIEWED_CANNOT_CANCEL:
+    'ไม่สามารถยกเลิกหรือคืนเงินได้ เนื่องจากคำสั่งซื้อนี้มีการรีวิวแล้ว',
   OWNER_REQUIRED: 'ต้องระบุเจ้าของร้าน',
   PAYLOAD_TOO_LARGE: 'ไฟล์หรือข้อมูลมีขนาดใหญ่เกินไป',
   PAYMENT_HELD_PORTION_BLOCKED: 'ไม่สามารถชำระส่วนที่ถูกระงับได้',
@@ -154,6 +156,8 @@ export const ERROR_MESSAGES = {
   PAYOUT_BELOW_MINIMUM: 'จำนวนเงินโอนต่ำกว่าขั้นต่ำ',
   PAYOUT_MISMATCH: 'ข้อมูลการโอนเงินไม่ตรงกัน',
   PAYOUT_NOT_FOUND: 'ไม่พบรายการโอนเงิน',
+  BANK_ACCOUNT_NOT_VERIFIED: 'บัญชีธนาคารยังไม่ผ่านการตรวจสอบ',
+  BANK_ACCOUNT_REQUIRED: 'กรุณาบันทึกบัญชีธนาคารก่อนขอรับเงิน',
   PAYOUT_NOT_PENDING: 'รายการโอนเงินไม่อยู่ในสถานะรอ',
   PAYOUT_WRONG_RAIL: 'ช่องทางโอนเงินไม่ถูกต้อง',
   PENDING_REACTIVATION_REQUEST_EXISTS: 'มีคำขอเปิดใช้งานร้านที่รออนุมัติอยู่แล้ว',
@@ -200,6 +204,7 @@ export const ERROR_MESSAGES = {
   SHIPPING_OPTION_REQUIRED: 'ต้องเลือกตัวเลือกการจัดส่ง',
   SHIPPING_PROVIDER_NOT_FOUND: 'ไม่พบผู้ให้บริการจัดส่ง',
   SKU_EXISTS: 'รหัส SKU นี้ถูกใช้งานแล้ว',
+  SKU_TOO_LONG: 'รหัส SKU ยาวเกิน 100 ตัวอักษร — แก้ในตารางหรืออัปเดตรายการตัวเลือกใหม่',
   SLUG_EXISTS: 'ชื่อย่อ (slug) นี้ถูกใช้งานแล้ว กรุณาใช้ชื่ออื่น',
   SMS_DELIVERY_FAILED: 'ส่ง SMS ไม่สำเร็จ',
   SMS_NOT_CONFIGURED: 'ยังไม่ได้ตั้งค่า SMS',
@@ -569,6 +574,11 @@ export const ERROR_CATALOG_DOCS: Partial<Record<ErrorMessageCode, ErrorCatalogDo
     possibleIssue: 'ใช้ SKU เดิมกับตัวเลือกใหม่',
     howToFix: 'เปลี่ยนเป็น SKU ที่ไม่ซ้ำในร้าน/ระบบ',
   },
+  SKU_TOO_LONG: {
+    why: 'รหัส SKU ยาวเกินขีดจำกัด 100 ตัวอักษร',
+    possibleIssue: 'ชื่อสินค้ายาวทำให้ระบบสร้าง SKU จาก slug ไม่พอดี',
+    howToFix: 'ย่อ SKU ในตาราง หรือกดอัปเดตรายการตัวเลือกให้ระบบสร้างใหม่',
+  },
   VARIANTS_REQUIRED: {
     why: 'สินค้าต้องมีตัวเลือกอย่างน้อยหนึ่งรายการ',
     possibleIssue: 'ลบตัวเลือกครบหมด หรือยังไม่สร้าง SKU',
@@ -613,6 +623,16 @@ export const ERROR_CATALOG_DOCS: Partial<Record<ErrorMessageCode, ErrorCatalogDo
     why: 'ไม่พบรายการโอนเงิน',
     possibleIssue: 'รหัสผิดหรือถูกลบ',
     howToFix: 'เปิดจากรายการโอนเงินล่าสุด',
+  },
+  BANK_ACCOUNT_NOT_VERIFIED: {
+    why: 'บัญชีธนาคารของร้านยังไม่ผ่านการตรวจสอบจากทีม SOPET',
+    possibleIssue: 'บัญชีอยู่ระหว่างรอตรวจสอบ หรือถูกปฏิเสธ',
+    howToFix: 'รอทีม SOPET ตรวจสอบบัญชี หรือแก้ไขบัญชีธนาคารตามเหตุผลที่แจ้ง แล้วบันทึกใหม่',
+  },
+  BANK_ACCOUNT_REQUIRED: {
+    why: 'ยังไม่ได้บันทึกบัญชีธนาคารสำหรับรับเงิน',
+    possibleIssue: 'ยังไม่ได้กรอกหรือบันทึกบัญชีธนาคารในหน้าตั้งค่ารับเงิน',
+    howToFix: 'ไปที่ตั้งค่า → รับเงิน แล้วบันทึกบัญชีธนาคารให้ครบก่อนขอรับเงิน',
   },
   PAYOUT_NOT_PENDING: {
     why: 'รายการโอนไม่อยู่ในสถานะรออนุมัติ/รอจ่าย',
@@ -688,6 +708,11 @@ export const ERROR_CATALOG_DOCS: Partial<Record<ErrorMessageCode, ErrorCatalogDo
     why: 'ไม่สามารถยกเลิกรายการที่ถูก hold จากการระงับร้าน',
     possibleIssue: 'พยายามยกเลิกออเดอร์/ส่วนที่ถูก hold',
     howToFix: 'ใช้ขั้นตอนกู้คืน/จัดการ hold ที่กำหนด ไม่ยกเลิกตรงๆ',
+  },
+  ORDER_REVIEWED_CANNOT_CANCEL: {
+    why: 'คำสั่งซื้อที่มีรีวิวแล้วถือว่าส่งสำเร็จและรับสินค้าแล้ว จึงยกเลิกหรือคืนเงินไม่ได้',
+    possibleIssue: 'พยายามยกเลิกหรือคืนเงินหลังจากลูกค้าเขียนรีวิวแล้ว',
+    howToFix: 'คงสถานะคำสั่งซื้อไว้ รีวิวจะยังแสดงตามปกติ',
   },
   HOLD_RESTORE_SNAPSHOT_MISSING: {
     why: 'ไม่มีข้อมูล snapshot สำหรับกู้คืนคำสั่งซื้อที่ถูก hold',
@@ -989,6 +1014,11 @@ const ERROR_CATALOG_BASE: Array<{ code: ErrorMessageCode; message: string; group
     group: 'คำสั่งซื้อ / การชำระเงิน / โอนเงิน',
   },
   {
+    code: 'ORDER_REVIEWED_CANNOT_CANCEL',
+    message: ERROR_MESSAGES.ORDER_REVIEWED_CANNOT_CANCEL,
+    group: 'คำสั่งซื้อ / การชำระเงิน / โอนเงิน',
+  },
+  {
     code: 'INVALID_ORDER_STATUS',
     message: ERROR_MESSAGES.INVALID_ORDER_STATUS,
     group: 'คำสั่งซื้อ / การชำระเงิน / โอนเงิน',
@@ -1146,6 +1176,16 @@ const ERROR_CATALOG_BASE: Array<{ code: ErrorMessageCode; message: string; group
   {
     code: 'PAYOUT_NOT_FOUND',
     message: ERROR_MESSAGES.PAYOUT_NOT_FOUND,
+    group: 'คำสั่งซื้อ / การชำระเงิน / โอนเงิน',
+  },
+  {
+    code: 'BANK_ACCOUNT_NOT_VERIFIED',
+    message: ERROR_MESSAGES.BANK_ACCOUNT_NOT_VERIFIED,
+    group: 'คำสั่งซื้อ / การชำระเงิน / โอนเงิน',
+  },
+  {
+    code: 'BANK_ACCOUNT_REQUIRED',
+    message: ERROR_MESSAGES.BANK_ACCOUNT_REQUIRED,
     group: 'คำสั่งซื้อ / การชำระเงิน / โอนเงิน',
   },
   {
@@ -1347,6 +1387,7 @@ const ERROR_CATALOG_BASE: Array<{ code: ErrorMessageCode; message: string; group
     group: 'แคตตาล็อก / อนุกรมวิธาน',
   },
   { code: 'SKU_EXISTS', message: ERROR_MESSAGES.SKU_EXISTS, group: 'แคตตาล็อก / อนุกรมวิธาน' },
+  { code: 'SKU_TOO_LONG', message: ERROR_MESSAGES.SKU_TOO_LONG, group: 'แคตตาล็อก / อนุกรมวิธาน' },
   {
     code: 'VARIANTS_REQUIRED',
     message: ERROR_MESSAGES.VARIANTS_REQUIRED,

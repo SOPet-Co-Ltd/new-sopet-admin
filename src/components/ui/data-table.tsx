@@ -130,6 +130,30 @@ export function DataTable<TData>({
   );
 }
 
+export function ServerSortHeader({
+  label,
+  active,
+  direction,
+  onToggle,
+}: {
+  label: string;
+  active: boolean;
+  direction?: 'asc' | 'desc';
+  onToggle: () => void;
+}) {
+  const indicator = !active ? '↕' : direction === 'asc' ? '↑' : '↓';
+  return (
+    <button
+      type="button"
+      className="inline-flex items-center gap-1 transition-colors hover:text-brand"
+      onClick={onToggle}
+    >
+      {label}
+      <span className="text-muted/70">{indicator}</span>
+    </button>
+  );
+}
+
 export function SortableHeader({
   column,
   children,

@@ -1,9 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
+import { HelpDeepLink } from '@/components/help/help-deep-link';
 import { CommissionBreakdown } from '@/components/payouts/commission-breakdown';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   usePendingManualPayouts,
   useRejectManualPayoutForQueue,
@@ -11,24 +15,233 @@ import {
 } from '@/hooks/usePayouts';
 import type { AdminManualPayout } from '@/lib/api/payouts';
 import { getErrorMessage } from '@/lib/api/errors';
-import { formatThaiBankAccountNumber } from '@/lib/banks/formatThaiBankAccountNumber';
+import {
+  formatThaiBankAccountNumber,
+  sanitizeBankAccountDigits,
+} from '@/lib/banks/formatThaiBankAccountNumber';
 import { commissionCopy } from '@/lib/i18n/th';
 import { parsePageParam, serializePageParam } from '@/lib/navigation/list-query-params';
 import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { cn, formatCurrency, formatDateTime } from '@/lib/utils';
 
-function SnapshotQueueBreakdown({ payout }: { payout: AdminManualPayout }) {
+function CopyAccountButton({ accountNumber }: { accountNumber: string }) {
+  const [copied, setCopied] = useState(false);
+
   return (
-    <CommissionBreakdown
-      variant="snapshot"
-      audience="admin"
-      productSold={payout.productSold}
-      shippingFees={payout.shippingFees}
-      commissionAmount={payout.commissionAmount}
-      commissionRate={payout.commissionRate}
-      netPayable={payout.amount}
-      captions={{ frozen: commissionCopy.breakdown.hint.frozen }}
-    />
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={async () => {
+        const digits = sanitizeBankAccountDigits(accountNumber);
+        if (!digits) return;
+        try {
+          await navigator.clipboard.writeText(digits);
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 2000);
+        } catch {
+          setCopied(false);
+        }
+      }}
+    >
+      {copied ? 'คัดลอกแล้ว' : 'คัดลอกเลขบัญชี'}
+    </Button>
+  );
+}
+
+function PayoutQueueRow({
+  payout,
+  busyId,
+  onSettle,
+  onReject,
+  settlePending,
+  rejectPending,
+}: {
+  payout: AdminManualPayout;
+  busyId: string | null | undefined;
+  onSettle: (input: { storeId: string; payoutId: string; notes?: string }) => void;
+  onReject: (input: { storeId: string; payoutId: string; notes: string }) => void;
+  settlePending: boolean;
+  rejectPending: boolean;
+}) {
+  const [note, setNote] = useState('');
+  const [rejectError, setRejectError] = useState<string | null>(null);
+  const hasBank =
+    Boolean(payout.bankName || payout.bankCode) &&
+    Boolean(payout.bankAccountNumber) &&
+    Boolean(payout.bankAccountName);
+  const accountDisplay = payout.bankAccountNumber
+    ? formatThaiBankAccountNumber(payout.bankAccountNumber)
+    : null;
+  const isBusy = busyId === payout.id;
+  const noteFieldId = `payout-note-${payout.id}`;
+  const breakdownId = `payout-breakdown-${payout.id}`;
+
+  return (
+    <li className="rounded-xl border border-border bg-background p-4 sm:p-5">
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-6">
+        <div className="min-w-0 space-y-5">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
+            <div className="min-w-0 space-y-1">
+              <p className="font-display text-lg font-medium text-ink text-balance">
+                {payout.storeName}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                ขอเมื่อ {formatDateTime(payout.createdAt)}
+              </p>
+              <Link
+                href={`/admin/stores/${payout.storeId}`}
+                className="inline-block text-sm text-brand underline-offset-2 hover:underline"
+              >
+                ดูหน้าร้าน
+              </Link>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                ยอดที่ต้องโอน
+              </p>
+              <p className="font-display text-3xl font-semibold tabular-nums tracking-tight text-ink">
+                {formatCurrency(payout.amount)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {commissionCopy.transfer.caption}
+              </p>
+            </div>
+          </div>
+
+          <section
+            aria-label="บัญชีรับเงินของร้าน"
+            className={cn(
+              'rounded-lg border px-4 py-4',
+              hasBank ? 'border-border bg-surface/70' : 'border-warning-text/30 bg-warning-bg',
+            )}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold text-ink">โอนเข้าบัญชีนี้</h3>
+              {!hasBank ? (
+                <p className="text-xs font-medium text-warning-text">บัญชีไม่ครบ</p>
+              ) : null}
+            </div>
+
+            {hasBank ? (
+              <div className="mt-3 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+                <dl className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <dt className="text-xs text-muted-foreground">ธนาคาร</dt>
+                    <dd className="mt-0.5 font-medium text-ink">
+                      {payout.bankName ?? payout.bankCode}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">ชื่อบัญชี</dt>
+                    <dd className="mt-0.5 font-medium text-ink">{payout.bankAccountName}</dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="text-xs text-muted-foreground">เลขที่บัญชี</dt>
+                    <dd className="mt-0.5 font-display text-xl font-medium tabular-nums tracking-wide text-ink">
+                      {accountDisplay}
+                    </dd>
+                  </div>
+                </dl>
+                {payout.bankAccountNumber ? (
+                  <CopyAccountButton accountNumber={payout.bankAccountNumber} />
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-2 text-sm text-warning-text">
+                ร้านยังไม่ได้บันทึกบัญชีธนาคาร — ตรวจที่หน้าร้านก่อนโอน
+              </p>
+            )}
+          </section>
+
+          <details className="group rounded-lg border border-border px-4 py-3">
+            <summary className="cursor-pointer list-none text-sm font-medium text-ink marker:content-none [&::-webkit-details-marker]:hidden">
+              <span className="flex items-center justify-between gap-3">
+                <span>รายละเอียดยอด</span>
+                <span className="text-xs font-normal text-muted-foreground group-open:hidden">
+                  ดูการคำนวณ
+                </span>
+                <span className="hidden text-xs font-normal text-muted-foreground group-open:inline">
+                  ซ่อน
+                </span>
+              </span>
+            </summary>
+            <div id={breakdownId} className="mt-3 border-t border-border pt-3">
+              <CommissionBreakdown
+                variant="snapshot"
+                audience="admin"
+                productSold={payout.productSold}
+                shippingFees={payout.shippingFees}
+                commissionAmount={payout.commissionAmount}
+                commissionRate={payout.commissionRate}
+                netPayable={payout.amount}
+                captions={{ frozen: commissionCopy.breakdown.hint.frozen }}
+              />
+            </div>
+          </details>
+        </div>
+
+        <aside className="space-y-3 rounded-lg border border-border bg-surface/50 p-4 lg:sticky lg:top-4">
+          <div className="space-y-1.5">
+            <Label htmlFor={noteFieldId}>หมายเหตุถึงร้าน</Label>
+            <Input
+              id={noteFieldId}
+              value={note}
+              onChange={(event) => {
+                setNote(event.target.value);
+                if (rejectError) setRejectError(null);
+              }}
+              placeholder="อ้างอิงการโอน หรือเหตุผลปฏิเสธ"
+              maxLength={500}
+            />
+            <p className="text-xs text-muted-foreground">บังคับเมื่อกดปฏิเสธ</p>
+            {rejectError ? (
+              <p className="text-xs text-danger" role="alert">
+                {rejectError}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Button
+              type="button"
+              className="w-full"
+              disabled={isBusy || !hasBank}
+              onClick={() =>
+                onSettle({
+                  storeId: payout.storeId,
+                  payoutId: payout.id,
+                  notes: note.trim() || undefined,
+                })
+              }
+            >
+              {isBusy && settlePending ? 'กำลังอนุมัติ...' : 'อนุมัติหลังโอนแล้ว'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isBusy}
+              onClick={() => {
+                const reason = note.trim();
+                if (!reason) {
+                  setRejectError('กรุณาระบุเหตุผลก่อนปฏิเสธ');
+                  return;
+                }
+                setRejectError(null);
+                onReject({
+                  storeId: payout.storeId,
+                  payoutId: payout.id,
+                  notes: reason,
+                });
+              }}
+            >
+              {isBusy && rejectPending ? 'กำลังปฏิเสธ...' : 'ปฏิเสธคำขอ'}
+            </Button>
+          </div>
+        </aside>
+      </div>
+    </li>
   );
 }
 
@@ -54,7 +267,8 @@ export default function AdminManualPayoutsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Payout Manual"
-        description="คำขอรับเงินจากยอดโอนเข้าบัญชี SOPET — โอนให้ร้านนอกระบบแล้วกดอนุมัติ (หรือปฏิเสธ)"
+        description="คำขอรับเงินจากร้านค้า — คัดลอกบัญชี โอนเงิน แล้วกดอนุมัติ (หรือปฏิเสธพร้อมเหตุผล)"
+        action={<HelpDeepLink role="admin" slug="manual-payouts" />}
       />
 
       <Card>
@@ -74,109 +288,20 @@ export default function AdminManualPayoutsPage() {
           ) : isError ? (
             <p className="text-sm text-destructive">โหลดรายการไม่สำเร็จ</p>
           ) : items.length === 0 ? (
-            <p className="text-sm text-muted">ไม่มีคำขอ Manual payout รอดำเนินการ</p>
+            <p className="text-sm text-muted">ไม่มีคำขอ payout รอดำเนินการ</p>
           ) : (
-            <ul className="divide-y divide-border">
-              {items.map((payout) => {
-                const hasBank =
-                  Boolean(payout.bankName || payout.bankCode) &&
-                  Boolean(payout.bankAccountNumber) &&
-                  Boolean(payout.bankAccountName);
-                const accountDisplay = payout.bankAccountNumber
-                  ? formatThaiBankAccountNumber(payout.bankAccountNumber)
-                  : null;
-
-                return (
-                  <li
-                    key={payout.id}
-                    className="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between"
-                  >
-                    <div className="min-w-0 flex-1 space-y-3 text-sm">
-                      <div className="space-y-1">
-                        <p className="font-medium text-ink">{payout.storeName}</p>
-                        <p className="text-muted">{formatDateTime(payout.createdAt)}</p>
-                        <p className="font-display text-lg font-medium tabular-nums text-ink">
-                          {formatCurrency(payout.amount)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {commissionCopy.transfer.caption}
-                        </p>
-                        <SnapshotQueueBreakdown payout={payout} />
-                      </div>
-
-                      <div className="rounded-lg border border-border bg-surface/60 px-3 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          บัญชีรับเงินของร้าน
-                        </p>
-                        {hasBank ? (
-                          <dl className="mt-2 grid gap-1.5 sm:grid-cols-2">
-                            <div>
-                              <dt className="text-xs text-muted-foreground">ธนาคาร</dt>
-                              <dd className="font-medium text-ink">
-                                {payout.bankName ?? payout.bankCode}
-                              </dd>
-                            </div>
-                            <div>
-                              <dt className="text-xs text-muted-foreground">ชื่อบัญชี</dt>
-                              <dd className="font-medium text-ink">{payout.bankAccountName}</dd>
-                            </div>
-                            <div className="sm:col-span-2">
-                              <dt className="text-xs text-muted-foreground">เลขที่บัญชี</dt>
-                              <dd className="font-medium tabular-nums tracking-wide text-ink">
-                                {accountDisplay}
-                              </dd>
-                            </div>
-                          </dl>
-                        ) : (
-                          <p className="mt-2 text-sm text-warning-text">
-                            ร้านยังไม่ได้บันทึกบัญชีธนาคาร — ตรวจที่หน้าร้านก่อนโอน
-                          </p>
-                        )}
-                      </div>
-
-                      <Link
-                        href={`/admin/stores/${payout.storeId}`}
-                        className="inline-block text-sm text-brand underline-offset-2 hover:underline"
-                      >
-                        ดูหน้าร้าน / รายละเอียดเพิ่มเติม
-                      </Link>
-                    </div>
-                    <div className="flex shrink-0 flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        disabled={busyId === payout.id || !hasBank}
-                        onClick={() =>
-                          settleMutation.mutate({
-                            storeId: payout.storeId,
-                            payoutId: payout.id,
-                            notes: 'Admin transferred and approved from queue',
-                          })
-                        }
-                      >
-                        {busyId === payout.id && settleMutation.isPending
-                          ? 'กำลังอนุมัติ...'
-                          : 'อนุมัติหลังโอนแล้ว'}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={busyId === payout.id}
-                        onClick={() =>
-                          rejectMutation.mutate({
-                            storeId: payout.storeId,
-                            payoutId: payout.id,
-                            notes: 'Admin rejected from manual payout queue',
-                          })
-                        }
-                      >
-                        {busyId === payout.id && rejectMutation.isPending
-                          ? 'กำลังปฏิเสธ...'
-                          : 'ปฏิเสธ'}
-                      </Button>
-                    </div>
-                  </li>
-                );
-              })}
+            <ul className="space-y-4">
+              {items.map((payout) => (
+                <PayoutQueueRow
+                  key={payout.id}
+                  payout={payout}
+                  busyId={busyId}
+                  settlePending={settleMutation.isPending}
+                  rejectPending={rejectMutation.isPending}
+                  onSettle={(input) => settleMutation.mutate(input)}
+                  onReject={(input) => rejectMutation.mutate(input)}
+                />
+              ))}
             </ul>
           )}
 

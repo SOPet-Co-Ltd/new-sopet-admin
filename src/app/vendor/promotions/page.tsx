@@ -1,19 +1,37 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
 import { VendorPromotionListItem } from '@/components/vendor/vendor-promotion-list-item';
 import { VendorPromotionsEmptyState } from '@/components/vendor/vendor-promotions-empty-state';
 import { VendorPromotionsListSkeleton } from '@/components/vendor/vendor-promotions-list-skeleton';
+import { PageFeatureSpotlight } from '@/components/vendor/product-tour/page-feature-spotlight';
+import { useCurrentUser } from '@/hooks/useAuth';
 import { useDeletePromotion, useStorePromotions, useTogglePromotion } from '@/hooks/usePromotions';
 import { useVendorStoreId } from '@/hooks/useVendorStoreId';
+import { startActionGuide } from '@/lib/vendor/action-guide';
 import type { Promotion } from '@/types';
 import { getErrorMessage } from '@/lib/api/errors';
 
+const STORE_PROMOTIONS_PAGE_SIZE = 20;
+
 export default function VendorPromotionsPage() {
+  const { user } = useCurrentUser();
   const storeId = useVendorStoreId();
-  const { data: promotions = [], isLoading, error } = useStorePromotions(storeId);
+  const [page, setPage] = useState(1);
+  const [pagedStoreId, setPagedStoreId] = useState(storeId);
+  if (pagedStoreId !== storeId) {
+    setPagedStoreId(storeId);
+    setPage(1);
+  }
+  const { data, isLoading, error } = useStorePromotions(storeId, {
+    page: pagedStoreId === storeId ? page : 1,
+    limit: STORE_PROMOTIONS_PAGE_SIZE,
+  });
+  const promotions = data?.items ?? [];
+  const pagination = data?.pagination;
   const deleteMutation = useDeletePromotion();
   const toggleMutation = useTogglePromotion();
 
@@ -27,13 +45,22 @@ export default function VendorPromotionsPage() {
 
   return (
     <div className="space-y-6">
+      <PageFeatureSpotlight
+        featureId="promotions-empty-add"
+        eligible={Boolean(storeId) && !isLoading && !error && promotions.length === 0}
+        onCompleted={() => {
+          startActionGuide('create-promotion', { userId: user?.id });
+        }}
+      />
       <PageHeader
         title="โปรโมชัน"
         description="จัดการโค้ดส่วนลดและโปรโมชันของร้าน"
         action={
           storeId ? (
             <Button asChild>
-              <Link href="/vendor/promotions/new">สร้างโปรโมชัน</Link>
+              <Link href="/vendor/promotions/new" data-tour-id="promotions-add-cta">
+                สร้างโปรโมชัน
+              </Link>
             </Button>
           ) : undefined
         }
@@ -98,6 +125,34 @@ export default function VendorPromotionsPage() {
             );
           })}
         </ul>
+      ) : null}
+
+      {storeId && pagination && pagination.totalPages > 1 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+          <span className="tabular-nums">
+            หน้า {pagination.page} จาก {pagination.totalPages}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((current) => current - 1)}
+            >
+              ก่อนหน้า
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= pagination.totalPages}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              ถัดไป
+            </Button>
+          </div>
+        </div>
       ) : null}
     </div>
   );

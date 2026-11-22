@@ -28,6 +28,7 @@ import {
   getPendingTags,
   getPendingPetTypes,
   getPendingBrands,
+  getPendingTaxonomyIds,
   getRejectedCategories,
   getRejectedTags,
   getRejectedPetTypes,
@@ -129,6 +130,14 @@ export function usePendingBrands() {
     staleTime: TAXONOMY_STALE_TIME,
     queryKey: queryKeys.taxonomy.pendingBrands(),
     queryFn: getPendingBrands,
+  });
+}
+
+export function usePendingTaxonomyIds() {
+  return useQuery({
+    staleTime: TAXONOMY_STALE_TIME,
+    queryKey: [...queryKeys.taxonomy.all, 'pendingIds'] as const,
+    queryFn: getPendingTaxonomyIds,
   });
 }
 

@@ -3,7 +3,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Unauthenticated access', () => {
   test('redirects / to login', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveURL(/\/login$/);
+    // `/` redirects client-side via useEffect; allow extra time under parallel workers.
+    await expect(page).toHaveURL(/\/login$/, { timeout: 15_000 });
     await expect(page.getByRole('heading', { name: 'เข้าสู่ระบบ' })).toBeVisible();
   });
 

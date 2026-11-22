@@ -35,7 +35,7 @@ SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 export const SelectContent = React.forwardRef<
   React.ComponentRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = 'popper', ...props }, ref) => (
+>(({ className, children, position = 'popper', onCloseAutoFocus, ...props }, ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
@@ -46,6 +46,11 @@ export const SelectContent = React.forwardRef<
         className,
       )}
       position={position}
+      onCloseAutoFocus={(event) => {
+        // Avoid focus move closing a parent Dialog after selecting/dismissing.
+        event.preventDefault();
+        onCloseAutoFocus?.(event);
+      }}
       {...props}
     >
       <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center text-muted">

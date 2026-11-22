@@ -15,16 +15,20 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, PageHeader } from '@/components/ui/card';
-import { DataTable, SortableHeader } from '@/components/ui/data-table';
+import { DataTable, ServerSortHeader } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
 import { useAdminVendors } from '@/hooks/useAdminVendors';
 import { getErrorMessage } from '@/lib/api/errors';
 import { labelUserRole } from '@/lib/i18n/th';
 import {
   parseEnumParam,
+  parsePageParam,
   parseSearchQuery,
+  parseSortParam,
   serializeEnumParam,
+  serializePageParam,
   serializeSearchQuery,
+  serializeSortParam,
 } from '@/lib/navigation/list-query-params';
 import { useDebouncedSearchDraft } from '@/lib/navigation/use-debounced-search-draft';
 import { useListQueryState, type ListQuerySpec } from '@/lib/navigation/use-list-query-state';
@@ -32,16 +36,39 @@ import { cn, formatDate } from '@/lib/utils';
 import type { AdminVendor } from '@/types';
 
 const SEARCH_DEBOUNCE_MS = 300;
+const ADMIN_VENDORS_PAGE_SIZE = 20;
 const VENDOR_STATUS_VALUES = ['all', 'active', 'inactive'] as const;
+const VENDOR_SORTS = [
+  'createdAt:desc',
+  'createdAt:asc',
+  'fullName:asc',
+  'fullName:desc',
+  'storeCount:asc',
+  'storeCount:desc',
+] as const;
+const DEFAULT_VENDOR_SORT = 'createdAt:desc';
 
 const adminVendorsQuerySpec = {
+  page: { parse: parsePageParam, serialize: serializePageParam },
   q: { parse: parseSearchQuery, serialize: serializeSearchQuery },
   status: {
     parse: (raw: string | null) =>
       parseEnumParam(raw, VENDOR_STATUS_VALUES, 'all') as VendorStatusFilter,
     serialize: (value: VendorStatusFilter) => serializeEnumParam(value, 'all'),
   },
+  sort: {
+    parse: (raw: string | null) => parseSortParam(raw, VENDOR_SORTS, DEFAULT_VENDOR_SORT),
+    serialize: (value: string) => serializeSortParam(value, DEFAULT_VENDOR_SORT),
+  },
 } satisfies ListQuerySpec;
+
+function toggleListSort(current: string, field: string): string {
+  const [activeField, activeDir] = current.split(':');
+  if (activeField !== field) {
+    return field === 'createdAt' ? `${field}:desc` : `${field}:asc`;
+  }
+  return `${field}:${activeDir === 'asc' ? 'desc' : 'asc'}`;
+}
 
 function vendorStatusBadge(vendor: AdminVendor): { label: string; className: string } {
   if (vendor.isActive !== false) {
@@ -53,7 +80,7 @@ function vendorStatusBadge(vendor: AdminVendor): { label: string; className: str
 export default function AdminVendorsPage() {
   const router = useRouter();
   const [params, setParams] = useListQueryState(adminVendorsQuerySpec);
-  const { q: search, status: statusFilter } = params;
+  const { page, q: search, status: statusFilter, sort } = params;
   const commitSearch = useCallback((next: string) => setParams({ q: next }), [setParams]);
   const [searchInput, setSearchInput] = useDebouncedSearchDraft(
     search,
@@ -66,24 +93,35 @@ export default function AdminVendorsPage() {
   const hasStatusFilter = statusFilter !== 'all';
   const hasFilters = hasSearch || hasStatusFilter;
 
-  const {
-    data: vendors = [],
-    isLoading,
-    isFetching,
-    error,
-  } = useAdminVendors(trimmedSearch || undefined);
+  const queryParams = useMemo(
+    () => ({
+      page,
+      limit: ADMIN_VENDORS_PAGE_SIZE,
+      search: trimmedSearch || undefined,
+      status: statusFilter === 'all' ? undefined : statusFilter,
+      sort: sort === DEFAULT_VENDOR_SORT ? undefined : sort,
+    }),
+    [page, trimmedSearch, statusFilter, sort],
+  );
 
-  const filteredVendors = useMemo(() => {
-    if (statusFilter === 'all') return vendors;
-    if (statusFilter === 'active') return vendors.filter((vendor) => vendor.isActive !== false);
-    return vendors.filter((vendor) => vendor.isActive === false);
-  }, [vendors, statusFilter]);
+  const { data, isLoading, isFetching, error } = useAdminVendors(queryParams);
+  const vendors = data?.items ?? [];
+  const pagination = data?.pagination;
 
   const columns = useMemo<ColumnDef<AdminVendor>[]>(
     () => [
       {
         accessorKey: 'fullName',
-        header: ({ column }) => <SortableHeader column={column}>ผู้ขาย</SortableHeader>,
+        header: () => (
+          <ServerSortHeader
+            label="ผู้ขาย"
+            active={sort.startsWith('fullName:')}
+            direction={
+              sort.startsWith('fullName:') ? (sort.endsWith('asc') ? 'asc' : 'desc') : undefined
+            }
+            onToggle={() => setParams({ sort: toggleListSort(sort, 'fullName') })}
+          />
+        ),
         cell: ({ row }) => (
           <div className="min-w-0">
             <p className="truncate font-medium text-ink">{row.original.fullName}</p>
@@ -101,7 +139,16 @@ export default function AdminVendorsPage() {
       },
       {
         accessorKey: 'storeCount',
-        header: 'ร้านค้า',
+        header: () => (
+          <ServerSortHeader
+            label="ร้านค้า"
+            active={sort.startsWith('storeCount:')}
+            direction={
+              sort.startsWith('storeCount:') ? (sort.endsWith('asc') ? 'asc' : 'desc') : undefined
+            }
+            onToggle={() => setParams({ sort: toggleListSort(sort, 'storeCount') })}
+          />
+        ),
         cell: ({ row }) => (
           <span className="tabular-nums text-sm text-ink">
             {(row.original.storeCount ?? 0).toLocaleString('th-TH')}
@@ -118,7 +165,16 @@ export default function AdminVendorsPage() {
       },
       {
         accessorKey: 'createdAt',
-        header: ({ column }) => <SortableHeader column={column}>สมัครเมื่อ</SortableHeader>,
+        header: () => (
+          <ServerSortHeader
+            label="สมัครเมื่อ"
+            active={sort.startsWith('createdAt:')}
+            direction={
+              sort.startsWith('createdAt:') ? (sort.endsWith('asc') ? 'asc' : 'desc') : undefined
+            }
+            onToggle={() => setParams({ sort: toggleListSort(sort, 'createdAt') })}
+          />
+        ),
         cell: ({ row }) =>
           row.original.createdAt ? (
             <span className="text-sm text-muted-foreground">
@@ -145,27 +201,27 @@ export default function AdminVendorsPage() {
         ),
       },
     ],
-    [],
+    [setParams, sort],
   );
 
   const resultLabel = useMemo(() => {
-    const filteredCount = filteredVendors.length;
-    const totalCount = vendors.length;
-    const filteredLabel = filteredCount.toLocaleString('th-TH');
-    const totalLabel = totalCount.toLocaleString('th-TH');
-
+    if (!pagination) return null;
+    const totalLabel = pagination.total.toLocaleString('th-TH');
     if (hasFilters) {
-      return `แสดง ${filteredLabel} จาก ${totalLabel} รายการ`;
+      return `พบ ${totalLabel} รายการ`;
+    }
+    if (pagination.totalPages > 1) {
+      return `หน้า ${pagination.page} จาก ${pagination.totalPages} · ทั้งหมด ${totalLabel} รายการ`;
     }
     return `ผู้ขายทั้งหมด ${totalLabel} รายการ`;
-  }, [filteredVendors.length, hasFilters, vendors.length]);
+  }, [hasFilters, pagination]);
 
-  const showEmpty = !isLoading && !error && filteredVendors.length === 0;
-  const showList = !isLoading && !error && filteredVendors.length > 0;
+  const showEmpty = !isLoading && !error && vendors.length === 0;
+  const showList = !isLoading && !error && vendors.length > 0;
 
   function clearFilters() {
     setSearchInput('');
-    setParams({ q: '', status: 'all' });
+    setParams({ q: '', status: 'all', sort: DEFAULT_VENDOR_SORT, page: 1 });
   }
 
   function goToVendor(vendor: AdminVendor) {
@@ -247,7 +303,7 @@ export default function AdminVendorsPage() {
             </p>
 
             <VendorsMobileList
-              vendors={filteredVendors}
+              vendors={vendors}
               onVendorClick={goToVendor}
               getStatusBadge={vendorStatusBadge}
             />
@@ -255,11 +311,39 @@ export default function AdminVendorsPage() {
             <div className="hidden md:block">
               <DataTable
                 columns={columns}
-                data={filteredVendors}
+                data={vendors}
                 emptyMessage="ไม่พบผู้ขาย"
                 onRowClick={goToVendor}
               />
             </div>
+
+            {pagination && pagination.totalPages > 1 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-sm text-muted-foreground">
+                <span className="tabular-nums">
+                  หน้า {pagination.page} จาก {pagination.totalPages}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={page <= 1 || isFetching}
+                    onClick={() => setParams((current) => ({ page: current.page - 1 }))}
+                  >
+                    ก่อนหน้า
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= pagination.totalPages || isFetching}
+                    onClick={() => setParams((current) => ({ page: current.page + 1 }))}
+                  >
+                    ถัดไป
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </>
         ) : null}
       </div>

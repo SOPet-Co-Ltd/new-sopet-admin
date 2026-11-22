@@ -50,7 +50,10 @@ vi.mock('@/hooks/useShipping', () => ({
 
 vi.mock('@/hooks/useAdminStores', () => ({
   useAdminStores: () => ({
-    data: [{ id: 'store-1', name: 'SOPet Pet Shop' }],
+    data: {
+      items: [{ id: 'store-1', name: 'SOPet Pet Shop' }],
+      pagination: { page: 1, limit: 100, total: 1, totalPages: 1 },
+    },
     isLoading: false,
   }),
 }));

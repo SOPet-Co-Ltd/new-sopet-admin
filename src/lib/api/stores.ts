@@ -11,12 +11,11 @@ import {
   SWITCH_STORE,
   UPDATE_STORE,
   UPDATE_STORE_PAYOUT,
-  LINK_STORE_OMISE_RECIPIENT,
 } from '@/lib/graphql/documents';
 import { mapStore, mapUser } from '@/lib/graphql/mappers';
 import type {
   LoginResult,
-  OmiseRecipientStatus,
+  BankAccountVerificationStatus,
   RejectStoreInput,
   Store,
   StoreDetail,
@@ -32,9 +31,8 @@ type GqlStoreDetail = Parameters<typeof mapStore>[0] & {
   bankAccountNumber?: string | null;
   bankName?: string | null;
   bankCode?: string | null;
-  omiseRecipientId?: string | null;
-  omiseRecipientStatus?: string | null;
-  omiseRecipientFailureMessage?: string | null;
+  bankAccountVerificationStatus?: string | null;
+  bankAccountRejectionReason?: string | null;
 };
 
 function mapStoreDetail(store: GqlStoreDetail): StoreDetail {
@@ -47,9 +45,9 @@ function mapStoreDetail(store: GqlStoreDetail): StoreDetail {
     bankAccountNumber: store.bankAccountNumber ?? undefined,
     bankName: store.bankName ?? undefined,
     bankCode: store.bankCode ?? undefined,
-    omiseRecipientId: store.omiseRecipientId ?? undefined,
-    omiseRecipientStatus: (store.omiseRecipientStatus as OmiseRecipientStatus | null) ?? undefined,
-    omiseRecipientFailureMessage: store.omiseRecipientFailureMessage ?? undefined,
+    bankAccountVerificationStatus:
+      (store.bankAccountVerificationStatus as BankAccountVerificationStatus | null) ?? undefined,
+    bankAccountRejectionReason: store.bankAccountRejectionReason ?? undefined,
   };
 }
 
@@ -95,12 +93,6 @@ export function updateStorePayout(
   return executeMutation<{ updateStorePayout: GqlStoreDetail }>(UPDATE_STORE_PAYOUT, {
     input,
   }).then((data) => mapStoreDetail(data.updateStorePayout));
-}
-
-export function linkStoreOmiseRecipient(): Promise<StoreDetail> {
-  return executeMutation<{ linkStoreOmiseRecipient: GqlStoreDetail }>(
-    LINK_STORE_OMISE_RECIPIENT,
-  ).then((data) => mapStoreDetail(data.linkStoreOmiseRecipient));
 }
 
 export function approveStore(storeId: string): Promise<Store> {

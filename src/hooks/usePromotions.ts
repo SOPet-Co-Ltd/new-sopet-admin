@@ -5,45 +5,38 @@ import {
   createPromotion,
   deletePromotion,
   getPlatformPromotions,
+  getPromotion,
   getStorePromotions,
   togglePromotion,
   updatePromotion,
 } from '@/lib/api/promotions';
 import { queryKeys } from '@/lib/react-query/keys';
-import type { CreatePromotionInput, UpdatePromotionInput } from '@/types';
+import type { CreatePromotionInput, PromotionsQueryParams, UpdatePromotionInput } from '@/types';
 
-export function useStorePromotions(storeId?: string) {
+export function useStorePromotions(storeId?: string, params: PromotionsQueryParams = {}) {
   return useQuery({
-    queryKey: queryKeys.promotions.store(storeId ?? ''),
-    queryFn: () => getStorePromotions(storeId!),
+    queryKey: queryKeys.promotions.store(storeId ?? '', params),
+    queryFn: () => getStorePromotions(storeId!, params),
     enabled: !!storeId,
   });
 }
 
-export function usePlatformPromotions() {
+export function usePlatformPromotions(params: PromotionsQueryParams = {}) {
   return useQuery({
-    queryKey: queryKeys.promotions.platform(),
-    queryFn: getPlatformPromotions,
+    queryKey: queryKeys.promotions.platform(params),
+    queryFn: () => getPlatformPromotions(params),
   });
 }
 
-export function usePlatformPromotion(id: string) {
-  const query = usePlatformPromotions();
-  const promotion = query.data?.find((item) => item.id === id);
+export function usePromotion(id: string) {
+  const query = useQuery({
+    queryKey: queryKeys.promotions.detail(id),
+    queryFn: () => getPromotion(id),
+    enabled: !!id,
+  });
   return {
     ...query,
-    data: promotion,
-    isNotFound: !query.isLoading && !query.error && !promotion,
-  };
-}
-
-export function useStorePromotion(id: string, storeId?: string) {
-  const query = useStorePromotions(storeId);
-  const promotion = query.data?.find((item) => item.id === id);
-  return {
-    ...query,
-    data: promotion,
-    isNotFound: !!storeId && !query.isLoading && !query.error && !promotion,
+    isNotFound: !query.isLoading && !query.data,
   };
 }
 

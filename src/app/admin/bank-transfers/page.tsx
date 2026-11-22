@@ -1,5 +1,6 @@
 'use client';
 
+import { HelpDeepLink } from '@/components/help/help-deep-link';
 import { Button } from '@/components/ui/button';
 import { Card, CardBody, CardHeader, PageHeader } from '@/components/ui/card';
 import {
@@ -44,6 +45,7 @@ export default function AdminBankTransfersPage() {
       <PageHeader
         title="โอนเงินเข้าบัญชี"
         description="ตรวจสอบยอดโอนเข้าบัญชี SOPET แล้วกดยืนยันรับเงิน — ร้านค้าไม่สามารถบังคับชำระสำเร็จได้"
+        action={<HelpDeepLink role="admin" slug="bank-transfers" />}
       />
 
       <Card>

@@ -55,6 +55,12 @@ export function getVendorOrderWorkflowAction(
     return 'awaiting_customer';
   }
 
+  // Admin can set the order to shipped without moving item fulfillment.
+  // The next step follows that status instead of staying on acknowledge.
+  if (order.status === 'shipped') {
+    return 'awaiting_customer';
+  }
+
   if (fulfillmentStatuses.every((status) => status === 'processing')) {
     return 'ship';
   }

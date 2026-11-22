@@ -35,6 +35,31 @@ const baseProduct: Product = {
 let mockProduct: Product = baseProduct;
 const updateMutateAsync = vi.fn().mockResolvedValue({});
 
+// Avoid loading BlockNote/Mantine in page tests (jsdom lacks pointer APIs).
+vi.mock('next/dynamic', () => ({
+  default: () => {
+    function MockBlockEditor({
+      id,
+      value,
+      onChange,
+    }: {
+      id: string;
+      value: string;
+      onChange: (value: string) => void;
+    }) {
+      return (
+        <textarea
+          id={id}
+          aria-label="รายละเอียด"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      );
+    }
+    return MockBlockEditor;
+  },
+}));
+
 vi.mock('next/navigation', () => ({
   useParams: () => ({ id: 'prod-1' }),
   useRouter: () => ({ push: vi.fn() }),

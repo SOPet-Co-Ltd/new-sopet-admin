@@ -45,14 +45,17 @@ function FormSection({
   title,
   description,
   children,
+  tourId,
 }: {
   id: string;
   title: string;
   description?: string;
   children: React.ReactNode;
+  /** Optional `data-tour-id` for action-guide spotlights. */
+  tourId?: string;
 }) {
   return (
-    <section aria-labelledby={id} className="space-y-4 p-5 md:p-6">
+    <section aria-labelledby={id} className="space-y-4 p-5 md:p-6" data-tour-id={tourId}>
       <div>
         <h3 id={id} className="font-display text-sm font-medium text-balance text-ink">
           {title}
@@ -173,6 +176,7 @@ export function SaleCampaignForm({
           >
             <FormSection
               id={basicsId}
+              tourId="action-campaign-basics"
               title="ข้อมูลแคมเปญ"
               description="แต่ละรายการต้องมี % ส่วนลด ราคาที่ลูกค้าชำระ = ราคาขาย × (1 − %) ราคาเปรียบเทียบเป็นตัวเลือก และใช้ได้เฉพาะเมื่อสูงกว่าราคาขายปัจจุบัน"
             >
@@ -251,6 +255,7 @@ export function SaleCampaignForm({
 
             <FormSection
               id={itemsId}
+              tourId="action-campaign-items"
               title="สินค้าในแคมเปญ"
               description="กรอก % เพื่อลดราคาที่ชำระ ถ้าต้องการขีดฆ่าราคาอ้างอิง ให้กรอกราคาเปรียบเทียบที่สูงกว่าราคาขาย — ระบบจะไม่สร้างราคาขีดฆ่าจาก %"
             >
@@ -405,6 +410,7 @@ export function SaleCampaignForm({
 
             <FormSection
               id={scheduleId}
+              tourId="action-campaign-schedule"
               title="ระยะเวลา"
               description="เว้นว่างได้ — แคมเปญจะใช้ได้จนกว่าจะปิดเอง"
             >
@@ -466,7 +472,12 @@ export function SaleCampaignForm({
               <Button type="button" variant="outline" asChild disabled={isPending}>
                 <Link href={listHref}>ยกเลิก</Link>
               </Button>
-              <Button type="submit" disabled={isPending} aria-busy={isPending}>
+              <Button
+                type="submit"
+                disabled={isPending}
+                aria-busy={isPending}
+                data-tour-id="action-campaign-submit"
+              >
                 {isPending ? 'กำลังบันทึก...' : isEdit ? 'บันทึก' : 'สร้างแคมเปญ'}
               </Button>
             </div>

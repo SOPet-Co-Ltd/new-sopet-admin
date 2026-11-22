@@ -20,24 +20,31 @@ export function CustomersMobileList({
     <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-card)] md:hidden">
       {customers.map((customer) => {
         const displayName = customer.fullName?.trim() || customer.phone;
-        const prefetchHandlers = getDetailPrefetchHandlers(customer.id);
+        const prefetchHandlers = customer.isGuest
+          ? undefined
+          : getDetailPrefetchHandlers(customer.id);
 
         return (
           <li key={customer.id}>
             <div
-              role="button"
-              tabIndex={0}
-              aria-label={`แก้ไข ${displayName}`}
-              className="flex cursor-pointer items-start gap-3 px-4 py-3.5 transition-colors duration-200 ease-out hover:bg-surface/80 focus-visible:bg-surface/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/40 motion-reduce:transition-none"
-              onClick={() => onCustomerClick(customer)}
-              onMouseEnter={prefetchHandlers.onMouseEnter}
-              onFocus={prefetchHandlers.onFocus}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  onCustomerClick(customer);
-                }
-              }}
+              role={customer.isGuest ? undefined : 'button'}
+              tabIndex={customer.isGuest ? undefined : 0}
+              aria-label={customer.isGuest ? undefined : `แก้ไข ${displayName}`}
+              className="flex items-start gap-3 px-4 py-3.5 transition-colors duration-200 ease-out hover:bg-surface/80 focus-visible:bg-surface/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/40 motion-reduce:transition-none data-[clickable=true]:cursor-pointer"
+              data-clickable={customer.isGuest ? undefined : 'true'}
+              onClick={customer.isGuest ? undefined : () => onCustomerClick(customer)}
+              onMouseEnter={prefetchHandlers?.onMouseEnter}
+              onFocus={prefetchHandlers?.onFocus}
+              onKeyDown={
+                customer.isGuest
+                  ? undefined
+                  : (event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onCustomerClick(customer);
+                      }
+                    }
+              }
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
@@ -48,10 +55,10 @@ export function CustomersMobileList({
                     ) : null}
                   </div>
                   <Badge
-                    status={customer.isActive ? 'published' : 'draft'}
+                    status={customer.isGuest || !customer.isActive ? 'draft' : 'published'}
                     className="mt-0.5 shrink-0"
                   >
-                    {customer.isActive ? 'ใช้งานอยู่' : 'ระงับ'}
+                    {customer.isGuest ? 'ผู้เยี่ยมชม' : customer.isActive ? 'ใช้งานอยู่' : 'ระงับ'}
                   </Badge>
                 </div>
                 <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">

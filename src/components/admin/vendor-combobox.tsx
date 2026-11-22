@@ -47,14 +47,13 @@ export function VendorCombobox({
 
   const searchParam = isActiveSearch ? debouncedSearch.trim() || undefined : undefined;
 
-  const {
-    data: vendors = [],
-    isLoading,
-    isFetching,
-    error,
-  } = useAdminVendors(searchParam, {
-    enabled: open,
-  });
+  const { data, isLoading, isFetching, error } = useAdminVendors(
+    { search: searchParam, page: 1, limit: 20 },
+    {
+      enabled: open,
+    },
+  );
+  const vendors = data?.items ?? [];
 
   const closeDropdown = useCallback(() => {
     setOpen(false);

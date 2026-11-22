@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getApiBaseUrl, resolveBrowserGraphqlUrl, resolvePublicApiBaseUrl } from './config';
+import {
+  getApiBaseUrl,
+  resolveBrowserGraphqlUrl,
+  resolveBrowserGraphqlWsUrl,
+  resolvePublicApiBaseUrl,
+  toGraphqlWsUrl,
+} from './config';
 
 const ORIGINAL_ENV = { ...process.env };
 
@@ -40,6 +46,46 @@ describe('resolveBrowserGraphqlUrl', () => {
     expect(resolveBrowserGraphqlUrl('http://localhost:3002/graphql')).toBe('/graphql');
     expect(resolveBrowserGraphqlUrl('https://api.sopet.org/graphql')).toBe('/graphql');
     expect(resolveBrowserGraphqlUrl('//evil.example/graphql')).toBe('/graphql');
+  });
+});
+
+describe('resolveBrowserGraphqlWsUrl', () => {
+  it('prefers an explicit NEXT_PUBLIC_GRAPHQL_WS_URL', () => {
+    expect(
+      resolveBrowserGraphqlWsUrl({
+        NEXT_PUBLIC_GRAPHQL_WS_URL: 'wss://api.sopet.org/graphql',
+        NEXT_PUBLIC_API_URL: 'https://ignored.example',
+      }),
+    ).toBe('wss://api.sopet.org/graphql');
+  });
+
+  it('derives wss from the UAT API host', () => {
+    expect(
+      resolveBrowserGraphqlWsUrl({
+        NEXT_PUBLIC_API_URL: 'https://api-uat.sopet.org',
+      }),
+    ).toBe('wss://api-uat.sopet.org/graphql');
+  });
+
+  it('derives wss from GRAPHQL_SSR_URL when public hosts are unset', () => {
+    expect(
+      resolveBrowserGraphqlWsUrl({
+        GRAPHQL_SSR_URL: 'https://api-uat.sopet.org/graphql',
+      }),
+    ).toBe('wss://api-uat.sopet.org/graphql');
+  });
+
+  it('skips localhost public hosts and falls back to local ws', () => {
+    expect(
+      resolveBrowserGraphqlWsUrl({
+        NEXT_PUBLIC_API_URL: 'http://localhost:3002',
+        GRAPHQL_SSR_URL: 'http://localhost:3002/graphql',
+      }),
+    ).toBe('ws://localhost:3002/graphql');
+  });
+
+  it('converts https API origins with toGraphqlWsUrl', () => {
+    expect(toGraphqlWsUrl('https://api-uat.sopet.org')).toBe('wss://api-uat.sopet.org/graphql');
   });
 });
 
