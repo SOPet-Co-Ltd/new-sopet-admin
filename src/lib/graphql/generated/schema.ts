@@ -218,6 +218,8 @@ export type AdminManualPayoutType = {
 
 export type AdminOrder = {
   __typename?: 'AdminOrder';
+  beamChargeId?: Maybe<Scalars['String']['output']>;
+  beamTransactionUrl?: Maybe<Scalars['String']['output']>;
   customer?: Maybe<AdminOrderCustomer>;
   order: OrderType;
   stores: Array<AdminOrderStore>;

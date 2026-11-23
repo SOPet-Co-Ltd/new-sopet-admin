@@ -29,6 +29,8 @@ export type AdminOrder = {
   order: Order;
   stores: AdminOrderStore[];
   customer: AdminOrderCustomer | null;
+  beamChargeId: string | null;
+  beamTransactionUrl: string | null;
 };
 
 export const ADMIN_ORDERS_PAGE_SIZE = 20;
@@ -37,6 +39,8 @@ type GqlAdminOrder = {
   order: Parameters<typeof mapOrder>[0];
   stores: AdminOrderStore[];
   customer: AdminOrderCustomer | null;
+  beamChargeId?: string | null;
+  beamTransactionUrl?: string | null;
 };
 
 function mapAdminOrder(record: GqlAdminOrder): AdminOrder {
@@ -44,6 +48,8 @@ function mapAdminOrder(record: GqlAdminOrder): AdminOrder {
     order: mapOrder(record.order),
     stores: record.stores,
     customer: record.customer,
+    beamChargeId: record.beamChargeId ?? null,
+    beamTransactionUrl: record.beamTransactionUrl ?? null,
   };
 }
 

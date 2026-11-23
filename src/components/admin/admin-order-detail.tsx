@@ -97,7 +97,7 @@ function MoneyRow({
 }
 
 export function AdminOrderDetail({ record }: AdminOrderDetailProps) {
-  const { order, stores, customer } = record;
+  const { order, stores, customer, beamChargeId, beamTransactionUrl } = record;
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [shippingDialogOpen, setShippingDialogOpen] = useState(false);
   const storeNameById = new Map(stores.map((store) => [store.id, store.name || store.id]));
@@ -162,6 +162,23 @@ export function AdminOrderDetail({ record }: AdminOrderDetailProps) {
                   ))}
             </span>
           </DetailRow>
+          {beamChargeId ? (
+            <DetailRow label="Beam Reference">
+              <span className="inline-flex flex-col items-end gap-1">
+                <span className="font-mono text-xs break-all">{beamChargeId}</span>
+                {beamTransactionUrl ? (
+                  <a
+                    href={beamTransactionUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand underline-offset-2 hover:underline"
+                  >
+                    เปิดใน Beam Lighthouse
+                  </a>
+                ) : null}
+              </span>
+            </DetailRow>
+          ) : null}
         </CardBody>
       </Card>
 
