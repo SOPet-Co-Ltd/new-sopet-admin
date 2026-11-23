@@ -65,6 +65,8 @@ const MOCK_ORDER: AdminOrder = {
     phone: '0811111111',
     email: 'a@example.com',
   },
+  beamChargeId: null,
+  beamTransactionUrl: null,
 };
 
 describe('AdminOrdersPage', () => {
