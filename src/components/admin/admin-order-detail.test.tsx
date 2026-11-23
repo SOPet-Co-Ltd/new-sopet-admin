@@ -79,6 +79,8 @@ const multiStoreOrder: AdminOrder = {
     phone: '0811111111',
     email: 'a@example.com',
   },
+  beamChargeId: null,
+  beamTransactionUrl: null,
 };
 
 const guestOrder: AdminOrder = {
@@ -124,5 +126,33 @@ describe('AdminOrderDetail', () => {
     expect(screen.getByText('guest@example.com')).toBeInTheDocument();
     expect(screen.getByText('ลูกค้าทั่วไป')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Guest User' })).not.toBeInTheDocument();
+  });
+
+  it('shows Beam charge id and Lighthouse link when present', () => {
+    render(
+      <AdminOrderDetail
+        record={{
+          ...multiStoreOrder,
+          beamChargeId: 'ch_beam_abc',
+          beamTransactionUrl:
+            'https://playground-lighthouse.beamcheckout.com/merchant/sopet-uyz0k6/accounting/transaction-history/ch_beam_abc',
+        }}
+      />,
+    );
+
+    expect(screen.getByText('ch_beam_abc')).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: 'เปิดใน Beam Lighthouse' });
+    expect(link).toHaveAttribute(
+      'href',
+      'https://playground-lighthouse.beamcheckout.com/merchant/sopet-uyz0k6/accounting/transaction-history/ch_beam_abc',
+    );
+    expect(link).toHaveAttribute('target', '_blank');
+  });
+
+  it('hides Beam reference when charge id is absent', () => {
+    render(<AdminOrderDetail record={multiStoreOrder} />);
+
+    expect(screen.queryByText('Beam Reference')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'เปิดใน Beam Lighthouse' })).not.toBeInTheDocument();
   });
 });

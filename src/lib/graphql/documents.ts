@@ -284,6 +284,8 @@ const ADMIN_ORDER_FIELDS = `
     phone
     email
   }
+  beamChargeId
+  beamTransactionUrl
 `;
 
 const ADMIN_ORDER_LIST_FIELDS = `
